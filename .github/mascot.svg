@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>nejomibot</title>
+  <defs>
+    <linearGradient id="space" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f24"/>
+      <stop offset="1" stop-color="#1a2348"/>
+    </linearGradient>
+    <radialGradient id="aura" cx="300" cy="312" r="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9ccc65" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#9ccc65" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="skin" cx="255" cy="257" r="171.1" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#bfe08f"/>
+      <stop offset="0.55" stop-color="#9ccc65"/>
+      <stop offset="1" stop-color="#6f9e3a"/>
+    </radialGradient>
+    <linearGradient id="streak" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9fc3ff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#cfe0ff" stop-opacity="0.75"/>
+    </linearGradient>
+    <filter id="glow" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+    <clipPath id="eye"><circle cx="334" cy="260" r="20"/></clipPath>
+    <style>
+      .title { font-family: 'Adwaita Sans', 'Inter', sans-serif; font-weight: 800; font-size: 116px; fill: #f5f7ff; letter-spacing: -2px; }
+      .tagline { font-family: 'Adwaita Sans', 'Inter', sans-serif; font-weight: 500; font-size: 33px; fill: #c8d0e6; }
+      .yoda { font-family: 'Adwaita Sans', 'Inter', sans-serif; font-weight: 500; font-style: italic; font-size: 28px; fill: #b3dc7d; }
+      .chip { font-family: 'Adwaita Mono', 'JetBrains Mono', monospace; font-weight: 700; font-size: 21px; fill: #0b1026; }
+    </style>
+  </defs>
+  
+  <g transform="translate(-240.9 -285.5) scale(2.8790)">
+    <g filter="url(#shadow)">
+    <path d="M 237.4 219.1 Q 187.7 199.6 138.0 124.0 Q 222.9 152.3 307.8 200.3 Z" fill="#6f9e3a"/>
+    <path d="M 251.5 211.0 Q 209.5 193.5 167.5 142.4 Q 229.5 165.5 291.5 200.3 Z" fill="#e9b7a4" opacity="0.5"/>
+    <path d="M 201.1 259.4 Q 153.1 253.7 105.0 172.0 Q 183.3 176.1 261.7 206.8 Z" fill="url(#skin)"/>
+    <path d="M 210.8 244.2 Q 171.6 237.3 132.3 184.9 Q 188.8 191.6 245.3 214.3 Z" fill="#e9b7a4" opacity="0.85"/>
+    <path d="M 300 312 L 400.1 249.5 A 118 118 0 1 0 400.1 374.5 Z" fill="url(#skin)"/>
+  </g>
+  <g>
+    <circle cx="334" cy="260" r="20" fill="#f6f9ee"/>
+    <circle cx="340" cy="263" r="9.5" fill="#16220c"/>
+    <circle cx="343" cy="260" r="3" fill="#ffffff"/>
+    <rect x="314" y="240" width="40" height="16" fill="#6f9e3a" clip-path="url(#eye)"/>
+    <line x1="314.4" y1="256" x2="353.6" y2="256" stroke="#4f7a24" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M 304 226 q 20 -12 46 -4" fill="none" stroke="#6f9e3a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 312 214 q 16 -9 34 -3" fill="none" stroke="#6f9e3a" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  </g>
+  </g>
+  
+</svg>
