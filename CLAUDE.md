@@ -33,7 +33,7 @@ From the owner of the project, in no order of priority:
    only what is strictly necessary goes in it.
 8. Use minimal resources to build the images, as well.
 9. Measure, test and verify any changes, for accuracy and future improvements.
-10. Uptime and availability is everything, this rule always comes first.
+10. Uptime and availability is everything, if something is modified, changed, pushed, if an image is built, it must always work and be 100% stable and reliable. This rule trumps all others.
 
 User-facing means anything people in Signal see or can do: the commands and
 their names, the replies and their wording, who may use what, and what is
