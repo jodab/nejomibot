@@ -77,8 +77,8 @@ async def daily_post() -> list[Reply]:
 
 
 async def daily_quote() -> str:
-    """A proverb or quote from fortunes_svenska, headed as the day's, in
-    bold. Styled."""
+    """A proverb or quote from fortunes_svenska, whatever fortune_library is,
+    headed as the day's, in bold. Styled."""
     quote = await asyncio.to_thread(fortune_answer, "fortunes_svenska")
     return f"**{escape(_('Proverb or quote of the day:'))}**\n\n{escape(quote)}"
 

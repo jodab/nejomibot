@@ -1,6 +1,6 @@
 """/fortune: a random fortune from the libraries in nejomibot/fortunes:
-fortunes_svenska, the one named (/fortune startrek), or all of them (/fortune
-all). /fortune list names them."""
+fortune_library (fortunes_svenska if not set), the one named (/fortune
+startrek), or all of them (/fortune all). /fortune list names them."""
 
 import asyncio
 import logging
@@ -11,6 +11,7 @@ from pathlib import Path
 from signalbot import DataMessageContext
 
 from .commands import Command, Handler, answer, argument
+from .config import get_settings
 from .i18n import _
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,6 @@ logger = logging.getLogger(__name__)
 FORTUNES_DIR = Path(__file__).parent / "fortunes"
 LIST = "list"
 ALL = "all"
-DEFAULT_LIBRARY = "fortunes_svenska"
 
 
 def fortune_libraries(directory: Path) -> list[Path]:
@@ -75,15 +75,16 @@ def counts(directory: Path) -> dict[str, int]:
 
 
 def fortune_answer(library: str) -> str:
-    """A fortune from the library, the default one if none, or from all of them;
+    """A fortune from the library, fortune_library if none, or from all of them;
     or the libraries' names. Blocking."""
     found = counts(FORTUNES_DIR)
     if library.casefold() == LIST:
         # A paragraph, which wraps in Signal's bubbles, rather than a long column
         return f"🔮 {_('Fortune libraries:')}\n" + " · ".join(found)
     if not library:
-        # Every library, should the default one be missing
-        library = DEFAULT_LIBRARY if DEFAULT_LIBRARY in found else ALL
+        # Every library, should the default one be missing, or all be set
+        default = get_settings().fortune_library
+        library = default if default in found else ALL
     if library.casefold() == ALL:
         if not any(found.values()):
             return _("No fortunes found.")

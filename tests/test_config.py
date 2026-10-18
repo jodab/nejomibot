@@ -28,6 +28,7 @@ def test_reads_toml_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Non
         photos_birth_date = 2019-06-15
         clocks = {{ "Home" = "Europe/Stockholm", "Away" = "Asia/Tokyo" }}
         exchange_rate = ["EUR", "SEK"]
+        fortune_library = "startrek"
         healthcheck_url = "https://hc-ping.com/abc"
 
         [aliases]
@@ -42,6 +43,7 @@ def test_reads_toml_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Non
     assert settings.photos_birth_date == date(2019, 6, 15)
     assert list(settings.clock_zones) == ["Home", "Away"]
     assert settings.exchange_rate == ("EUR", "SEK")
+    assert settings.fortune_library == "startrek"
     assert settings.healthcheck_url == "https://hc-ping.com/abc"
     assert settings.healthcheck_minutes == 5
     assert settings.aliases == {"/photo": ["/pic", "pic"]}
@@ -80,6 +82,8 @@ def test_the_environment_is_enough(tmp_path: Path) -> None:
         ("NEJOMIBOT_PHOTOS_TIMEZONE", "Europe/Nowhere"),
         ("NEJOMIBOT_CLOCKS", '{"Nowhere": "Europe/Nowhere"}'),
         ("NEJOMIBOT_LANGUAGE", "xx"),
+        ("NEJOMIBOT_FORTUNE_LIBRARY", "nowhere"),
+        ("NEJOMIBOT_FORTUNE_LIBRARY", "list"),
         ("NEJOMIBOT_ALIASES", '{"photo": ["pic"]}'),
         ("NEJOMIBOT_ALIASES", '{"/photo": ["two words"]}'),
         ("NEJOMIBOT_EXCHANGE_RATE", '["EUR"]'),

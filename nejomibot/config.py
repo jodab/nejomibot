@@ -116,6 +116,10 @@ class Settings(BaseSettings):
     clocks: dict[str, TimeZone] = {}  # none: the time in timezone
     exchange_rate: tuple[Currency, Currency] | None = None  # e.g. EUR, SEK
 
+    # /fortune's library when none is named: one that /fortune list names, or
+    # all of them. The default comes with the bot, so it isn't checked.
+    fortune_library: str = Field("fortunes_svenska", validate_default=False)
+
     # Messages that couldn't be sent (Signal down, no internet) are tried
     # again for this long, then dropped
     send_retry_hours: PositiveFloat = 3
@@ -163,6 +167,19 @@ class Settings(BaseSettings):
 
         if value not in (known := languages()):
             raise ValueError(f"unknown language {value!r}, not one of {known}")
+        return value
+
+    @field_validator("fortune_library")
+    @classmethod
+    def known_fortune_library(cls, value: str) -> str:
+        # Here, as fortune imports this module
+        from .fortune import ALL, FORTUNES_DIR, fortune_libraries
+
+        known = [path.name for path in fortune_libraries(FORTUNES_DIR)]
+        if value != ALL and value not in known:
+            raise ValueError(
+                f"unknown fortune library {value!r}, not {ALL} or one of {known}"
+            )
         return value
 
     @model_validator(mode="after")

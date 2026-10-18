@@ -226,7 +226,7 @@ The everyday commands, for everyone the bot may talk to:
 | `/weather` | Current weather in `weather_city` |
 | `/info`, `/time` | The time in the places in `clocks`, and the `exchange_rate` |
 | `/ping` | `pong!` and how long the ping took to arrive |
-| `/fortune`, `/fortune <library>`, `/fortune all`, `/fortune list` | A random fortune, from `fortunes_svenska`, the library named, or every library; `list` names them |
+| `/fortune`, `/fortune <library>`, `/fortune all`, `/fortune list` | A random fortune, from `fortune_library` (`fortunes_svenska` if not set), the library named, or every library; `list` names them |
 | `/help` | The commands the asker may use, a line each |
 
 For the admins, in a direct chat with the bot:
@@ -589,7 +589,8 @@ picks a translation from [nejomibot/locale](nejomibot/locale):
 
 Day and month names come from the translations too, so the bot needs no
 locales installed. The fortune libraries aren't translated: each is in its own
-language.
+language, and `fortune_library` sets the one `/fortune` picks from when none
+is named.
 
 After changing the bot's messages, [tools/translations.sh](tools/translations.sh)
 (GNU gettext) brings every `.po` file up to date: new messages come in

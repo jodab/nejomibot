@@ -5,6 +5,7 @@ import pytest
 from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot
 
 from nejomibot import commands, fortune
+from nejomibot.config import get_settings
 from nejomibot.fortune import Fortune, read_fortunes
 
 
@@ -98,6 +99,38 @@ async def test_default_library(
     monkeypatch.setattr(fortune.random, "choice", last)
     monkeypatch.setattr(fortune.random, "choices", last_library)
     assert await answer_to(command, monkeypatch) == [expected]
+
+
+@pytest.mark.parametrize(
+    ("command", "expected"),
+    [("/fortune", "A test fortune."), ("/fortune fortunes_svenska", "En spådom.")],
+)
+async def test_fortune_library_is_the_default(
+    library: Path, monkeypatch: pytest.MonkeyPatch, command: str, expected: str
+) -> None:
+    """fortune_library in place of fortunes_svenska; a library named still
+    wins."""
+    (library / "fortunes_svenska").write_text("En spådom.", encoding="utf-8")
+    monkeypatch.setenv("NEJOMIBOT_FORTUNE_LIBRARY", "startrek")
+    get_settings.cache_clear()
+    assert await answer_to(command, monkeypatch) == [expected]
+
+
+async def test_fortune_library_all(
+    library: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (library / "fortunes_svenska").write_text("En spådom.", encoding="utf-8")
+    monkeypatch.setenv("NEJOMIBOT_FORTUNE_LIBRARY", "all")
+    get_settings.cache_clear()
+    chosen: list[list[str]] = []
+
+    def choices(names: list[str], weights: list[int]) -> list[str]:
+        chosen.append(names)
+        return ["startrek"]
+
+    monkeypatch.setattr(fortune.random, "choices", choices)
+    assert await answer_to("/fortune", monkeypatch) == ["A test fortune."]
+    assert chosen == [["fortunes_svenska", "startrek"]]
 
 
 async def test_no_fortunes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

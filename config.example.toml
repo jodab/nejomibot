@@ -47,6 +47,11 @@ data_dir = "/data"
 clocks = { "🇸🇪 Stockholm" = "Europe/Stockholm", "🇫🇮 Helsinki" = "Europe/Helsinki" }
 exchange_rate = ["EUR", "SEK"]
 
+# The fortune library /fortune picks from when none is named: one that
+# /fortune list names, such as "wisdom", or "all" for every one of them.
+# /dailyquote's stays fortunes_svenska.
+# fortune_library = "fortunes_svenska"
+
 # Messages that couldn't be sent (signal-cli-rest-api down, no internet) are
 # tried again for this many hours, then dropped. Kept in data_dir meanwhile,
 # they outlast a restart.

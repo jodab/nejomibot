@@ -119,6 +119,17 @@ async def test_the_daily_quote(chat: Chat) -> None:
     assert quote in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
 
 
+async def test_the_daily_quote_keeps_its_library(
+    chat: Chat, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """fortune_library is /fortune's alone."""
+    monkeypatch.setenv("NEJOMIBOT_FORTUNE_LIBRARY", "startrek")
+    get_settings.cache_clear()
+    [text] = await chat.send("/dailyquote")
+    quote = text.split("\n\n", 1)[1]
+    assert quote in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
+
+
 # The admins' own
 
 
