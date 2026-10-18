@@ -781,6 +781,8 @@ actions. [Release](.github/workflows/release.yml) publishes the image to
 GitHub's registry, ghcr.io, when a release is published, and to Docker Hub
 as well when the repository has the variable `DOCKERHUB_USERNAME` and the
 secret `DOCKERHUB_TOKEN`; nothing else does.
+[tools/release.sh](tools/release.sh) makes a release once CI has passed:
+the version, the changelog, a signed tag, and the release on GitHub.
 
 ## Layout
 
@@ -821,6 +823,7 @@ nejomibot/
 deploy/         examples: Podman Quadlets, and a Compose file
 tests/
 tools/          build-image.sh: test and build the image, for x86 and ARM;
+                release.sh: make a release, and with it the image;
                 signal-account.sh: set up and manage the Signal account;
                 tidy-photos.sh: convert, rename and dedupe the photo library;
                 translations.sh: bring the translations up to date

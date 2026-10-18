@@ -88,6 +88,7 @@ uv run pyright                             # type check, strict
 shellcheck tools/*.sh                      # the shell tools; CI runs it, the build doesn't
 tools/translations.sh                      # after changing any message (needs GNU gettext)
 tools/build-image.sh                       # test stage first, then the amd64+arm64 image
+tools/release.sh patch                     # a release (or minor, major), once CI passed; see --help
 uv run nejomibot-timers                    # the timers from a terminal, as the image has it
 ```
 
@@ -99,7 +100,11 @@ has CI (checks, ShellCheck, image build) and a release workflow that pushes
 to ghcr.io, and to Docker Hub when the repository has `DOCKERHUB_USERNAME`
 and `DOCKERHUB_TOKEN`, only when a release is published; Dependabot updates
 uv.lock, the Dockerfile's digests and the actions. Changes go in
-`CHANGELOG.md`.
+`CHANGELOG.md`, under `## Unreleased`, which `tools/release.sh` turns into
+the release's section and notes. The script releases only what CI passed,
+puts everything back if it fails before the push, and after a failure past
+that, running it again publishes the pushed version. Published releases stay;
+a broken one gets a fixed release.
 
 Running the bot needs a reachable signal-cli-rest-api and a `config.toml`
 (from `config.example.toml`):
