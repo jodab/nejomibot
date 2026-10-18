@@ -4,7 +4,7 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## Unreleased
+## 0.94.0 - 2026-10-18
 
 ### Added
 
