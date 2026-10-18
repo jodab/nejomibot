@@ -31,6 +31,7 @@ from .config import get_settings
 from .i18n import language
 from .messages import collected, error_text, escape, log_failure, reply
 from .receipts import mark_read, show_typing
+from .styles import utf16_length
 
 logger = logging.getLogger(__name__)
 
@@ -60,11 +61,18 @@ def canonical(text: str) -> str:
 
 
 def resolved(context: DataMessageContext) -> DataMessageContext:
-    """The context, with the message's alias replaced by its command."""
+    """The context, with the message's alias replaced by its command, and its
+    text styles moved with the text after it."""
     text = context.message.text
     if text is None or (command_text := canonical(text)) == text:
         return context
-    message = context.message.model_copy(update={"text": command_text})
+    shift = utf16_length(command_text) - utf16_length(text)
+    styles = context.message.text_styles
+    if styles:
+        styles = [s.model_copy(update={"start": s.start + shift}) for s in styles]
+    message = context.message.model_copy(
+        update={"text": command_text, "text_styles": styles}
+    )
     return DataMessageContext(context.bot, message)
 
 

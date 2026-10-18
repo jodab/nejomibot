@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 18:32+0300\n"
+"POT-Creation-Date: 2026-10-18 22:02+0300\n"
 "PO-Revision-Date: 2026-10-18 02:45+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -1162,6 +1162,15 @@ msgstr ""
 "använder det tecknet."
 
 #: nejomibot/specials.py
+msgid ""
+"That formatting can't be kept: bold and italic can't meet inside a word, nor "
+"a style start or end right by a \\ or *."
+msgstr ""
+"Den formateringen går inte att behålla: fetstil och kursiv kan inte mötas "
+"inne i ett ord, och ingen stil kan börja eller sluta precis vid ett \\ eller "
+"*."
+
+#: nejomibot/specials.py
 #, python-brace-format
 msgid "{command} is a special of yours, and specials can't run each other."
 msgstr ""
@@ -1195,6 +1204,10 @@ msgid ""
 msgstr ""
 "Delarna skiljs åt med ; eller radbrytningar. Text före ett kommando inleder "
 "dess svar, text för sig blir ett eget meddelande."
+
+#: nejomibot/specials.py
+msgid "Text keeps the formatting you give it in Signal, such as bold."
+msgstr "Texten behåller formateringen du ger den i Signal, som fetstil."
 
 #: nejomibot/specials.py
 msgid "/special remove <name>: remove one"

@@ -4,6 +4,28 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- The texts in `data_dir/specials.txt` are in signal-cli-rest-api's marks
+  now, for their formatting: a `*`, `~` or `` ` `` typed in a special before
+  this version formats it, or goes missing. Put a `\` before each in the
+  file, or add the special again with `/special add`.
+
+### Added
+
+- The specials of your own keep the formatting you give their text in
+  Signal: bold, italic, strikethrough, monospace and spoiler. The file keeps
+  it as marks, `**bold**` and so on, which can be written by hand too. The
+  bot turns down the few mixes signal-cli-rest-api can't send, such as bold
+  and italic that meet inside a word, and says so.
+
+### Changed
+
+- "Photo of the day!", the daily post's caption, and "Proverb or quote of
+  the day:", the daily quote's heading, are in bold.
+
 ## 0.94.1 - 2026-10-18
 
 ### Fixed

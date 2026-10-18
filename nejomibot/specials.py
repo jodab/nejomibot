@@ -2,10 +2,10 @@
 before: texts, and what other commands answer.
 
 Two come with the bot: /dailypost, the weather, then the photo of the day,
-captioned "Photo of the day!" (none twice until every photo has been sent,
-so each run uses one up); and /dailyquote, a proverb or quote from
-fortunes_svenska, headed "Proverb or quote of the day:". The admins make
-their own, in a direct chat with the bot:
+captioned "Photo of the day!" in bold (none twice until every photo has been
+sent, so each run uses one up); and /dailyquote, a proverb or quote from
+fortunes_svenska, headed "Proverb or quote of the day:" in bold. The admins
+make their own, in a direct chat with the bot:
 
   /special add /morning Good morning! /weather; /dailyquote
   /special add /bins The bins go out tonight!
@@ -17,10 +17,13 @@ heads the command's first answer, a blank line between; text alone is a
 message of its own. The commands run as a timer runs them, as an admin would
 in a direct chat with the bot, so a special can have any command a timer
 can, /dailypost and /dailyquote too, but not another of the admins' own.
-Specials are for timers, /run and the admins, in a direct chat.
+Specials are for timers, /run and the admins, in a direct chat. Text keeps
+the formatting the admin gives it in Signal: bold, italic, strikethrough,
+monospace and spoiler.
 
 The admins' own are kept in data_dir/specials.txt, one per line, their
-commands by their English names, as the timers file keeps them. It can be
+commands by their English names, as the timers file keeps them, their texts
+in signal-cli-rest-api's marks for the formatting (styles.py). It can be
 changed by hand: the bot reads it again when it changes, and leaves comments
 and lines it can't read as they are. A special a timer runs can be changed,
 with /special add, but not removed.
@@ -29,11 +32,11 @@ with /special add, but not removed.
 import asyncio
 import logging
 import re
-from collections.abc import Collection
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 from typing import Self
 
-from signalbot import DataMessageContext, SendMessage, TextMode
+from signalbot import DataMessageContext, SendMessage, TextMode, TextStyle
 
 from .commands import Command, Handler, Reply, aliases, answer, built_in, canonical
 from .config import get_settings
@@ -42,6 +45,7 @@ from .fortune import fortune_answer
 from .i18n import _, ngettext
 from .messages import escape, unreadable_text
 from .photos import photo_message
+from .styles import Styles, marked, styles_of
 from .timers import check_commands, timekeeper
 from .weather import weather_message
 
@@ -56,6 +60,8 @@ NAME = re.compile(r"^/[^\s|;]+$")
 HEADER = (
     "# nejomibot's specials, one per line:",
     "#   name | its parts, separated by ;",
+    "# Texts in marks: **bold**, *italic*, ~strikethrough~, `monospace`, ||spoiler||,",
+    "# a \\ before a *, ~, ` or | that shows as it is.",
     "# Changed with /special in Signal, or by hand: the bot reads it again when",
     "# it changes, and leaves comments and lines it can't read as they are.",
 )
@@ -71,9 +77,10 @@ async def daily_post() -> list[Reply]:
 
 
 async def daily_quote() -> str:
-    """A proverb or quote from fortunes_svenska, headed as the day's."""
+    """A proverb or quote from fortunes_svenska, headed as the day's, in
+    bold. Styled."""
     quote = await asyncio.to_thread(fortune_answer, "fortunes_svenska")
-    return f"{_('Proverb or quote of the day:')}\n\n{quote}"
+    return f"**{escape(_('Proverb or quote of the day:'))}**\n\n{escape(quote)}"
 
 
 # The admins' own
@@ -84,19 +91,18 @@ class Part:
     """A part of a special: text, a command, or text that heads the command's
     first answer."""
 
-    text: str = ""
+    text: str = ""  # in marks for its styles
     command: str = ""  # by its English name
-
-    def __str__(self) -> str:
-        return f"{self.text} {self.command}".strip()
 
 
 type Parts = tuple[Part, ...]
 
 
-def parts_text(parts: Parts) -> str:
-    """As the file keeps them, and the bot shows them."""
-    return "; ".join(map(str, parts))
+def parts_text(parts: Parts, *, styled: bool = False) -> str:
+    """As the file keeps them, or styled, as the bot shows them: their texts
+    are in marks either way."""
+    command = escape if styled else str
+    return "; ".join(f"{part.text} {command(part.command)}".strip() for part in parts)
 
 
 def check_name(name: str) -> str | None:
@@ -108,20 +114,31 @@ def check_name(name: str) -> str | None:
     return None
 
 
-def parse_parts(text: str, own: Collection[str]) -> Parts | str:
+def parse_parts(
+    text: str, own: Collection[str], styles: Styles | None = None
+) -> Parts | str:
     """The parts in the text, separated by ; or line breaks: each its text,
-    then its command, from the first word that starts with /. Or why they
-    can't be a special's: own are the names of the admins' specials, which a
-    special can't run."""
-    if "|" in text:
+    then its command, from the first word that starts with /. The text is a
+    message's, with the styles of its characters, or without them, in marks
+    already, as the file keeps it. Or why they can't be a special's: own are
+    the names of the admins' specials, which a special can't run."""
+    if styles is not None and "|" in text:
         return _("A special can't have a |: the file of specials uses it.")
     parts: list[Part] = []
-    for piece in filter(None, (piece.strip() for piece in re.split(r"[;\n]", text))):
-        start = re.search(r"(?:^|\s)/", piece)
+    for piece in re.finditer(r"[^\s;][^;\n]*", text):
+        start = re.search(r"(?:^|\s)/", piece[0])
+        words = piece[0][: start.start() if start else None].rstrip()
+        if styles is not None:
+            at = piece.start()
+            if (words := marked(words, styles[at : at + len(words)])) is None:
+                return _(
+                    "That formatting can't be kept: bold and italic can't meet "
+                    "inside a word, nor a style start or end right by a \\ or *."
+                )
         if start is None:
-            parts.append(Part(piece))
+            parts.append(Part(words))
             continue
-        command = canonical(piece[start.start() :].strip())
+        command = canonical(piece[0][start.start() :].strip())
         if command.split()[0].lower() in own:
             return _(
                 "{command} is a special of yours, and specials can't run each other."
@@ -129,7 +146,7 @@ def parse_parts(text: str, own: Collection[str]) -> Parts | str:
         # built_in, as known() would read the file this may be reading
         if why_not := check_commands([command], built_in):
             return why_not
-        parts.append(Part(piece[: start.start()].strip(), command))
+        parts.append(Part(words, command))
     if not parts:
         return _("What should it post?") + f"\n\n{usage()}"
     if len(parts) > MAX_PARTS:
@@ -237,11 +254,13 @@ own_specials = OwnSpecials()
 
 
 def headed(text: str, message: SendMessage) -> SendMessage:
-    """The message, the text before its own, a blank line between."""
-    if message.text_mode == TextMode.STYLED:
-        text = escape(text)
-    body = f"{text}\n\n{message.text}" if message.text else text
-    return message.model_copy(update={"text": body})
+    """The message, styled, the text in marks before its own, a blank line
+    between."""
+    own = message.text or ""
+    if message.text_mode != TextMode.STYLED:
+        own = escape(own)
+    body = f"{text}\n\n{own}" if own else text
+    return message.model_copy(update={"text": body, "text_mode": TextMode.STYLED})
 
 
 async def posts(parts: Parts) -> list[SendMessage]:
@@ -253,7 +272,7 @@ async def posts(parts: Parts) -> list[SendMessage]:
         if part.text and answers:
             answers[0] = headed(part.text, answers[0])
         elif part.text:
-            answers = [SendMessage(text=part.text)]
+            answers = [SendMessage(text=part.text, text_mode=TextMode.STYLED)]
         found += answers
     return found
 
@@ -272,6 +291,7 @@ def usage() -> str:
                 "Parts are separated by ; or line breaks. Text before a command "
                 "heads its answer, text alone is a message."
             ),
+            "  " + _("Text keeps the formatting you give it in Signal, such as bold."),
             _("/special remove <name>: remove one"),
         ]
     )
@@ -287,7 +307,7 @@ def list_specials() -> str:
     title = ngettext("✨ {count} special", "✨ {count} specials", count)
     lines = [f"**{escape(title.format(count=count))}**"]
     lines += [
-        f"**{escape(name)}** · {escape(parts_text(parts))}"
+        f"**{escape(name)}** · {parts_text(parts, styled=True)}"
         for name, parts in sorted(found.specials.items())
     ]
     if found.broken:
@@ -295,15 +315,17 @@ def list_specials() -> str:
     return "\n".join(lines)
 
 
-def add_special(text: str) -> str:
+def add_special(text: str, styles: Iterable[TextStyle] | None) -> str:
     """Add the special /special add describes, or change it; or say why it
-    can't be. Styled."""
+    can't be. styles are the message's. Styled."""
     words = text.split(maxsplit=3)
     name = words[2].lower() if len(words) > 2 else ""
     if why_not := check_name(name):
         return escape(why_not)
     found = own_specials.current()
-    parts = parse_parts(words[3] if len(words) > 3 else "", {*found.specials, name})
+    given = words[3] if len(words) > 3 else ""
+    given_styles = styles_of(text, styles)[len(text) - len(given) :]
+    parts = parse_parts(given, {*found.specials, name}, given_styles)
     if isinstance(parts, str):
         return escape(parts)
     changed = name in found.specials
@@ -315,7 +337,7 @@ def add_special(text: str) -> str:
         )
     own_specials.add(name, parts)
     done = _("Changed {name}") if changed else _("Added {name}")
-    return f"✅ **{escape(done.format(name=name))}**\n{escape(parts_text(parts))}"
+    return f"✅ **{escape(done.format(name=name))}**\n{parts_text(parts, styled=True)}"
 
 
 def timers_running(name: str) -> list[int]:
@@ -345,17 +367,19 @@ def remove_special(name: str) -> str:
         )
     own_specials.remove(name)
     removed = _("Removed {name}").format(name=name)
-    return f"🗑️ **{escape(removed)}**\n{escape(parts_text(parts))}"
+    return f"🗑️ **{escape(removed)}**\n{parts_text(parts, styled=True)}"
 
 
-def specials_answer(words: list[str], text: str) -> str:
+def specials_answer(
+    words: list[str], text: str, styles: Iterable[TextStyle] | None
+) -> str:
     """What to answer /specials or /special: the list, or what changed.
-    Styled."""
+    styles are the message's. Styled."""
     action = words[1].casefold() if len(words) > 1 else "list"
     if action == "list":
         return list_specials()
     if action == "add":
-        return add_special(text)
+        return add_special(text, styles)
     if action == "remove":
         return remove_special(words[2] if len(words) > 2 else "")
     return escape(usage())
@@ -385,11 +409,12 @@ class Specials(Handler):
         if command.name == "/dailypost":
             await answer(context, daily_post, slow=True)
         elif command.name == "/dailyquote":
-            await answer(context, daily_quote)
+            await answer(context, daily_quote, styled=True)
         elif command.name in ("/specials", "/special"):
+            styles = context.message.text_styles
             await answer(
                 context,
-                lambda: specials_answer(words, text),
+                lambda: specials_answer(words, text, styles),
                 edits=words[1:2] in ([], ["list"]),
                 styled=True,
             )

@@ -1,7 +1,7 @@
 from typing import Any, cast
 
 import pytest
-from helpers import ALICE
+from helpers import ALICE, text_styles
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -24,6 +24,7 @@ from nejomibot.specials import (
     own_specials,
     parse_parts,
 )
+from nejomibot.styles import styles_of
 from nejomibot.timers import Timekeeper, check_commands
 
 ADMIN = "+46700000009"
@@ -56,14 +57,18 @@ class Chat:
             return [SendMessage(text="checks"), SendMessage(text="details")]
         return [SendMessage(text=f"{command}!")]
 
-    async def send(self, text: str, *, edit: bool = False) -> list[str]:
-        """What the bot answers the message, as text."""
+    async def send(
+        self, text: str, *styled: tuple[str, str], edit: bool = False
+    ) -> list[str]:
+        """What the bot answers the message, as text. styled are words of it
+        formatted in Signal, and how."""
         fields: dict[str, Any] = {
             "server_delivered_timestamp": 0,
             "server_received_timestamp": 0,
             "timestamp": 2,
             "source_number": ADMIN,
             "text": text,
+            "text_styles": text_styles(text, *styled) or None,
         }
         message = (
             EditMessage(**fields, target_sent_timestamp=1)
@@ -107,8 +112,10 @@ async def test_the_daily_post(chat: Chat, monkeypatch: pytest.MonkeyPatch) -> No
 @pytest.mark.usefixtures("swedish")
 async def test_the_daily_quote(chat: Chat) -> None:
     [text] = await chat.send("/dagenscitat")
+    assert chat.replies[0].text_mode == TextMode.STYLED
     heading, quote = text.split("\n\n", 1)
-    assert heading == "Dagens ordspråk/citat:"
+    assert heading == "**Dagens ordspråk/citat:**"
+    # It has no marks to escape
     assert quote in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
 
 
@@ -134,6 +141,11 @@ async def test_the_daily_quote(chat: Chat) -> None:
                 Part("", "/dailypost"),
                 Part("", "/dailyquote"),
             ],
+        ),
+        # The file's texts are in marks, its spoilers' || too
+        (
+            "||Surprise!|| /ping; **Bins** \\*now\\*",
+            [Part("||Surprise!||", "/ping"), Part("**Bins** \\*now\\*")],
         ),
     ],
 )
@@ -164,7 +176,8 @@ def test_parts_keep_the_english_names() -> None:
     ],
 )
 def test_parts_refused(text: str, why: str) -> None:
-    result = parse_parts(text, {"/morning"})
+    # As a message has them
+    result = parse_parts(text, {"/morning"}, styles_of(text, None))
     assert isinstance(result, str)
     assert result.startswith(why)
 
@@ -268,15 +281,69 @@ async def test_an_edit_runs_or_changes_none_of_the_admins_own(chat: Chat) -> Non
     assert list(own_specials.current().specials) == ["/morning"]
 
 
-def test_a_heading_shows_as_it_is() -> None:
+def test_a_heading_is_in_marks() -> None:
     styled = SendMessage(text="**Help**", text_mode=TextMode.STYLED)
     assert headed("*Hi*", styled) == SendMessage(
-        text="\\*Hi\\*\n\n**Help**", text_mode=TextMode.STYLED
+        text="*Hi*\n\n**Help**", text_mode=TextMode.STYLED
     )
-    photo = SendMessage(text="📅 2026-10-18", base64_attachments=["aGVq"])
-    assert headed("*Hi*", photo) == SendMessage(
-        text="*Hi*\n\n📅 2026-10-18", base64_attachments=["aGVq"]
+    # A plain answer is styled, as it shows
+    plain = SendMessage(text="5 * 3", base64_attachments=["aGVq"])
+    assert headed("*Hi*", plain) == SendMessage(
+        text="*Hi*\n\n5 \\* 3", base64_attachments=["aGVq"], text_mode=TextMode.STYLED
     )
+
+
+async def test_formatting_given_in_signal_is_kept(chat: Chat) -> None:
+    # Commands stay as they are, formatted or not
+    text = "/special add /morning Good morning! /weather; 🗑️ Bins tonight /ping"
+    assert await chat.send(
+        text,
+        ("Good morning!", "BOLD"),
+        ("/weather", "ITALIC"),
+        ("tonight /ping", "SPOILER"),
+    ) == ["✅ **Added /morning**\n**Good morning!** /weather; 🗑️ Bins ||tonight|| /ping"]
+    assert await chat.send("/morning") == [
+        "**Good morning!**\n\n/weather!",
+        "🗑️ Bins ||tonight||\n\n/ping!",
+    ]
+    assert {reply.text_mode for reply in chat.replies} == {TextMode.STYLED}
+    lines = get_settings().specials_file.read_text().splitlines()
+    assert (
+        lines[-1] == "/morning | **Good morning!** /weather; 🗑️ Bins ||tonight|| /ping"
+    )
+    # As the file has them, which is how they show
+    assert await chat.send("/specials") == [
+        "**✨ 1 special**\n"
+        "**/morning** · **Good morning!** /weather; 🗑️ Bins ||tonight|| /ping"
+    ]
+
+
+async def test_typed_marks_show_as_typed(chat: Chat) -> None:
+    await chat.send("/special add /sum 5 * 3 = 15 ~ish, see `x`")
+    assert await chat.send("/sum") == ["5 \\* 3 = 15 \\~ish, see \\`x\\`"]
+    assert chat.replies[0].text_mode == TextMode.STYLED
+
+
+async def test_formatting_marks_can_t_say_is_refused(chat: Chat) -> None:
+    # **Hel***lo* would read otherwise
+    [reply] = await chat.send(
+        "/special add /hi Hello", ("Hel", "BOLD"), ("lo", "ITALIC")
+    )
+    assert reply.startswith("That formatting can't be kept")
+    assert not get_settings().specials_file.exists()
+
+
+@pytest.mark.parametrize("alias", ["/s", "/specialkommando"])
+async def test_formatting_after_an_alias(
+    chat: Chat, monkeypatch: pytest.MonkeyPatch, alias: str
+) -> None:
+    # The alias is replaced by /special, shorter or longer than it, and the
+    # formatting moves with the rest of the text
+    monkeypatch.setenv("NEJOMIBOT_ALIASES", f'{{"/special": ["{alias}"]}}')
+    get_settings.cache_clear()
+    assert await chat.send(f"{alias} add /hi Hi there!", ("there", "BOLD")) == [
+        "✅ **Added /hi**\nHi **there**!"
+    ]
 
 
 async def test_the_admins_own_are_commands(chat: Chat) -> None:

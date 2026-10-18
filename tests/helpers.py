@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from aiohttp import web
+from signalbot import TextStyle
 
 ME = "+46700000000"
 ALICE = "+46700000001"
@@ -30,6 +31,21 @@ def write(root: Path, path: str, text: str) -> None:
     """Write tmp file root/path, creating its folders."""
     (root / path).parent.mkdir(parents=True, exist_ok=True)
     (root / path).write_text(text)
+
+
+def text_styles(text: str, *styled: tuple[str, str]) -> list[TextStyle]:
+    """Styles as Signal gives them with a message: each over the first time
+    its words are in the text, counted in UTF-16 code units."""
+
+    def length(part: str) -> int:
+        return len(part.encode("utf-16-le")) // 2
+
+    return [
+        TextStyle(
+            start=length(text[: text.index(words)]), length=length(words), style=style
+        )
+        for words, style in styled
+    ]
 
 
 def group_entry(group_id: str, name: str, **fields: Any) -> dict[str, Any]:

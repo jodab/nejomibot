@@ -33,6 +33,7 @@ From the owner of the project, in no order of priority:
    only what is strictly necessary goes in it.
 8. Use minimal resources to build the images, as well.
 9. Measure, test and verify any changes, for accuracy and future improvements.
+10. Uptime and availability is everything, this rule always comes first.
 
 User-facing means anything people in Signal see or can do: the commands and
 their names, the replies and their wording, who may use what, and what is
@@ -78,8 +79,8 @@ posted where and when. When unsure whether a change is user-facing, ask.
   `/avatar` can't take a picture; whoever wants it enables attachments
   themselves. `/avatar` stays as it is.
 - `TODO.md` holds what's left of the 2026-10-17 review, the owner's open
-  decisions and the upstream asks, and plans that wait: accounts without a
-  phone number, and text styles in posts.
+  decisions and the upstream asks, and plans that wait, such as accounts
+  without a phone number.
 
 ## Development commands
 
@@ -209,7 +210,10 @@ the timer. Commands that manage timers, specials or the allowed list (even
 through `Timekeeper.answers_to` as a timer's, its text heading the first
 answer. Their parts can't be the admins' own specials, nor what timers can't
 run; one a timer runs can't be removed. `OwnSpecials.current()` stats the
-file at each lookup and rereads it when it changed.
+file at each lookup and rereads it when it changed. Their texts keep the
+formatting given in Signal (`DataMessage.text_styles`), which
+`styles.marked()` writes as signal-cli-rest-api's marks and checks by
+reading them back as its parser does (`styles.unmarked()`).
 
 **Beyond signalbot**: `rest.py` (direct requests) and `account.py` (pydantic
 models for contacts, safety numbers, devices; `Account` looks people up
@@ -264,7 +268,7 @@ messages, run `tools/translations.sh` and translate `sv.po`.
   or message text; those go at DEBUG. `log_level` sets the bot's own level;
   every library logs at WARNING through the same handler.
 - Styled replies (`TextMode.STYLED`) need `messages.escape()` on any text from
-  outside, such as names and errors.
+  outside, such as names and errors; a special's texts are in marks already.
 - An `EditMessage` is a `DataMessage`, so an edit runs its command again,
   which is wanted wherever that works: commands that show something, or set
   a value (`/name`, `/trust`), so the edit applies the correction. Those

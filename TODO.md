@@ -27,29 +27,14 @@ wait for the owner.
   for timers, `/run` and the admins in a direct chat, like every special.
   Unlike `/dailypost`, it uses nothing up, so it could be an everyday
   command, for everyone allowed; they have `/fortune` already.
-- [ ] **Bold and other text styles in the posts** (2026-10-18), such as
-  "Dagens ordspråk/citat:" in bold above the day's quote. It's possible, and
-  small: Signal has bold, italic, strikethrough, monospace and spoiler, and
-  the bot sends them already (`/status`, `/info`, `/help`, `/timers`,
-  `/specials` and more answer styled), through signal-cli-rest-api's styled
-  mode: `**bold**`, `*italic*`, `~strikethrough~`, `||spoiler||` and
-  `` `monospace` ``, with `messages.escape()` for any text from elsewhere,
-  which the quote is. What's yours to choose is where, as it changes what
-  people see:
-  1. `/dailyquote`: the heading in bold. `specials.daily_quote()` returns
-     `f"**{escape(heading)}**\n\n{escape(quote)}"`, and the handler answers
-     with `styled=True`. The markup goes around the translated text in the
-     code, so `sv.po` doesn't change, and timers and specials keep the style,
-     as they post the answers as they are.
-  2. Perhaps more: "Photo of the day!" and "Weather in {city}" in the daily
-     post, and a proverb's explanation, the paragraph under it in
-     `fortunes_svenska`, in italics.
-  3. Perhaps the specials of your own too: their text is escaped now, so
-     `**` shows as typed. Taking markup there means a backslash for a
-     literal `*`, `~`, `|` or `` ` ``, and a line in the README.
-
-  Tests: the expected texts in `tests/test_specials.py` (and the weather's
-  and photos' for 2).
+- [ ] **More text styles in the posts?** (2026-10-18) The daily post's and
+  the daily quote's headings are in bold, and the specials of your own keep
+  Signal's formatting (see Done). Left to choose, as they change what people
+  see: "Weather in {city}" in bold, and a proverb's explanation, the
+  paragraph under it in `fortunes_svenska`, in italics. And `/special add`
+  still refuses a typed `|` ("the file of specials uses it"), though only
+  the first `|` of a line counts and the file now has spoilers' `||`:
+  the refusal could go, the `|` kept as `\|`.
 
 ### For you to do
 
@@ -398,6 +383,20 @@ with people who have none.
 - [x] A Docker Hub token that may read, write and delete, as
   `DOCKERHUB_TOKEN`: the 0.94.0 release's page job put DOCKERHUB.md on
   Docker Hub with it, and the repository's description.
+- [x] Text styles in the posts (2026-10-18). "Photo of the day!" and
+  "Proverb or quote of the day:" are in bold: the caption and the quote are
+  styled, everything but the heading escaped, so a `~` in an OpenStreetMap
+  link or a file name shows as it is. The specials of your own keep the
+  formatting the admin gives their text in Signal, which signalbot hands
+  over as `DataMessage.text_styles`: `styles.marked()` writes it as
+  signal-cli-rest-api's marks, which `specials.txt` keeps, and reads them
+  back as its `textstyleparser.go` does (`unmarked()`, tested against its
+  own tests), so a mix the marks can't say is turned down rather than
+  garbled. Stars go three at a time there, so `*a **b***` closes neither;
+  spaces between bold and italic take neither, which keeps their stars
+  apart, and leaves only those that meet inside a word. `***` needs
+  signal-cli-rest-api 0.101 or later, which the bot does. Aliases move the
+  styles with the text (`commands.resolved()`).
 
 ### The day images go to ghcr.io (done, 2026-10-18)
 

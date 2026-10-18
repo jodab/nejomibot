@@ -235,7 +235,7 @@ For the admins, in a direct chat with the bot:
 |---|---|
 | `/status`, `/test` | Health check, in two messages: the checks, failed ones first, then the details: the bot and its versions, Signal, public IPs and ASN, container, host |
 | `/dailypost` | The daily post, as a timer posts it: the weather, then the photo of the day (it uses up a photo of the round) |
-| `/dailyquote` | The daily quote, as a timer posts it: a proverb or quote from `fortunes_svenska`, headed "Proverb or quote of the day:" |
+| `/dailyquote` | The daily quote, as a timer posts it: a proverb or quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in bold |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, two short lines each, and whether they're verified; with `<who>`, one in full, with their safety number |
 | `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` is their phone number, ID or the start of it, or their name: the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number |
 | `/trust <name, number or ID> <safety number>` | Mark a safety number as verified, after comparing it with the one on their phone |
@@ -339,7 +339,7 @@ signal-cli-rest-api restarts, writes nothing.
 ### Photos and the daily post
 
 `/dailypost` is the daily post: the weather, then the photo of the day,
-captioned "Photo of the day!". It's for timers: `/timer add 08:00 1,2
+captioned "Photo of the day!" in bold. It's for timers: `/timer add 08:00 1,2
 /dailypost` posts it at 08:00 in the bot's `timezone`, whatever the server's
 own time zone, to chats 1 and 2 of `/chats`. It sends the same weather and the
 same photo to every chat. The photo is picked at random among those it hasn't
@@ -528,8 +528,9 @@ starts with none.
 A special posts several things in one go, always in the same order: text,
 and what other commands answer. Two come with the bot: `/dailypost`, the
 [daily post](#photos-and-the-daily-post), and `/dailyquote`, a proverb or
-quote from `fortunes_svenska`, headed "Proverb or quote of the day:". The
-admins make their own in a direct chat with the bot, mostly for timers:
+quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in
+bold. The admins make their own in a direct chat with the bot, mostly for
+timers:
 
 ```
 /special add /morning Good morning! /weather; /dailyquote
@@ -546,6 +547,13 @@ is a message of its own. The name is a word that starts with `/`, and isn't
 a command or an alias; `/special add` with the name of one you have changes
 it. A special has up to five parts.
 
+Text keeps the formatting you give it in Signal, as in any message: select
+the words, then bold, italic, strikethrough, monospace or spoiler. What you
+type shows as typed, `*` and `~` too. signal-cli-rest-api, which sends the
+formatting, can't say every mix, so the bot turns down the few it can't:
+bold and italic that meet inside a word, and a style that starts or ends
+right by a `\` or `*`.
+
 A special runs its commands as a timer does, as an admin would in a direct
 chat with the bot, and posts what they answer one after the other: it can
 have any command a timer can, `/dailypost` and `/dailyquote` too, but not
@@ -555,10 +563,14 @@ your own again, as its commands may change something. A special a timer runs
 can be changed, but not removed: remove the timer first.
 
 The specials of your own are kept in `data_dir/specials.txt`, a line each:
-the name, a `|`, and the parts, their commands by their English names:
+the name, a `|`, and the parts, their commands by their English names, their
+texts in signal-cli-rest-api's marks for the formatting: `**bold**`,
+`*italic*`, `***both***`, `~strikethrough~`, `` `monospace` `` and
+`||spoiler||`, with a `\` before a `*`, `~`, `` ` `` or `|` that shows as it
+is:
 
 ```
-/morning | Good morning! /weather; /dailyquote
+/morning | **Good morning!** /weather; /dailyquote
 ```
 
 The bot reads the file again when it changes, so it can be changed by hand
@@ -1009,6 +1021,7 @@ nejomibot/
   photos.py     /photo, /cache: random photo with EXIF date, age, location
   specials.py   /dailypost, /dailyquote, /specials, /special: several posts in one
   messages.py   sending, through signalbot, the outbox, and the wording of errors
+  styles.py     Signal's text styles, as signal-cli-rest-api's marks
   rest.py       what signalbot can't do: asking signal-cli-rest-api itself
   client.py     the HTTP session for what the bot asks itself
   receipts.py   read receipts and the typing indicator

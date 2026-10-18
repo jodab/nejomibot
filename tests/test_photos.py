@@ -6,9 +6,11 @@ from pathlib import Path
 
 import pytest
 from PIL import Image, TiffImagePlugin
+from signalbot import TextMode, TextStyle
 
 from nejomibot import photos
 from nejomibot.config import get_settings
+from nejomibot.styles import unmarked
 
 # Made up, as is everyone in the tests
 BORN = "2019-06-15"
@@ -57,10 +59,10 @@ def dms(degrees: float) -> tuple[TiffImagePlugin.IFDRational, ...]:
     )
 
 
-def caption(path: Path, custom_message: str = "") -> str:
+def caption(path: Path, heading: str = "") -> str:
     exif = photos.read_photo(path)
     assert exif is not None
-    return photos.photo_caption(path, exif, custom_message)
+    return photos.photo_caption(path, exif, heading)
 
 
 def test_scan_finds_each_photo_once(photos_dir: Path) -> None:
@@ -99,7 +101,7 @@ def test_no_age_without_a_birth_date() -> None:
 def test_caption_is_in_the_bots_time(tmp_path: Path) -> None:
     path = make_jpeg(tmp_path / "x.jpg", "2020:07:01 12:00:00", "+03:00")
     assert caption(path, "Photo of the day!") == (
-        "Photo of the day!\n\n📅 2020-07-01 11:00\n🎂 1 year and 16 days"
+        "**Photo of the day!**\n\n📅 2020-07-01 11:00\n🎂 1 year and 16 days"
     )
 
 
@@ -200,6 +202,25 @@ def test_caption_without_date(tmp_path: Path) -> None:
 def test_caption_without_date_in_swedish(tmp_path: Path) -> None:
     path = make_jpeg(tmp_path / "x.jpg")
     assert caption(path) == "⚠️ Datum okänt (se filnamn)\n🖼️ x.jpg"
+
+
+def test_the_caption_is_styled(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_PHOTOS_MAP", "openstreetmap")
+    get_settings.cache_clear()
+    make_jpeg(photos_dir / "a*b~.jpg", where=(59.0, 17.07))
+    message = photos.random_photo_message("Photo of the day!")
+    assert message is not None
+    assert message.text_mode == TextMode.STYLED
+    # As signal-cli-rest-api reads it: the heading in bold, the rest, and the
+    # link with its ~, as it is
+    assert unmarked(message.text or "") == (
+        "Photo of the day!\n\n"
+        "⚠️ Date unknown (see the file name)\n🖼️ a*b~.jpg\n\n"
+        "https://osm.org/go/0aVcSy~_?m=",
+        [TextStyle(start=0, length=17, style="BOLD")],
+    )
 
 
 def test_random_photo_skips_broken_files(photos_dir: Path) -> None:

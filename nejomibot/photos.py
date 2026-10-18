@@ -20,13 +20,13 @@ from typing import IO, Any
 
 from dateutil.relativedelta import relativedelta
 from PIL import ExifTags, Image
-from signalbot import DataMessageContext, SendMessage
+from signalbot import DataMessageContext, SendMessage, TextMode
 
 from .commands import Command, Handler, answer
 from .config import get_settings
 from .files import append_privately
 from .i18n import _, format_file_size, ngettext
-from .messages import error_text, log_failure
+from .messages import error_text, escape, log_failure
 
 logger = logging.getLogger(__name__)
 
@@ -263,7 +263,9 @@ def format_age(taken: datetime) -> str:
     return f"{settings.photos_age_emoji} {age}"
 
 
-def photo_caption(path: Path, exif: Image.Exif, custom_message: str = "") -> str:
+def photo_caption(path: Path, exif: Image.Exif, heading: str = "") -> str:
+    """When and where the photo was taken, under the heading, in bold, if
+    any. Styled."""
     meta_parts: list[str] = []
 
     taken = exif_datetime(exif)
@@ -278,12 +280,12 @@ def photo_caption(path: Path, exif: Image.Exif, custom_message: str = "") -> str
     if location := exif_location(exif):
         meta_parts.append(f"\n{map_link(*location)}")
 
-    metadata = "\n".join(meta_parts)
-    return f"{custom_message}\n\n{metadata}" if custom_message else metadata
+    metadata = escape("\n".join(meta_parts))
+    return f"**{escape(heading)}**\n\n{metadata}" if heading else metadata
 
 
 def random_photo_message(
-    custom_message: str = "", *, track_sent: bool = False
+    heading: str = "", *, track_sent: bool = False
 ) -> SendMessage | None:
     """Pick a random valid photo and build its message. Blocking.
 
@@ -295,13 +297,13 @@ def random_photo_message(
         logger.warning("No photos found in %s", get_settings().photos_dir)
         return None
     if not track_sent:
-        return pick(photos, custom_message)
+        return pick(photos, heading)
     with picking:
-        return pick(unsent_photos(photos), custom_message, track_sent=True)
+        return pick(unsent_photos(photos), heading, track_sent=True)
 
 
 def pick(
-    candidates: list[Path], custom_message: str, *, track_sent: bool = False
+    candidates: list[Path], heading: str, *, track_sent: bool = False
 ) -> SendMessage | None:
     tries = random.sample(candidates, min(MAX_ATTEMPTS, len(candidates)))
     for attempt, path in enumerate(tries, start=1):
@@ -313,21 +315,21 @@ def pick(
             continue
         try:
             attachment = base64.b64encode(photo_bytes(path)).decode()
-            caption = photo_caption(path, exif, custom_message)
+            caption = photo_caption(path, exif, heading)
         except Exception:
             logger.exception("Error preparing '%s'", path)
             continue
-        return SendMessage(text=caption, base64_attachments=[attachment])
+        return SendMessage(
+            text=caption, base64_attachments=[attachment], text_mode=TextMode.STYLED
+        )
     return None
 
 
-async def photo_message(
-    custom_message: str = "", *, track_sent: bool = False
-) -> SendMessage:
+async def photo_message(heading: str = "", *, track_sent: bool = False) -> SendMessage:
     """A random photo with its caption, or the error to post instead."""
     try:
         message = await asyncio.to_thread(
-            random_photo_message, custom_message, track_sent=track_sent
+            random_photo_message, heading, track_sent=track_sent
         )
     except Exception as e:
         log_failure(logger, "Picking a photo", e)
