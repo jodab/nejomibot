@@ -53,10 +53,9 @@ wait for the owner.
 
 ### For you to do
 
-- [ ] **Release the fix for 0.94.0's images** (2026-10-18):
-  `tools/release.sh patch`, once CI has passed, makes 0.94.1, and `latest`
-  with it. 0.94.0 stays as it was published, broken on every platform;
-  perhaps say so in its release notes on GitHub.
+- [ ] **Perhaps say on 0.94.0's release page that its images are broken**
+  (2026-10-18), and to use 0.94.1: `gh release edit v0.94.0 --notes-file
+  ...`. It stays as published, as releases do.
 - [ ] **Ask signalbot for what the bot can't do without it.** Filing issues
   is the owner's to do; drafts below. The first matters most: until signalbot
   marks sync messages, the bot can only warn against linking.
@@ -391,7 +390,11 @@ with people who have none.
   `ubuntu-26.04` now, the release installs `qemu-user-binfmt` there (what
   `qemu-user-static` has become, with the F flag) and checks it, and
   `build-image.sh` stops before pushing unless each image runs as its
-  platform, which catches both the 4.9.3 build and the labels.
+  platform, which catches both the 4.9.3 build and the labels. 0.94.1,
+  released with it the same day, came out right: on both registries each
+  platform's image is its own (the arm/v7 build took the release to under
+  ten minutes), pulls for amd64, arm64 and arm/v7 find theirs, `latest` is
+  the same manifest list as `0.94.1`, and both verify as attested.
 - [x] A Docker Hub token that may read, write and delete, as
   `DOCKERHUB_TOKEN`: the 0.94.0 release's page job put DOCKERHUB.md on
   Docker Hub with it, and the repository's description.
