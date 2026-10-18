@@ -1,6 +1,6 @@
 [project]
 name = "nejomibot"
-version = "0.93.1"
+version = "0.93.2"
 description = "Signal bot that posts the weather and a photo of the day"
 readme = "README.md"
 license = "GPL-3.0-or-later"
