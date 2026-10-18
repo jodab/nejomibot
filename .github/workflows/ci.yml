@@ -30,11 +30,13 @@ jobs:
       - run: shellcheck tools/*.sh
 
   image:
-    runs-on: ubuntu-24.04
+    # The same Podman as the release builds with (see release.yml)
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       # amd64 alone: the ARM ones, emulated, are most of the time, and the
-      # release builds them
+      # release builds them, checking each runs as its platform before it
+      # pushes any
       - run: tools/build-image.sh --platforms linux/amd64

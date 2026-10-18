@@ -53,15 +53,10 @@ wait for the owner.
 
 ### For you to do
 
-- [ ] **A Docker Hub token that may delete** (2026-10-18). The release now
-  makes DOCKERHUB.md the image's page on Docker Hub, which takes a personal
-  access token with the *Read, Write, Delete* scope; `DOCKERHUB_TOKEN` was
-  made to read and write. At Docker Hub, *Account settings > Personal access
-  tokens*, make one with Read, Write, Delete, then
-  `gh secret set DOCKERHUB_TOKEN --repo jodab/nejomibot` and paste it. Until
-  then the release's `dockerhub-page` job fails (the images are pushed all
-  the same): `gh run rerun --failed` on that run, once the token is in.
-
+- [ ] **Release the fix for 0.94.0's images** (2026-10-18):
+  `tools/release.sh patch`, once CI has passed, makes 0.94.1, and `latest`
+  with it. 0.94.0 stays as it was published, broken on every platform;
+  perhaps say so in its release notes on GitHub.
 - [ ] **Ask signalbot for what the bot can't do without it.** Filing issues
   is the owner's to do; drafts below. The first matters most: until signalbot
   marks sync messages, the bot can only warn against linking.
@@ -369,14 +364,15 @@ with people who have none.
   images, up to registering, and with two likely mistakes.
 - [x] Docker Hub's page is pushed by the release: DOCKERHUB.md as of the
   release, and the repository's description, by
-  `peter-evans/dockerhub-description`, once the images are up. It needs a
-  token that may delete: see For you to do.
+  `peter-evans/dockerhub-description`, once the images are up, with a
+  token that may delete (below). First done by 0.94.0's release.
 - [x] Signed build provenance for each image a release pushes, keyless:
   `build-image.sh --digests` records what was pushed, by digest, and
   `actions/attest-build-provenance` attests it, for
   `gh attestation verify oci://IMAGE --repo jodab/nejomibot`. The digests
-  were tried against a registry of our own; the attestation runs for the
-  first time with the next release.
+  were tried against a registry of our own. First done by 0.94.0's release:
+  `gh attestation verify` takes both registries' images, each by its own
+  digest, as built by release.yml at the tag, from its commit.
 - [x] A config file the bot can't read, and a `data_dir` it can't write in,
   stop it with a message that says so, and as whom it runs. It said the
   file wasn't there, and went on without it.
@@ -386,6 +382,19 @@ with people who have none.
   bot's license.
 - [x] The Ruff extension is installed in VS Code (`charliermarsh.ruff`,
   2026-10-18), so this folder's settings format Python with it on save.
+- [x] 0.94.0's images came out all amd64, labelled for the three
+  platforms, each with arm/v7's variant: ubuntu-24.04's Podman 4.9 mixes up
+  platforms when a stage names its own, as the uv stage does
+  (`--platform=$BUILDPLATFORM`; podman#22730, buildah#4742). Reproduced
+  with a small Containerfile: Podman 4.9.3 builds every platform on x86_64;
+  5.7.0, on ubuntu-26.04, and 6.1.4 build each right. The image jobs run on
+  `ubuntu-26.04` now, the release installs `qemu-user-binfmt` there (what
+  `qemu-user-static` has become, with the F flag) and checks it, and
+  `build-image.sh` stops before pushing unless each image runs as its
+  platform, which catches both the 4.9.3 build and the labels.
+- [x] A Docker Hub token that may read, write and delete, as
+  `DOCKERHUB_TOKEN`: the 0.94.0 release's page job put DOCKERHUB.md on
+  Docker Hub with it, and the repository's description.
 
 ### The day images go to ghcr.io (done, 2026-10-18)
 

@@ -24,7 +24,10 @@ permissions:
 
 jobs:
   image:
-    runs-on: ubuntu-24.04
+    # For Podman 5: ubuntu-24.04's Podman 4.9 built every platform's image
+    # for amd64 from the Dockerfile's stage for the building machine, and
+    # labelled them all arm/v7's (0.94.0)
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       packages: write  # to push to ghcr.io
@@ -44,8 +47,18 @@ jobs:
             echo "::error::The release is $GITHUB_REF_NAME, but pyproject.toml has $version"
             exit 1
           fi
-      # For the image's ARM architectures, through QEMU
-      - run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+      # For the image's ARM architectures, through QEMU, registered with the
+      # F flag, so that containers can use it; qemu-user-static is only
+      # another name for qemu-user-binfmt now
+      - name: QEMU for ARM
+        run: |
+          sudo apt-get update && sudo apt-get install -y qemu-user-binfmt
+          # It brings the files; this registers them now, if systemd hasn't
+          sudo systemctl restart systemd-binfmt
+          for arch in aarch64 arm; do
+            grep -q '^flags: .*F' "/proc/sys/fs/binfmt_misc/qemu-$arch" ||
+              { echo "::error::QEMU for $arch isn't registered for containers"; exit 1; }
+          done
       - name: Log in to ghcr.io
         run: podman login --username "$GITHUB_ACTOR" --password-stdin ghcr.io <<<"$GITHUB_TOKEN"
         env:

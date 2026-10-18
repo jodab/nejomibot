@@ -28,8 +28,10 @@
 # DESTINATION, by digest: ghcr.io/someone/nejomibot@sha256:..., which the
 # release attests.
 #
-# Needs podman, and for the other architectures QEMU's binfmt handlers, from
-# qemu-user-static (Debian, Arch) or qemu-user-static-binfmt.
+# Needs podman, 5 or later, and for the other architectures QEMU's binfmt
+# handlers, with the F flag: from qemu-user-binfmt (Debian 13, Ubuntu 26.04;
+# qemu-user-static before), or qemu-user-static and qemu-user-static-binfmt
+# (Arch).
 
 set -euo pipefail
 
@@ -101,6 +103,28 @@ podman manifest rm "$IMAGE:$version" "$IMAGE:latest" >/dev/null 2>&1 || true
 build "The build" --platform "$platforms" --build-arg "VERSION=$version" \
   "${labels[@]}" --format docker --manifest "$IMAGE:$version"
 podman tag "$IMAGE:$version" "$IMAGE:latest"
+
+# Each image must be for the platform it's labelled with: Podman 4.9 built
+# every one for the building machine, from a stage that names its platform,
+# and labelled them all with arm/v7's variant (podman#22730, buildah#4742)
+echo "==> Checking that each image runs as its platform"
+IFS=, read -r -a wanted <<<"$platforms"
+for platform in "${wanted[@]}"; do
+  IFS=/ read -r os arch variant <<<"$platform"
+  case $arch in
+    amd64) expected=x86_64 ;;
+    arm64) expected=aarch64 ;;
+    arm) expected=armv7l ;;
+    *) die "No check for $platform: add what Python calls its machine" ;;
+  esac
+  select=(--os "$os" --arch "$arch")
+  if [[ -n $variant ]]; then select+=(--variant "$variant"); fi
+  machine=$(podman run --rm --pull=never "${select[@]}" "$IMAGE:$version" \
+    python -c 'import platform; print(platform.machine())') ||
+    die "$IMAGE:$version has no image for $platform"
+  [[ $machine == "$expected" ]] ||
+    die "The image for $platform runs as $machine, not $expected: it's not pushed"
+done
 
 pushed=$(mktemp)
 trap 'rm -f -- "$pushed"' EXIT

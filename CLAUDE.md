@@ -103,8 +103,12 @@ pytest in the Dockerfile's test stage and builds nothing if they fail. That
 stage runs on the building machine alone. On linux/arm/v7 Pillow and
 pillow-heif have no wheels, so the build stage compiles them against Debian's
 libraries (`TARGETARCH` is `arm`). Debian's libheif reads HEIF but can't
-write it, which only the tests do. The image is tagged with the version in `pyproject.toml`; `--source URL` labels
-it with the repository, as ghcr.io wants. On GitHub, `.github/workflows/`
+write it, which only the tests do. Before pushing, it runs each platform's
+image and stops unless Python there names that platform's machine: Podman
+4.9 built 0.94.0's images all for amd64, from the uv stage that names its
+own platform (`$BUILDPLATFORM`), so the image jobs run on `ubuntu-26.04`,
+with Podman 5. The image is tagged with the version in `pyproject.toml`;
+`--source URL` labels it with the repository, as ghcr.io wants. On GitHub, `.github/workflows/`
 has CI (checks, ShellCheck, image build) and a release workflow that pushes
 to ghcr.io, and to Docker Hub when the repository has `DOCKERHUB_USERNAME`
 and `DOCKERHUB_TOKEN`, only when a release is published, attests each

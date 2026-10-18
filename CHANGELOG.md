@@ -4,6 +4,19 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Fixed
+
+- 0.94.0's images were all built for amd64, and labelled amd64, arm64 and
+  arm/v7, each with arm/v7's variant: Podman and Docker on amd64 find no
+  image for themselves, and on ARM they'd get one that can't run. The
+  release built them with Podman 4.9, which mixes platforms up when a stage
+  names its own, as the Dockerfile's uv stage does. Releases build with
+  Podman 5 now, and `tools/build-image.sh` runs each image before it pushes
+  any, and stops unless each runs as its platform. If you pulled 0.94.0,
+  or `latest` while it was 0.94.0, pull this version.
+
 ## 0.94.0 - 2026-10-18
 
 ### Added
