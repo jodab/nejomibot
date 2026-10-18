@@ -11,8 +11,209 @@ languages once they're translated.
 It talks to Signal through
 [signalbot](https://pypi.org/project/signalbot/), and so through
 [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api)
-in json-rpc mode. It comes as a container image, for x86 and ARM; see
-[Running it](#running-it).
+in json-rpc mode. It comes as a container image, for x86 and ARM:
+[Getting started](#getting-started) sets it up, step by step.
+
+## Getting started
+
+From nothing to the daily post in your Signal groups, with Docker Compose
+and the published image, `docker.io/jodab/nejomibot` (the same is at
+`ghcr.io/jodab/nejomibot`). With Podman, type `podman` where this says
+`docker` (`podman compose` needs podman-compose or Docker Compose
+installed); with Podman and systemd, the [Quadlets](#podman-quadlets) are a
+better fit, as they also restart a container whose health check fails.
+[DOCKERHUB.md](DOCKERHUB.md) is this guide as Docker Hub shows it.
+
+### What you need
+
+1. **A Linux machine that stays on**, such as a home server, a Raspberry Pi
+   with a 64-bit system, or a small cloud server, with
+   [Docker](https://docs.docker.com/engine/install/) and its Compose plugin:
+   `docker compose version` should answer.
+2. **A phone number for the bot, of its own.** It has to receive one text
+   message or call, with a code. Not your own number, nor one that's in use
+   with Signal on a phone: registering it for the bot signs it out of Signal
+   everywhere else. A cheap prepaid SIM card will do; a landline can take the
+   code as a call.
+3. **Signal on your phone.** You'll be the bot's admin.
+4. **A free [OpenWeatherMap](https://openweathermap.org/) API key**, for the
+   weather, from [your API keys](https://home.openweathermap.org/api_keys). A
+   new key can take up to two hours to start working.
+5. **Your photos**, in a folder: JPEG, PNG, GIF, WebP, AVIF or HEIC, in
+   subfolders or not.
+6. **A web browser**, on any computer or phone, for the captcha Signal asks
+   for when you register the number.
+
+### Step 1: Make a folder for the bot
+
+```sh
+mkdir -p ~/nejomibot && cd ~/nejomibot
+mkdir data photos signal
+curl -fsSLO https://raw.githubusercontent.com/jodab/nejomibot/main/deploy/compose.yaml
+```
+
+`data` is for the bot's settings and what it keeps, `signal` for the Signal
+account, and `photos` for your photos: copy them in, or use your library
+where it is, by changing `./photos:/photos:ro` in
+[compose.yaml](deploy/compose.yaml) to its folder, such as
+`/srv/photos:/photos:ro`. There, also change `TZ: Europe/Stockholm` to your
+time zone, for the times in the log.
+
+### Step 2: Write the settings
+
+```sh
+docker run --rm docker.io/jodab/nejomibot cat /app/config.example.toml > data/config.toml
+nano data/config.toml
+```
+
+Fill in at least these, keeping the quotes:
+
+| Setting | What it is | Example |
+|---|---|---|
+| `account` | The bot's phone number | `"+46700000000"` |
+| `admins` | Your phone number: you'll be the admin | `["+46700000001"]` |
+| `openweather_api_key` | Your OpenWeatherMap key | `"0123456789abcdef..."` |
+| `weather_city` | The city for the weather | `"Stockholm"` |
+| `timezone` | Your time zone, for the timers | `"Europe/Stockholm"` |
+| `language` | `"en"` for English, `"sv"` for Swedish | `"en"` |
+
+Phone numbers go in international format: `+`, the country code, then the
+number without its first 0, and no spaces. Leave `signal_service` as it is:
+the Compose file sets it. `clocks` and `exchange_rate` are for `/info`:
+change them, or delete those two lines. [Configuration](#configuration) has
+the rest.
+
+### Step 3: Hand the folders over
+
+The bot runs as user 1001, and signal-cli-rest-api as user 1000, so each must
+own its folder:
+
+```sh
+sudo chown -R 1001:1001 data && sudo chmod 700 data
+sudo chown -R 1000:1000 signal
+```
+
+With rootless Podman, `podman unshare chown ...` and `podman unshare chmod
+...` instead. From now on, edit the settings with `sudo nano
+data/config.toml` (`podman unshare nano data/config.toml`). The bot only
+reads the photos, which must be readable by everyone (`chmod -R a+rX
+photos`).
+
+### Step 4: Start it
+
+```sh
+docker compose up -d
+docker compose logs -f nejomibot
+```
+
+The bot waits for its Signal account, which you set up next, and its log
+says so:
+
+```
+WARNING nejomibot.bot: signal-cli-rest-api at signal:8080 has no account +46700000000 yet: register or link it with signal-account.sh setup. Waiting.
+```
+
+A line before it saying it can't reach signal-cli-rest-api is fine too, while
+that starts. Ctrl+C stops watching the log; the bot keeps running.
+
+### Step 5: Register the bot's number
+
+```sh
+docker compose exec nejomibot signal-account.sh setup
+```
+
+1. **Register or link?** Press Enter, for `r`: register. Don't link it to a
+   phone: it would take what you type there in a direct chat as the other
+   person's ([why](#who-may-use-what)).
+2. **The captcha.** Open
+   [signalcaptchas.org/registration/generate.html](https://signalcaptchas.org/registration/generate.html)
+   in a browser and solve it. When **Open Signal** shows, right-click it (on a
+   phone, press and hold it), copy the link, and paste it into the tool
+   within a minute or so: it starts with `signalcaptcha://`.
+3. **The code.** Type in the 6 digits Signal texts the bot's number. If
+   Signal can't send a text, the tool offers a call.
+4. **Profile, username, PIN and privacy.** Enter skips any of them. Do give
+   the bot a **name**, or Signal shows its number; and a **PIN** (`y`), which
+   stops anyone else from registering the number.
+
+Once the tool shows `== Done`, and the account under it, the bot starts
+within seconds, and its log has `INFO nejomibot.bot: 0 timers, in
+/data/timers.txt`. The tool does much more:
+see [Setting up and managing the Signal
+account](#setting-up-and-managing-the-signal-account).
+
+### Step 6: Say hello
+
+On your phone, start a new chat in Signal with the bot's number (the pencil
+button, then **Find by phone number**), and send it `/help`. It answers with
+the commands you may use: as its admin, all of them, the admin commands in
+this direct chat only.
+
+### Step 7: Add the bot to your groups
+
+1. In Signal on your phone, open a group, tap its name, then **Add members**,
+   and pick the bot. Do it after the bot has answered you: then it joins at
+   once. Before that, Signal may only invite it, and the bot doesn't take up
+   invitations.
+2. In your direct chat with the bot, allow the group by its name, such as
+   `/allow Family`: everyone in it may use the everyday commands there.
+3. Allow people the same way, for a direct chat with the bot:
+   `/allow +46700000002`.
+
+`/allowed` shows the list ([more](#the-allowed-list)).
+
+### Step 8: Schedule the daily post
+
+Send the bot:
+
+```
+/chats
+/timer add 08:00 1 /dailypost
+/timer run 1
+```
+
+`/chats` numbers the chats the bot can post to: its groups, then the people
+allowed, then you. `/timer add 08:00 1 /dailypost` posts the weather and the
+photo of the day at 08:00 every day, in your `timezone`, to chat 1; for more
+chats, `1,2`, and days work too, as in `mon-fri 07:30` ([more](#timers)).
+`/timer run 1` posts it right away, to see that it works.
+
+That's it: the bot is up and running. Next, perhaps: warnings when it's
+down, with `healthcheck_url` ([how](#health-checks)); [specials](#specials)
+of your own; and a profile picture:
+
+```sh
+docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg
+```
+
+To update it later, see [Updating](#updating).
+
+### If something's wrong
+
+- **`Invalid configuration (config file: /data/config.toml):`** and a
+  setting: fix that setting, then `docker compose restart nejomibot`.
+- **`Can't read the config file /data/config.toml: Permission denied`, or
+  `Can't write in data_dir /data: Permission denied`:** the `data` folder
+  isn't the bot's: do step 3 again.
+- **The bot doesn't answer you:** its log must be past `Waiting`, and
+  `admins` must have your number in international format. If both are so,
+  your Signal may not show your number to the bot, as when *Who can see my
+  number* is *Nobody* in its privacy settings. Then the bot knows you by your
+  Signal ID: `docker compose exec nejomibot signal-account.sh identities`
+  lists who has written to it, by name. Put the ID after yours, such as
+  `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, in `admins` in place of your
+  number, and restart the bot.
+- **A group isn't in `/chats`:** Signal only invited the bot. In the group's
+  settings, under **Requests & invites**, revoke its invite; once the bot has
+  answered you, add it again.
+- **`/weather` says `OpenWeatherMap answered with an error (401: Invalid API
+  key...)`:** a new key takes up to two hours to work; check it's the one on
+  your API keys page.
+- **The captcha didn't work:** it's only good for a minute or so: solve a
+  new one, and paste it right away.
+- **With SELinux** (Fedora, RHEL), the containers may be refused their
+  folders: add `:Z` to the data and signal volumes in compose.yaml, and `,z`
+  to the photos' (`./photos:/photos:ro,z`).
 
 ## Commands
 
@@ -463,6 +664,13 @@ either way you set it to: when a ping says something failed, or when the
 pings stop, as they do when the bot is down. Set the check's period to
 `healthcheck_minutes`, and give it some grace.
 
+Each ping says how each check went, then what runs, as `/status` does: the
+versions of nejomibot, signalbot, Python and signal-cli-rest-api, how long
+the bot has been up, and so its container, as the bot is its process, and
+the bot's memory, with its peak and the container's limit, if there is one.
+healthchecks.io shows it with each ping in the check's log. signal-cli's
+version isn't there: signal-cli-rest-api doesn't say it.
+
 ### The containers' health checks
 
 A container's health check asks something else: whether it works, so
@@ -596,7 +804,7 @@ Settings are read from `config.toml`, or the file named by `NEJOMIBOT_CONFIG`:
 setting, and it's in the image as `/app/config.example.toml`:
 
 ```sh
-podman run --rm localhost/nejomibot cat /app/config.example.toml > config.toml
+podman run --rm docker.io/jodab/nejomibot cat /app/config.example.toml > config.toml
 ```
 
 The file holds the API key and phone numbers, so it is not in git.
@@ -634,11 +842,23 @@ Signal account compete for incoming messages.
 
 ## Running it
 
-The bot is a container image, for linux/amd64 and linux/arm64.
-[tools/build-image.sh](tools/build-image.sh) builds it with Podman: it runs
-the tests, lint and type check, then builds both architectures (the other one
-emulated with QEMU) as `localhost/nejomibot:<version>` and `:latest`, and
-with `--push` pushes them to a registry, once for each `--push`.
+The bot is a container image, for linux/amd64, linux/arm64 and linux/arm/v7,
+the same as signal-cli-rest-api. Each release is published as
+`docker.io/jodab/nejomibot` and `ghcr.io/jodab/nejomibot`, tagged with its
+version and `latest`, which the examples in [deploy/](deploy) use. To build
+it yourself, [tools/build-image.sh](tools/build-image.sh) builds it with
+Podman: it runs the tests, lint and type check, then builds the three
+architectures (those that aren't the machine's emulated with QEMU) as
+`localhost/nejomibot:<version>` and `:latest`, and with `--push` pushes them
+to a registry, once for each `--push`.
+
+The release workflow attests each image it pushes, after 0.93.5: signed
+build provenance, which says which workflow built it, from which commit,
+kept on GitHub. With the [GitHub CLI](https://cli.github.com/), logged in:
+
+```sh
+gh attestation verify oci://docker.io/jodab/nejomibot:latest --repo jodab/nejomibot
+```
 
 It needs [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api)
 later than 0.101 ([which](#which-signal-cli-rest-api)), in json-rpc mode,
@@ -661,18 +881,12 @@ process, which passes SIGTERM on and reaps what the tools leave
 
 ### A fresh install
 
-1. Run signal-cli-rest-api, and note where the bot reaches it, as host:port.
-   It runs as uid 1000, which must own the folder it keeps the account in.
-2. Make the data folder, and `config.toml` in it from the example; give
-   `signal_service` that host:port, and `account` the bot's phone number.
-3. Start the bot. With no account yet in signal-cli-rest-api, it says so in
-   its log, and waits.
-4. Register the bot's number with the account tool in the bot's container:
-   `podman exec -it nejomibot signal-account.sh setup`. The bot starts within
-   seconds. It needs a number of its own: linked to a phone, it would take
-   commands typed on the phone as the other person's.
-5. Message the bot `/help` from an admin's phone, then `/allow` the people and
-   groups it's for, and add timers, such as the daily post.
+[Getting started](#getting-started) walks through one with Compose. With the
+Quadlets or `podman run` below, the steps are the same, with `podman exec -it
+nejomibot` where it has `docker compose exec nejomibot`: `config.toml` in the
+data folder, the bot started, which waits for its account in its log, the
+account registered with `signal-account.sh setup` in the bot's container,
+then `/help` from an admin's phone, `/allow`, and the timers.
 
 ### Podman Quadlets
 
@@ -704,16 +918,8 @@ isn't logged in.
 ### Docker Compose, podman-compose
 
 [deploy/compose.yaml](deploy/compose.yaml) runs both, the bot reaching
-signal-cli-rest-api as `signal:8080`:
-
-```sh
-mkdir data photos signal
-sudo chown 1001 data && sudo chown 1000 signal    # rootless Podman: podman unshare chown ...
-# config.toml in data/, the photos in photos/
-docker compose up -d
-docker compose exec nejomibot signal-account.sh setup
-```
-
+signal-cli-rest-api as `signal:8080`, beside the folders `data`, `photos` and
+`signal`; [Getting started](#getting-started) uses it, step by step.
 signal-cli-rest-api runs as uid 1000, so its folder must be that user's, as
 the bot's must be uid 1001's. Docker restarts a container that stops, but
 not one whose health check fails.
@@ -731,15 +937,18 @@ podman run -d --name nejomibot --network container:signal \
   -e NEJOMIBOT_ACCOUNT=+46700000000 \
   -e NEJOMIBOT_ADMINS='["+46700000001"]' \
   -e NEJOMIBOT_OPENWEATHER_API_KEY=... -e NEJOMIBOT_WEATHER_CITY=Stockholm \
-  localhost/nejomibot
+  docker.io/jodab/nejomibot
 ```
 
 ### Updating
 
-Get the new image and restart the bot (`systemctl restart nejomibot`, or
-`docker compose up -d`). If the configuration needs changing, the bot says
-what's wrong and stops, and its log has the message. What the bot keeps in the
-data folder stays as it is.
+Get the new image and restart the bot: with Compose, `docker compose pull &&
+docker compose up -d`; with the Quadlets, `podman pull
+docker.io/jodab/nejomibot` and `systemctl restart nejomibot`.
+[CHANGELOG.md](CHANGELOG.md) says what to do when updating, if anything. If
+the configuration needs changing, the bot says what's wrong and stops, and
+its log has the message. What the bot keeps in the data folder stays as it
+is. To choose when to update, use a version's tag in place of `latest`.
 
 The log (`journalctl -u nejomibot`, `docker compose logs nejomibot`) has the
 commands the bot answers, by name, and the kind of chat, but not who sent
@@ -768,7 +977,7 @@ uv run ruff check                         # lint
 uv run ruff format                        # format
 uv run pyright                            # type check (strict)
 tools/translations.sh                     # after changing the bot's messages
-tools/build-image.sh                      # the image, for both architectures
+tools/build-image.sh                      # the image, for all three architectures
 ```
 
 Running it needs a signal-cli-rest-api it can reach, as `signal_service`.
@@ -780,7 +989,9 @@ Dependabot proposes new versions of the dependencies, the base images and the
 actions. [Release](.github/workflows/release.yml) publishes the image to
 GitHub's registry, ghcr.io, when a release is published, and to Docker Hub
 as well when the repository has the variable `DOCKERHUB_USERNAME` and the
-secret `DOCKERHUB_TOKEN`; nothing else does.
+secret `DOCKERHUB_TOKEN`; nothing else does. It attests each image's build
+provenance, and on Docker Hub makes [DOCKERHUB.md](DOCKERHUB.md) the image's
+page, for which the token must be allowed to read, write and delete.
 [tools/release.sh](tools/release.sh) makes a release once CI has passed:
 the version, the changelog, a signed tag, and the release on GitHub.
 

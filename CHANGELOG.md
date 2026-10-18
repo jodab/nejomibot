@@ -4,6 +4,47 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- The image is built for linux/arm/v7 too, as signal-cli-rest-api is, so the
+  bot runs on 32-bit ARM, such as older Raspberry Pis. Pillow and pillow-heif
+  have no wheels there, so that image builds them against Debian's libraries,
+  which makes the release's build longer; CI still builds linux/amd64 alone.
+- The pings to `healthcheck_url` say what runs, as `/status` does, below how
+  each check went: the versions of nejomibot, signalbot, Python and
+  signal-cli-rest-api, how long the bot, and so its container, has been up,
+  and the bot's memory, with its peak and the container's limit. They go as
+  `text/plain; charset=utf-8`. signal-cli's version isn't known:
+  signal-cli-rest-api doesn't say it.
+- A setup guide, step by step, from nothing to the daily post: the README's
+  Getting started, and [DOCKERHUB.md](DOCKERHUB.md), the same for the
+  image's page on Docker Hub, which each release now puts there, with the
+  repository's description.
+- Each image a release pushes, to ghcr.io and Docker Hub, has signed build
+  provenance: which workflow built it, from which commit.
+  `gh attestation verify oci://docker.io/jodab/nejomibot:VERSION --repo jodab/nejomibot`
+  checks it.
+
+### Changed
+
+- The examples in `deploy/` run the published image,
+  `docker.io/jodab/nejomibot:latest`, instead of `localhost/nejomibot:latest`
+  built on the machine. To run your own build, set `Image=` in
+  `nejomibot.container`, or `image:` in `compose.yaml`, back to
+  `localhost/nejomibot:latest`.
+- The bot doesn't start unless it can write in `data_dir`, and says why:
+  before, it ran without saving what it was told. If it stops with `Can't
+  write in data_dir`, give the folder to the bot's user, uid 1001 (step 3 of
+  Getting started).
+
+### Fixed
+
+- A config file the bot can't read stops it with `Can't read the config
+  file`, and why, such as a folder it can't open. It said the file wasn't
+  there, and went on without it, so settings in the file seemed missing.
+
 ## 0.93.5 - 2026-10-18
 
 ### Added

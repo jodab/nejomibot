@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 # build-image.sh - test nejomibot and build its container image, for x86 and ARM.
 #
-# Usage: tools/build-image.sh [--platforms LIST] [--source URL] [--push DESTINATION]...
+# Usage: tools/build-image.sh [--platforms LIST] [--source URL]
+#                             [--push DESTINATION]... [--digests FILE]
 #
 # Runs the tests, lint and type check in the image's test stage, and stops if
-# they fail. Then builds the image for linux/amd64 and linux/arm64, the one
-# that isn't this machine's through QEMU emulation, which takes a few minutes.
+# they fail. Then builds the image for linux/amd64, linux/arm64 and
+# linux/arm/v7, as signal-cli-rest-api has it, those that aren't this
+# machine's through QEMU emulation. That takes a while, arm/v7 the longest, as
+# it compiles Pillow and pillow-heif, which have no wheels for it.
 # The result is the manifest list localhost/nejomibot:VERSION, VERSION from
 # pyproject.toml, also tagged localhost/nejomibot:latest.
 #
 # With --platforms, it builds those instead, a comma-separated list such as
-# linux/amd64: CI builds only that, and leaves arm64 to the release.
+# linux/amd64: CI builds only that, and leaves the ARM ones to the release.
 #
 # With --source, the image says where its source is, the repository's URL,
 # such as https://github.com/someone/nejomibot (the label
@@ -21,13 +24,17 @@
 # and name such as ghcr.io/someone/nejomibot, as :VERSION and :latest. Give
 # it once for each registry, such as docker.io/someone/nejomibot as well.
 #
-# Needs podman, and for the other architecture QEMU's binfmt handlers, from
+# With --digests, it adds to FILE what it pushed, a line for each
+# DESTINATION, by digest: ghcr.io/someone/nejomibot@sha256:..., which the
+# release attests.
+#
+# Needs podman, and for the other architectures QEMU's binfmt handlers, from
 # qemu-user-static (Debian, Arch) or qemu-user-static-binfmt.
 
 set -euo pipefail
 
 IMAGE=localhost/nejomibot
-platforms=linux/amd64,linux/arm64
+platforms=linux/amd64,linux/arm64,linux/arm/v7
 
 die() {
   printf 'ERROR: %s\n' "$*" >&2
@@ -48,6 +55,7 @@ build() {
 cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/.."
 destinations=()
 labels=()
+digests=""
 while (($#)); do
   case $1 in
     --push)
@@ -64,6 +72,11 @@ while (($#)); do
       (($# > 1)) || die "--source needs the repository's URL"
       labels=(--label "org.opencontainers.image.source=$2"
         --label "org.opencontainers.image.revision=$(git rev-parse HEAD)")
+      shift
+      ;;
+    --digests)
+      (($# > 1)) || die "--digests needs a file"
+      digests=$2
       shift
       ;;
     -h | --help)
@@ -89,10 +102,15 @@ build "The build" --platform "$platforms" --build-arg "VERSION=$version" \
   "${labels[@]}" --format docker --manifest "$IMAGE:$version"
 podman tag "$IMAGE:$version" "$IMAGE:latest"
 
+pushed=$(mktemp)
+trap 'rm -f -- "$pushed"' EXIT
 for destination in "${destinations[@]}"; do
   for tag in "$version" latest; do
     echo "==> Pushing to $destination:$tag"
-    podman manifest push --all "$IMAGE:$version" "docker://$destination:$tag"
+    podman manifest push --all --digestfile "$pushed" "$IMAGE:$version" \
+      "docker://$destination:$tag"
   done
+  # The same for both tags: the same manifest list
+  if [[ -n $digests ]]; then echo "$destination@$(<"$pushed")" >>"$digests"; fi
 done
 echo "==> Built $IMAGE:$version, also :latest"

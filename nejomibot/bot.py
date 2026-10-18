@@ -3,9 +3,12 @@ the health reports."""
 
 import asyncio
 import logging
+import os
 import signal
 import sys
+import tempfile
 from collections.abc import Callable
+from pathlib import Path
 from types import FrameType
 
 from pydantic import ValidationError
@@ -116,9 +119,50 @@ def settings_errors(error: ValidationError) -> str:
     return "\n".join(lines)
 
 
+def refused(what: str, error: OSError, needs: str) -> str:
+    """Why the bot can't use a file or folder, and if it's not allowed to,
+    who it runs as, and what that user must be able to do."""
+    why = f"{what}: {error.strerror or error}."
+    if isinstance(error, PermissionError):
+        why += f" The bot runs as uid {os.getuid()}, which must be able to {needs}."
+    return why
+
+
+def config_where(path: Path) -> str:
+    """The config file, as the messages about it name it. Stops the bot if
+    the file is there but can't be read: pydantic-settings would go on
+    without it, as if there were none."""
+    try:
+        with path.open("rb"):
+            pass
+    except FileNotFoundError:
+        return f"config file: {path}, not there"
+    except OSError as e:
+        sys.exit(
+            refused(
+                f"Can't read the config file {path}",
+                e,
+                "read it, and open the folders it's in",
+            )
+        )
+    return f"config file: {path}"
+
+
+def check_data_dir(path: Path) -> None:
+    """Stop the bot unless it can write in data_dir: without it, what the bot
+    is told would be gone at the next start. A file made, and gone at once,
+    tells, whatever stands in the way."""
+    try:
+        with tempfile.TemporaryFile(dir=path):
+            pass
+    except FileNotFoundError:
+        sys.exit(f"No data_dir {path}, for the timers and the allowed list")
+    except OSError as e:
+        sys.exit(refused(f"Can't write in data_dir {path}", e, "write in it"))
+
+
 def load_settings() -> Settings:
-    path = config_file()
-    where = f"config file: {path}" + ("" if path.exists() else ", not there")
+    where = config_where(config_file())
     try:
         settings = get_settings()
         check_aliases()
@@ -131,11 +175,8 @@ def load_settings() -> Settings:
         )
     except (ValueError, OSError) as e:  # a file that won't parse, or aliases
         sys.exit(f"Invalid configuration ({where}):\n{e}")
-    # Without it, what the bot is told would be gone at the next start
-    if not settings.debug and not settings.data_dir.is_dir():
-        sys.exit(
-            f"No data_dir {settings.data_dir}, for the timers and the allowed list"
-        )
+    if not settings.debug:  # which keeps its files in a temp folder
+        check_data_dir(settings.data_dir)
     if settings.debug:
         logger.warning("DEBUG mode: only talking to %s", settings.debug_group)
     if not settings.photos_dir.is_dir():

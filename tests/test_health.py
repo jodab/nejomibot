@@ -2,13 +2,15 @@ import asyncio
 import socket
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
+from importlib.metadata import version
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-from helpers import ME, FakeApi
-from signalbot import SignalBot
+from helpers import ME, FakeApi, write
+from signalbot import About, SignalBot
 
 from nejomibot import bot as bot_module
 from nejomibot import health, healthcheck
@@ -176,6 +178,29 @@ async def test_signal_cli_rest_api_too_old(bot: SignalBot, signal_api: FakeApi) 
     assert failed.detail == "version 0.101 is too old: the bot needs a later one"
 
 
+def test_version_lines() -> None:
+    about = About(
+        build=2, capabilities={}, mode="json-rpc", version="0.101", versions=["v1"]
+    )
+    assert health.version_lines(about)[0] == f"nejomibot {version('nejomibot')}"
+    assert health.version_lines(about)[1].startswith(
+        f"signalbot {version('signalbot')} · Python 3."
+    )
+    assert health.version_lines(about)[2] == (
+        "signal-cli-rest-api 0.101, json-rpc mode"
+    )
+    assert health.version_lines(None)[2] == "signal-cli-rest-api: no answer"
+
+
+def test_memory_check_near_limit(fake_system: Path) -> None:
+    write(fake_system, "proc/self/cgroup", "0::/\n")
+    write(fake_system, "sys/fs/cgroup/memory.max", str(100 * 1024**2))
+    write(fake_system, "proc/self/status", "VmRSS: 95000 kB\nVmHWM: 96000 kB\n")
+    assert health.memory_check() == Check(
+        "Bot memory", ok=False, detail="92.8MB of 100.0MB limit (peak 93.8MB)"
+    )
+
+
 type Pings = list[tuple[str, str]]
 
 
@@ -198,16 +223,29 @@ async def healthchecks(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Pings]:
 
 
 async def test_pings_when_all_is_well(
-    bot: SignalBot, signal_api: FakeApi, healthchecks: Pings
+    bot: SignalBot,
+    signal_api: FakeApi,
+    healthchecks: Pings,
+    fake_system: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    write(fake_system, "proc/self/status", "VmRSS: 71680 kB\nVmHWM: 74752 kB\n")
+    monkeypatch.setattr(health, "STARTED", datetime.now(UTC) - timedelta(hours=26))
     await Rounds().run(await started(bot))
     [(path, text)] = healthchecks
     assert path == "/uuid"
-    assert text.splitlines() == [
+    checks, about = text.split("\n\n")
+    assert checks.splitlines() == [
         "OK signal-cli-rest-api: version unset",
         "OK Bot: running",
         "OK Signal: the account has 2 devices",
     ]
+    # Then what runs, as /status says it: the versions, the uptime, the memory
+    lines = about.splitlines()
+    assert lines[0] == f"nejomibot {version('nejomibot')}"
+    assert lines[2] == "signal-cli-rest-api unset, json-rpc mode"
+    assert lines[3].startswith("Up 1 d 2 h, since ")
+    assert lines[4] == "Bot memory: 70.0MB (peak 73.0MB)"
 
 
 async def test_pings_what_failed(

@@ -9,11 +9,9 @@ checks (health.py).
 import asyncio
 import logging
 import os
-import platform
 import shutil
 from collections.abc import Awaitable
 from datetime import UTC, datetime, timedelta
-from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +27,17 @@ from .account import (
 )
 from .commands import Command, Handler, answer
 from .config import get_settings
-from .health import Check, CheckFailed, check_health, format_duration, run_check
+from .health import (
+    STARTED,
+    Check,
+    CheckFailed,
+    check_health,
+    format_duration,
+    memory_check,
+    run_check,
+    up_since,
+    version_lines,
+)
 from .i18n import _, format_file_size, ngettext
 from .info import fetch_rate
 from .messages import arrival_delay, describe, escape, outbox
@@ -38,9 +46,7 @@ from .weather import UNITS, fetch_weather
 
 logger = logging.getLogger(__name__)
 
-STARTED = datetime.now(UTC)
 DISK_FULL = 0.9  # fraction of the photo disk in use
-MEMORY_FULL = 0.9  # fraction of the memory limit in use
 
 type Section = tuple[str, str, list[str]]  # an icon, a title, and its lines
 
@@ -102,24 +108,6 @@ def disk_check(path: Path) -> Check:
     return Check(name, ok=usage.used / usage.total < DISK_FULL, detail=detail)
 
 
-def memory_check() -> Check:
-    name = _("Bot memory")
-    status = system.proc_fields(system.PROC / "self/status")
-    if "VmRSS" not in status:
-        return Check(name, ok=True, detail=_("unknown"))
-    rss = status["VmRSS"]
-    detail = format_file_size(rss)
-    if limit := system.memory_limit():
-        detail = _("{used} of {limit} limit").format(
-            used=detail, limit=format_file_size(limit)
-        )
-    if "VmHWM" in status:
-        peak = _("(peak {peak})").format(peak=format_file_size(status["VmHWM"]))
-        detail += f" {peak}"
-    ok = not limit or rss / limit < MEMORY_FULL
-    return Check(name, ok=ok, detail=detail)
-
-
 def clock_check() -> Check:
     name = _("Clock")
     sync = system.clock_sync()
@@ -179,33 +167,9 @@ def next_timer_run(bot: SignalBot) -> datetime | None:
 # Report
 
 
-def version_lines(about: About | None) -> list[str]:
-    """The bot's versions, and signal-cli-rest-api's. signal-cli's isn't
-    known: signal-cli-rest-api doesn't say."""
-    api = (
-        _("signal-cli-rest-api {version}, {mode} mode").format(
-            version=about.version, mode=about.mode
-        )
-        if about
-        else _("signal-cli-rest-api: no answer")
-    )
-    return [
-        f"nejomibot {version('nejomibot')}",
-        f"signalbot {version('signalbot')} · Python {platform.python_version()}",
-        api,
-    ]
-
-
 def bot_lines(bot: SignalBot, about: About | None, message_delay: float) -> list[str]:
     settings = get_settings()
-    now = datetime.now(UTC)
-    lines = [
-        *version_lines(about),
-        _("Up {duration}, since {time}").format(
-            duration=format_duration(now - STARTED),
-            time=f"{STARTED.astimezone(settings.tz):%Y-%m-%d %H:%M}",
-        ),
-    ]
+    lines = [*version_lines(about), up_since(STARTED)]
     if next_run := next_timer_run(bot):
         lines.append(
             _("Next timer run {time}").format(
@@ -279,7 +243,6 @@ def threads_text(count: int) -> str:
 
 def host_lines() -> list[str]:
     """Blocking: reads /proc and /sys."""
-    tz = get_settings().tz
     uname = os.uname()
     lines: list[str] = []
     if model := system.hardware_model():
@@ -293,12 +256,7 @@ def host_lines() -> list[str]:
         f"{uname.sysname} {uname.release} {uname.machine}",
     ]
     if uptime := system.uptime():
-        booted = datetime.now(tz) - uptime
-        lines.append(
-            _("Up {duration}, since {time}").format(
-                duration=format_duration(uptime), time=f"{booted:%Y-%m-%d %H:%M}"
-            )
-        )
+        lines.append(up_since(datetime.now(UTC) - uptime))
     load = _("Load {load}").format(
         load=" ".join(f"{load:.2f}" for load in os.getloadavg())
     )

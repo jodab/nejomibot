@@ -2,9 +2,10 @@
 
 What's left of the review of all the code, tests, tools, image and deploy
 examples on 2026-10-17 (nejomibot 0.92.0), worked through the same day:
-[Open](#open) lists what still needs the owner, or someone upstream;
+[Open](#open) lists what still needs the owner, or someone upstream, and
+plans that wait for them, such as accounts without a phone number;
 [Done](#done) what was changed, and how. The changes are in
-[CHANGELOG.md](CHANGELOG.md) under 0.93.0.
+[CHANGELOG.md](CHANGELOG.md) under 0.93.0 and later.
 
 The project's own checks all pass: ruff, ruff format, strict pyright, the
 tests, ShellCheck, and actionlint on the workflows.
@@ -26,8 +27,40 @@ wait for the owner.
   for timers, `/run` and the admins in a direct chat, like every special.
   Unlike `/dailypost`, it uses nothing up, so it could be an everyday
   command, for everyone allowed; they have `/fortune` already.
+- [ ] **Bold and other text styles in the posts** (2026-10-18), such as
+  "Dagens ordspråk/citat:" in bold above the day's quote. It's possible, and
+  small: Signal has bold, italic, strikethrough, monospace and spoiler, and
+  the bot sends them already (`/status`, `/info`, `/help`, `/timers`,
+  `/specials` and more answer styled), through signal-cli-rest-api's styled
+  mode: `**bold**`, `*italic*`, `~strikethrough~`, `||spoiler||` and
+  `` `monospace` ``, with `messages.escape()` for any text from elsewhere,
+  which the quote is. What's yours to choose is where, as it changes what
+  people see:
+  1. `/dailyquote`: the heading in bold. `specials.daily_quote()` returns
+     `f"**{escape(heading)}**\n\n{escape(quote)}"`, and the handler answers
+     with `styled=True`. The markup goes around the translated text in the
+     code, so `sv.po` doesn't change, and timers and specials keep the style,
+     as they post the answers as they are.
+  2. Perhaps more: "Photo of the day!" and "Weather in {city}" in the daily
+     post, and a proverb's explanation, the paragraph under it in
+     `fortunes_svenska`, in italics.
+  3. Perhaps the specials of your own too: their text is escaped now, so
+     `**` shows as typed. Taking markup there means a backslash for a
+     literal `*`, `~`, `|` or `` ` ``, and a line in the README.
+
+  Tests: the expected texts in `tests/test_specials.py` (and the weather's
+  and photos' for 2).
 
 ### For you to do
+
+- [ ] **A Docker Hub token that may delete** (2026-10-18). The release now
+  makes DOCKERHUB.md the image's page on Docker Hub, which takes a personal
+  access token with the *Read, Write, Delete* scope; `DOCKERHUB_TOKEN` was
+  made to read and write. At Docker Hub, *Account settings > Personal access
+  tokens*, make one with Read, Write, Delete, then
+  `gh secret set DOCKERHUB_TOKEN --repo jodab/nejomibot` and paste it. Until
+  then the release's `dockerhub-page` job fails (the images are pushed all
+  the same): `gh run rerun --failed` on that run, once the token is in.
 
 - [ ] **Ask signalbot for what the bot can't do without it.** Filing issues
   is the owner's to do; drafts below. The first matters most: until signalbot
@@ -61,41 +94,118 @@ wait for the owner.
      zones, 15% of a bot's image. The bot swaps them with uv's
      `exclude-dependencies` meanwhile; with signalbot asking for the lite one,
      that could go.
-- [ ] **`fortunes_svenska` has no stated source or license.**
-  [README.md](README.md#license) covers fortune-mod's files only. It reads
-  like a Swedish translation of fortune-mod's `fortunes`; record where it
-  comes from, and its terms, before publishing.
-- [ ] **Install the Ruff extension in VS Code** (`charliermarsh.ruff`): this
-  folder's untracked settings now format Python with it, as the project
-  does, and turn Pylint off here; neither Ruff's nor Black's extension was
-  installed, so format on save did nothing.
+- [ ] **Ask signal-cli-rest-api for signal-cli's version** (2026-10-18), for
+  `/status` and the health check pings, which can't show it. Draft:
+  *Say signal-cli's version in /v1/about.* `/v1/about` gives the REST API's
+  own version (`BUILD_VERSION`, `unset` in CI builds) and the mode, not the
+  signal-cli it runs, so a client can't tell which signal-cli answers it.
+  The image knows it as it's built (`SIGNAL_CLI_VERSION`), and in json-rpc
+  mode signal-cli answers a `version` request. A field such as
+  `signal_cli_version` would do. signalbot's `About` would need the field
+  too (it drops unknown ones); meanwhile `rest.py` could read it. Going
+  around signal-cli-rest-api to signal-cli's own port (127.0.0.1:6001 in
+  its container, which the bot reaches only because the examples share its
+  network) isn't an API, so the bot doesn't.
+### Accounts without a phone number
 
-### The day images go to ghcr.io
+A plan, written 2026-10-18; nothing of it is done. The bot should run on an
+account without a phone number, as one made with Signal Login is, and work
+with people who have none.
 
-Everything is in place, and nothing is published until a release is:
+**Where things stand** (2026-10-18):
 
-1. Bump the version and date the CHANGELOG, and push to GitHub. CI
-   runs the checks and builds the image, without pushing it. On a private
-   repository that takes Actions minutes; on a public one it's free.
-2. Publish a release on GitHub, tagged `v` and the version, such as
-   `v0.93.0`. [Release](.github/workflows/release.yml) checks the tag
-   against pyproject.toml, runs `tools/build-image.sh --source ... --push
-   ghcr.io/OWNER/nejomibot`, and so pushes `:VERSION` and `:latest` for
-   amd64 and arm64, labelled with the repository.
-3. On GitHub, make the package public (packages start private).
-4. Point the docs and examples at it: `Image=ghcr.io/OWNER/nejomibot:VERSION`
-   in [deploy/](deploy) and a pull in the README's Running it, instead of
-   `localhost/nejomibot`.
-5. Maybe: build provenance (`actions/attest-build-provenance`) or a cosign
-   signature, so users can check where an image came from.
+- *Signal:* Signal Login, in Signal Android's beta since 8.28 (September
+  2026), makes an account without a phone number for a one-time $3 through
+  Google Play. Signal Android shows its Account Key, which is the account's
+  ACI, a UUID such as `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, and a Recovery
+  Key: nothing else brings the account back. Existing accounts can't drop
+  their number, and without a username nobody can find the account.
+- *signal-cli:* takes an ACI wherever it takes the account (`-a`,
+  JSON-RPC's `account`) since 0.14.6. Since 0.14.9 it can link to an account
+  without a number (signal-cli#2123), and recover one as its primary device:
+  `register --recovery-key KEY -a ACI`, with `--totp` when Signal asks. It
+  can't make one, as the payment is in the app store (signal-cli#2124,
+  open). `listAccounts` gives `{"number": null, "aci": "..."}` (in text,
+  `ACI: ...`), and what it receives carries the ACI as its `account`.
+- *signal-cli-rest-api:* not yet; issue #889 is open, and someone there has
+  a branch, for a PR once signal-cli 0.14.9 is in. Its paths take an ACI
+  where they take `{number}`, and pass it to signal-cli, and its websocket
+  picks messages by that `account`, so sending and receiving work: they
+  linked such an account and sent from it. Missing: `/v1/accounts` lists
+  only numbers, so such an account shows as `""`; the link's QR code is
+  fixed at version 10, too small for the longer link; and `register` can't
+  take a recovery key.
+- *signalbot:* `Config.phone_number` is any string, used in the paths and
+  as the sender, so the ACI should do. To try.
+
+**Steps:**
+
+1. Wait for signal-cli-rest-api's support, in a release or a CI build with
+   signal-cli 0.14.9 or later, and pin it as now. Ask on #889 for what the
+   bot needs besides: `/v1/accounts` listing the ACI of an account without a
+   number, and `register` with `recovery_key` (and `totp`).
+2. Yours to decide: an account for trying it ($3, an Android phone with
+   Google Play and the beta), and how the bot takes it over. Recovered with
+   its Recovery Key, signal-cli becomes its primary device, the phone gives
+   it up, and the bot is the account's only device: the way to go. Linked,
+   the phone keeps it, and what's typed there in a direct chat reaches the
+   bot as the other person's, as with a number (Who may use what).
+3. The code changes below, with tests.
+4. Try it with the account on a signal-cli-rest-api of its own, posting to
+   the test group only, then the docs.
+
+**Code changes:**
+
+- `config.py`: `account` takes a Signal ID already. Also take the Account
+  Key as 32 hex digits without dashes, which signal-cli takes too (check how
+  Signal Android shows it), and turn it into signal-cli's form, lowercase
+  with dashes: the one its messages carry, which signal-cli-rest-api compares
+  as text. Update the comment on `account`, which says a Signal ID may come
+  once signal-cli-rest-api has accounts without a number.
+- `bot.py`, `wait_for_account()`: `rest.accounts()` must find the ACI, in
+  the form #889 lists it in. Its message says "account" already.
+- `rest.py`: `accounts()` for the new list; each `account_path()` request
+  tried with an ACI: devices, contacts, identities, trust, profiles,
+  username, avatars.
+- `profile.py`, `fetch_me()`: the fallback `Contact(number=account)` takes
+  an ACI as a number; `uuid=` for one.
+- `/profile` and `/status`: the ACI and the username where they show the
+  number, and a warning when an account without a number has no username,
+  as then nobody can find it.
+- `account.py`, `allowed.py`: `Account.id`, `is_me()`, and the check that
+  the bot can't allow itself, with an ACI in place of a number.
+- `tools/signal-account.sh`: `use_account()` dies on anything but a number:
+  take an ACI. `setup` and `register` offer recovery with the Account Key
+  and the Recovery Key, asked for as PINs are, kept out of the history,
+  saying that the phone gives the account up. `link` for an account without
+  a number, once the QR code fits. `status` and `identities` show the ACI;
+  `privacy` and `search` are about numbers, so they say so; `rate-limit --to`
+  takes an ACI or `u:username`; `unregister` warns that an account without a
+  number comes back only with its Recovery Key. Find out what `pin`, the
+  registration lock, means without a number.
+- People without a number: admins and the allowed list take Signal IDs
+  already, and `admins` gets them from `signal-account.sh identities`.
+  `/contacts add` takes only a phone number for someone the bot doesn't know
+  yet: a username too, `u:name.42`, as signal-cli takes. That changes a
+  command, so it's yours to decide.
+- Tests: made-up ACIs; the config takes both forms, and gives the dashed
+  one; the wait finds an account by its ACI; `fetch_me()`; `/status`'s
+  lines; FakeApi answering for an account without a number.
+- Docs: the README (Who may use what, Getting started, Configuration,
+  Setting up and managing the Signal account), DOCKERHUB.md and
+  config.example.toml: the bot needs an account of its own, a number it's
+  registered with, or a Signal Login account, recovered into signal-cli;
+  and with no number, a username.
 
 ### Upstream
 
 - [ ] **signal-cli-rest-api is pinned to a CI build.** [deploy/](deploy) uses
   `1791633879-ci`, now by digest, as 0.101 is broken for the bot (#885, #892,
-  signal-cli#2119); 0.101 was still the latest release on 2026-10-17. Move to
-  the next release once it's out, then revisit `LAST_TOO_OLD` in
-  [health.py](nejomibot/health.py).
+  signal-cli#2119); 0.101 was still the latest release on 2026-10-17, and on
+  2026-10-18. Move to the next release once it's out, then revisit
+  `LAST_TOO_OLD` in [health.py](nejomibot/health.py).
+- [ ] **signal-cli-rest-api for accounts without a number** (#889, open):
+  see Accounts without a phone number, above.
 
 ## Done
 
@@ -251,6 +361,50 @@ Everything is in place, and nothing is published until a release is:
   of 8,600, each also a journal event, for recovery in about three minutes
   instead of a minute and a half. `healthcheck_events = false` in the
   host's containers.conf would drop the journal events too.
+- [x] The health check pings say what runs, as `/status` does: the
+  versions, the uptime and the memory. signal-cli's version can't be had:
+  see For you to do.
+- [x] A setup guide, step by step: the README's Getting started, and
+  [DOCKERHUB.md](DOCKERHUB.md) for Docker Hub. Tried with the published
+  images, up to registering, and with two likely mistakes.
+- [x] Docker Hub's page is pushed by the release: DOCKERHUB.md as of the
+  release, and the repository's description, by
+  `peter-evans/dockerhub-description`, once the images are up. It needs a
+  token that may delete: see For you to do.
+- [x] Signed build provenance for each image a release pushes, keyless:
+  `build-image.sh --digests` records what was pushed, by digest, and
+  `actions/attest-build-provenance` attests it, for
+  `gh attestation verify oci://IMAGE --repo jodab/nejomibot`. The digests
+  were tried against a registry of our own; the attestation runs for the
+  first time with the next release.
+- [x] A config file the bot can't read, and a `data_dir` it can't write in,
+  stop it with a message that says so, and as whom it runs. It said the
+  file wasn't there, and went on without it.
+- [x] `fortunes_svenska`'s source and terms: recorded in the README's
+  License since the public release. It's the bot's own, proverbs and quotes
+  from writers long dead in translations of its own, so it comes under the
+  bot's license.
+- [x] The Ruff extension is installed in VS Code (`charliermarsh.ruff`,
+  2026-10-18), so this folder's settings format Python with it on save.
+
+### The day images go to ghcr.io (done, 2026-10-18)
+
+Releases since 0.93.2 are on ghcr.io, and since 0.93.5 on Docker Hub, both
+public; the docs and [deploy/](deploy) use `docker.io/jodab/nejomibot:latest`,
+and the release attests each image (step 5). How it was set up:
+
+1. Bump the version and date the CHANGELOG, and push to GitHub. CI
+   runs the checks and builds the image, without pushing it. On a private
+   repository that takes Actions minutes; on a public one it's free.
+2. Publish a release on GitHub, tagged `v` and the version, such as
+   `v0.93.0`. [Release](.github/workflows/release.yml) checks the tag
+   against pyproject.toml, runs `tools/build-image.sh --source ... --push
+   ghcr.io/OWNER/nejomibot`, and so pushes `:VERSION` and `:latest` for
+   amd64, arm64 and arm/v7, labelled with the repository.
+   [tools/release.sh](tools/release.sh) does all of this now.
+3. On GitHub, make the package public (packages start private).
+4. Point the docs and examples at it, instead of `localhost/nejomibot`.
+5. Build provenance, so users can check where an image came from.
 
 ## Checked and fine
 
@@ -268,5 +422,5 @@ Everything is in place, and nothing is published until a release is:
 - Memory, measured 2026-10-17: about 74 MB RSS after imports and one picture
   opened, 71 MB with `photos_heif = false`; mostly signalbot, aiohttp and
   pydantic.
-- signalbot 2.1.0 has nothing that would replace a function in rest.py, nor
-  mark sync messages.
+- signalbot 2.1.0, still the latest on 2026-10-18, has nothing that would
+  replace a function in rest.py, nor mark sync messages.

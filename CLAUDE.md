@@ -62,7 +62,12 @@ posted where and when. When unsure whether a change is user-facing, ask.
   server.
 - **Deployment isn't `git push`.** `tools/build-image.sh` builds the image and
   the owner's own untracked helper deploys it; `deploy/` holds examples for
-  others.
+  others, which run the published `docker.io/jodab/nejomibot:latest`.
+- **Two setup guides.** The README's Getting started and `DOCKERHUB.md`, the
+  image's page on Docker Hub, which each release puts there, walk through
+  the same steps: change them together. DOCKERHUB.md describes the code as
+  it will be released, and has absolute links only, as Docker Hub can't
+  follow the repository's relative ones; it must stay under 25,000 bytes.
 - **Photo times.** Captions show every time in the bot's `timezone`, wherever
   the photo was taken. `photos.exif_datetime` works the moment out in this
   order, which must stay: a DateTimeDigitized a time-zone shift away from
@@ -72,8 +77,9 @@ posted where and when. When unsure whether a change is user-facing, ask.
   signal-cli-rest-api runs with `JSON_RPC_IGNORE_ATTACHMENTS=true`, so
   `/avatar` can't take a picture; whoever wants it enables attachments
   themselves. `/avatar` stays as it is.
-- `TODO.md` holds what's left of the 2026-10-17 review: the owner's open
-  decisions, the upstream asks, and the day images go to ghcr.io.
+- `TODO.md` holds what's left of the 2026-10-17 review, the owner's open
+  decisions and the upstream asks, and plans that wait: accounts without a
+  phone number, and text styles in posts.
 
 ## Development commands
 
@@ -87,18 +93,24 @@ uv run ruff format                         # format (ruff, not Black)
 uv run pyright                             # type check, strict
 shellcheck tools/*.sh                      # the shell tools; CI runs it, the build doesn't
 tools/translations.sh                      # after changing any message (needs GNU gettext)
-tools/build-image.sh                       # test stage first, then the amd64+arm64 image
+tools/build-image.sh                       # test stage first, then the amd64, arm64, arm/v7 image
 tools/release.sh patch                     # a release (or minor, major), once CI passed; see --help
 uv run nejomibot-timers                    # the timers from a terminal, as the image has it
 ```
 
 `tools/build-image.sh` runs ruff check, ruff format --check, pyright and
-pytest in the Dockerfile's test stage and builds nothing if they fail. The
-image is tagged with the version in `pyproject.toml`; `--source URL` labels
+pytest in the Dockerfile's test stage and builds nothing if they fail. That
+stage runs on the building machine alone. On linux/arm/v7 Pillow and
+pillow-heif have no wheels, so the build stage compiles them against Debian's
+libraries (`TARGETARCH` is `arm`). Debian's libheif reads HEIF but can't
+write it, which only the tests do. The image is tagged with the version in `pyproject.toml`; `--source URL` labels
 it with the repository, as ghcr.io wants. On GitHub, `.github/workflows/`
 has CI (checks, ShellCheck, image build) and a release workflow that pushes
 to ghcr.io, and to Docker Hub when the repository has `DOCKERHUB_USERNAME`
-and `DOCKERHUB_TOKEN`, only when a release is published; Dependabot updates
+and `DOCKERHUB_TOKEN`, only when a release is published, attests each
+image's build provenance (keyless, through `--digests`), and then makes
+DOCKERHUB.md the Docker Hub page (the token needs read, write and delete
+scope); Dependabot updates
 uv.lock, the Dockerfile's digests and the actions. Changes go in
 `CHANGELOG.md`, under `## Unreleased`, which `tools/release.sh` turns into
 the release's section and notes. The script releases only what CI passed,
@@ -208,8 +220,11 @@ never `str(e)`.
 **Health** has two layers. `health.py` runs checks (signal-cli-rest-api
 through signalbot, the bot itself, Signal's servers through the linked
 devices) every `healthcheck_minutes`, logs failures and pings
-`healthcheck_url`. The container check (`healthcheck.py`, the image's
-HEALTHCHECK) asks the running bot over the abstract Unix socket
+`healthcheck_url` with the results, then the versions, uptime and memory
+(`ping_text`). `/status` shows those through the same functions, which live
+in `health.py` because `status.py` imports it. The container check
+(`healthcheck.py`, the image's HEALTHCHECK) asks the running bot over the
+abstract Unix socket
 `\0nejomibot-health`. It is liveness only: it fails when the bot doesn't
 answer or its rounds are late, never because Signal or signal-cli-rest-api
 fails (a restart wouldn't help, and could lose the messages that have waited
@@ -272,6 +287,6 @@ messages, run `tools/translations.sh` and translate `sv.po`.
 Measured 2026-10-18: about 73 MB peak RSS after imports, the Swedish
 translations and one picture opened (70 MB with `photos_heif = false`;
 mostly signalbot, aiohttp and pydantic; runs vary by a MB) and a 232 MB
-image (amd64), with phonenumberslite in place of signalbot's phonenumbers
+image (amd64; arm64 250 MB, arm/v7 202 MB), with phonenumberslite in place of signalbot's phonenumbers
 (`exclude-dependencies` in pyproject.toml). Measure both when adding a
 dependency.

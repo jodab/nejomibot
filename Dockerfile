@@ -1,13 +1,22 @@
 # Pinned by digest, for builds that come out the same; Dependabot keeps the
-# digests and versions current
-FROM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
+# digests and versions current. uv is the building machine's own: it has no
+# image for 32-bit ARM, and being statically linked it runs in any stage,
+# natively, even where the rest is emulated.
+FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
 
 FROM docker.io/library/python:3.14-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170 AS base
 
 # tzdata lets TZ give local log timestamps; curl, jq and qrencode are for
-# signal-account.sh. The bot's user and group are 1001 both.
+# signal-account.sh. On 32-bit ARM, where Pillow and pillow-heif have no
+# wheels, the libraries they're built against (the wheels bring their own).
+# The bot's user and group are 1001 both.
+ARG TARGETARCH
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata curl jq qrencode \
+    && if [ "$TARGETARCH" = arm ]; then \
+        apt-get install -y --no-install-recommends libjpeg62-turbo libwebp7 \
+            libwebpmux3 libwebpdemux2 libavif16 libheif1 libheif-plugin-libde265; \
+    fi \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 1001 nejomibot \
     && useradd --system --uid 1001 --gid 1001 --no-create-home nejomibot
@@ -40,6 +49,15 @@ RUN .venv/bin/python -c 'import pathlib, polib; \
      for po in pathlib.Path("locale").glob("*.po")]'
 
 FROM uv-base AS build
+# On 32-bit ARM, what building Pillow, pillow-heif and the smaller ones without
+# wheels there takes: a compiler, the libraries' headers, and pkg-config to
+# find them, left behind here
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = arm ]; then \
+        apt-get update \
+        && apt-get install -y --no-install-recommends gcc libc6-dev pkgconf \
+            libjpeg62-turbo-dev zlib1g-dev libwebp-dev libavif-dev libheif-dev; \
+    fi
 # Dependencies first, so code changes don't reinstall them
 RUN uv sync --locked --no-dev --no-install-project
 COPY nejomibot/ nejomibot/

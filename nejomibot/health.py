@@ -7,7 +7,10 @@ ready. Each time it asks Signal's servers one thing: the account's linked
 devices. It keeps the latest result, only in memory. With healthcheck_url
 set, it also reports each to a health check service such as healthchecks.io:
 it pings the URL when all passed, or URL/fail with what failed, so the
-service warns when something fails, or when the pings stop.
+service warns when something fails, or when the pings stop. Each ping says
+how each check went, then what runs, as /status does: the versions of the
+bot, signalbot, Python and signal-cli-rest-api, how long the bot, and so its
+container, has been up, and the memory it uses.
 
 The container's health check (healthcheck.py) asks something else: whether
 the bot works, so whether restarting it could help, as a container runtime
@@ -17,24 +20,28 @@ may restart it when it doesn't. The answer has the latest result too.
 import asyncio
 import contextlib
 import logging
+import platform
 import time
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from importlib.metadata import version
 from typing import cast
 
 import aiohttp
 from signalbot import About, SignalBot
 
-from . import healthcheck
+from . import healthcheck, system
 from .account import Device, fetch_devices
 from .client import client
 from .config import get_settings
-from .i18n import _, ngettext
+from .i18n import _, format_file_size, ngettext
 from .messages import describe, outbox
 
 logger = logging.getLogger(__name__)
 
+# About when the bot started, and so its container: the bot is its process
+STARTED = datetime.now(UTC)
 CHECK_TIMEOUT = 20  # seconds a check may take, so a stuck service can't hold it
 SLOW = 1.0  # seconds: a check that takes this long says so
 # A message waiting this long to be sent means the bot can't send
@@ -43,6 +50,7 @@ PING_TIMEOUT = aiohttp.ClientTimeout(total=10)
 # Checks are late, so something's stuck, when the last was more than twice
 # healthcheck_minutes ago and this
 LATE = timedelta(minutes=1)
+MEMORY_FULL = 0.9  # fraction of the memory limit in use
 # signal-cli-rest-api up to this crashes on overlapping requests (#885), and
 # its native signal-cli can't list linked devices (signal-cli#2119), as the
 # Signal check does. Builds after it have "unset" for their version.
@@ -192,12 +200,71 @@ def report_text(checks: list[Check]) -> str:
     )
 
 
+def version_lines(about: About | None) -> list[str]:
+    """The bot's versions, and signal-cli-rest-api's. signal-cli's isn't
+    known: signal-cli-rest-api doesn't say."""
+    api = (
+        _("signal-cli-rest-api {version}, {mode} mode").format(
+            version=about.version, mode=about.mode
+        )
+        if about
+        else _("signal-cli-rest-api: no answer")
+    )
+    return [
+        f"nejomibot {version('nejomibot')}",
+        f"signalbot {version('signalbot')} · Python {platform.python_version()}",
+        api,
+    ]
+
+
+def up_since(start: datetime) -> str:
+    """Up how long since start, and since when, in the bot's time zone: the
+    bot's uptime, or the host's."""
+    return _("Up {duration}, since {time}").format(
+        duration=format_duration(datetime.now(UTC) - start),
+        time=f"{start.astimezone(get_settings().tz):%Y-%m-%d %H:%M}",
+    )
+
+
+def memory_check() -> Check:
+    """The bot's memory, and the limit on it, if there is one. Quick enough
+    for the event loop: /proc and /sys aren't on a disk."""
+    name = _("Bot memory")
+    status = system.proc_fields(system.PROC / "self/status")
+    if "VmRSS" not in status:
+        return Check(name, ok=True, detail=_("unknown"))
+    rss = status["VmRSS"]
+    detail = format_file_size(rss)
+    if limit := system.memory_limit():
+        detail = _("{used} of {limit} limit").format(
+            used=detail, limit=format_file_size(limit)
+        )
+    if "VmHWM" in status:
+        peak = _("(peak {peak})").format(peak=format_file_size(status["VmHWM"]))
+        detail += f" {peak}"
+    ok = not limit or rss / limit < MEMORY_FULL
+    return Check(name, ok=ok, detail=detail)
+
+
+def ping_text(health: Health) -> str:
+    """For the health check service: how each check went, then what runs,
+    since when, and in how much memory, as /status says it."""
+    memory = memory_check()
+    lines = [
+        *version_lines(health.about),
+        up_since(STARTED),
+        f"{memory.name}: {memory.detail}",
+    ]
+    return report_text(health.checks) + "\n\n" + "\n".join(lines)
+
+
 async def ping(url: str, text: str) -> None:
     """Tell the health check service. Never raises: it notices when the pings
     stop."""
     try:
+        # A str goes as text/plain; charset=utf-8
         async with client.session().post(
-            url, data=text.encode(), timeout=PING_TIMEOUT
+            url, data=text, timeout=PING_TIMEOUT
         ) as response:
             response.raise_for_status()
     except Exception as e:
@@ -251,11 +318,10 @@ class Rounds:
         """Check the bot's health, and report it to healthcheck_url, if set."""
         health = await check_health(bot)
         self.latest = (datetime.now(UTC), health)
-        text = report_text(health.checks)
         if failed := health.failed:
             logger.warning("Health check failed: %s", report_text(failed))
         if url := get_settings().healthcheck_url:
-            await ping(f"{url.rstrip('/')}/fail" if failed else url, text)
+            await ping(f"{url.rstrip('/')}/fail" if failed else url, ping_text(health))
 
     def answer(self, now: datetime) -> str:
         """For the container's health check: OK or FAILED, whether the bot

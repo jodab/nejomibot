@@ -126,8 +126,8 @@ class Settings(BaseSettings):
 
     # Every healthcheck_minutes the bot checks signal-cli-rest-api, itself, and
     # Signal's servers with its account (health.py). With a URL such as
-    # https://hc-ping.com/<uuid>, it then pings it, or URL/fail with what's
-    # wrong.
+    # https://hc-ping.com/<uuid>, it then pings it, or URL/fail, with what it
+    # found, the versions, the uptime and its memory.
     healthcheck_url: (
         Annotated[str, StringConstraints(pattern=r"^https?://\S+$")] | None
     ) = None

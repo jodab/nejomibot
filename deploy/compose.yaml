@@ -27,7 +27,8 @@ services:
     restart: unless-stopped
 
   nejomibot:
-    image: localhost/nejomibot:latest
+    # The same image is at ghcr.io/jodab/nejomibot
+    image: docker.io/jodab/nejomibot:latest
     depends_on:
       - signal
     environment:

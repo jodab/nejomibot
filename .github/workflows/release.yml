@@ -1,10 +1,18 @@
 # Publishes the image to GitHub's container registry, as
-# ghcr.io/OWNER/nejomibot:VERSION and :latest, for linux/amd64 and
-# linux/arm64, when a release is published on GitHub. It goes to Docker Hub
-# too, as docker.io/USER/nejomibot, when the repository has the variable
-# DOCKERHUB_USERNAME and the secret DOCKERHUB_TOKEN, a Docker Hub personal
-# access token that may read and write. Nothing else publishes it. The
-# release's tag is the version in pyproject.toml, such as v0.93.0.
+# ghcr.io/OWNER/nejomibot:VERSION and :latest, for linux/amd64, linux/arm64
+# and linux/arm/v7, when a release is published on GitHub. It goes to Docker
+# Hub too, as docker.io/USER/nejomibot, when the repository has the variable
+# DOCKERHUB_USERNAME and the secret DOCKERHUB_TOKEN, and then DOCKERHUB.md, as
+# of the release, becomes the image's page there, with the repository's
+# description. The token is a Docker Hub personal access token that may read,
+# write and delete: Docker Hub wants all three to change a page. Nothing else
+# publishes either. The release's tag is the version in pyproject.toml, such
+# as v0.93.0.
+#
+# Each image pushed gets signed build provenance: which workflow built it,
+# from which commit. It's keyless, signed through Sigstore for this
+# workflow's identity, and GitHub keeps it, so there's no key to look after:
+# gh attestation verify oci://IMAGE:VERSION --repo OWNER/nejomibot checks it.
 name: Release
 
 on:
@@ -13,11 +21,16 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   image:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write  # to push to ghcr.io
+      # To sign the provenance as this workflow, and to keep it on GitHub
+      id-token: write
+      attestations: write
     env:
       DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
     steps:
@@ -31,7 +44,7 @@ jobs:
             echo "::error::The release is $GITHUB_REF_NAME, but pyproject.toml has $version"
             exit 1
           fi
-      # For the image's other architecture, through QEMU
+      # For the image's ARM architectures, through QEMU
       - run: sudo apt-get update && sudo apt-get install -y qemu-user-static
       - name: Log in to ghcr.io
         run: podman login --username "$GITHUB_ACTOR" --password-stdin ghcr.io <<<"$GITHUB_TOKEN"
@@ -49,4 +62,31 @@ jobs:
           if [[ -n $DOCKERHUB_USERNAME ]]; then
             destinations+=(--push "docker.io/$DOCKERHUB_USERNAME/nejomibot")
           fi
-          tools/build-image.sh --source "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" "${destinations[@]}"
+          tools/build-image.sh --source "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --digests "$RUNNER_TEMP/pushed" "${destinations[@]}"
+          # As the attestation takes them: the digest's hex, two spaces, the name
+          sed -E 's/^(.+)@sha256:([0-9a-f]{64})$/\2  \1/' "$RUNNER_TEMP/pushed" \
+            >"$RUNNER_TEMP/subjects"
+      - name: Attest the images' provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: ${{ runner.temp }}/subjects
+
+  # Once the image is there, so the page never tells of one that isn't
+  dockerhub-page:
+    needs: image
+    if: vars.DOCKERHUB_USERNAME != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ vars.DOCKERHUB_USERNAME }}/nejomibot
+          short-description: ${{ github.event.repository.description }}
+          readme-filepath: DOCKERHUB.md

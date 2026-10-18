@@ -13,7 +13,8 @@ BindsTo=signal.service
 
 [Container]
 ContainerName=nejomibot
-Image=localhost/nejomibot:latest
+# The same image is at ghcr.io/jodab/nejomibot
+Image=docker.io/jodab/nejomibot:latest
 Network=signal.container
 Environment=NEJOMIBOT_SIGNAL_SERVICE=127.0.0.1:8080
 Timezone=local

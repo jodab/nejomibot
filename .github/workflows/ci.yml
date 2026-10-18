@@ -35,6 +35,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # amd64 alone: arm64, emulated, is most of the time, and the release
-      # builds it
+      # amd64 alone: the ARM ones, emulated, are most of the time, and the
+      # release builds them
       - run: tools/build-image.sh --platforms linux/amd64

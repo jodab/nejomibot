@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 02:45+0300\n"
+"POT-Creation-Date: 2026-10-18 18:32+0300\n"
 "PO-Revision-Date: 2026-10-18 02:45+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -224,7 +224,7 @@ msgstr ""
 "Jämför säkerhetsnumret här med det i deras telefon och skicka sedan: /trust "
 "<namn, telefonnummer eller ID> <säkerhetsnummer>"
 
-#: nejomibot/contacts.py nejomibot/status.py
+#: nejomibot/contacts.py nejomibot/health.py nejomibot/status.py
 msgid "unknown"
 msgstr "okänd"
 
@@ -445,6 +445,34 @@ msgstr[1] "kontot har {count} enheter"
 #: nejomibot/health.py
 msgid "Signal"
 msgstr "Signal"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "signal-cli-rest-api {version}, {mode} mode"
+msgstr "signal-cli-rest-api {version}, läget {mode}"
+
+#: nejomibot/health.py
+msgid "signal-cli-rest-api: no answer"
+msgstr "signal-cli-rest-api: inget svar"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "Up {duration}, since {time}"
+msgstr "Igång i {duration}, sedan {time}"
+
+#: nejomibot/health.py
+msgid "Bot memory"
+msgstr "Botens minne"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{used} of {limit} limit"
+msgstr "{used} av gränsen {limit}"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "(peak {peak})"
+msgstr "(topp {peak})"
 
 #: nejomibot/help.py
 msgid "a random photo"
@@ -1264,20 +1292,6 @@ msgid "{free} free of {total}"
 msgstr "{free} ledigt av {total}"
 
 #: nejomibot/status.py
-msgid "Bot memory"
-msgstr "Botens minne"
-
-#: nejomibot/status.py
-#, python-brace-format
-msgid "{used} of {limit} limit"
-msgstr "{used} av gränsen {limit}"
-
-#: nejomibot/status.py
-#, python-brace-format
-msgid "(peak {peak})"
-msgstr "(topp {peak})"
-
-#: nejomibot/status.py
 msgid "Clock"
 msgstr "Klocka"
 
@@ -1310,20 +1324,6 @@ msgstr "ej betrodda, så inget skickas till: {who}"
 #: nejomibot/status.py
 msgid "all trusted"
 msgstr "alla betrodda"
-
-#: nejomibot/status.py
-#, python-brace-format
-msgid "signal-cli-rest-api {version}, {mode} mode"
-msgstr "signal-cli-rest-api {version}, läget {mode}"
-
-#: nejomibot/status.py
-msgid "signal-cli-rest-api: no answer"
-msgstr "signal-cli-rest-api: inget svar"
-
-#: nejomibot/status.py
-#, python-brace-format
-msgid "Up {duration}, since {time}"
-msgstr "Igång i {duration}, sedan {time}"
 
 #: nejomibot/status.py
 #, python-brace-format

@@ -1,4 +1,6 @@
 import asyncio
+import os
+import re
 import signal
 from pathlib import Path
 from typing import cast
@@ -106,10 +108,84 @@ def test_without_a_config_file_it_says_so(monkeypatch: pytest.MonkeyPatch) -> No
         load_settings()
 
 
+def test_a_config_file_that_cant_be_read_stops_the_bot(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A folder in its place, as Docker makes one to mount a file that's missing
+    path = tmp_path / "config.toml"
+    path.mkdir()
+    monkeypatch.setenv("NEJOMIBOT_CONFIG", str(path))
+    get_settings.cache_clear()
+    with pytest.raises(SystemExit) as stopped:
+        load_settings()
+    assert str(stopped.value) == f"Can't read the config file {path}: Is a directory."
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root may read anything")
+def test_a_config_file_out_of_reach_says_who_must_reach_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # In a folder the bot's user can't open, as when the data folder is left
+    # to someone else: pydantic-settings took the file to be missing, and so
+    # did the message
+    folder = tmp_path / "private"
+    folder.mkdir()
+    path = folder / "config.toml"
+    path.write_text(f'account = "{ME}"\n')
+    folder.chmod(0)
+    monkeypatch.setenv("NEJOMIBOT_CONFIG", str(path))
+    get_settings.cache_clear()
+    try:
+        with pytest.raises(SystemExit) as stopped:
+            load_settings()
+    finally:
+        folder.chmod(0o700)
+    assert str(stopped.value) == (
+        f"Can't read the config file {path}: Permission denied. The bot runs as "
+        f"uid {os.getuid()}, which must be able to read it, and open the "
+        "folders it's in."
+    )
+
+
 def test_no_data_dir_stops_the_bot() -> None:
     get_settings().data_dir.rmdir()
     with pytest.raises(SystemExit, match="No data_dir"):
         load_settings()
+
+
+def test_a_data_dir_that_isnt_a_folder_stops_the_bot() -> None:
+    data_dir = get_settings().data_dir
+    data_dir.rmdir()
+    data_dir.touch()
+    with pytest.raises(
+        SystemExit,
+        match=f"^Can't write in data_dir {re.escape(str(data_dir))}: Not a directory",
+    ):
+        load_settings()
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root may write anywhere")
+def test_a_data_dir_the_bot_cant_write_in_stops_it() -> None:
+    # The likeliest mistake: the folder left to whoever made it. The bot would
+    # run, and lose what it's told.
+    data_dir = get_settings().data_dir
+    data_dir.chmod(0o555)
+    try:
+        with pytest.raises(SystemExit) as stopped:
+            load_settings()
+    finally:
+        data_dir.chmod(0o700)
+    assert str(stopped.value) == (
+        f"Can't write in data_dir {data_dir}: Permission denied. The bot runs as "
+        f"uid {os.getuid()}, which must be able to write in it."
+    )
+
+
+def test_the_data_dir_check_leaves_nothing_behind() -> None:
+    data_dir = get_settings().data_dir
+    before = set(data_dir.iterdir())
+    load_settings()
+    assert set(data_dir.iterdir()) == before
 
 
 @pytest.mark.parametrize(

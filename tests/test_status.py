@@ -1,23 +1,13 @@
 import os
-from importlib.metadata import version
 from pathlib import Path
 
 import pytest
 from helpers import GROUP, ME, FakeApi, group_entry, write
-from signalbot import About, SignalBot
+from signalbot import SignalBot
 
 from nejomibot import status, system
 from nejomibot.config import get_settings
 from nejomibot.health import Check
-
-
-def test_memory_check_near_limit(fake_system: Path) -> None:
-    write(fake_system, "proc/self/cgroup", "0::/\n")
-    write(fake_system, "sys/fs/cgroup/memory.max", str(100 * 1024**2))
-    write(fake_system, "proc/self/status", "VmRSS: 95000 kB\nVmHWM: 96000 kB\n")
-    assert status.memory_check() == Check(
-        "Bot memory", ok=False, detail="92.8MB of 100.0MB limit (peak 93.8MB)"
-    )
 
 
 def test_clock_check(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -88,20 +78,6 @@ async def test_check_groups_names_missing_group(bot: SignalBot) -> None:
         match=r"not a member of group.b2xk…, group\.bbbbbbbb…",
     ):
         await status.check_groups(bot)
-
-
-def test_version_lines() -> None:
-    about = About(
-        build=2, capabilities={}, mode="json-rpc", version="0.101", versions=["v1"]
-    )
-    assert status.version_lines(about)[0] == f"nejomibot {version('nejomibot')}"
-    assert status.version_lines(about)[1].startswith(
-        f"signalbot {version('signalbot')} · Python 3."
-    )
-    assert status.version_lines(about)[2] == (
-        "signal-cli-rest-api 0.101, json-rpc mode"
-    )
-    assert status.version_lines(None)[2] == "signal-cli-rest-api: no answer"
 
 
 def test_checks_text_when_all_pass() -> None:

@@ -71,7 +71,9 @@ admins = [
 # Every healthcheck_minutes the bot checks signal-cli-rest-api, itself, and
 # Signal's servers with its account, and logs what fails. With a health check
 # URL to report to, such as https://hc-ping.com/<uuid> from healthchecks.io,
-# it then pings the URL, or the URL with /fail and what failed.
+# it then pings the URL, or the URL with /fail and what failed. Each ping also
+# says the versions of the bot and signal-cli-rest-api, the bot's uptime and
+# its memory.
 # healthcheck_url = "https://hc-ping.com/your-uuid"
 # healthcheck_minutes = 5
 

@@ -8,9 +8,9 @@
 # (0.94.0) or major (1.0.0) version, makes CHANGELOG.md's Unreleased section
 # that version's, dated today, commits and tags that, both signed, and pushes
 # them. Then it publishes the release on GitHub, with the section as its
-# notes, which starts .github/workflows/release.yml: that builds the image and
-# pushes it to the registries. The script waits for it; Ctrl-C stops only the
-# waiting.
+# notes, which starts .github/workflows/release.yml: that builds the image,
+# pushes it to the registries, and makes DOCKERHUB.md its page on Docker Hub.
+# The script waits for it; Ctrl-C stops only the waiting.
 #
 # If anything fails, fix it and run the script again. Before the push, a
 # failure or Ctrl-C puts everything back as it was. After it, the next run
@@ -53,7 +53,7 @@ publish() {
   echo "==> Publishing $1 on GitHub"
   gh release create "v$1" --verify-tag --title "$1" --notes "$(notes "$1")" ||
     die "Publishing $1 failed: run this again to publish it"
-  echo "==> Waiting for the image to be built and pushed (Ctrl-C stops only the waiting)"
+  echo "==> Waiting for the image to be built and pushed, and its page (Ctrl-C stops only the waiting)"
   wait_for release.yml "$(git rev-parse "v$1^{commit}")"
   echo "==> Released $1"
 }
