@@ -1,0 +1,20 @@
+# Pull requests for new versions: of the Python dependencies (uv.lock), the
+# base images in the Dockerfile, by tag and digest, and the workflows' actions
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # The bot is written for Python 3.14 (.python-version, requires-python)
+      - dependency-name: python
+        update-types: [version-update:semver-major, version-update:semver-minor]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

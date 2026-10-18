@@ -1,0 +1,260 @@
+"""Entry point: wires up the command handlers, who may use them, the timers and
+the health reports."""
+
+import asyncio
+import logging
+import signal
+import sys
+from collections.abc import Callable
+from types import FrameType
+
+from pydantic import ValidationError
+from signalbot import LOGGER_NAME, Config, ConnectionMode, InMemoryConfig, SignalBot
+
+from . import access, health, rest
+from .allowed import Allow, Allowed, Disallow
+from .client import client
+from .commands import Handler, aliases, built_in
+from .config import Settings, config_file, get_settings
+from .contacts import Contacts, Trust
+from .delete import Delete
+from .fortune import Fortune
+from .help import Help
+from .info import Info
+from .messages import describe, outbox
+from .photos import Photo
+from .ping import Ping
+from .profile import About, Avatar, Name, Profile, Username
+from .relay import Msg, Run
+from .specials import Specials
+from .status import Status
+from .timers import Chats, Timers, timekeeper
+from .weather import Weather
+
+logger = logging.getLogger(__name__)
+
+# How often to look again for signal-cli-rest-api and the account at startup:
+# the bot starts with signal-cli-rest-api, often before it answers
+WAIT_RETRY = 5  # seconds
+# Python's usual, with the date: journald and podman logs stamp lines
+# anyway, but a log file or the terminal don't
+LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+
+# A handler, the contacts it answers, the groups it answers in, and what else
+# a message must pass, if anything
+type Check = Callable[[object], bool]
+type Registration = tuple[Handler, list[str] | bool, list[str] | bool, Check | None]
+
+
+def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
+    """Every handler, with who it answers."""
+
+    def allowed(message: object) -> bool:
+        return access.permits(bot, message)
+
+    # The everyday commands: for the admins and the allowed list, which is
+    # checked for each message, as /allow and /disallow change it
+    everyday: list[Registration] = [
+        (handler, True, True, allowed)
+        for handler in (Ping(), Photo(), Weather(), Info(), Fortune(), Help())
+    ]
+    # For the admins only, in direct chats: they show what only the admins
+    # should see, or change the bot, who may use it, or its timers, or post
+    # to other chats
+    admins: list[Registration] = [
+        (handler, settings.admins, False, None)
+        for handler in (
+            Status(),
+            Specials(),
+            Contacts(),
+            Trust(),
+            Allowed(),
+            Allow(),
+            Disallow(),
+            Profile(),
+            Name(),
+            About(),
+            Avatar(),
+            Username(),
+            Chats(),
+            Timers(),
+            Msg(),
+            Run(),
+        )
+    ]
+    return [
+        *everyday,
+        *admins,
+        # For the admins only, in every chat; in groups it checks who sent it
+        (Delete(), settings.admins, settings.delete_groups, None),
+    ]
+
+
+def check_aliases() -> None:
+    """Every alias, the settings' and the language's, is another name for a
+    command the bot comes with, and not a command itself. Not for the admins'
+    own specials, which come and go as the bot runs. Raises ValueError."""
+    for alias, command in aliases().items():
+        if not built_in(command):
+            raise ValueError(f"aliases: {command} isn't a command (for {alias})")
+        if built_in(alias):
+            raise ValueError(f"aliases: {alias} is a command already")
+
+
+def settings_errors(error: ValidationError) -> str:
+    """A line for each wrong setting, saying what's wrong with it."""
+    lines: list[str] = []
+    for problem in error.errors():
+        setting = ".".join(map(str, problem["loc"])) or "the settings"
+        if problem["type"] == "extra_forbidden":
+            what = "no such setting: renamed or removed?"
+        elif problem["type"] == "missing":
+            what = "missing"
+        else:
+            what = problem["msg"]
+        lines.append(f"  {setting}: {what}")
+    return "\n".join(lines)
+
+
+def load_settings() -> Settings:
+    path = config_file()
+    where = f"config file: {path}" + ("" if path.exists() else ", not there")
+    try:
+        settings = get_settings()
+        check_aliases()
+    except ValidationError as e:
+        sys.exit(
+            f"Invalid configuration ({where}):\n{settings_errors(e)}\n\n"
+            "Every setting is described in config.example.toml (in the image: "
+            "/app/config.example.toml). Settings can also be given as "
+            "environment variables NEJOMIBOT_<SETTING>."
+        )
+    except (ValueError, OSError) as e:  # a file that won't parse, or aliases
+        sys.exit(f"Invalid configuration ({where}):\n{e}")
+    # Without it, what the bot is told would be gone at the next start
+    if not settings.debug and not settings.data_dir.is_dir():
+        sys.exit(
+            f"No data_dir {settings.data_dir}, for the timers and the allowed list"
+        )
+    if settings.debug:
+        logger.warning("DEBUG mode: only talking to %s", settings.debug_group)
+    if not settings.photos_dir.is_dir():
+        logger.warning("Photos directory does not exist: %s", settings.photos_dir)
+    return settings
+
+
+async def wait_for_account() -> None:
+    """Wait until signal-cli-rest-api answers and has the account, saying what
+    to do meanwhile. signalbot would wait too, but without saying why.
+
+    Meanwhile the container's health check hears that the bot works: no
+    restart would help, and on a new install one would cut the account's
+    setup short, as that runs in the bot's container.
+
+    It runs on an event loop of its own, before signalbot's, so the HTTP
+    session it uses is closed once it's done: a session can't move to
+    another loop."""
+    settings = get_settings()
+    api = f"signal-cli-rest-api at {settings.signal_service}"
+    said = ""
+    try:
+        async with health.answering(
+            lambda: f"OK: waiting: {said}" if said else "OK: starting"
+        ):
+            while True:
+                try:
+                    if settings.account in await rest.accounts():
+                        return
+                    why = (
+                        f"{api} has no account {settings.account} yet: register "
+                        "or link it with signal-account.sh setup"
+                    )
+                except rest.RestError as e:
+                    why = f"{api} answers with an error: {e}"
+                except Exception as e:
+                    why = f"Can't reach {api}: {describe(e)}"
+                if why != said:
+                    logger.warning("%s. Waiting.", why)
+                    said = why
+                await asyncio.sleep(WAIT_RETRY)
+    finally:
+        await client.close()
+
+
+def stop(signum: int, frame: FrameType | None) -> None:
+    """Stop at once, on SIGTERM, until signalbot runs, which then stops the bot
+    gracefully. Without an init process in the container (RunInit=, init:),
+    the bot is its first process, which SIGTERM only stops if it handles it."""
+    sys.exit(0)
+
+
+def set_up_logging() -> None:
+    """The bot's lines at INFO, till the settings say log_level; the libraries'
+    only when something's wrong. signalbot logs its own way, through its own
+    handler: through the bot's instead, so every line looks the same."""
+    logging.basicConfig(level=logging.WARNING, format=LOG_FORMAT)
+    logging.getLogger(__package__).setLevel(logging.INFO)
+
+
+def shutdown() -> None:
+    """Once signalbot has stopped, and with it its event loop: stop what's
+    left of the bot's own work, keep the messages waiting to be sent, and
+    close the loop, as asyncio.run would."""
+    loop = asyncio.get_event_loop()  # signalbot's
+    try:
+        tasks = asyncio.all_tasks(loop)
+        for task in tasks:
+            task.cancel()
+        loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+        outbox.keep_all()
+        loop.run_until_complete(health.stop())
+        loop.run_until_complete(client.close())
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.run_until_complete(loop.shutdown_default_executor())
+    finally:
+        loop.close()
+    logger.info("Stopped")
+
+
+def main() -> None:
+    signal.signal(signal.SIGTERM, stop)
+    set_up_logging()
+    settings = load_settings()
+    logging.getLogger(__package__).setLevel(settings.log_level)
+    asyncio.run(wait_for_account())
+
+    bot = SignalBot(
+        Config(
+            signal_service=settings.signal_service,
+            phone_number=settings.account,
+            # signal-cli-rest-api has no HTTPS of its own
+            connection_mode=ConnectionMode.HTTP_ONLY,
+            # At INFO it logs every message it receives, in full
+            logging_level=logging.WARNING,
+            # No handler needs what's attached to every message: /avatar
+            # fetches its picture itself
+            download_attachments=False,
+            # The bot keeps nothing in signalbot's storage, so memory will do
+            storage=InMemoryConfig(),
+        )
+    )
+    logging.getLogger(LOGGER_NAME).handlers.clear()  # see set_up_logging
+    outbox.start(bot)
+
+    access.allowed_list.start()
+    logger.info(
+        "%d chats on the allowed list, in %s",
+        len(access.allowed_list.entries),
+        settings.allowed_file,
+    )
+    registrations = handlers(bot, settings)
+    for handler, contacts, groups, check in registrations:
+        bot.register(handler, contacts=contacts, groups=groups, f=check)
+    # Timers run their commands through the same handlers, but for those
+    # their commands say timers mayn't
+    timekeeper.start(bot, [handler for handler, *_who in registrations])
+    logger.info("%d timers, in %s", len(timekeeper.timers), settings.timers_file)
+    health.start(bot)
+
+    bot.start()
+    shutdown()

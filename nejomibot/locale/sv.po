@@ -1,0 +1,1876 @@
+# Swedish translation of nejomibot's messages.
+# Update with tools/translations.sh; see nejomibot/i18n.py.
+msgid ""
+msgstr ""
+"Project-Id-Version: nejomibot\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-18 02:45+0300\n"
+"PO-Revision-Date: 2026-10-18 02:45+0300\n"
+"Language-Team: Swedish\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: nejomibot/account.py
+msgid "today"
+msgstr "idag"
+
+#: nejomibot/account.py
+msgid "yesterday"
+msgstr "igår"
+
+#: nejomibot/account.py
+msgid "primary"
+msgstr "primär"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "(seen {day})"
+msgstr "(senast sedd {day})"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} contact"
+msgid_plural "{count} contacts"
+msgstr[0] "{count} kontakt"
+msgstr[1] "{count} kontakter"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} known recipient"
+msgid_plural "{count} known recipients"
+msgstr[0] "{count} känd mottagare"
+msgstr[1] "{count} kända mottagare"
+
+#: nejomibot/account.py nejomibot/status.py
+#, python-brace-format
+msgid "blocked: {who}"
+msgstr "blockerade: {who}"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "Safety numbers: {trusted} trusted ({verified} verified)"
+msgstr "Säkerhetsnummer: {trusted} betrodda ({verified} verifierade)"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} untrusted"
+msgstr "{count} ej betrodda"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "New or changed in the last week: {who}"
+msgstr "Nya eller ändrade den senaste veckan: {who}"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} group (admin in {admin})"
+msgid_plural "{count} groups (admin in {admin})"
+msgstr[0] "{count} grupp (admin i {admin})"
+msgstr[1] "{count} grupper (admin i {admin})"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} other member"
+msgid_plural "{count} other members"
+msgstr[0] "{count} annan medlem"
+msgstr[1] "{count} andra medlemmar"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} left"
+msgstr "har lämnat {count}"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} pending invite"
+msgid_plural "{count} pending invites"
+msgstr[0] "{count} väntande inbjudan"
+msgstr[1] "{count} väntande inbjudningar"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "Asking to join: {groups}"
+msgstr "Vill gå med: {groups}"
+
+#: nejomibot/allowed.py
+msgid ""
+"Send /allow and who: a phone number, Signal ID or group ID, or the name of a "
+"group the bot is in or of someone in /contacts."
+msgstr ""
+"Skicka /allow och vem: ett telefonnummer, Signal-ID eller grupp-ID, eller "
+"namnet på en grupp boten är med i eller på någon i /contacts."
+
+#: nejomibot/allowed.py
+msgid ""
+"Send /disallow and who: their number in /allowed, phone number, Signal ID or "
+"group ID, or name."
+msgstr ""
+"Skicka /disallow och vem: numret i /allowed, telefonnummer, Signal-ID eller "
+"grupp-ID, eller namn."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid ""
+"{who} is an admin. Admins are in the config, and may always use every "
+"command."
+msgstr ""
+"{who} är admin. Admins står i konfigurationen och får alltid använda alla "
+"kommandon."
+
+#: nejomibot/allowed.py
+msgid "(the bot isn't in it)"
+msgstr "(boten är inte med i den)"
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "Who may use the everyday commands ({count}):"
+msgstr "Vilka som får använda vardagskommandona ({count}):"
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "Admins, in the config, may use every command: {admins}"
+msgstr "Admins, i konfigurationen, får använda alla kommandon: {admins}"
+
+#: nejomibot/allowed.py
+msgid "/allow <who> adds one, /disallow <n> removes one."
+msgstr "/allow <vem> lägger till, /disallow <n> tar bort."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "Nobody and no group is called {who}."
+msgstr "Ingen person eller grupp heter {who}."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{who} could be any of {count}, give their ID: {ids}"
+msgstr "{who} kan syfta på {count}, ange ID: {ids}"
+
+#: nejomibot/allowed.py
+msgid "That's the bot itself."
+msgstr "Det är boten själv."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{name} may use the everyday commands already."
+msgstr "{name} får redan använda vardagskommandona."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "The list is full: {count} at most."
+msgstr "Listan är full: högst {count}."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "✅ {name} may use the everyday commands now."
+msgstr "✅ {name} får använda vardagskommandona nu."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "✅ Everyone in {name} may use the everyday commands there now."
+msgstr "✅ Alla i {name} får använda vardagskommandona där nu."
+
+#: nejomibot/allowed.py
+msgid "The bot isn't in the group: it answers there once added."
+msgstr "Boten är inte med i gruppen: den svarar där när den har lagts till."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "There's no {n} in /allowed."
+msgstr "Det finns inget nummer {n} i /allowed."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{who} isn't in /allowed."
+msgstr "{who} finns inte i /allowed."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{who} could be any of {count} in /allowed: give its number."
+msgstr "{who} kan syfta på {count} i /allowed: ange numret."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "Timer {timers} still posts there: see /timers."
+msgid_plural "Timers {timers} still post there: see /timers."
+msgstr[0] "Timern {timers} postar fortfarande där: se /timers."
+msgstr[1] "Timrarna {timers} postar fortfarande där: se /timers."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "🗑️ Nobody in {name} may use the everyday commands there now."
+msgstr "🗑️ Ingen i {name} får använda vardagskommandona där längre."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "🗑️ {name} may no longer use the everyday commands."
+msgstr "🗑️ {name} får inte längre använda vardagskommandona."
+
+#: nejomibot/allowed.py
+msgid "They're an admin, in the config, so may still use them."
+msgstr "Hen är admin, i konfigurationen, och får fortfarande använda dem."
+
+#: nejomibot/contacts.py
+msgid "Send: /contacts add <phone number, ID or name> <their name>"
+msgstr "Skicka: /kontakter add <telefonnummer, ID eller namn> <deras namn>"
+
+#: nejomibot/contacts.py
+msgid ""
+"Compare their safety number here with the one on their phone, then send: /"
+"trust <name, phone number or ID> <safety number>"
+msgstr ""
+"Jämför säkerhetsnumret här med det i deras telefon och skicka sedan: /trust "
+"<namn, telefonnummer eller ID> <säkerhetsnummer>"
+
+#: nejomibot/contacts.py nejomibot/status.py
+msgid "unknown"
+msgstr "okänd"
+
+#: nejomibot/contacts.py
+msgid "No safety number yet"
+msgstr "Inget säkerhetsnummer ännu"
+
+#: nejomibot/contacts.py
+msgid "✅ Verified"
+msgstr "✅ Verifierad"
+
+#: nejomibot/contacts.py
+msgid "❌ Untrusted: safety number changed"
+msgstr "❌ Ej betrodd: säkerhetsnumret har ändrats"
+
+#: nejomibot/contacts.py
+msgid "⚪ Not verified"
+msgstr "⚪ Inte verifierad"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ", key from {day}"
+msgstr ", nyckel från {day}"
+
+#: nejomibot/contacts.py
+msgid "phone number not shared"
+msgstr "telefonnumret delas inte"
+
+#: nejomibot/contacts.py
+msgid "🚫 blocked"
+msgstr "🚫 blockerad"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "In {groups}"
+msgstr "I {groups}"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "{count} safety number: {verified} verified, {untrusted} untrusted."
+msgid_plural ""
+"{count} safety numbers: {verified} verified, {untrusted} untrusted."
+msgstr[0] ""
+"{count} säkerhetsnummer: {verified} verifierade, {untrusted} ej betrodda."
+msgstr[1] ""
+"{count} säkerhetsnummer: {verified} verifierade, {untrusted} ej betrodda."
+
+#: nejomibot/contacts.py
+msgid "Who the bot knows"
+msgstr "Vilka boten känner till"
+
+#: nejomibot/contacts.py
+msgid "Contacts"
+msgstr "Kontakter"
+
+#: nejomibot/contacts.py
+msgid "Other known recipients"
+msgstr "Andra kända mottagare"
+
+#: nejomibot/contacts.py
+msgid "Only a safety number"
+msgstr "Bara ett säkerhetsnummer"
+
+#: nejomibot/contacts.py
+msgid ""
+"/contacts <who> shows one, with their safety number to compare with their "
+"phone before /trust."
+msgstr ""
+"/kontakter <vem> visar en, med säkerhetsnumret att jämföra med deras telefon "
+"före /verifiera."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "Nobody called {who} in /contacts."
+msgstr "Ingen som heter {who} i /kontakter."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "{who} could be any of {count}, use their ID: {ids}"
+msgstr "{who} kan syfta på {count}, använd ID: {ids}"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "No safety number for {name} yet."
+msgstr "Inget säkerhetsnummer för {name} ännu."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ""
+"❌ That isn't the safety number for {name}, so it's not verified. If theirs "
+"really is different, they may have reinstalled Signal, or it may not be them."
+msgstr ""
+"❌ Det är inte säkerhetsnumret för {name}, så det verifieras inte. Om deras "
+"verkligen är ett annat kan de ha installerat om Signal, eller så är det inte "
+"de."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "✅ {name} is already verified."
+msgstr "✅ {name} är redan verifierad."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "No phone number or ID for {name}."
+msgstr "Inget telefonnummer eller ID för {name}."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "✅ {name} verified."
+msgstr "✅ {name} verifierad."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "✏️ Renamed {was} to {name} in the contacts."
+msgstr "✏️ {was} heter nu {name} i kontakterna."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "📇 Added {was} to the contacts, as {name}."
+msgstr "📇 La till {was} i kontakterna, som {name}."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "Nothing left to delete here since the bot started, at {time}."
+msgstr "Inget kvar att radera här sedan boten startade, {time}."
+
+#: nejomibot/delete.py
+msgid ""
+"Nothing left to delete here from the last day: Signal only deletes messages "
+"for everyone within a day."
+msgstr ""
+"Inget kvar att radera här från det senaste dygnet: Signal raderar bara "
+"meddelanden för alla inom ett dygn."
+
+#: nejomibot/fortune.py
+msgid "Fortune libraries:"
+msgstr "Spådomsbibliotek:"
+
+#: nejomibot/fortune.py
+msgid "No fortunes found."
+msgstr "Hittade inga spådomar."
+
+#: nejomibot/fortune.py
+msgid "Unknown fortune library. Use /fortune list to see the names."
+msgstr "Okänt spådomsbibliotek. Skicka /fortune list för att se namnen."
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{detail}, in {seconds} s"
+msgstr "{detail}, på {seconds} s"
+
+#: nejomibot/health.py
+msgid "timed out"
+msgstr "svarade inte i tid"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{seconds} s"
+msgstr "{seconds} s"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{days} d {hours} h"
+msgstr "{days} d {hours} tim"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{hours} h {minutes} min"
+msgstr "{hours} tim {minutes} min"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{minutes} min"
+msgstr "{minutes} min"
+
+#: nejomibot/health.py nejomibot/status.py
+msgid "Bot"
+msgstr "Bot"
+
+#: nejomibot/health.py
+msgid "still starting: signalbot waits for signal-cli-rest-api and the account"
+msgstr ""
+"startar fortfarande: signalbot väntar på signal-cli-rest-api och kontot"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{count} message waiting to be sent, the first for {duration}"
+msgid_plural "{count} messages waiting to be sent, the first for {duration}"
+msgstr[0] "{count} meddelande har väntat på att skickas i {duration}"
+msgstr[1] "{count} meddelanden väntar på att skickas, det första i {duration}"
+
+#: nejomibot/health.py
+msgid "running"
+msgstr "igång"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "version {version} in {mode} mode, not json-rpc"
+msgstr "version {version} i läget {mode}, inte json-rpc"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "version {version} is too old: the bot needs a later one"
+msgstr "version {version} är för gammal: boten behöver en senare"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "version {version}"
+msgstr "version {version}"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "the account has {count} device"
+msgid_plural "the account has {count} devices"
+msgstr[0] "kontot har {count} enhet"
+msgstr[1] "kontot har {count} enheter"
+
+#: nejomibot/health.py
+msgid "Signal"
+msgstr "Signal"
+
+#: nejomibot/help.py
+msgid "a random photo"
+msgstr "en slumpvis vald bild"
+
+#: nejomibot/help.py
+msgid "how many photos, and how big"
+msgstr "hur många bilder, och hur stora"
+
+#: nejomibot/help.py
+msgid "the weather now"
+msgstr "vädret just nu"
+
+#: nejomibot/help.py
+msgid "the time, and an exchange rate"
+msgstr "tiden, och en valutakurs"
+
+#: nejomibot/help.py
+msgid "is the bot there?"
+msgstr "är boten där?"
+
+#: nejomibot/help.py
+msgid "[<library>|all|list]"
+msgstr "[<bibliotek>|all|list]"
+
+#: nejomibot/help.py
+msgid "a fortune"
+msgstr "en spådom"
+
+#: nejomibot/help.py
+msgid "these commands"
+msgstr "de här kommandona"
+
+#: nejomibot/help.py
+msgid "how the bot and the server are"
+msgstr "hur boten och servern mår"
+
+#: nejomibot/help.py
+msgid "the daily post, here"
+msgstr "dagens bild, här"
+
+#: nejomibot/help.py
+msgid "the daily quote, here"
+msgstr "dagens ordspråk eller citat, här"
+
+#: nejomibot/help.py
+msgid "[<who>]"
+msgstr "[<vem>]"
+
+#: nejomibot/help.py
+msgid "who the bot knows"
+msgstr "vilka boten känner till"
+
+#: nejomibot/help.py
+msgid "add <who> <name>"
+msgstr "add <vem> <namn>"
+
+#: nejomibot/help.py
+msgid "add a contact, or rename"
+msgstr "lägg till en kontakt, eller byt namn"
+
+#: nejomibot/help.py
+msgid "<who> <safety number>"
+msgstr "<vem> <säkerhetsnummer>"
+
+#: nejomibot/help.py
+msgid "mark as verified"
+msgstr "markera som verifierad"
+
+#: nejomibot/help.py
+msgid "who may use the bot"
+msgstr "vilka som får använda boten"
+
+#: nejomibot/help.py
+msgid "<who>"
+msgstr "<vem>"
+
+#: nejomibot/help.py
+msgid "put someone, or a group, on that list"
+msgstr "lägg till någon, eller en grupp, på listan"
+
+#: nejomibot/help.py
+msgid "<n>"
+msgstr "<n>"
+
+#: nejomibot/help.py
+msgid "take someone off it"
+msgstr "ta bort någon från listan"
+
+#: nejomibot/help.py
+msgid "the bot's profile"
+msgstr "botens profil"
+
+#: nejomibot/help.py
+msgid "<name>"
+msgstr "<namn>"
+
+#: nejomibot/help.py
+msgid "its name"
+msgstr "botens namn"
+
+#: nejomibot/help.py
+msgid "<text>"
+msgstr "<text>"
+
+#: nejomibot/help.py
+msgid "its About text"
+msgstr "botens Om-text"
+
+#: nejomibot/help.py
+msgid "its picture: send one with this as its caption"
+msgstr "botens profilbild: skicka en bild med detta som bildtext"
+
+#: nejomibot/help.py
+msgid "its username, and a link"
+msgstr "botens användarnamn, och en länk"
+
+#: nejomibot/help.py
+msgid "what it runs on a schedule"
+msgstr "det boten kör på schema"
+
+#: nejomibot/help.py
+msgid "where timers can post"
+msgstr "vart timrar kan posta"
+
+#: nejomibot/help.py
+msgid "a new timer"
+msgstr "en ny timer"
+
+#: nejomibot/help.py
+msgid "add <when> [<chats>] <commands>"
+msgstr "add <när> [<chattar>] <kommandon>"
+
+#: nejomibot/help.py
+msgid "remove <n> · run <n>"
+msgstr "remove <n> · run <n>"
+
+#: nejomibot/help.py
+msgid "remove one, or run it now"
+msgstr "ta bort en, eller kör den nu"
+
+#: nejomibot/help.py
+msgid "commands of your own"
+msgstr "egna kommandon"
+
+#: nejomibot/help.py
+msgid "a new one, or a change"
+msgstr "ett nytt, eller en ändring"
+
+#: nejomibot/help.py
+msgid "add <name> <parts>"
+msgstr "add <namn> <delar>"
+
+#: nejomibot/help.py
+msgid "remove <name>"
+msgstr "remove <namn>"
+
+#: nejomibot/help.py
+msgid "remove one"
+msgstr "ta bort ett"
+
+#: nejomibot/help.py
+msgid "<chats> <text>"
+msgstr "<chattar> <text>"
+
+#: nejomibot/help.py
+msgid "post a message to chats"
+msgstr "posta ett meddelande i chattar"
+
+#: nejomibot/help.py
+msgid "<chats> <commands>"
+msgstr "<chattar> <kommandon>"
+
+#: nejomibot/help.py
+msgid "post commands' answers to chats"
+msgstr "posta kommandons svar i chattar"
+
+#: nejomibot/help.py
+msgid "delete its latest message here"
+msgstr "radera botens senaste meddelande här"
+
+#: nejomibot/help.py
+msgid ""
+"<who> – a name, number or ID, as /contacts shows; /allow takes groups too"
+msgstr ""
+"<vem> – ett namn, nummer eller ID, som /kontakter visar; /tillåt tar även "
+"grupper"
+
+#: nejomibot/help.py
+msgid "<n> – a number from /allowed or /timers"
+msgstr "<n> – ett nummer från /tillåtna eller /timers"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · every 2h, "
+"in {zone} time"
+msgstr ""
+"<när> – 08:00 · mån-fre 07:30 · {date} 15:00 · imorgon 08:00 · varje 2h, "
+"enligt tiden i {zone}"
+
+#: nejomibot/help.py
+msgid ""
+"<chats> – numbers from /chats, like 1,2; a timer without them posts to you"
+msgstr ""
+"<chattar> – nummer från /chats, som 1,2; en timer utan dem postar till dig"
+
+#: nejomibot/help.py
+msgid ""
+"<parts> – text and commands, separated by ;, e.g. Good morning! /weather; /"
+"dailyquote"
+msgstr ""
+"<delar> – text och kommandon, åtskilda med ;, t.ex. God morgon! /väder; /"
+"dagenscitat"
+
+#: nejomibot/help.py
+msgid "remove – after /about, /avatar or /username, takes it away"
+msgstr "remove – efter /om, /profilbild eller /användarnamn tar bort det"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "For everyone allowed ({count})"
+msgstr "För alla tillåtna ({count})"
+
+#: nejomibot/help.py
+msgid "Admins, in a direct chat"
+msgstr "Admins, i en direktchatt"
+
+#: nejomibot/help.py
+msgid "Admins, in any chat"
+msgstr "Admins, i alla chattar"
+
+#: nejomibot/help.py
+msgid "Commands"
+msgstr "Kommandon"
+
+#: nejomibot/help.py
+msgid "Every command takes its English name too."
+msgstr "Alla kommandon fungerar också med sina engelska namn."
+
+#: nejomibot/i18n.py
+msgid "Monday"
+msgstr "Måndag"
+
+#: nejomibot/i18n.py
+msgid "Tuesday"
+msgstr "Tisdag"
+
+#: nejomibot/i18n.py
+msgid "Wednesday"
+msgstr "Onsdag"
+
+#: nejomibot/i18n.py
+msgid "Thursday"
+msgstr "Torsdag"
+
+#: nejomibot/i18n.py
+msgid "Friday"
+msgstr "Fredag"
+
+#: nejomibot/i18n.py
+msgid "Saturday"
+msgstr "Lördag"
+
+#: nejomibot/i18n.py
+msgid "Sunday"
+msgstr "Söndag"
+
+#: nejomibot/i18n.py
+msgid "January"
+msgstr "Januari"
+
+#: nejomibot/i18n.py
+msgid "February"
+msgstr "Februari"
+
+#: nejomibot/i18n.py
+msgid "March"
+msgstr "Mars"
+
+#: nejomibot/i18n.py
+msgid "April"
+msgstr "April"
+
+#: nejomibot/i18n.py
+msgid "May"
+msgstr "Maj"
+
+#: nejomibot/i18n.py
+msgid "June"
+msgstr "Juni"
+
+#: nejomibot/i18n.py
+msgid "July"
+msgstr "Juli"
+
+#: nejomibot/i18n.py
+msgid "August"
+msgstr "Augusti"
+
+#: nejomibot/i18n.py
+msgid "September"
+msgstr "September"
+
+#: nejomibot/i18n.py
+msgid "October"
+msgstr "Oktober"
+
+#: nejomibot/i18n.py
+msgid "November"
+msgstr "November"
+
+#: nejomibot/i18n.py
+msgid "December"
+msgstr "December"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{weekday} {day} {month} {time}"
+msgstr "{weekday} {day} {month} {time}"
+
+#: nejomibot/info.py
+msgid "Standard time"
+msgstr "Vintertid"
+
+#: nejomibot/info.py
+msgid "Summer time"
+msgstr "Sommartid"
+
+#: nejomibot/info.py
+msgid "Time zones"
+msgstr "Tidszoner"
+
+#: nejomibot/info.py
+#, python-brace-format
+msgid "⏰ Time difference: {hours} h"
+msgstr "⏰ Tidsskillnad: {hours} tim"
+
+#: nejomibot/info.py nejomibot/status.py
+msgid "Exchange rates"
+msgstr "Valutakurser"
+
+#: nejomibot/info.py
+msgid "the exchange rates can't be read"
+msgstr "valutakurserna går inte att läsa"
+
+#: nejomibot/info.py
+#, python-brace-format
+msgid "the exchange rate API answered with an error ({error})"
+msgstr "valutakurstjänsten svarade med ett fel ({error})"
+
+#: nejomibot/info.py
+#, python-brace-format
+msgid "the exchange rate API has no rate for {currency}"
+msgstr "valutakurstjänsten har ingen kurs för {currency}"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "signal-cli-rest-api answered {status} {reason}"
+msgstr "signal-cli-rest-api svarade {status} {reason}"
+
+#: nejomibot/messages.py
+msgid "signal-cli-rest-api can't be reached"
+msgstr "signal-cli-rest-api går inte att nå"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "Something went wrong: {error}"
+msgstr "Något gick fel: {error}"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "⚠️ The file has a line the bot can't read, and leaves as it is: {lines}"
+msgid_plural ""
+"⚠️ The file has {count} lines the bot can't read, and leaves as they are: "
+"{lines}"
+msgstr[0] ""
+"⚠️ Filen har en rad som boten inte kan läsa, och lämnar som den är: {lines}"
+msgstr[1] ""
+"⚠️ Filen har {count} rader som boten inte kan läsa, och lämnar som de är: "
+"{lines}"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "⏳ Late: it should have been sent at {time}"
+msgstr "⏳ Försenat, skulle ha skickats kl. {time}"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "{count} message couldn't be sent in {hours} hours, and was dropped"
+msgid_plural ""
+"{count} messages couldn't be sent in {hours} hours, and were dropped"
+msgstr[0] ""
+"{count} meddelande kunde inte skickas på {hours} timmar och har slängts"
+msgstr[1] ""
+"{count} meddelanden kunde inte skickas på {hours} timmar och har slängts"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{n} year"
+msgid_plural "{n} years"
+msgstr[0] "{n} år"
+msgstr[1] "{n} år"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{n} month"
+msgid_plural "{n} months"
+msgstr[0] "{n} mån"
+msgstr[1] "{n} mån"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{n} day"
+msgid_plural "{n} days"
+msgstr[0] "{n} dag"
+msgstr[1] "{n} dagar"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{list} and {last}"
+msgstr "{list} och {last}"
+
+#: nejomibot/photos.py
+msgid "⚠️ Date unknown (see the file name)"
+msgstr "⚠️ Datum okänt (se filnamn)"
+
+#: nejomibot/photos.py
+msgid "found no photo that could be sent"
+msgstr "hittade ingen bild som gick att skicka"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "📂 Photo cache contains {count} photo ({size}):"
+msgid_plural "📂 Photo cache contains {count} photos ({size}):"
+msgstr[0] "📂 Bildarkivet har {count} bild ({size}):"
+msgstr[1] "📂 Bildarkivet har {count} bilder ({size}):"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{type}: {count} file ({size})"
+msgid_plural "{type}: {count} files ({size})"
+msgstr[0] "{type}: {count} fil ({size})"
+msgstr[1] "{type}: {count} filer ({size})"
+
+#: nejomibot/ping.py
+#, python-brace-format
+msgid "pong! Your ping took {seconds} s to arrive"
+msgstr "pong! Din ping tog {seconds} s att komma fram"
+
+#: nejomibot/profile.py
+msgid "Send /name <new name>."
+msgstr "Skicka /name <nytt namn>."
+
+#: nejomibot/profile.py
+msgid "Send /about <text>, or /about remove."
+msgstr "Skicka /about <text>, eller /about remove."
+
+#: nejomibot/profile.py
+msgid "Send a picture with /avatar as its caption, or /avatar remove."
+msgstr "Skicka en bild med /avatar som bildtext, eller /avatar remove."
+
+#: nejomibot/profile.py
+msgid ""
+"Send /username <name>, or /username remove. A name is 3 to 32 letters, "
+"digits or _, not starting with a digit; Signal adds a number to it, like "
+"mybot.42, unless you give one."
+msgstr ""
+"Skicka /username <namn>, eller /username remove. Ett namn är 3 till 32 "
+"bokstäver, siffror eller _, och börjar inte med en siffra; Signal lägger "
+"till ett nummer, som mybot.42, om du inte anger ett."
+
+#: nejomibot/profile.py
+msgid "Give the bot a name first: Signal's profile needs one."
+msgstr "Ge boten ett namn först: profilen i Signal måste ha ett."
+
+#: nejomibot/profile.py
+msgid ""
+"signal-cli didn't keep the picture, so it can't be the avatar. It keeps none "
+"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh can "
+"set the avatar from a file instead."
+msgstr ""
+"signal-cli sparade inte bilden, så den kan inte bli profilbild. Den sparar "
+"inga bilder när den körs med JSON_RPC_IGNORE_ATTACHMENTS=true; signal-"
+"account.sh kan sätta profilbilden från en fil i stället."
+
+#: nejomibot/profile.py
+msgid ""
+"signal-cli can't give back the avatar, and the change would remove it: /"
+"avatar remove first, then set it again."
+msgstr ""
+"signal-cli kan inte ge tillbaka profilbilden, och ändringen skulle ta bort "
+"den: /avatar remove först, och sätt den sedan igen."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid ""
+"That's {size} bytes, and Signal holds at most {limit}: letters such as å and "
+"é take two each, emoji four."
+msgstr ""
+"Det är {size} byte, och Signal rymmer högst {limit}: å, ä och ö tar två byte "
+"var, emoji fyra."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "About: {about}"
+msgstr "Om: {about}"
+
+#: nejomibot/profile.py
+msgid "No About"
+msgstr "Inget Om"
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "Name: {name}"
+msgstr "Namn: {name}"
+
+#: nejomibot/profile.py
+msgid "No name"
+msgstr "Inget namn"
+
+#: nejomibot/profile.py
+msgid "A Signal profile needs a name, so it can only be changed."
+msgstr "En Signal-profil måste ha ett namn, så det kan bara ändras."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid ""
+"About holds at most {limit} characters in Signal's apps, and that's {count}."
+msgstr ""
+"Om-texten rymmer högst {limit} tecken i Signals appar, och den här har "
+"{count}."
+
+#: nejomibot/profile.py
+msgid "✅ No About now."
+msgstr "✅ Inget Om nu."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "That picture is {size}, too big for an avatar: send one under {limit}."
+msgstr "Bilden är {size}, för stor för en profilbild: skicka en under {limit}."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "That picture can't be read: {error}"
+msgstr "Bilden kan inte läsas: {error}"
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "✅ New avatar: {size} {format}, {bytes}."
+msgstr "✅ Ny profilbild: {size} {format}, {bytes}."
+
+#: nejomibot/profile.py
+msgid "✅ Avatar removed."
+msgstr "✅ Profilbilden borttagen."
+
+#: nejomibot/profile.py
+msgid "That isn't a picture."
+msgstr "Det är inte en bild."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "That's {count} picture: send just one with /avatar."
+msgid_plural "That's {count} pictures: send just one with /avatar."
+msgstr[0] "Det är {count} bild: skicka bara en med /avatar."
+msgstr[1] "Det är {count} bilder: skicka bara en med /avatar."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "Username: {username}"
+msgstr "Användarnamn: {username}"
+
+#: nejomibot/profile.py
+msgid "No username"
+msgstr "Inget användarnamn"
+
+#: nejomibot/profile.py
+msgid "✅ Username removed."
+msgstr "✅ Användarnamnet borttaget."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "{username} can't be a Signal username."
+msgstr "{username} kan inte vara ett användarnamn i Signal."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid ""
+"Signal turned {username} down: it's most likely taken, or not allowed. Try "
+"another."
+msgstr ""
+"Signal sa nej till {username}: troligen är det upptaget, eller inte "
+"tillåtet. Prova ett annat."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "A link that starts a chat with the bot: {link}"
+msgstr "En länk som startar en chatt med boten: {link}"
+
+#: nejomibot/profile.py
+msgid "Avatar: yes"
+msgstr "Profilbild: ja"
+
+#: nejomibot/profile.py
+msgid "No avatar"
+msgstr "Ingen profilbild"
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "Number: {number}"
+msgstr "Nummer: {number}"
+
+#: nejomibot/profile.py
+msgid "Change them with /name, /about, /avatar and /username."
+msgstr "Ändra dem med /name, /about, /avatar och /username."
+
+#: nejomibot/profile.py
+msgid "No name, so Signal shows the number"
+msgstr "Inget namn, så Signal visar numret"
+
+#: nejomibot/publicip.py
+msgid "not announced"
+msgstr "annonseras inte"
+
+#: nejomibot/publicip.py
+#, python-brace-format
+msgid "{family} none ({error})"
+msgstr "{family} ingen ({error})"
+
+#: nejomibot/relay.py
+msgid ""
+"Send /msg <chats> <text>, e.g. /msg 1,2 Hello! The chats are numbers from /"
+"chats."
+msgstr ""
+"Skicka /msg <chattar> <text>, t.ex. /msg 1,2 Hej! Chattarna är nummer från /"
+"chats."
+
+#: nejomibot/relay.py
+msgid ""
+"Send /run <chats> <commands>, e.g. /run 1 /weather; /photo. The chats are "
+"numbers from /chats."
+msgstr ""
+"Skicka /run <chattar> <kommandon>, t.ex. /run 1 /weather; /photo. Chattarna "
+"är nummer från /chats."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "⏳ Not sent yet to {chats}: tried again for {hours} hours."
+msgstr "⏳ Inte skickat än till {chats}: försöker igen i {hours} timmar."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "⚠️ May not have reached {chats}."
+msgstr "⚠️ Kanske inte kommit fram till {chats}."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "✉️ Sent to {chats}."
+msgstr "✉️ Skickat till {chats}."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "▶️ Posted the answers to {chats}."
+msgstr "▶️ Postade svaren i {chats}."
+
+#: nejomibot/specials.py
+msgid "Photo of the day!"
+msgstr "Dagens bild!"
+
+#: nejomibot/specials.py
+msgid "Proverb or quote of the day:"
+msgstr "Dagens ordspråk/citat:"
+
+#: nejomibot/specials.py
+msgid "Give it a name: a word that starts with /, like /morning."
+msgstr "Ge det ett namn: ett ord som börjar med /, som /morgon."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "{name} is a command already."
+msgstr "{name} är redan ett kommando."
+
+#: nejomibot/specials.py
+msgid "A special can't have a |: the file of specials uses it."
+msgstr ""
+"Ett specialkommando kan inte innehålla |: filen med specialkommandon "
+"använder det tecknet."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "{command} is a special of yours, and specials can't run each other."
+msgstr ""
+"{command} är ett av dina specialkommandon, och de kan inte köra varandra."
+
+#: nejomibot/specials.py
+msgid "What should it post?"
+msgstr "Vad ska det posta?"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "A special has at most {count} parts."
+msgstr "Ett specialkommando har högst {count} delar."
+
+#: nejomibot/specials.py
+msgid "/specials: commands of your own, of text and other commands"
+msgstr "/specials: dina egna kommandon, av text och andra kommandon"
+
+#: nejomibot/specials.py
+msgid "/special add <name> <parts>: a new one, or a change, e.g."
+msgstr "/special add <namn> <delar>: ett nytt, eller en ändring, t.ex."
+
+#: nejomibot/specials.py
+msgid "/special add /morning Good morning! /weather"
+msgstr "/special add /morgon God morgon! /väder"
+
+#: nejomibot/specials.py
+msgid ""
+"Parts are separated by ; or line breaks. Text before a command heads its "
+"answer, text alone is a message."
+msgstr ""
+"Delarna skiljs åt med ; eller radbrytningar. Text före ett kommando inleder "
+"dess svar, text för sig blir ett eget meddelande."
+
+#: nejomibot/specials.py
+msgid "/special remove <name>: remove one"
+msgstr "/special remove <namn>: ta bort ett"
+
+#: nejomibot/specials.py
+msgid "No specials of your own yet."
+msgstr "Inga egna specialkommandon ännu."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✨ {count} special"
+msgid_plural "✨ {count} specials"
+msgstr[0] "✨ {count} specialkommando"
+msgstr[1] "✨ {count} specialkommandon"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "There are {count} specials already: remove one first."
+msgstr "Det finns redan {count} specialkommandon: ta bort ett först."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Added {name}"
+msgstr "La till {name}"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Changed {name}"
+msgstr "Ändrade {name}"
+
+#: nejomibot/specials.py
+msgid "Which special? Give its name, as /specials shows."
+msgstr "Vilket specialkommando? Ange dess namn, som /specials visar."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "There's no special {name}."
+msgstr "Det finns inget specialkommando {name}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Timer {timers} runs it: remove that first, or change the special."
+msgid_plural ""
+"Timers {timers} run it: remove those first, or change the special."
+msgstr[0] ""
+"Timer {timers} kör det: ta bort den först, eller ändra specialkommandot."
+msgstr[1] ""
+"Timrarna {timers} kör det: ta bort dem först, eller ändra specialkommandot."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Removed {name}"
+msgstr "Tog bort {name}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "not a member of {groups}"
+msgstr "inte med i {groups}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "member of {count}, all {allowed} allowed"
+msgstr "med i {count}, alla {allowed} tillåtna"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{temperature} in {city}"
+msgstr "{temperature} i {city}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "no photos in {dir}"
+msgstr "inga bilder i {dir}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{count} photo"
+msgid_plural "{count} photos"
+msgstr[0] "{count} bild"
+msgstr[1] "{count} bilder"
+
+#: nejomibot/status.py
+msgid "Photo disk"
+msgstr "Bilddisk"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "no size given for {path}"
+msgstr "ingen storlek angiven för {path}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{free} free of {total}"
+msgstr "{free} ledigt av {total}"
+
+#: nejomibot/status.py
+msgid "Bot memory"
+msgstr "Botens minne"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{used} of {limit} limit"
+msgstr "{used} av gränsen {limit}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "(peak {peak})"
+msgstr "(topp {peak})"
+
+#: nejomibot/status.py
+msgid "Clock"
+msgstr "Klocka"
+
+#: nejomibot/status.py
+msgid "not synchronized (is NTP running?)"
+msgstr "inte synkroniserad (körs NTP?)"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "synchronized, max error {error} s"
+msgstr "synkroniserad, felmarginal högst {error} s"
+
+#: nejomibot/status.py
+msgid "none blocked"
+msgstr "ingen blockerad"
+
+#: nejomibot/status.py
+msgid "Recipients"
+msgstr "Mottagare"
+
+#: nejomibot/status.py
+msgid "Safety numbers"
+msgstr "Säkerhetsnummer"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "not trusted, so not sent to: {who}"
+msgstr "ej betrodda, så inget skickas till: {who}"
+
+#: nejomibot/status.py
+msgid "all trusted"
+msgstr "alla betrodda"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "signal-cli-rest-api {version}, {mode} mode"
+msgstr "signal-cli-rest-api {version}, läget {mode}"
+
+#: nejomibot/status.py
+msgid "signal-cli-rest-api: no answer"
+msgstr "signal-cli-rest-api: inget svar"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Up {duration}, since {time}"
+msgstr "Igång i {duration}, sedan {time}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Next timer run {time}"
+msgstr "Nästa timerkörning {time}"
+
+#: nejomibot/status.py
+msgid "No timer to run"
+msgstr "Ingen timer att köra"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{count} message waiting to be sent again"
+msgid_plural "{count} messages waiting to be sent again"
+msgstr[0] "{count} meddelande väntar på att skickas igen"
+msgstr[1] "{count} meddelanden väntar på att skickas igen"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Debug mode: only talking to {group}"
+msgstr "Felsökningsläge: pratar bara med {group}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Your message took {seconds} s to arrive"
+msgstr "Ditt meddelande tog {seconds} s att komma fram"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "In a {engine} container, hostname {hostname}"
+msgstr "I en {engine}-container, värdnamn {hostname}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Not in a container, hostname {hostname}"
+msgstr "Inte i en container, värdnamn {hostname}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{count} open file"
+msgid_plural "{count} open files"
+msgstr[0] "{count} öppen fil"
+msgstr[1] "{count} öppna filer"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "CPU time {duration}"
+msgstr "CPU-tid {duration}"
+
+#: nejomibot/status.py
+msgid "none (no route to the internet)"
+msgstr "ingen (ingen väg till internet)"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{count} thread"
+msgid_plural "{count} threads"
+msgstr[0] "{count} tråd"
+msgstr[1] "{count} trådar"
+
+#: nejomibot/status.py
+msgid "(virtual machine)"
+msgstr "(virtuell maskin)"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{cpu}, {count} CPU"
+msgid_plural "{cpu}, {count} CPUs"
+msgstr[0] "{cpu}, {count} CPU"
+msgstr[1] "{cpu}, {count} CPU:er"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Load {load}"
+msgstr "Belastning {load}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Waiting (last minute): {waits}"
+msgstr "Väntetid (senaste minuten): {waits}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Memory {available} available of {total}"
+msgstr "Minne {available} tillgängligt av {total}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Swap {used} used of {total}"
+msgstr "Swap {used} använt av {total}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "❌ {failed} of {count} checks failed"
+msgstr "❌ {failed} av {count} kontroller misslyckades"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "✅ All {count} checks passed"
+msgstr "✅ Alla {count} kontroller gick igenom"
+
+#: nejomibot/status.py
+msgid "Status"
+msgstr "Status"
+
+#: nejomibot/status.py
+msgid "Signal groups"
+msgstr "Signal-grupper"
+
+#: nejomibot/status.py
+msgid "Photo library"
+msgstr "Bildarkiv"
+
+#: nejomibot/status.py
+msgid "Signal account"
+msgstr "Signal-konto"
+
+#: nejomibot/status.py
+msgid "Internet"
+msgstr "Internet"
+
+#: nejomibot/status.py
+msgid "Container"
+msgstr "Container"
+
+#: nejomibot/status.py
+msgid "Host"
+msgstr "Värd"
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid ""
+"<when> is a time (08:00, or 08:00,18:30), days and a time (mon-fri 07:30, "
+"sat,sun 10:00), a date and a time for once ({date} 15:00, tomorrow 08:00), "
+"or every 2h or 30m"
+msgstr ""
+"<när> är en tid (08:00, eller 08:00,18:30), dagar och en tid (mån-fre 07:30, "
+"lör,sön 10:00), ett datum och en tid för en gång ({date} 15:00, imorgon "
+"08:00), eller varje 2h eller 30m"
+
+#: nejomibot/timers.py
+msgid "/chats: where timers can post, numbered"
+msgstr "/chats: vart timrar kan posta, numrerade"
+
+#: nejomibot/timers.py
+msgid "/timers: the timers"
+msgstr "/timers: timrarna"
+
+#: nejomibot/timers.py
+msgid "/timer add <when> [<chats>] <commands>: a new one, e.g."
+msgstr "/timer add <när> [<chattar>] <kommandon>: en ny, t.ex."
+
+#: nejomibot/timers.py
+msgid "/timer add mon-fri 07:30 1,2 /weather; /photo"
+msgstr "/timer add mån-fre 07:30 1,2 /väder; /bild"
+
+#: nejomibot/timers.py
+msgid "The chats are numbers from /chats; without them, it posts to you."
+msgstr "Chattarna är nummer från /chats; utan dem postar den till dig."
+
+#: nejomibot/timers.py
+msgid "/timer remove <n>, /timer run <n>: remove one, or run it now"
+msgstr "/timer remove <n>, /timer run <n>: ta bort en, eller kör den nu"
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "{when_help}, in {zone} time."
+msgstr "{when_help}, enligt tiden i {zone}."
+
+#: nejomibot/timers.py
+msgid "Every how long? Like every 30m, every 2h or every 1h30m."
+msgstr "Hur ofta? Som varje 30m, varje 2h eller varje 1h30m."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "Not more often than every {every}."
+msgstr "Inte oftare än var {every}."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "There's no such day as {day}."
+msgstr "Det finns ingen dag {day}."
+
+#: nejomibot/timers.py
+msgid "At what time?"
+msgstr "Vid vilken tid?"
+
+#: nejomibot/timers.py
+msgid "A timer on a date runs once: give it one time, and no days."
+msgstr "En timer på ett datum körs en gång: ge den en tid, och inga dagar."
+
+#: nejomibot/timers.py
+msgid ""
+"Timers, specials and /run can't manage timers, specials or who may use the "
+"bot, nor run /msg or /run."
+msgstr ""
+"Timrar, specialkommandon och /run kan inte hantera timrar, specialkommandon "
+"eller vilka som får använda boten, och inte köra /msg eller /run."
+
+#: nejomibot/timers.py
+msgid "A timer's commands can't have a |: the timers file uses it."
+msgstr ""
+"En timers kommandon kan inte innehålla |: timerfilen använder det tecknet."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "{command} isn't a command the bot knows."
+msgstr "{command} är inte ett kommando som boten känner till."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "Commands start with /, unlike {command}."
+msgstr "Kommandon börjar med /, till skillnad från {command}."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "At most {count} commands at once."
+msgstr "Högst {count} kommandon åt gången."
+
+#: nejomibot/timers.py
+msgid "Which commands?"
+msgstr "Vilka kommandon?"
+
+#: nejomibot/timers.py
+msgid "For /timer add, e.g. /timer add 08:00 1,2 /weather; /photo"
+msgstr "För /timer add, t.ex. /timer add 08:00 1,2 /dagensbild"
+
+#: nejomibot/timers.py
+msgid "Timers can post to:"
+msgstr "Timrar kan posta till:"
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "Next: {when}"
+msgstr "Nästa: {when}"
+
+#: nejomibot/timers.py
+msgid "No timers yet."
+msgstr "Inga timrar ännu."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "⏰ {count} timer"
+msgid_plural "⏰ {count} timers"
+msgstr[0] "⏰ {count} timer"
+msgstr[1] "⏰ {count} timrar"
+
+#: nejomibot/timers.py
+msgid "Added"
+msgstr "Tillagd"
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "There's no chat {n}: /chats numbers them."
+msgstr "Det finns ingen chatt {n}: /chats numrerar dem."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "{when} has already been."
+msgstr "{when} har redan varit."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "There are {count} timers already: remove one first."
+msgstr "Det finns redan {count} timrar: ta bort en först."
+
+#: nejomibot/timers.py
+msgid "Which timer? Give its number, as /timers shows."
+msgstr "Vilken timer? Ange dess nummer, som /timers visar."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "No timer #{n}."
+msgstr "Ingen timer #{n}."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "▶️ Ran timer #{n}"
+msgstr "▶️ Körde timer #{n}"
+
+#: nejomibot/timers.py
+msgid "Removed"
+msgstr "Borttagen"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with light rain"
+msgstr "åska med lätt regn"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with rain"
+msgstr "åska med regn"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with heavy rain"
+msgstr "åska med kraftigt regn"
+
+#: nejomibot/weather.py
+msgid "light thunderstorm"
+msgstr "lätt åska"
+
+#: nejomibot/weather.py
+msgid "thunderstorm"
+msgstr "åska"
+
+#: nejomibot/weather.py
+msgid "heavy thunderstorm"
+msgstr "kraftig åska"
+
+#: nejomibot/weather.py
+msgid "ragged thunderstorm"
+msgstr "åskskurar"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with light drizzle"
+msgstr "åska med lätt duggregn"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with drizzle"
+msgstr "åska med duggregn"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with heavy drizzle"
+msgstr "åska med kraftigt duggregn"
+
+#: nejomibot/weather.py
+msgid "light drizzle"
+msgstr "lätt duggregn"
+
+#: nejomibot/weather.py
+msgid "drizzle"
+msgstr "duggregn"
+
+#: nejomibot/weather.py
+msgid "heavy drizzle"
+msgstr "kraftigt duggregn"
+
+#: nejomibot/weather.py
+msgid "light drizzle and rain"
+msgstr "lätt duggregn och regn"
+
+#: nejomibot/weather.py
+msgid "drizzle and rain"
+msgstr "duggregn och regn"
+
+#: nejomibot/weather.py
+msgid "heavy drizzle and rain"
+msgstr "kraftigt duggregn och regn"
+
+#: nejomibot/weather.py
+msgid "shower rain and drizzle"
+msgstr "regnskurar och duggregn"
+
+#: nejomibot/weather.py
+msgid "heavy shower rain and drizzle"
+msgstr "kraftiga regnskurar och duggregn"
+
+#: nejomibot/weather.py
+msgid "shower drizzle"
+msgstr "duggregnsskurar"
+
+#: nejomibot/weather.py
+msgid "light rain"
+msgstr "lätt regn"
+
+#: nejomibot/weather.py
+msgid "moderate rain"
+msgstr "måttligt regn"
+
+#: nejomibot/weather.py
+msgid "heavy rain"
+msgstr "kraftigt regn"
+
+#: nejomibot/weather.py
+msgid "very heavy rain"
+msgstr "mycket kraftigt regn"
+
+#: nejomibot/weather.py
+msgid "extreme rain"
+msgstr "skyfall"
+
+#: nejomibot/weather.py
+msgid "freezing rain"
+msgstr "underkylt regn"
+
+#: nejomibot/weather.py
+msgid "light shower rain"
+msgstr "lätta regnskurar"
+
+#: nejomibot/weather.py
+msgid "shower rain"
+msgstr "regnskurar"
+
+#: nejomibot/weather.py
+msgid "heavy shower rain"
+msgstr "kraftiga regnskurar"
+
+#: nejomibot/weather.py
+msgid "ragged shower rain"
+msgstr "spridda regnskurar"
+
+#: nejomibot/weather.py
+msgid "light snow"
+msgstr "lätt snöfall"
+
+#: nejomibot/weather.py
+msgid "snow"
+msgstr "snöfall"
+
+#: nejomibot/weather.py
+msgid "heavy snow"
+msgstr "kraftigt snöfall"
+
+#: nejomibot/weather.py
+msgid "sleet"
+msgstr "snöblandat regn"
+
+#: nejomibot/weather.py
+msgid "light shower sleet"
+msgstr "lätta skurar av snöblandat regn"
+
+#: nejomibot/weather.py
+msgid "shower sleet"
+msgstr "skurar av snöblandat regn"
+
+#: nejomibot/weather.py
+msgid "light rain and snow"
+msgstr "lätt regn och snö"
+
+#: nejomibot/weather.py
+msgid "rain and snow"
+msgstr "regn och snö"
+
+#: nejomibot/weather.py
+msgid "light shower snow"
+msgstr "lätta snöbyar"
+
+#: nejomibot/weather.py
+msgid "shower snow"
+msgstr "snöbyar"
+
+#: nejomibot/weather.py
+msgid "heavy shower snow"
+msgstr "kraftiga snöbyar"
+
+#: nejomibot/weather.py
+msgid "mist"
+msgstr "dimma"
+
+#: nejomibot/weather.py
+msgid "smoke"
+msgstr "rök"
+
+#: nejomibot/weather.py
+msgid "haze"
+msgstr "dis"
+
+#: nejomibot/weather.py
+msgid "sand and dust whirls"
+msgstr "sand- och dammvirvlar"
+
+#: nejomibot/weather.py
+msgid "fog"
+msgstr "dimma"
+
+#: nejomibot/weather.py
+msgid "sand"
+msgstr "sand i luften"
+
+#: nejomibot/weather.py
+msgid "dust"
+msgstr "damm i luften"
+
+#: nejomibot/weather.py
+msgid "volcanic ash"
+msgstr "vulkanaska"
+
+#: nejomibot/weather.py
+msgid "squalls"
+msgstr "kraftiga vindbyar"
+
+#: nejomibot/weather.py
+msgid "tornado"
+msgstr "tornado"
+
+#: nejomibot/weather.py
+msgid "clear sky"
+msgstr "klar himmel"
+
+#: nejomibot/weather.py
+msgid "few clouds"
+msgstr "lätta moln"
+
+#: nejomibot/weather.py
+msgid "scattered clouds"
+msgstr "spridda moln"
+
+#: nejomibot/weather.py
+msgid "broken clouds"
+msgstr "molnigt"
+
+#: nejomibot/weather.py
+msgid "overcast clouds"
+msgstr "mulet"
+
+#: nejomibot/weather.py
+msgid "the weather data isn't as expected"
+msgstr "väderdatan ser inte ut som väntat"
+
+#: nejomibot/weather.py
+msgid "unknown weather"
+msgstr "okänt väder"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "Weather in {city}"
+msgstr "Vädret i {city}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "{icon} Temperature: {temperature}"
+msgstr "{icon} Temperatur: {temperature}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "🤔 Feels like: {temperature}"
+msgstr "🤔 Känns som: {temperature}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "{icon} Humidity: {humidity}"
+msgstr "{icon} Luftfuktighet: {humidity}"
+
+#: nejomibot/weather.py
+msgid "the weather data can't be read"
+msgstr "väderdatan går inte att läsa"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "OpenWeatherMap answered with an error ({error})"
+msgstr "OpenWeatherMap svarade med ett fel ({error})"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "OpenWeatherMap can't be reached: {error}"
+msgstr "OpenWeatherMap går inte att nå: {error}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "OpenWeatherMap knows no place called {city}"
+msgstr "OpenWeatherMap känner inte till någon plats som heter {city}"

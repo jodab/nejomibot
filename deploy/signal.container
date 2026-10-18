@@ -1,0 +1,51 @@
+# signal-cli-rest-api, as a Podman Quadlet, for nejomibot.container beside it.
+# Copy both to /etc/containers/systemd/, or for a user (rootless) to
+# ~/.config/containers/systemd/, and change the paths to suit.
+#
+# The Signal account's keys and messages are kept in /srv/signal (for a user,
+# e.g. %h/signal). No port is published: signal-cli-rest-api has no
+# authentication, so anyone who reaches it controls the account. The bot shares
+# its network instead, and reaches it on 127.0.0.1:8080.
+
+[Unit]
+Description=signal-cli-rest-api
+
+[Container]
+ContainerName=signal
+# A build after 0.101, the latest release: 0.101 crashes on overlapping
+# requests (#885), logs every message it receives (#892), and its native
+# signal-cli can't list linked devices (signal-cli#2119), which the bot's
+# health check does. Use the next release once there is one. This is the CI
+# build 1791633879-ci, by its digest, as CI builds' tags may not be kept.
+Image=docker.io/bbernhard/signal-cli-rest-api@sha256:92b72765943eb5255e2378d51b54bd9b35056f887c4f32c292485a4c47cf8315
+# :U hands the folder to the user signal-cli-rest-api runs as, uid 1000
+Volume=/srv/signal:/home/.local/share/signal-cli:U
+Timezone=local
+# One signal-cli for every request, as signalbot needs: json-rpc mode, here
+# with signal-cli built natively, which starts faster and takes less memory
+# (or MODE=json-rpc)
+Environment=MODE=json-rpc-native
+# It keeps no pictures sent to the bot, so /avatar can't take one; nor
+# stories
+Environment=JSON_RPC_IGNORE_ATTACHMENTS=true
+Environment=JSON_RPC_IGNORE_STORIES=true
+Environment=JSON_RPC_TRUST_NEW_IDENTITIES=on-first-use
+# Its health check asks signal-cli for the accounts, as the image's only asks
+# the REST API in front of it, which answers while signal-cli is stuck. That
+# asks nothing of Signal's servers, so it fails only when a restart could
+# help. A command of its own drops the image's interval too, so it's set
+# here: every minute, as the bot's. When it fails three times running,
+# Podman kills the container, and systemd starts it again, and the bot with
+# it. Not in its first minute, while signal-cli starts.
+HealthCmd=curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:8080/v1/accounts
+HealthInterval=60s
+HealthStartPeriod=1m
+HealthOnFailure=kill
+
+[Service]
+Restart=always
+# Time for the bot to stop first, as its container must go before this one
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target default.target

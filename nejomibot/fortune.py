@@ -1,0 +1,105 @@
+"""/fortune: a random fortune from the libraries in nejomibot/fortunes:
+fortunes_svenska, the one named (/fortune startrek), or all of them (/fortune
+all). /fortune list names them."""
+
+import asyncio
+import logging
+import random
+from functools import cache
+from pathlib import Path
+
+from signalbot import DataMessageContext
+
+from .commands import Command, Handler, answer, argument
+from .i18n import _
+
+logger = logging.getLogger(__name__)
+
+FORTUNES_DIR = Path(__file__).parent / "fortunes"
+LIST = "list"
+ALL = "all"
+DEFAULT_LIBRARY = "fortunes_svenska"
+
+
+def fortune_libraries(directory: Path) -> list[Path]:
+    try:
+        return sorted(
+            (
+                path
+                for path in directory.iterdir()
+                if path.is_file()
+                and path.suffix.lower() != ".dat"
+                and not path.name.startswith(".")
+            ),
+            key=lambda path: path.name.casefold(),
+        )
+    except OSError as e:
+        logger.warning("Could not list fortune libraries: %r", e)
+        return []
+
+
+def fortune_text(lines: list[str]) -> str:
+    """A fortune's lines as they are, the first one's indent too, without
+    blank lines around them."""
+    return "\n".join(line.rstrip() for line in lines).strip("\n")
+
+
+def read_fortunes(path: Path) -> tuple[str, ...]:
+    """The fortunes in a library: the text between lines of just %."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as e:
+        logger.warning("Could not read fortune library %s: %r", path, e)
+        return ()
+
+    fortunes: list[str] = []
+    lines: list[str] = []
+    for line in [*text.splitlines(), "%"]:
+        if line != "%":
+            lines.append(line)
+            continue
+        if fortune := fortune_text(lines):
+            fortunes.append(fortune)
+        lines = []
+    return tuple(fortunes)
+
+
+@cache
+def counts(directory: Path) -> dict[str, int]:
+    """How many fortunes each library has, by name. The libraries come with
+    the bot, so they're counted once, which takes a moment; then let go, as
+    all of them would take some megabytes. Blocking."""
+    return {
+        path.name: len(read_fortunes(path)) for path in fortune_libraries(directory)
+    }
+
+
+def fortune_answer(library: str) -> str:
+    """A fortune from the library, the default one if none, or from all of them;
+    or the libraries' names. Blocking."""
+    found = counts(FORTUNES_DIR)
+    if library.casefold() == LIST:
+        # A paragraph, which wraps in Signal's bubbles, rather than a long column
+        return f"🔮 {_('Fortune libraries:')}\n" + " · ".join(found)
+    if not library:
+        # Every library, should the default one be missing
+        library = DEFAULT_LIBRARY if DEFAULT_LIBRARY in found else ALL
+    if library.casefold() == ALL:
+        if not any(found.values()):
+            return _("No fortunes found.")
+        # A library by its share of all the fortunes, so each is as likely
+        name = random.choices(list(found), weights=list(found.values()))[0]
+    elif not (
+        name := next((n for n in found if n.casefold() == library.casefold()), "")
+    ):
+        return _("Unknown fortune library. Use /fortune list to see the names.")
+    fortunes = read_fortunes(FORTUNES_DIR / name)
+    return random.choice(fortunes) if fortunes else _("No fortunes found.")
+
+
+class Fortune(Handler):
+    commands = (Command("/fortune", more=True),)
+
+    async def handle(self, context: DataMessageContext, command: Command) -> None:
+        library = argument(context.message.text)
+        await answer(context, lambda: asyncio.to_thread(fortune_answer, library))

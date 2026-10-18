@@ -1,0 +1,10 @@
+*
+!pyproject.toml
+!uv.lock
+!.python-version
+!README.md
+!config.example.toml
+!nejomibot/
+!tests/
+!tools/signal-account.sh
+**/__pycache__

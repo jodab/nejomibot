@@ -1,0 +1,84 @@
+# nejomibot configuration. Copy to config.toml in the bot's data folder
+# (/data/config.toml in the container) and fill in.
+# Every setting can also be set as an environment variable NEJOMIBOT_<NAME>,
+# which overrides this file (lists and tables as JSON); with all the required
+# ones in the environment, the file can be left out.
+
+# signal-cli-rest-api, in json-rpc mode: where it answers, as host:port. Next
+# to the bot that's 127.0.0.1:8080, or e.g. signal:8080 in Docker Compose.
+signal_service = "127.0.0.1:8080"
+# The bot's account in signal-cli-rest-api: its phone number. Register or
+# link it with signal-account.sh once the bot runs; it waits till then.
+account = "+46700000000"
+
+# The language the bot answers in: en, or sv for Swedish. The translations
+# are in nejomibot/locale, with each language's own names for the commands.
+language = "en"
+
+# https://openweathermap.org/api
+openweather_api_key = "your-api-key"
+weather_city = "Stockholm"
+# weather_city_name = "Sthlm"  # how the weather post names it, if not so
+weather_units = "metric"  # or "imperial"
+
+# The time zone of the bot: timers, and the times it shows
+timezone = "Europe/Stockholm"
+
+photos_dir = "/photos"  # only read
+# Where the bot keeps what it's told: the timers, the specials, the allowed
+# list and the photos sent this round. It must be there; only the bot's user
+# may read it.
+data_dir = "/data"
+# Where photos that don't say their time zone were taken, if not in timezone
+# photos_timezone = "Europe/Helsinki"
+# With a birth date, a photo's caption shows the age of who's in the photos
+# that day, after the emoji
+# photos_birth_date = 2020-01-31
+# photos_age_emoji = "🎂"
+# A photo's caption links to where it was taken: "google" (Google Maps) or
+# "openstreetmap"
+# photos_map = "google"
+# HEIC/HEIF photos are sent as JPEG; false leaves them out, which saves the
+# 3 MB or so of memory it takes to open them (tools/tidy-photos.sh converts
+# them for good)
+# photos_heif = true
+
+# /info shows the time in these places, by name, and an exchange rate
+clocks = { "🇸🇪 Stockholm" = "Europe/Stockholm", "🇫🇮 Helsinki" = "Europe/Helsinki" }
+exchange_rate = ["EUR", "SEK"]
+
+# Messages that couldn't be sent (signal-cli-rest-api down, no internet) are
+# tried again for this many hours, then dropped. Kept in data_dir meanwhile,
+# they outlast a restart.
+send_retry_hours = 3
+
+# The admins, by phone number, or by Signal ID for those who don't share
+# their number. They may use every command: the everyday ones anywhere
+# they're allowed, and the admin commands (/status, the specials such as
+# /dailypost, /contacts, /trust, /allowed, /allow, /disallow, the profile
+# commands, the timers, /msg and /run) only in a direct chat with the bot;
+# /delete in any chat. No command can change who the admins are. Everyone
+# else is let in with /allow.
+admins = [
+    "+46700000001",  # you
+]
+
+# How much the bot logs: "INFO", the commands by name and the kind of chat;
+# "DEBUG" adds who sent them, what follows the name, and whom messages go
+# to; "WARNING" only what goes wrong
+# log_level = "INFO"
+
+# Every healthcheck_minutes the bot checks signal-cli-rest-api, itself, and
+# Signal's servers with its account, and logs what fails. With a health check
+# URL to report to, such as https://hc-ping.com/<uuid> from healthchecks.io,
+# it then pings the URL, or the URL with /fail and what failed.
+# healthcheck_url = "https://hc-ping.com/your-uuid"
+# healthcheck_minutes = 5
+
+# NEJOMIBOT_DEBUG=1 talks only to this group (and the admins); see README
+# debug_group = "group.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx="
+
+# Other names for commands, one word each, with or without /. Tables go
+# last in the file.
+[aliases]
+"/photo" = ["/pic", "pic"]

@@ -1,0 +1,42 @@
+# nejomibot, as a Podman Quadlet, beside signal.container: copy both to
+# /etc/containers/systemd/, or for a user (rootless) to
+# ~/.config/containers/systemd/, and change the paths to suit.
+#
+# The bot shares signal-cli-rest-api's network, so it reaches it on
+# 127.0.0.1:8080, and stops and starts with it.
+
+[Unit]
+Description=nejomibot
+# Its network goes when signal-cli-rest-api stops, so the bot stops too, and
+# starts again with it (WantedBy below). Network= adds the order.
+BindsTo=signal.service
+
+[Container]
+ContainerName=nejomibot
+Image=localhost/nejomibot:latest
+Network=signal.container
+Environment=NEJOMIBOT_SIGNAL_SERVICE=127.0.0.1:8080
+Timezone=local
+# The photo library, which the bot only reads: it must be readable by all
+Volume=/srv/nejomibot/photos:/photos:ro
+# config.toml, and what the bot keeps: :U hands it to the bot's user. For a
+# user (rootless), use UserNS=keep-id:uid=1001,gid=1001 instead of :U, so
+# the files stay yours.
+Volume=/srv/nejomibot/data:/data:U
+# When its health check (the image's) fails three times running, Podman
+# kills it, and systemd starts it again (Restart= below)
+HealthOnFailure=kill
+# It needs no privileges, and writes only to /data, and the tools to /tmp,
+# which ReadOnly= leaves writable
+DropCapability=ALL
+NoNewPrivileges=true
+ReadOnly=true
+# An init process, which passes SIGTERM on, and reaps what the tools leave
+RunInit=true
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=signal.service

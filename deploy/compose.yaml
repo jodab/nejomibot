@@ -1,0 +1,49 @@
+# nejomibot and signal-cli-rest-api, for Docker Compose or podman-compose:
+# docker compose up -d, beside the folders below.
+#
+# The bot reaches signal-cli-rest-api as signal:8080 on the compose network.
+# No port is published: signal-cli-rest-api has no authentication, so anyone
+# who reaches it controls the Signal account.
+
+services:
+  signal:
+    # A build after 0.101, the latest release: 0.101 crashes on overlapping
+    # requests (#885), logs every message it receives (#892), and its native
+    # signal-cli can't list linked devices (signal-cli#2119), which the bot's
+    # health check does. Use the next release once there is one. This is the
+    # CI build 1791633879-ci, by its digest, as CI builds' tags may not be kept.
+    image: docker.io/bbernhard/signal-cli-rest-api@sha256:92b72765943eb5255e2378d51b54bd9b35056f887c4f32c292485a4c47cf8315
+    environment:
+      # One signal-cli for every request, as signalbot needs (or json-rpc)
+      MODE: json-rpc-native
+      # It keeps no pictures sent to the bot, so /avatar can't take one
+      JSON_RPC_IGNORE_ATTACHMENTS: "true"
+      JSON_RPC_IGNORE_STORIES: "true"
+      JSON_RPC_TRUST_NEW_IDENTITIES: on-first-use
+    volumes:
+      # The Signal account's keys and messages: it must belong to the user
+      # signal-cli-rest-api runs as, uid 1000 (chown 1000 signal)
+      - ./signal:/home/.local/share/signal-cli
+    restart: unless-stopped
+
+  nejomibot:
+    image: localhost/nejomibot:latest
+    depends_on:
+      - signal
+    environment:
+      NEJOMIBOT_SIGNAL_SERVICE: signal:8080
+      TZ: Europe/Stockholm  # for the log's times
+    volumes:
+      # The photo library, which the bot only reads
+      - ./photos:/photos:ro
+      # config.toml, and what the bot keeps: it must belong to the bot's
+      # user, uid 1001 (chown 1001 data)
+      - ./data:/data
+    restart: unless-stopped
+    # It needs no privileges, and writes only to /data, and the tools to /tmp
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+    # An init process, which passes SIGTERM on, and reaps what the tools leave
+    init: true

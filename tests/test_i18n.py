@@ -1,0 +1,145 @@
+"""The translations: complete, and true to the messages they translate."""
+
+import ast
+import string
+import sys
+from pathlib import Path
+
+import polib
+import pytest
+
+from nejomibot import i18n, timers
+from nejomibot.commands import known
+from nejomibot.config import get_settings
+from nejomibot.i18n import LOCALE_DIR, _, language_words, languages, ngettext
+
+PACKAGE = Path(i18n.__file__).parent
+
+type Message = tuple[str, str | None]  # a message, and its plural if it has one
+
+
+def messages_in_the_code() -> set[Message]:
+    """What _(), N_() and ngettext() are given, as tools/translations.sh
+    finds it with xgettext."""
+    found: set[Message] = set()
+    for path in PACKAGE.glob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text(), str(path))):
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+                continue
+            texts = [
+                arg.value
+                for arg in node.args
+                if isinstance(arg, ast.Constant) and isinstance(arg.value, str)
+            ]
+            if node.func.id in ("_", "N_") and texts:
+                found.add((texts[0], None))
+            elif node.func.id == "ngettext" and len(texts) == 2:
+                found.add((texts[0], texts[1]))
+    return found
+
+
+def fields(text: str) -> set[str]:
+    return {name for _, name, _, _ in string.Formatter().parse(text) if name}
+
+
+def po_files() -> list[Path]:
+    return sorted(LOCALE_DIR.glob("*.po"))
+
+
+def test_there_are_messages_to_translate() -> None:
+    assert len(messages_in_the_code()) > 300
+    assert languages() == ["en", *(path.stem for path in po_files())]
+    assert "sv" in languages()
+
+
+@pytest.mark.parametrize("path", po_files(), ids=lambda path: path.name)
+def test_every_message_is_translated(path: Path) -> None:
+    po = polib.pofile(str(path))
+    translated = {(e.msgid, e.msgid_plural or None) for e in po.translated_entries()}
+    in_the_code = messages_in_the_code()
+    assert sorted(in_the_code - translated, key=str) == [], "untranslated or fuzzy"
+    assert sorted(translated - in_the_code, key=str) == [], "no longer in the code"
+
+
+@pytest.mark.parametrize("path", po_files(), ids=lambda path: path.name)
+def test_translations_have_the_same_fields(path: Path) -> None:
+    for entry in polib.pofile(str(path)).translated_entries():
+        if entry.msgid_plural:
+            # Two forms, as English has: n == 1, and the rest
+            assert fields(entry.msgstr_plural[0]) <= fields(entry.msgid_plural)
+            assert fields(entry.msgstr_plural[1]) == fields(entry.msgid_plural)
+        else:
+            assert fields(entry.msgstr) == fields(entry.msgid), entry.msgid
+
+
+def test_english_is_as_written() -> None:
+    assert _("Photo of the day!") == "Photo of the day!"
+    assert ngettext("{n} day", "{n} days", 1) == "{n} day"
+    assert ngettext("{n} day", "{n} days", 2) == "{n} days"
+    assert language_words("mon") == ["mon"]
+
+
+@pytest.mark.usefixtures("swedish")
+def test_swedish() -> None:
+    assert _("Photo of the day!") == "Dagens bild!"
+    assert ngettext("{n} day", "{n} days", 1) == "{n} dag"
+    assert ngettext("{n} day", "{n} days", 2) == "{n} dagar"
+    assert ngettext("{n} day", "{n} days", 0) == "{n} dagar"
+    assert language_words("mon") == ["mon", "mån"]
+
+
+@pytest.mark.parametrize("language", languages())
+def test_the_languages_names_are_for_real_commands_and_words(
+    language: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_LANGUAGE", language)
+    get_settings.cache_clear()
+    names = i18n.language()
+    for command, aliases in names.commands.items():
+        assert known(command), command
+        for alias in aliases:
+            assert alias == alias.strip() and alias.startswith("/"), command
+            assert not known(alias), alias
+    words = {
+        *timers.DAY_NAMES,
+        *timers.FULL_DAY_NAMES,
+        *timers.DAY_SETS,
+        *timers.DAYS_FROM_NOW,
+        timers.EVERY,
+    }
+    assert set(names.words) <= words
+
+
+def test_the_image_reads_them_compiled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # As the Dockerfile leaves them: a .mo for each .po, which is gone, as
+    # is polib
+    (tmp_path / "sv.toml").write_bytes((LOCALE_DIR / "sv.toml").read_bytes())
+    polib.pofile(str(LOCALE_DIR / "sv.po")).save_as_mofile(str(tmp_path / "sv.mo"))
+    monkeypatch.setattr(i18n, "LOCALE_DIR", tmp_path)
+    monkeypatch.setitem(sys.modules, "polib", None)
+    i18n.load.cache_clear()
+    try:
+        swedish = i18n.load("sv")
+    finally:
+        i18n.load.cache_clear()
+    assert languages() == ["en", "sv"]
+    assert swedish.translations.gettext("Photo of the day!") == "Dagens bild!"
+    assert swedish.translations.ngettext("{n} day", "{n} days", 2) == "{n} dagar"
+    assert swedish.commands["/dailypost"] == ["/dagensbild"]
+
+
+def test_a_broken_names_file_is_an_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    for path in LOCALE_DIR.glob("sv.*"):
+        (tmp_path / path.name).write_bytes(path.read_bytes())
+    (tmp_path / "sv.toml").write_text('[comands]\n"/photo" = ["/bild"]\n')
+    monkeypatch.setattr(i18n, "LOCALE_DIR", tmp_path)
+    i18n.load.cache_clear()
+    try:
+        with pytest.raises(ValueError, match="comands"):
+            i18n.load("sv")
+    finally:
+        i18n.load.cache_clear()

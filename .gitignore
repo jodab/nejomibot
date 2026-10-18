@@ -1,0 +1,8 @@
+__pycache__/
+.venv/
+.pytest_cache/
+dist/
+/photos
+/data
+/config.toml
+*.mo

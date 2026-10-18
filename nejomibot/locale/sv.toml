@@ -1,0 +1,51 @@
+# Swedish names for the bot's commands, and the Swedish words it reads in
+# commands, next to the English ones; sv.po translates its messages. See
+# nejomibot/i18n.py.
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /. The bot answers the English names too.
+[commands]
+"/photo" = ["/bild", "/foto"]
+"/weather" = ["/väder", "/vader"]
+"/info" = ["/tid"]
+"/fortune" = ["/spådom", "/spadom"]
+"/help" = ["/hjälp", "/hjalp"]
+"/contacts" = ["/kontakter"]
+"/trust" = ["/verifiera"]
+"/allowed" = ["/tillåtna", "/tillatna"]
+"/allow" = ["/tillåt", "/tillat"]
+"/disallow" = ["/neka"]
+"/profile" = ["/profil"]
+"/name" = ["/namn"]
+"/about" = ["/om"]
+"/avatar" = ["/profilbild"]
+"/username" = ["/användarnamn", "/anvandarnamn"]
+"/delete" = ["/radera"]
+"/dailypost" = ["/dagensbild"]
+"/dailyquote" = ["/dagenscitat"]
+"/msg" = ["/skicka"]
+"/run" = ["/kör", "/kor"]
+
+# Words for when a timer runs (/timer add mån-fre 07:30 ...), each next to
+# the English one it means. The first is how /timers shows it.
+[words]
+mon = ["mån"]
+tue = ["tis"]
+wed = ["ons"]
+thu = ["tor"]
+fri = ["fre"]
+sat = ["lör"]
+sun = ["sön"]
+monday = ["måndag"]
+tuesday = ["tisdag"]
+wednesday = ["onsdag"]
+thursday = ["torsdag"]
+friday = ["fredag"]
+saturday = ["lördag"]
+sunday = ["söndag"]
+daily = ["dagligen"]
+weekdays = ["vardagar"]
+weekends = ["helger", "helg"]
+today = ["idag"]
+tomorrow = ["imorgon"]
+every = ["varje", "var"]
