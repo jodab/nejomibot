@@ -638,7 +638,7 @@ The bot is a container image, for linux/amd64 and linux/arm64.
 [tools/build-image.sh](tools/build-image.sh) builds it with Podman: it runs
 the tests, lint and type check, then builds both architectures (the other one
 emulated with QEMU) as `localhost/nejomibot:<version>` and `:latest`, and
-with `--push` pushes them to a registry.
+with `--push` pushes them to a registry, once for each `--push`.
 
 It needs [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api)
 later than 0.101 ([which](#which-signal-cli-rest-api)), in json-rpc mode,
@@ -778,7 +778,9 @@ On GitHub, [CI](.github/workflows/ci.yml) runs the same checks, ShellCheck on
 the tools, and the image build, for each push and pull request, and
 Dependabot proposes new versions of the dependencies, the base images and the
 actions. [Release](.github/workflows/release.yml) publishes the image to
-GitHub's registry, ghcr.io, when a release is published; nothing else does.
+GitHub's registry, ghcr.io, when a release is published, and to Docker Hub
+as well when the repository has the variable `DOCKERHUB_USERNAME` and the
+secret `DOCKERHUB_TOKEN`; nothing else does.
 
 ## Layout
 

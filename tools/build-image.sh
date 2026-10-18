@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # build-image.sh - test nejomibot and build its container image, for x86 and ARM.
 #
-# Usage: tools/build-image.sh [--platforms LIST] [--source URL] [--push DESTINATION]
+# Usage: tools/build-image.sh [--platforms LIST] [--source URL] [--push DESTINATION]...
 #
 # Runs the tests, lint and type check in the image's test stage, and stops if
 # they fail. Then builds the image for linux/amd64 and linux/arm64, the one
@@ -18,7 +18,8 @@
 # to its repository), and which commit it was built from.
 #
 # With --push, it then pushes what it built to DESTINATION, a registry
-# and name such as ghcr.io/someone/nejomibot, as :VERSION and :latest.
+# and name such as ghcr.io/someone/nejomibot, as :VERSION and :latest. Give
+# it once for each registry, such as docker.io/someone/nejomibot as well.
 #
 # Needs podman, and for the other architecture QEMU's binfmt handlers, from
 # qemu-user-static (Debian, Arch) or qemu-user-static-binfmt.
@@ -45,13 +46,13 @@ build() {
 }
 
 cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/.."
-destination=""
+destinations=()
 labels=()
 while (($#)); do
   case $1 in
     --push)
       (($# > 1)) || die "--push needs a destination, like ghcr.io/someone/nejomibot"
-      destination=${2#docker://}
+      destinations+=("${2#docker://}")
       shift
       ;;
     --platforms)
@@ -88,10 +89,10 @@ build "The build" --platform "$platforms" --build-arg "VERSION=$version" \
   "${labels[@]}" --format docker --manifest "$IMAGE:$version"
 podman tag "$IMAGE:$version" "$IMAGE:latest"
 
-if [[ -n $destination ]]; then
+for destination in "${destinations[@]}"; do
   for tag in "$version" latest; do
     echo "==> Pushing to $destination:$tag"
     podman manifest push --all "$IMAGE:$version" "docker://$destination:$tag"
   done
-fi
+done
 echo "==> Built $IMAGE:$version, also :latest"

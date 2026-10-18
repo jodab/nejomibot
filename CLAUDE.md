@@ -96,8 +96,10 @@ pytest in the Dockerfile's test stage and builds nothing if they fail. The
 image is tagged with the version in `pyproject.toml`; `--source URL` labels
 it with the repository, as ghcr.io wants. On GitHub, `.github/workflows/`
 has CI (checks, ShellCheck, image build) and a release workflow that pushes
-to ghcr.io only when a release is published; Dependabot updates uv.lock,
-the Dockerfile's digests and the actions. Changes go in `CHANGELOG.md`.
+to ghcr.io, and to Docker Hub when the repository has `DOCKERHUB_USERNAME`
+and `DOCKERHUB_TOKEN`, only when a release is published; Dependabot updates
+uv.lock, the Dockerfile's digests and the actions. Changes go in
+`CHANGELOG.md`.
 
 Running the bot needs a reachable signal-cli-rest-api and a `config.toml`
 (from `config.example.toml`):

@@ -1,7 +1,10 @@
 # Publishes the image to GitHub's container registry, as
 # ghcr.io/OWNER/nejomibot:VERSION and :latest, for linux/amd64 and
-# linux/arm64, when a release is published on GitHub. Nothing else publishes
-# it. The release's tag is the version in pyproject.toml, such as v0.93.0.
+# linux/arm64, when a release is published on GitHub. It goes to Docker Hub
+# too, as docker.io/USER/nejomibot, when the repository has the variable
+# DOCKERHUB_USERNAME and the secret DOCKERHUB_TOKEN, a Docker Hub personal
+# access token that may read and write. Nothing else publishes it. The
+# release's tag is the version in pyproject.toml, such as v0.93.0.
 name: Release
 
 on:
@@ -15,6 +18,8 @@ permissions:
 jobs:
   image:
     runs-on: ubuntu-24.04
+    env:
+      DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -32,8 +37,16 @@ jobs:
         run: podman login --username "$GITHUB_ACTOR" --password-stdin ghcr.io <<<"$GITHUB_TOKEN"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Before the build, which then pulls the base image as this user too
+      - name: Log in to Docker Hub
+        if: env.DOCKERHUB_USERNAME != ''
+        run: podman login --username "$DOCKERHUB_USERNAME" --password-stdin docker.io <<<"$DOCKERHUB_TOKEN"
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build, test, and push
-        run: >-
-          tools/build-image.sh
-          --source "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
-          --push "ghcr.io/${GITHUB_REPOSITORY,,}"
+        run: |
+          destinations=(--push "ghcr.io/${GITHUB_REPOSITORY,,}")
+          if [[ -n $DOCKERHUB_USERNAME ]]; then
+            destinations+=(--push "docker.io/$DOCKERHUB_USERNAME/nejomibot")
+          fi
+          tools/build-image.sh --source "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" "${destinations[@]}"
