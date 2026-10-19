@@ -32,7 +32,7 @@ class Line:
 EVERYDAY = [
     Line("📷", "/photo", N_("a random photo")),
     Line("📂", "/cache", N_("how many photos, and how big")),
-    Line("🌤️", "/weather", N_("the weather now")),
+    Line("🌤️", "/weather", N_("the weather now"), N_("[<city>]")),
     Line("🕰️", "/info", N_("the time, and an exchange rate")),
     Line("🏓", "/ping", N_("is the bot there?")),
     Line("🔮", "/fortune", N_("a fortune"), N_("[<library>|all|list]")),

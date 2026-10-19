@@ -10,7 +10,7 @@ from aiohttp.test_utils import TestServer
 from helpers import ME, FakeApi
 from signalbot import Config, ConnectionMode, InMemoryConfig, SignalBot
 
-from nejomibot import access, healthcheck, specials, system
+from nejomibot import access, healthcheck, specials, system, weather
 
 # bot imports every handler, as it does when the bot runs: commands.known()
 # knows the commands of those Python has read
@@ -51,9 +51,12 @@ def settings_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[No
 @pytest.fixture(autouse=True)
 def fresh_lists() -> None:
     """The allowed list and the admins' specials as the bot has them at a
-    start: it keeps them for good."""
+    start: it keeps them for good. Nor has OpenWeatherMap been asked yet."""
     access.allowed_list.__init__()
     specials.own_specials.__init__()
+    weather.places.clear()
+    weather.latest.clear()
+    weather.calls.clear()
 
 
 @pytest.fixture(autouse=True)

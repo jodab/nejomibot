@@ -20,6 +20,11 @@ openweather_api_key = "your-api-key"
 weather_city = "Stockholm"
 # weather_city_name = "Sthlm"  # how the weather post names it, if not so
 weather_units = "metric"  # or "imperial"
+# /weather Helsinki is the weather in Helsinki: the bot asks OpenWeatherMap
+# about such places at most this many times an hour, finding them included.
+# weather_city, as in the daily post, isn't counted. Each place's weather is
+# kept for 10 minutes.
+# weather_calls_per_hour = 10
 
 # The time zone of the bot: timers, and the times it shows
 timezone = "Europe/Stockholm"

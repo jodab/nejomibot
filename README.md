@@ -223,7 +223,7 @@ The everyday commands, for everyone the bot may talk to:
 |---|---|
 | `/photo` | A random photo with the date it was taken, an age if set, and a map link |
 | `/cache` | Number and size of photos in the library |
-| `/weather` | Current weather in `weather_city`, under its heading in bold |
+| `/weather`, `/weather <city>` | Current weather in `weather_city`, or in the city named, such as `/weather Helsinki`, under its heading in bold (see [The weather](#the-weather)) |
 | `/info`, `/time` | The time in the places in `clocks`, and the `exchange_rate` |
 | `/ping` | `pong!` and how long the ping took to arrive |
 | `/fortune`, `/fortune <library>`, `/fortune all`, `/fortune list` | A random fortune, from `fortune_library` (`fortunes_svenska` if not set), the library named, or every library; `list` names them. What explains a proverb of `fortunes_svenska` is in italics |
@@ -360,6 +360,32 @@ in `data_dir/outbox`, a file each, until it's sent or dropped, and every one
 waiting is kept as the bot stops. Once it's started again, the bot sends them,
 still with the note that they're late. A short wait, as while
 signal-cli-rest-api restarts, writes nothing.
+
+### The weather
+
+`/weather` is the weather now in `weather_city`, from OpenWeatherMap, under a
+heading in bold that names it `weather_city_name`, if set. `/weather
+Helsinki` is the weather in Helsinki, under a heading that names the place
+OpenWeatherMap found, in the bot's language where OpenWeatherMap has the name
+in it, with its state or region and country: "Weather in Helsinki, FI", or
+in Swedish "Vädret i Helsingfors, FI".
+
+OpenWeatherMap finds places by name, the best known first, and the bot takes
+the first: `/weather Stockholm` is Stockholm, SE, not Stockholm, Maine, and
+`/weather Springfield` is Springfield, Illinois. A country code
+([ISO 3166](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)) after a comma
+picks the country, and in the US a state code the state: `/weather
+Stockholm,US`, `/weather Springfield,MO,US`. A misspelt name may still find a
+place, as `Stokholm` finds Stockholm, SE: the heading shows which it was.
+
+The bot looks a name up once, as places don't move, and keeps each place's
+weather for 10 minutes, as OpenWeatherMap's changes every 10 minutes: asked
+again sooner, by any name of the place, it answers with what it has, without
+asking OpenWeatherMap. About places named after `/weather`, it asks
+OpenWeatherMap at most `weather_calls_per_hour` times an hour (10 by
+default), finding them included, so a new place takes two calls; past that,
+it says when to try again. `weather_city` isn't counted, so `/weather` alone,
+the daily post and `/status` always get its weather.
 
 ### Photos and the daily post
 

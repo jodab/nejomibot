@@ -71,7 +71,7 @@ async def check_groups(bot: SignalBot) -> str:
 
 
 async def check_weather() -> str:
-    data = await fetch_weather()
+    _where, data = await fetch_weather()
     settings = get_settings()
     unit = UNITS.get(settings.weather_units, "°")
     return _("{temperature} in {city}").format(

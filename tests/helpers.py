@@ -27,6 +27,16 @@ DAY_MS = 24 * 60 * 60 * 1000
 SAFETY_NUMBER = "".join(f"{i:05}" for i in range(12))
 
 
+class Clock:
+    """A stand-in for time.monotonic, which the test moves on."""
+
+    def __init__(self) -> None:
+        self.now = 1000.0
+
+    def __call__(self) -> float:
+        return self.now
+
+
 def write(root: Path, path: str, text: str) -> None:
     """Write tmp file root/path, creating its folders."""
     (root / path).parent.mkdir(parents=True, exist_ok=True)

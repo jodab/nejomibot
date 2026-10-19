@@ -92,6 +92,10 @@ class Settings(BaseSettings):
     # The city as the weather post names it; weather_city if not given
     weather_city_name: str | None = None
     weather_units: Literal["metric", "imperial"] = "metric"
+    # /weather <city>: the most calls to OpenWeatherMap in an hour for places
+    # named, finding them included. weather_city's weather, as in the daily
+    # post, is asked at most every 10 minutes, and isn't counted.
+    weather_calls_per_hour: Annotated[int, Field(ge=1)] = 10
 
     timezone: TimeZone = "Europe/Stockholm"
 

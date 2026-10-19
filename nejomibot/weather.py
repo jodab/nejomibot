@@ -1,19 +1,39 @@
-"""Current weather from OpenWeatherMap, in weather_city, under a heading in
-bold. The bot asks OpenWeatherMap's geocoding where the city is once, and
-then the weather there, as OpenWeatherMap no longer develops its weather by
-city name."""
+"""/weather: the weather now, from OpenWeatherMap, under a heading in bold.
+Alone, in weather_city, which the heading names weather_city_name, if set;
+with a place, as in /weather Helsinki, there, the heading naming the place
+OpenWeatherMap found, in the bot's language if it has the name in it, with
+its state or region and country: Weather in Springfield, Illinois, US.
+
+OpenWeatherMap's geocoding finds places by name, the best known first (it
+doesn't say so, but Stockholm is the one in Sweden, not Maine's), and the bot
+takes the first; a misspelt name may find one too. A country code after a
+comma picks the country, and in the US a state code the state: /weather
+Stockholm,US, /weather Springfield,MO,US. The bot asks where a name is once,
+as places don't move, then the weather there, as OpenWeatherMap no longer
+develops its weather by city name.
+
+It keeps each place's weather for 10 minutes, as OpenWeatherMap's changes
+every 10 minutes, and answers with that when asked again sooner. About places
+named, it asks OpenWeatherMap at most weather_calls_per_hour times an hour,
+finding them included, and says when to try again past that. weather_city's
+weather, as in the daily post, isn't counted, so it's never refused.
+"""
 
 import logging
+from collections import deque
+from dataclasses import dataclass
 from datetime import datetime
+from math import ceil
+from time import monotonic
 from typing import Any
 
 import aiohttp
 from signalbot import DataMessageContext
 
 from .client import client
-from .commands import Command, Handler, answer
+from .commands import Command, Handler, answer, argument
 from .config import get_settings
-from .i18n import N_, _, day_and_time
+from .i18n import N_, _, day_and_time, ngettext
 from .messages import ServiceError, error_text, escape, log_failure, web_error
 from .styles import bold
 
@@ -22,6 +42,10 @@ logger = logging.getLogger(__name__)
 API_URL = "https://api.openweathermap.org/data/2.5/weather"
 GEOCODING_URL = "https://api.openweathermap.org/geo/1.0/direct"
 TIMEOUT = aiohttp.ClientTimeout(total=15)
+# Seconds a place's weather is kept, as OpenWeatherMap's changes every 10 minutes
+FRESH = 10 * 60
+HOUR = 60 * 60
+MAX_PLACES = 100  # names whose place is kept, the oldest going first
 
 # OpenWeatherMap's conditions by code (https://openweathermap.org/weather-conditions).
 # A code missing here gets the description OpenWeatherMap gives, in the
@@ -90,6 +114,14 @@ UNITS = {"metric": "°C", "imperial": "°F"}
 
 class WeatherError(ServiceError):
     """The weather can't be had."""
+
+
+class NoPlace(WeatherError):
+    """OpenWeatherMap knows no place by the name."""
+
+
+class TooOften(WeatherError):
+    """The past hour has had weather_calls_per_hour calls for places named."""
 
 
 def condition_icon(code: int) -> str:
@@ -161,8 +193,43 @@ def format_weather(
     return f"{bold(heading)}\n" + escape("\n".join(lines))
 
 
-async def ask(url: str, **params: str) -> Any:
-    """OpenWeatherMap's answer. Raises WeatherError."""
+# When OpenWeatherMap was asked about places named, in the past hour
+calls: deque[float] = deque()
+
+
+def count_call() -> None:
+    """Count a call for a place named, unless the past hour has had
+    weather_calls_per_hour of them: then raise TooOften, saying when the
+    first of them is an hour old."""
+    now = monotonic()
+    while calls and now - calls[0] >= HOUR:
+        calls.popleft()
+    limit = get_settings().weather_calls_per_hour
+    if len(calls) >= limit:
+        minutes = ceil((calls[0] + HOUR - now) / 60)
+        raise TooOften(
+            ngettext(
+                "⏳ The bot asks OpenWeatherMap about places at most {count} time "
+                "an hour.",
+                "⏳ The bot asks OpenWeatherMap about places at most {count} times "
+                "an hour.",
+                limit,
+            ).format(count=limit)
+            + " "
+            + ngettext(
+                "Try again in {minutes} minute.",
+                "Try again in {minutes} minutes.",
+                minutes,
+            ).format(minutes=minutes)
+        )
+    calls.append(now)
+
+
+async def ask(url: str, *, counted: bool = False, **params: str) -> Any:
+    """OpenWeatherMap's answer; a call counted is one for a place named (see
+    count_call). Raises WeatherError."""
+    if counted:
+        count_call()
     params["appid"] = get_settings().openweather_api_key.get_secret_value()
     try:
         async with client.session().get(
@@ -187,55 +254,97 @@ async def ask(url: str, **params: str) -> Any:
         ) from e
 
 
-# Where the cities are, once found
-places: dict[str, tuple[str, str]] = {}
+@dataclass(frozen=True)
+class Place:
+    """Where a place is, and its name, as OpenWeatherMap's geocoding has them."""
+
+    lat: str
+    lon: str
+    name: str  # e.g. 'Springfield, Illinois, US'
 
 
-async def place(city: str) -> tuple[str, str]:
-    """The city's latitude and longitude, from OpenWeatherMap's geocoding,
-    which takes the name as its weather by name did: Stockholm, or
-    Stockholm,SE. Raises WeatherError."""
-    if city not in places:
-        found = await ask(GEOCODING_URL, q=city, limit="1")
+# Where places are, by the name asked, in lower case
+places: dict[str, Place] = {}
+
+
+async def place(city: str, *, counted: bool = False) -> Place:
+    """Where the city is, from OpenWeatherMap's geocoding, which takes the
+    name as its weather by name did: Stockholm, or Stockholm,SE. Its first
+    place of the name, named in the bot's language if it has that, with its
+    state and country. Raises WeatherError."""
+    key = city.casefold()
+    if key not in places:
+        found = await ask(GEOCODING_URL, counted=counted, q=city, limit="1")
         try:
-            places[city] = (str(float(found[0]["lat"])), str(float(found[0]["lon"])))
-        except (IndexError, KeyError, TypeError, ValueError) as e:
-            raise WeatherError(
+            first = found[0]
+            lat, lon = str(float(first["lat"])), str(float(first["lon"]))
+            names: Any = first.get("local_names") or {}
+            name = names.get(get_settings().language) or first.get("name") or city
+            parts = [name, first.get("state"), first.get("country")]
+        except (IndexError, KeyError, TypeError, ValueError, AttributeError) as e:
+            raise NoPlace(
                 _("OpenWeatherMap knows no place called {city}").format(city=city)
             ) from e
-    return places[city]
+        if len(places) >= MAX_PLACES:
+            del places[next(iter(places))]
+        places[key] = Place(lat, lon, ", ".join(str(part) for part in parts if part))
+    return places[key]
 
 
-async def fetch_weather() -> dict[str, Any]:
+# Each place's latest weather, by where it is, and when it came
+latest: dict[tuple[str, str], tuple[float, dict[str, Any]]] = {}
+
+
+async def fetch_weather(city: str = "") -> tuple[Place, dict[str, Any]]:
+    """The weather in the city named, else in weather_city, and where that
+    is: what the bot got in the last 10 minutes, or else asked anew, which is
+    counted for a city named. Raises WeatherError."""
     settings = get_settings()
-    lat, lon = await place(settings.weather_city)
-    return await ask(
-        API_URL,
-        lat=lat,
-        lon=lon,
-        units=settings.weather_units,
-        lang=settings.language,
-    )
+    where = await place(city or settings.weather_city, counted=bool(city))
+    now = monotonic()
+    for old in [key for key, (at, _data) in latest.items() if now - at >= FRESH]:
+        del latest[old]
+    key = (where.lat, where.lon)
+    if key not in latest:
+        data = await ask(
+            API_URL,
+            counted=bool(city),
+            lat=where.lat,
+            lon=where.lon,
+            units=settings.weather_units,
+            lang=settings.language,
+        )
+        latest[key] = (monotonic(), data)
+    return where, latest[key][1]
 
 
-async def weather_message() -> str:
-    """The weather, or what went wrong. Styled."""
+async def weather_message(city: str = "") -> str:
+    """The weather in the city named, else in weather_city; or why it can't
+    be had. Styled."""
     settings = get_settings()
     try:
-        data = await fetch_weather()
+        where, data = await fetch_weather(city)
+        configured = settings.weather_city_name or settings.weather_city
         return format_weather(
             data,
-            settings.weather_city_name or settings.weather_city,
+            where.name if city else configured,
             datetime.now(settings.tz),
             settings.weather_units,
         )
+    except TooOften as e:
+        logger.info("The weather: weather_calls_per_hour reached for places named")
+        return escape(str(e))
     except Exception as e:
-        log_failure(logger, "The weather", e)
+        # A name that's no place is no failure, and what follows a command is
+        # for DEBUG alone
+        if not (city and isinstance(e, NoPlace)):
+            log_failure(logger, "The weather", e)
         return escape(error_text(e))
 
 
 class Weather(Handler):
-    commands = (Command("/weather"),)
+    commands = (Command("/weather", more=True),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
-        await answer(context, weather_message, slow=True, styled=True)
+        city = argument(context.message.text)
+        await answer(context, lambda: weather_message(city), slow=True, styled=True)

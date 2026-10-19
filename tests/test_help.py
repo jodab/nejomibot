@@ -90,7 +90,7 @@ def test_an_alias_is_listed_by_the_command_it_is(
 def test_in_swedish() -> None:
     text = help_message(admin=True)
     # By their Swedish names, which they have
-    assert "🌤️ `/väder` – vädret just nu" in text
+    assert "🌤️ `/väder [<ort>]` – vädret just nu" in text
     assert "🔐 `/verifiera <vem> <säkerhetsnummer>` – markera som verifierad" in text
     assert "⏰ `/timers` – det boten kör på schema" in text
     assert "enligt tiden i Stockholm" in text

@@ -168,7 +168,8 @@ def test_known_commands() -> None:
     assert known("/fortune startrek") == Command("/fortune", more=True)
     msg = known("/msg 1 Hi")
     assert msg is not None and not msg.timers
-    assert known("/weather now") is None
+    assert known("/weather Stockholm") == Command("/weather", more=True)
+    assert known("/ping now") is None
     assert known("/frobnicate") is None
 
 

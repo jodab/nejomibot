@@ -1,14 +1,17 @@
 import json
+import logging
 from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 import aiohttp
 import pytest
 from aiohttp import web
+from helpers import ALICE, Clock
+from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot
 
-from nejomibot import weather
+from nejomibot import commands, weather
 from nejomibot.config import get_settings
 
 TZ = ZoneInfo("Europe/Stockholm")
@@ -112,14 +115,45 @@ def test_format_weather_in_english(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-STOCKHOLM = [{"name": "Stockholm", "lat": 59.3251172, "lon": 18.0710935}]
+STOCKHOLM = [
+    {"name": "Stockholm", "lat": 59.3251172, "lon": 18.0710935, "country": "SE"}
+]
+# As OpenWeatherMap's geocoding has them: one with a name in Swedish, one
+# with a state
+GOTHENBURG = [
+    {
+        "name": "Gothenburg",
+        "local_names": {"sv": "Göteborg", "en": "Gothenburg"},
+        "lat": 57.7072326,
+        "lon": 11.9670171,
+        "country": "SE",
+    }
+]
+SPRINGFIELD = [
+    {
+        "name": "Springfield",
+        "local_names": {"en": "Springfield"},
+        "lat": 39.7990175,
+        "lon": -89.6439575,
+        "country": "US",
+        "state": "Illinois",
+    }
+]
+WEATHER = json.dumps(
+    {"weather": [{"id": 800}], "main": {"temp": 1, "feels_like": 1, "humidity": 1}}
+)
 
 
 @pytest.fixture
 async def api(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[dict[str, Any]]:
     """A local stand-in for OpenWeatherMap; set 'status' and 'body' per test,
-    and 'places' for its geocoding. What it was asked goes in 'asked'."""
-    reply: dict[str, Any] = {"status": 200, "body": "{}", "places": STOCKHOLM}
+    and 'places' for its geocoding, by the name asked. What it was asked goes
+    in 'asked'."""
+    reply: dict[str, Any] = {
+        "status": 200,
+        "body": "{}",
+        "places": {"Stockholm": STOCKHOLM},
+    }
     reply["asked"] = asked = list[tuple[str, dict[str, str]]]()
 
     async def handler(request: web.Request) -> web.Response:
@@ -132,7 +166,7 @@ async def api(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[dict[str, Any]]:
 
     async def geocoding(request: web.Request) -> web.Response:
         asked.append((request.path, dict(request.query)))
-        return web.json_response(reply["places"])
+        return web.json_response(reply["places"].get(request.query["q"], []))
 
     app = web.Application()
     app.router.add_get("/weather", handler)
@@ -144,9 +178,22 @@ async def api(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[dict[str, Any]]:
     port = runner.addresses[0][1]
     monkeypatch.setattr(weather, "API_URL", f"http://127.0.0.1:{port}/weather")
     monkeypatch.setattr(weather, "GEOCODING_URL", f"http://127.0.0.1:{port}/direct")
-    monkeypatch.setattr(weather, "places", {})
     yield reply
     await runner.cleanup()
+
+
+def paths(api: dict[str, Any]) -> list[str]:
+    """What OpenWeatherMap was asked: /direct where a place is, /weather its
+    weather."""
+    return [path for path, _query in api["asked"]]
+
+
+@pytest.fixture
+def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
+    """The weather kept and the calls counted, on a clock of the test's own."""
+    clock = Clock()
+    monkeypatch.setattr(weather, "monotonic", clock)
+    return clock
 
 
 async def test_weather_message(api: dict[str, Any]) -> None:
@@ -178,26 +225,30 @@ async def test_weather_message(api: dict[str, Any]) -> None:
     ]
 
 
-async def test_the_city_is_looked_up_once(api: dict[str, Any]) -> None:
-    api["body"] = json.dumps(
-        {"weather": [{"id": 800}], "main": {"temp": 1, "feels_like": 1, "humidity": 1}}
-    )
+async def test_the_weather_is_kept_for_10_minutes(
+    api: dict[str, Any], clock: Clock
+) -> None:
+    api["body"] = WEATHER
     await weather.weather_message()
+    clock.now += 599
     await weather.weather_message()
-    assert [path for path, _query in api["asked"]] == [
-        "/direct",
-        "/weather",
-        "/weather",
-    ]
+    clock.now += 1
+    await weather.weather_message()
+    # Where the city is, once, as places don't move
+    assert paths(api) == ["/direct", "/weather", "/weather"]
 
 
-async def test_an_unknown_city(api: dict[str, Any]) -> None:
-    api["places"] = []
+async def test_an_unknown_city(
+    api: dict[str, Any], caplog: pytest.LogCaptureFixture
+) -> None:
+    api["places"] = {}
     assert await weather.weather_message() == (
         "Något gick fel: OpenWeatherMap känner inte till någon plats som heter "
         "Stockholm"
     )
-    assert [path for path, _query in api["asked"]] == ["/direct"]
+    # weather_city is the config's, so it's a failure
+    assert "The weather failed" in caplog.text
+    assert paths(api) == ["/direct"]
 
 
 async def test_weather_message_names_the_city(
@@ -205,11 +256,157 @@ async def test_weather_message_names_the_city(
 ) -> None:
     monkeypatch.setenv("NEJOMIBOT_WEATHER_CITY_NAME", "Sthlm")
     get_settings.cache_clear()
-    api["body"] = json.dumps(
-        {"weather": [{"id": 800}], "main": {"temp": 1, "feels_like": 1, "humidity": 1}}
-    )
+    api["body"] = WEATHER
     assert (await weather.weather_message()).startswith("**Vädret i Sthlm**\n")
     assert api["asked"][0][1]["q"] == "Stockholm"
+
+
+async def test_a_city_named(api: dict[str, Any]) -> None:
+    api["body"] = WEATHER
+    api["places"] = {"Springfield,IL,US": SPRINGFIELD}
+    lines = (await weather.weather_message("Springfield,IL,US")).splitlines()
+    # As found: with its state and country, and no name in Swedish
+    assert lines[0] == "**Vädret i Springfield, Illinois, US**"
+    assert api["asked"] == [
+        ("/direct", {"q": "Springfield,IL,US", "limit": "1", "appid": "test-key"}),
+        (
+            "/weather",
+            {
+                "lat": "39.7990175",
+                "lon": "-89.6439575",
+                "units": "metric",
+                "lang": "sv",
+                "appid": "test-key",
+            },
+        ),
+    ]
+
+
+async def test_a_city_named_by_its_name_in_the_language(api: dict[str, Any]) -> None:
+    api["body"] = WEATHER
+    api["places"] = {"Gothenburg": GOTHENBURG}
+    message = await weather.weather_message("Gothenburg")
+    assert message.startswith("**Vädret i Göteborg, SE**\n")
+
+
+async def test_a_city_named_is_found_once_in_any_case(api: dict[str, Any]) -> None:
+    api["body"] = WEATHER
+    api["places"] = {"Göteborg": GOTHENBURG}
+    await weather.weather_message("Göteborg")
+    await weather.weather_message("GÖTEBORG")
+    assert paths(api) == ["/direct", "/weather"]
+
+
+async def test_a_city_named_shares_the_weather_of_its_place(
+    api: dict[str, Any],
+) -> None:
+    api["body"] = WEATHER
+    api["places"] = {"Stockholm": STOCKHOLM, "Sthlm": STOCKHOLM}
+    await weather.weather_message()
+    message = await weather.weather_message("Sthlm")
+    assert message.startswith("**Vädret i Stockholm, SE**\n")
+    # Sthlm is where Stockholm is, whose weather the bot has
+    assert paths(api) == ["/direct", "/weather", "/direct"]
+
+
+async def test_a_city_named_that_isnt_one(
+    api: dict[str, Any], caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.INFO, logger="nejomibot")
+    assert await weather.weather_message("Nowhere") == (
+        "Något gick fel: OpenWeatherMap känner inte till någon plats som heter Nowhere"
+    )
+    # No failure, and what follows the command is message text: not logged
+    assert "Nowhere" not in caplog.text
+
+
+async def test_places_named_are_asked_about_so_often_an_hour(
+    api: dict[str, Any],
+    clock: Clock,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_WEATHER_CALLS_PER_HOUR", "3")
+    get_settings.cache_clear()
+    caplog.set_level(logging.INFO, logger="nejomibot")
+    api["body"] = WEATHER
+    api["places"] |= {"Springfield": SPRINGFIELD, "Göteborg": GOTHENBURG}
+    # Two calls: where Springfield is, and its weather
+    message = await weather.weather_message("Springfield")
+    assert message.startswith("**Vädret i Springfield")
+    clock.now += 60
+    # Where Göteborg is is the third call; its weather would be a fourth
+    assert await weather.weather_message("Göteborg") == (
+        "⏳ Boten frågar OpenWeatherMap om platser högst 3 gånger i timmen. "
+        "Försök igen om 59 minuter."
+    )
+    assert "weather_calls_per_hour reached" in caplog.text
+    # The weather kept takes no call, and weather_city's calls aren't counted
+    assert (await weather.weather_message("Springfield")).startswith("**Vädret i S")
+    assert (await weather.weather_message()).startswith("**Vädret i Stockholm**")
+    # An hour after the first two
+    clock.now += 59 * 60
+    message = await weather.weather_message("Göteborg")
+    assert message.startswith("**Vädret i Göteborg, SE**")
+    assert paths(api) == [
+        "/direct",
+        "/weather",
+        "/direct",
+        "/direct",
+        "/weather",
+        "/weather",
+    ]
+
+
+async def test_one_call_an_hour(
+    api: dict[str, Any], clock: Clock, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_WEATHER_CALLS_PER_HOUR", "1")
+    get_settings.cache_clear()
+    api["places"] = {"Göteborg": GOTHENBURG}
+    # Finding Göteborg is the hour's one call
+    message = await weather.weather_message("Göteborg")
+    assert message.endswith("Försök igen om 60 minuter.")
+    clock.now += 3599
+    assert await weather.weather_message("Göteborg") == (
+        "⏳ Boten frågar OpenWeatherMap om platser högst 1 gång i timmen. "
+        "Försök igen om 1 minut."
+    )
+    assert paths(api) == ["/direct"]
+
+
+async def test_the_command(
+    api: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    api["body"] = WEATHER
+    api["places"] = {"Stockholm": STOCKHOLM, "Göteborg": GOTHENBURG}
+    replies: list[str] = []
+
+    async def nothing(context: DataMessageContext) -> None:
+        pass
+
+    async def reply(context: DataMessageContext, message: SendMessage) -> None:
+        replies.append(message.text or "")
+
+    monkeypatch.setattr(commands, "mark_read", nothing)
+    monkeypatch.setattr(commands, "show_typing", nothing)
+    monkeypatch.setattr(commands, "reply", reply)
+    # By its Swedish name too, and with the place's spaces made single
+    for text in ["/väder  Göteborg", "/weather"]:
+        message = DataMessage(
+            server_delivered_timestamp=0,
+            server_received_timestamp=0,
+            timestamp=0,
+            source_number=ALICE,
+            text=text,
+        )
+        context = DataMessageContext(cast(SignalBot, None), message)
+        await weather.Weather().handle_data_message(context)
+    assert [text.splitlines()[0] for text in replies] == [
+        "**Vädret i Göteborg, SE**",
+        "**Vädret i Stockholm**",
+    ]
+    assert api["asked"][0][1]["q"] == "Göteborg"
 
 
 async def test_weather_message_api_error(api: dict[str, Any]) -> None:

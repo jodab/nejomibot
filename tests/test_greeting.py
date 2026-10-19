@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 from aiohttp import web
-from helpers import ALICE, ALICE_ID, BOB, GROUP, ME, FakeApi
+from helpers import ALICE, ALICE_ID, BOB, GROUP, ME, Clock, FakeApi
 from signalbot import (
     Attachment,
     DataMessage,
@@ -41,14 +41,6 @@ def message(text: str | None, sender: str = ALICE, **fields: Any) -> DataMessage
         text=text,
         **fields,
     )
-
-
-class Clock:
-    def __init__(self) -> None:
-        self.now = 1000.0
-
-    def __call__(self) -> float:
-        return self.now
 
 
 class Greeted:

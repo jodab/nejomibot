@@ -46,6 +46,7 @@ def test_reads_toml_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Non
     assert settings.fortune_library == "startrek"
     assert settings.healthcheck_url == "https://hc-ping.com/abc"
     assert settings.healthcheck_minutes == 5
+    assert settings.weather_calls_per_hour == 10
     assert settings.aliases == {"/photo": ["/pic", "pic"]}
     assert settings.allowed_file == settings.data_dir / "allowed.txt"
     assert settings.timers_file == settings.data_dir / "timers.txt"
@@ -90,6 +91,7 @@ def test_the_environment_is_enough(tmp_path: Path) -> None:
         ("NEJOMIBOT_EXCHANGE_RATE", '["eur", "sek"]'),
         ("NEJOMIBOT_HEALTHCHECK_URL", "hc-ping.com/abc"),
         ("NEJOMIBOT_HEALTHCHECK_MINUTES", "0"),
+        ("NEJOMIBOT_WEATHER_CALLS_PER_HOUR", "0"),
         ("NEJOMIBOT_DEBUG_GROUP", "not-a-group"),
     ],
 )

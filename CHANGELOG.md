@@ -13,6 +13,22 @@ what to do when updating. The format follows
   commands. Contact Alice for more information.", with the bot's profile
   name and the first admin's name as the bot's contacts have it. Once a day
   at most for each person; commands are answered as ever, never with it.
+- `/weather <city>`, such as `/weather Helsinki`: the weather in the place
+  named, under a heading that names the place OpenWeatherMap found, in the
+  bot's language where it has the name, with its state or region and
+  country: "Weather in Springfield, Illinois, US". A country code picks among
+  places of a name: `/weather Stockholm,US`, `/weather Springfield,MO,US`.
+  In Swedish, `/väder <ort>`.
+- `weather_calls_per_hour`, 10 by default: the most the bot asks
+  OpenWeatherMap about places named in an hour, finding them included; past
+  that, `/weather <city>` says when to try again. `weather_city` isn't
+  counted, so `/weather` alone and the daily post always get the weather.
+
+### Changed
+
+- The bot keeps each place's weather for 10 minutes, as OpenWeatherMap's
+  changes every 10 minutes: `/weather`, the daily post and `/status` answer
+  with it when asked again sooner, without asking OpenWeatherMap.
 
 ## 0.97.1 - 2026-10-19
 
