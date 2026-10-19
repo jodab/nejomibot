@@ -57,10 +57,18 @@ ADMIN = [
     Line("📜", "/dailyquote", N_("the daily quote, here")),
     Line("👥", "/contacts", N_("who the bot knows"), N_("[<who>]")),
     Line("📇", "/contacts", N_("add a contact, or rename"), N_("add <who> <name>")),
+    Line("🔢", "/trust", N_("the safety numbers, or one's"), N_("[<who>]")),
     Line("🔐", "/trust", N_("mark as verified"), N_("<who> <safety number>")),
     Line("📋", "/allowed", N_("who may use the bot")),
     Line("➕", "/allow", N_("put someone, or a group, on that list"), N_("<who>")),
     Line("➖", "/disallow", N_("take someone off it"), N_("<n>")),
+    Line("👑", "/admins", N_("who the admins are")),
+    Line(
+        "🎖️",
+        "/admin",
+        N_("make someone an admin, or no longer"),
+        N_("add <who> · remove <n>"),
+    ),
     Line("🪪", "/profile", N_("the bot's profile")),
     Line("✏️", "/name", N_("its name"), N_("<name>")),
     Line("💬", "/about", N_("its About text"), N_("<text>")),
@@ -132,10 +140,13 @@ def notes() -> list[str]:
     zone = settings.timezone.rsplit("/", 1)[-1].replace("_", " ")
     date = example_date(datetime.now(settings.tz).date())
     return [
-        _("<who> – a name, number or ID, as /contacts shows; /allow takes groups too"),
         _(
-            "<n> – a number from /allowed, /timers, /delete list, /incoming, "
-            "/birthdays or /namedays"
+            "<who> – a number from /contacts or /trust, or a name, phone number "
+            "or ID; /allow takes groups too"
+        ),
+        _(
+            "<n> – a number from /allowed, /admins, /timers, /delete list, "
+            "/incoming, /birthdays or /namedays"
         ),
         _(
             "<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · "

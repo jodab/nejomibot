@@ -5,6 +5,7 @@ from typing import cast
 import pytest
 from signalbot import SignalBot
 
+from nejomibot import access
 from nejomibot.bot import handlers
 from nejomibot.config import get_settings
 from nejomibot.help import ADMIN, ANYWHERE, EVERYDAY, help_message
@@ -17,7 +18,7 @@ def commands(*, everyday: bool) -> set[str]:
         for handler, _contacts, _groups, check in handlers(
             cast(SignalBot, None), get_settings()
         )
-        if (check is not None) == everyday
+        if (check is not access.from_admin) == everyday
         for command in handler.commands
     }
 

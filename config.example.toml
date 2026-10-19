@@ -27,7 +27,11 @@ weather_units = "metric"  # or "imperial"
 # weather_calls_per_hour = 10
 
 # The daily post names the day's holidays, flag days and traditions of these
-# countries atop the weather: "SE" Sweden, "GR" Greece. None if not set.
+# countries atop the weather, by their codes, such as "SE" Sweden, "GR"
+# Greece, "GB" the United Kingdom or "US" the United States: the 27 of the
+# European Union, Norway, Iceland, Switzerland, the United Kingdom, the
+# United States, Canada, Australia and New Zealand (see the README). None if
+# not set.
 # holidays = ["SE", "GR"]
 
 # The time zone of the bot: timers, and the times it shows
@@ -35,8 +39,9 @@ timezone = "Europe/Stockholm"
 
 photos_dir = "/photos"  # only read
 # Where the bot keeps what it's told: the timers, the specials, the allowed
-# list, the reminders, the lists, the birthdays and the photos sent this
-# round. It must be there; only the bot's user may read it.
+# list, the admins added, the reminders, the lists, the birthdays, the photos
+# sent this round, and its backups. It must be there; only the bot's user may
+# read it.
 data_dir = "/data"
 # Where photos that don't say their time zone were taken, if not in timezone
 # photos_timezone = "Europe/Helsinki"
@@ -66,15 +71,30 @@ exchange_rate = ["EUR", "SEK"]
 # they outlast a restart.
 send_retry_hours = 3
 
+# Every day at backups_at, in timezone, and at a start if the latest is a
+# day old, the bot backs up what it keeps in data_dir, its config and this
+# sample, as nejomibot-2026-10-19_0400.tar.zst, into backups_dir:
+# data_dir/backups if not set, or a folder of its own the bot's user may
+# write in, best on another disk (in the container, mount one). None when
+# nothing has changed since the latest. It keeps the newest backups_kept.
+# /status and the health check pings say how old they are.
+# backups = true
+# backups_at = "04:00"
+# backups_dir = "/backups"
+# backups_kept = 30
+
 # The admins, by phone number, or by Signal ID for those who don't share
 # their number. They may use every command: the everyday ones anywhere
 # they're allowed, and the admin commands (/status, the specials such as
-# /dailypost, /contacts, /trust, /allowed, /allow, /disallow, the profile
-# commands, the timers, /msg, /run, /birthday and /nameday) only in a direct
-# chat with the bot; /delete in any chat. They hear from the bot of an update,
-# a crash, a rate limit and a changed safety number. No command can change who the admins are. Everyone
-# else is let in with /allow. The bot's greeting, for those on the allowed
-# list who write to it but send no command, names the first to contact.
+# /dailypost, /contacts, /trust, /allowed, /allow, /disallow, /admins,
+# /admin, the profile commands, the timers, /msg, /run, /birthday and
+# /nameday) only in a direct chat with the bot; /delete in any chat. They
+# hear from the bot of an update, a crash, a rate limit and a changed safety
+# number. They may make others admins with /admin add, who may then use
+# every command but /admin add and remove, but no command can take away what
+# those here may do. Everyone else is let in with /allow. The bot's greeting, for those
+# on the allowed list who write to it but send no command, names the first
+# to contact.
 admins = [
     "+46700000001",  # you
 ]

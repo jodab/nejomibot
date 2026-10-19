@@ -178,11 +178,12 @@ photo of the day at 08:00 every day, in your `timezone`, to chat 1; for more
 chats, `1,2`, and days work too, as in `mon-fri 07:30` ([more](#timers)).
 `/timer run 1` posts it right away, to see that it works.
 
-That's it: the bot is up and running. Next, perhaps: warnings when it's
-down, with `healthcheck_url` ([how](#health-checks)); birthdays, name days
-and holidays atop the daily post
-([how](#birthdays-name-days-and-holidays)); [specials](#specials) of your
-own; and a profile picture:
+That's it: the bot is up and running. Every day at 04:00 it backs up what it
+keeps, and its settings, in `data/backups` ([more](#backups)). Next, perhaps:
+warnings when it's down, with `healthcheck_url` ([how](#health-checks));
+birthdays, name days and holidays atop the daily post, of your country, by
+its code ([how](#birthdays-name-days-and-holidays)); [specials](#specials)
+of your own; and a profile picture:
 
 ```sh
 docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg
@@ -245,12 +246,15 @@ For the admins, in a direct chat with the bot:
 | `/dailypost` | The daily post, as a timer posts it: the weather, then the photo of the day (it uses up a photo of the round) |
 | `/dailypost preview [<date>]` | What the daily post will say atop the weather on the day, such as `10-25`, `2026-10-25` or `tomorrow`, today without one: in each group the bot is in, and in a direct chat. It posts nothing else, nor uses up a photo |
 | `/dailyquote` | The daily quote, as a timer posts it: a proverb or quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in bold, what explains a proverb in italics |
-| `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, two short lines each, and whether they're verified; with `<who>`, one in full, with their safety number |
-| `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` is their phone number, ID or the start of it, or their name: the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number |
-| `/trust <name, number or ID> <safety number>` | Mark a safety number as verified, after comparing it with the one on their phone |
+| `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, two short lines each, and whether they're verified; with `<who>`, one in full, with their safety number. `<who>` is their number in the list you were shown last, by `/contacts` or `/trust`, their phone number, ID or the start of it, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
+| `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` as for `/contacts`, a name the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number |
+| `/trust`, `/trust <who>` | Everyone's safety numbers, numbered as `/contacts` numbers them, as the Signal apps show them, and whether each is verified; with `<who>`, one's |
+| `/trust <who> <safety number>` | Mark a safety number as verified, after comparing it with the one on their phone |
 | `/allowed` | Who may use the everyday commands, numbered |
-| `/allow <who>` | Let someone use them, or everyone in a group, there |
+| `/allow <who>` | Let someone use them, or everyone in a group, there; `<who>` as for `/contacts`, or a group the bot is in, by name or group ID |
 | `/disallow <n>` | Take that away again, by the number in `/allowed` (or by phone number, ID or name) |
+| `/admins` | The admins: those in the configuration, then those added, numbered |
+| `/admin add <who>`, `/admin remove <n>` | Make someone an admin, `<who>` as for `/contacts`, or no longer, by their number in `/admins`; for the admins in the configuration alone (see [Who may use what](#who-may-use-what)) |
 | `/profile` | The bot's Signal profile: name, About, username, avatar |
 | `/name <name>` | Change the bot's name |
 | `/about <text>`, `/about remove` | The About text under its name |
@@ -292,8 +296,8 @@ subcommands: in Swedish, `lägg till` is `add`, `ta bort` or `radera`
 
 ### Who may use what
 
-The admins, `admins` in the configuration, may use every command: the
-everyday ones wherever they're allowed, the admin commands only in a direct
+The admins, `admins` in the configuration and those they add, may use every
+command: the everyday ones wherever they're allowed, the admin commands only in a direct
 chat with the bot, as they show phone numbers and the server's addresses, or
 change the bot. An admin is given by phone number, or by Signal ID for one who
 doesn't share their number. Everyone else may use the everyday commands if
@@ -311,8 +315,20 @@ after it isn't greeted again, and a restart forgets who was. Commands are
 answered as ever, never with the greeting; a mistyped one isn't a command,
 so it's greeted. The admins, strangers and groups aren't, nor edits.
 
-Admins are only ever set in the configuration, so no command can take away
-what an admin may do, or make someone an admin.
+The admins in the configuration may make others admins, in a direct chat
+with the bot: `/admin add <who>`, who as `/contacts` takes them, and `/admin
+remove <n>`, by their number in `/admins`, which lists every admin. Those
+added may use every command, as the configuration's admins may, but they
+can't add or remove admins, and no command can take away what an admin in
+the configuration may do. The [notices](#notices-to-the-admins) go to the
+configuration's admins alone, timers run their commands as the first of
+them, and the greeting names the first. The admins added are kept by
+Signal ID, as a phone number can change hands and a Signal ID can't, in
+`data_dir/admins.txt`, a Signal ID a line, as the [allowed
+list](#the-allowed-list) is kept: it can be changed by hand too. So someone
+the bot hasn't heard from yet, in a direct chat or a group, can't be added
+by phone number, as it doesn't know their Signal ID. A removed admin who's
+on the allowed list may still use the everyday commands.
 
 People who don't share their phone number on Signal are known only by their
 ID. signal-cli-rest-api has no way to take someone out of the contacts, or to
@@ -332,8 +348,8 @@ command as if it had come instead of the one it edits:
   Cake` to `/remind 19:00 Cake` leaves one reminder, at 19:00, and editing
   `/list remove 2` to `/list remove 3` puts 2 back first. That's `/remind`,
   `/list`, `/birthday`, `/nameday`, `/timer add` and `remove`, `/special add`
-  and `remove`, `/allow`, `/disallow` and `/contacts add`, which renames back
-  first; a contact it made stays, as the bot can't take contacts out.
+  and `remove`, `/allow`, `/disallow`, `/admin add` and `remove`, and
+  `/contacts add`, which renames back first; a contact it made stays, as the bot can't take contacts out.
 - What the bot posted, or deleted, can't be undone, so an edit of `/msg`,
   `/run`, `/timer run` or `/delete <n>` isn't run, and the bot says so. One
   of `/delete` alone is let be, quietly, as what it posted would be the next
@@ -533,10 +549,10 @@ specials and `/run` can't run them, as they're each chat's own.
 ### Birthdays, name days and holidays
 
 The daily post names the day atop the weather. In every chat, the day's
-holidays, flag days and traditions in the countries of `holidays` (`SE` for
-Sweden, `GR` for Greece; none by default), each after its country's flag, a
-day both keep once, after both flags; and in a group, the birthdays and name
-days of those it's for:
+holidays, flag days and traditions in the countries of `holidays`, by their
+codes below, such as `holidays = ["SE", "GR"]` (none by default), each after
+its country's flag, a day two keep once, after both flags; and in a group,
+the birthdays and name days of those it's for:
 
 ```
 🇸🇪 National Day of Sweden · flag day
@@ -557,6 +573,50 @@ Weather in Stockholm
 - Greece: its public holidays, by the Orthodox Easter, and Tsiknopempti,
   Maundy Thursday, Holy Saturday, Valentine's Day, Mother's Day, Father's
   Day, Christmas Eve and New Year's Eve.
+- The others: their public holidays, those the whole country keeps, each on
+  its own day, not on a day off in lieu; Valentine's Day, Easter Sunday,
+  Christmas Eve and New Year's Eve; and what the table says. Mother's Day and
+  Father's Day are there where the whole country keeps them on the same day.
+  Their names are in English, in Swedish too, but those they share with
+  Sweden or Greece.
+
+| Code | Country | Besides its public holidays |
+|---|---|---|
+| `AT` | Austria | Mother's and Father's Day, Advent, St Nicholas' Day |
+| `AU` | Australia | Mother's and Father's Day, Remembrance Day |
+| `BE` | Belgium | Mother's and Father's Day, St Nicholas' Day |
+| `BG` | Bulgaria | By the Orthodox Easter |
+| `CA` | Canada | The federal holidays; Mother's and Father's Day, St Patrick's Day, Halloween |
+| `CH` | Switzerland | Those most cantons keep; Mother's and Father's Day, the Federal Day of Prayer, Advent, St Nicholas' Day |
+| `CY` | Cyprus | By the Orthodox Easter; as Greece's: Tsiknopempti, Maundy Thursday, Holy Saturday, Mother's and Father's Day |
+| `CZ` | Czechia | Mother's and Father's Day, Walpurgis Night |
+| `DE` | Germany | Mother's and Father's Day (Ascension Day), Advent, St Nicholas' Day |
+| `DK` | Denmark | Mother's and Father's Day, Constitution Day, Midsummer Eve, Advent |
+| `EE` | Estonia | Mother's and Father's Day, Walpurgis Night, Midsummer Eve |
+| `ES` | Spain | Mother's and Father's Day |
+| `FI` | Finland | Mother's and Father's Day, Shrove Tuesday, Walpurgis Night, Advent |
+| `FR` | France | Mother's and Father's Day, Shrove Tuesday |
+| `GB` | United Kingdom | England's and Wales's bank holidays; Mother's and Father's Day, the patron saints' days, Shrove Tuesday, Halloween, Guy Fawkes Night, Remembrance Sunday |
+| `GR` | Greece | As above |
+| `HR` | Croatia | Mother's and Father's Day |
+| `HU` | Hungary | Mother's and Father's Day |
+| `IE` | Ireland | Mother's and Father's Day, Shrove Tuesday, Good Friday, Halloween |
+| `IS` | Iceland | Mother's and Father's Day, Shrove Tuesday, Advent |
+| `IT` | Italy | Mother's and Father's Day |
+| `LT` | Lithuania | |
+| `LU` | Luxembourg | St Nicholas' Day |
+| `LV` | Latvia | Father's Day |
+| `MT` | Malta | Mother's and Father's Day |
+| `NL` | Netherlands | Mother's and Father's Day, Remembrance of the Dead, Liberation Day, Sinterklaas |
+| `NO` | Norway | Mother's and Father's Day, Midsummer Eve, Advent |
+| `NZ` | New Zealand | Mother's and Father's Day, Guy Fawkes Night |
+| `PL` | Poland | Mother's and Father's Day, Fat Thursday, St Nicholas' Day |
+| `PT` | Portugal | Mother's and Father's Day, Shrove Tuesday |
+| `RO` | Romania | By the Orthodox Easter; Mother's and Father's Day |
+| `SE` | Sweden | As above |
+| `SI` | Slovenia | Mother's and Father's Day |
+| `SK` | Slovakia | Mother's and Father's Day |
+| `US` | United States | The federal holidays; Mother's and Father's Day, St Patrick's Day, Halloween |
 
 The admins keep the birthdays and name days, in a direct chat with the bot:
 
@@ -599,7 +659,7 @@ read. It can be changed by hand, as the other files.
 ### /status
 
 `/status` answers in two messages, to fit Signal's narrow bubbles. The first
-has the checks: how many passed (`✅ All 12 checks passed`, or `❌ 2 of 12
+has the checks: how many passed (`✅ All 13 checks passed`, or `❌ 2 of 13
 checks failed`), the failed ones with what went wrong, then the rest, a short
 line each; a check that took a second or more says how long. The second has
 the details, a section each, in short lines:
@@ -627,8 +687,9 @@ The checks, all live: the three [health checks](#health-checks)
 then that every safety number is trusted, nobody the bot talks to is blocked,
 the bot is still in every group on the allowed list, OpenWeatherMap and the
 exchange rate API (if `exchange_rate` is set) answer, the photo library isn't
-empty, disk and memory use are under 90% of their limits, and NTP keeps the
-clock synchronized. A check that takes more than 20 seconds fails.
+empty, disk and memory use are under 90% of their limits, NTP keeps the
+clock synchronized, and the [backups](#backups) are made: the last didn't
+fail, and the newest is less than two days old. A check that takes more than 20 seconds fails.
 
 ### Incoming messages
 
@@ -647,6 +708,34 @@ or forward on in Signal. Only their text, as the bot doesn't fetch
 attachments: it says how many there were. As with `/delete list`, the numbers are those of the list you
 were shown last. Timers and `/run` can't run `/incoming`, as they'd post
 what people wrote to others.
+
+### Contacts and safety numbers
+
+`/contacts` lists everyone the bot's Signal account knows, numbered: its
+contacts, then everyone else it knows, as those in its groups, then anyone
+it only has a safety number for, each by name. `/trust` lists the same
+people by the same numbers, with their safety numbers, three rows of four
+groups of five digits, as the Signal apps show them, and whether each is
+verified. A number from the list you were shown last, by either, stands for
+that person wherever a command takes `<who>`:
+
+```
+/contacts 3                  them, in full
+/trust 3                     their safety number
+/trust 3 12345 67890 ...     marks it verified, once compared with their phone's
+/contacts add 3 Bobby        a contact, by that name
+/allow 3                     on the allowed list
+/admin add 3                 an admin
+```
+
+As with `/delete list`, the numbers are those of the list you were shown
+last, whatever changes meanwhile, until you ask for it again, or the bot
+restarts; each admin has their own. A name, phone number, Signal ID or the
+start of one works too. To verify someone, compare the safety number with
+the one their phone shows in their chat with the bot (the bot's name, then
+View safety number), in person or on a call you trust, then send it with
+`/trust`. `/birthday add` takes no number for `<who>`, as numbers there are
+chats.
 
 ## Posting to other chats
 
@@ -679,6 +768,7 @@ change from a direct chat with the bot:
 ```
 /allowed                  who's on it, numbered, and the admins
 /allow +46701234567       a phone number
+/allow 3                  someone in /contacts, by their number there
 /allow Alice              someone in /contacts, by name or the start of their ID
 /allow Family             a group the bot is in, by name, or by its group ID
 /disallow 3               by its number in /allowed, or its number, ID or name
@@ -700,8 +790,7 @@ bot starts the file, empty, the first time it runs; deleting it starts it
 anew.
 
 What the commands won't do: allow the bot itself, allow someone twice, or
-disallow an admin, who are in the configuration and keep every command
-whatever the list says. `/disallow` on a group says which timers still post
+disallow an admin, who keeps every command whatever the list says. `/disallow` on a group says which timers still post
 there, as timers post to their chats whoever may use the bot.
 
 ## Timers
@@ -932,15 +1021,18 @@ pings stop, as they do when the bot is down. Set the check's period to
 
 Each ping says how each check went, then what runs, as `/status` does: the
 versions of nejomibot, signalbot, Python and signal-cli-rest-api, how long
-the bot has been up, and so its container, as the bot is its process, and
-the bot's memory, with its peak and the container's limit, if there is one.
+the bot has been up, and so its container, as the bot is its process, the
+bot's memory, with its peak and the container's limit, if there is one, and
+the [backups](#backups): how many, and how old the newest and the oldest
+are, or why the last failed. A failed backup doesn't make the ping a
+`/fail`, as it isn't the bot's health; `/status`'s Backups check fails.
 healthchecks.io shows it with each ping in the check's log. signal-cli's
 version isn't there: signal-cli-rest-api doesn't say it.
 
 ### Notices to the admins
 
-The bot tells the admins itself, in a direct chat with each, what they'd
-otherwise find out late:
+The bot tells the admins in the configuration itself, in a direct chat with
+each, what they'd otherwise find out late:
 
 - **An update, or a stop that wasn't clean.** After an update, the versions:
   `🔄 Updated: nejomibot 0.98.0 → 0.99.0.`; after a crash, a kill or a power
@@ -954,7 +1046,7 @@ otherwise find out late:
   wait, and with `healthcheck_url`, so does the ping.
 - **A safety number changes.** signal-cli won't send to someone whose safety
   number changed until it's trusted, so the admins hear whose, to compare it
-  with `/contacts`, then `/trust`. The bot looks every `healthcheck_minutes`,
+  with `/trust <who>`, then trust it with `/trust <who> <safety number>`. The bot looks every `healthcheck_minutes`,
   which asks nothing of Signal's servers, and at a start, for changes since
   it last ran.
 
@@ -1111,22 +1203,23 @@ update renames or removes a setting, the bot says which, and won't start until
 the configuration is changed to match `config.example.toml`.
 
 The bot only reads the photo library. What it's told and what it does, the
-timers, the specials, the allowed list, the reminders, the lists, the
-birthdays and name days, the photos sent this round, the messages waiting to
+timers, the specials, the allowed list, the admins added, the reminders, the
+lists, the birthdays and name days, the photos sent this round, the messages waiting to
 be sent and the version that ran last, it keeps in `data_dir` (`/data` in the
 container, beside the config), which must be there at startup: those files
 list phone numbers, so only the bot's user may read them. Each is written
 whole, through a temp file that's on disk before it takes the file's place,
-so neither a crash nor a power cut leaves one half written.
+so neither a crash nor a power cut leaves one half written. Every night the
+bot [backs them up](#backups) in `data_dir/backups`.
 
 ### Debug mode
 
 With `NEJOMIBOT_DEBUG=1` the bot only talks to `debug_group`, and to the
-admins, and keeps its list of photos sent, its allowed list, its timers, its
-specials, its reminders, lists and birthdays, and its waiting messages in a
-temp folder of its own instead of `data_dir`, new at each start and gone
-when it stops: the allowed list just `debug_group`, and no timers, specials
-or birthdays of your own. `/chats` offers only
+admins, and keeps its list of photos sent, its allowed list, the admins
+added, its timers, its specials, its reminders, lists and birthdays, and its
+waiting messages in a temp folder of its own instead of `data_dir`, new at
+each start and gone when it stops: the allowed list just `debug_group`, and
+no admins added, timers, specials or birthdays of your own. `/chats` offers only
 `debug_group` and the admins, so `/msg`, `/run` and timers can't reach anyone
 else. Use it to test changes without posting to anyone else, and `/timer add`
 to try the daily post. Stop the production bot first: two bots on the same
@@ -1250,6 +1343,64 @@ full, and the other libraries only log what goes wrong; signalbot's warning
 that a group message didn't reach someone names them, by number or ID. Each
 line has the date and time, the level and the part of the bot it's from.
 
+### Backups
+
+Every day at `backups_at`, 04:00 by default, in `timezone`, the bot backs
+up what it keeps in `data_dir`, with its config and `config.example.toml`,
+into `backups_dir`, or `data_dir/backups` if that isn't set: a tar archive
+compressed with Zstandard, named by when it was made, such as
+`nejomibot-2026-10-19_0400.tar.zst`, which unpacks into a folder of the same
+name. At a start it makes one at once if the latest is a day old or more,
+as when the bot was down at `backups_at`. When nothing in the files has
+changed since the latest backup, by what they say, whatever their times, it
+makes none: the latest still has it all. A bot that posts a photo of the
+day changes its list of photos sent daily, so it backs up daily. It keeps
+the newest `backups_kept` (30 by default) and deletes the older ones;
+anything else in the folder it leaves alone. `backups = false` makes none,
+as when `data_dir` is backed up otherwise. A `backups_at` in the hour
+daylight saving time skips or repeats (02:00 to 03:00 in most of Europe and
+North America) comes an hour late on the day it starts, and twice on the
+day it ends, the second likely finding nothing changed.
+
+`backups_dir` may be a folder of its own, best on another disk: the bot's
+user must be able to write in it, and in the container it must be mounted,
+say `Volume=/mnt/backup/nejomibot:/backups:U` in the Quadlet and
+`backups_dir = "/backups"`, as the rest is read-only. The log says what
+each backup had, that nothing changed, or that one failed. `/status` has a
+Backups check, which says how many there are, how old the newest and the
+oldest are, and why the last was skipped, if it was (`the last skipped:
+nothing changed`), and which fails when the last backup failed, or when the
+backups haven't been current for two days: no backup made, nor found
+needless; the [health check pings](#health-checks) say the same:
+
+```
+Backups: 30, the newest 2 d 6 h old, the oldest 41 d 6 h old; the last skipped: nothing changed
+```
+
+An archive has every file in `data_dir`, but `run.json`, which only says how
+the bot last ran, and files over 10 MB, which aren't the bot's; and not the
+messages waiting to be sent, which would go out again, late. The config is
+in it wherever it is, and the sample config as the version that made the
+backup has it. Only the bot's user may read the archives, as they list phone
+numbers and the config has the API key. They're on the same disk as what
+they back up, so copy them elsewhere too, with the rest of `data_dir`. In
+debug mode there are none.
+
+To restore, stop the bot, unpack a backup in the data folder, as the user
+that owns it (root, or for a rootless Podman, yours), and copy back what's
+needed with `cp -p`, which keeps the bot's user as its owner, then start the
+bot again:
+
+```sh
+cd /srv/nejomibot/data
+tar -xf backups/nejomibot-2026-10-19_0400.tar.zst   # GNU tar 1.31 or later, with zstd
+cp -p nejomibot-2026-10-19_0400/birthdays.txt .
+```
+
+Without `zstd` on the host, `python3 -m tarfile -e <archive> .` unpacks it
+with Python 3.14 or later; in the bot's container, `python -m tarfile -l
+/data/backups/<archive>` lists what's in one.
+
 ## Development
 
 Uses [uv](https://docs.astral.sh/uv/). Python and all dependencies are pinned
@@ -1296,6 +1447,7 @@ nejomibot/
   config.py     settings
   access.py     who may use the bot: the admins, and the allowed list
   allowed.py    /allowed, /allow, /disallow
+  admins.py     /admins, /admin: admins besides those in the config
   commands.py   commands: each handler's, by any name, and how they're answered
   i18n.py       translations
   locale/       the translations: sv.po, the messages; sv.toml, the names
@@ -1316,7 +1468,7 @@ nejomibot/
   healthcheck.py  the container's health check: asks the bot whether it works
   status.py     /status, /test: health check and details
   account.py    the Signal account: contacts, safety numbers, groups, devices
-  contacts.py   /contacts, /trust: everyone known, with safety numbers
+  contacts.py   /contacts, /trust: everyone known, numbered, with safety numbers
   profile.py    /profile, /name, /about, /avatar, /username
   delete.py     /delete: delete the bot's latest messages, here or anywhere
   incoming.py   /incoming: the latest messages people sent the bot
@@ -1333,6 +1485,7 @@ nejomibot/
   system.py     process, container and host facts from /proc and /sys
   publicip.py   public IPv4/IPv6 addresses, ASN and location
   files.py      the files in data_dir: written privately, read back when changed
+  backups.py    the daily backup of data_dir and the config, in data_dir/backups
 deploy/         examples: Podman Quadlets, and a Compose file
 tests/
 tools/          build-image.sh: test and build the image, for x86 and ARM;

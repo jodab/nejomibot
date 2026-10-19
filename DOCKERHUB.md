@@ -250,8 +250,13 @@ That's it: the bot is up and running. 🎉
   `podman ps` does).
 - **Birthdays, name days and holidays in the daily post:** `/birthday add
   1990-03-14 Alice` for a contact, shown in the groups they're in, and
-  `holidays = ["SE", "GR"]` in the settings for Sweden's and Greece's days;
-  see [the README](https://github.com/jodab/nejomibot#birthdays-name-days-and-holidays).
+  `holidays = ["SE"]` in the settings for your country's days, by its code,
+  such as `GB` or `US`: the European Union's, the Nordic countries' and most
+  of the West's are there; see
+  [the README](https://github.com/jodab/nejomibot#birthdays-name-days-and-holidays).
+- **Backups:** every day at 04:00 the bot backs up what it keeps, and its
+  settings, in `data/backups`, unless nothing changed, and keeps the latest
+  30; see [the README](https://github.com/jodab/nejomibot#backups).
 - **Commands of your own, other names for commands, and all the settings:**
   see the [README](https://github.com/jodab/nejomibot#readme).
 

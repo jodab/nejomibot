@@ -1,7 +1,7 @@
 """The files the bot keeps what it's told in, and what it's done: the timers,
-the specials, the allowed list, the reminders, the lists, the birthdays, the
-photos sent and the messages waiting to be sent. They list phone numbers, so
-only the bot's user may read them."""
+the specials, the allowed list, the admins added, the reminders, the lists,
+the birthdays, the photos sent, the messages waiting to be sent and the
+backups. They list phone numbers, so only the bot's user may read them."""
 
 import contextlib
 import logging
@@ -10,7 +10,7 @@ import tempfile
 from collections.abc import Callable, Collection, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Self
+from typing import BinaryIO, Self
 
 from .config import get_settings
 
@@ -18,17 +18,23 @@ logger = logging.getLogger(__name__)
 
 
 def write_privately(path: Path, text: str) -> None:
-    """Replace the file with the text, through a temp file beside it, so it's
-    never read half written, and on disk before it replaces the file, so a
-    power cut can't leave it empty. Raises OSError, and then leaves the file
-    as it was."""
+    """Replace the file with the text, as replace_privately does."""
+    replace_privately(path, lambda f: f.write(text.encode()))
+
+
+def replace_privately[T](path: Path, write: Callable[[BinaryIO], T]) -> T:
+    """Replace the file with what write() writes, and return what it does:
+    through a temp file beside it, only the bot's user's, so it's never read
+    half written, and on disk before it replaces the file, so a power cut
+    can't leave it empty. Raises OSError, and then leaves the file as it
+    was."""
     fd, name = tempfile.mkstemp(
         dir=path.parent, prefix=f".{path.name}.", suffix=".part"
     )
     part = Path(name)
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(text)
+        with os.fdopen(fd, "wb") as f:
+            written = write(f)
             f.flush()
             os.fsync(f.fileno())
         part.replace(path)
@@ -42,6 +48,7 @@ def write_privately(path: Path, text: str) -> None:
             os.fsync(folder)
         finally:
             os.close(folder)
+    return written
 
 
 def append_privately(path: Path, line: str) -> None:

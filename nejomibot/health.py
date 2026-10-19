@@ -10,7 +10,7 @@ it pings the URL when all passed, or URL/fail with what failed, so the
 service warns when something fails, or when the pings stop. Each ping says
 how each check went, then what runs, as /status does: the versions of the
 bot, signalbot, Python and signal-cli-rest-api, how long the bot, and so its
-container, has been up, and the memory it uses.
+container, has been up, the memory it uses, and how old its backups are.
 
 The container's health check (healthcheck.py) asks something else: whether
 the bot works, so whether restarting it could help, as a container runtime
@@ -31,7 +31,7 @@ from typing import cast
 import aiohttp
 from signalbot import About, SignalBot
 
-from . import healthcheck, system
+from . import backups, healthcheck, system
 from .account import Device, fetch_devices
 from .client import client
 from .config import get_settings
@@ -238,12 +238,14 @@ def memory_check() -> Check:
 
 def ping_text(health: Health) -> str:
     """For the health check service: how each check went, then what runs,
-    since when, and in how much memory, as /status says it."""
+    since when, in how much memory, and the backups, as /status says it."""
     memory = memory_check()
+    _ok, backed_up = backups.state(datetime.now(get_settings().tz))
     lines = [
         *version_lines(health.about),
         up_since(STARTED),
         f"{memory.name}: {memory.detail}",
+        f"{_('Backups')}: {backed_up}",
     ]
     return report_text(health.checks) + "\n\n" + "\n".join(lines)
 

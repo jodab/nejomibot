@@ -4,6 +4,45 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- Admins besides those in the config: the config's admins make someone an
+  admin with `/admin add <who>`, and no longer with `/admin remove <n>`, by
+  their number in `/admins`, which lists every admin. Those added may use
+  every command but these two, and no command can take away what the
+  config's admins may do. They're kept by Signal ID, which can't change
+  hands as a phone number can, in `data_dir/admins.txt`, as the allowed
+  list is; the notices still go to the config's admins alone.
+- `/trust` alone lists everyone's safety numbers, numbered as `/contacts`
+  numbers them, as the Signal apps show them, and whether each is verified;
+  `/trust <who>` shows one's.
+- Backups: every day at `backups_at` (04:00), and at a start if the latest
+  is a day old, the bot backs up what it keeps in `data_dir`, with its
+  config and the sample config, as `nejomibot-2026-10-19_0400.tar.zst`, into
+  `data_dir/backups`, or `backups_dir`, keeping the newest `backups_kept`
+  (30); none when nothing in the files has changed since the latest, and
+  `backups = false` makes none at all. `/status` has a Backups check, and
+  the health check pings say how many there are, how old the newest and the
+  oldest are, and when the last was skipped as nothing changed.
+- The holidays of 33 more countries for the daily post, by their codes in
+  `holidays`, such as `GB` or `US`: the rest of the European Union, Norway,
+  Iceland, Switzerland, the United Kingdom, the United States, Canada,
+  Australia and New Zealand. Their public holidays, Valentine's Day, Easter
+  Sunday, Christmas Eve and New Year's Eve, Mother's Day and Father's Day
+  where they have one day for them, and some traditions of their own. Their
+  names are in English, in Swedish too, but those they share with Sweden or
+  Greece.
+
+### Changed
+
+- `/contacts` numbers everyone, and a number from it, or from `/trust`,
+  stands for that person in `/contacts <who>`, `/contacts add`, `/trust`,
+  `/allow` and `/admin add`: the number in the list you were shown last, as
+  with `/delete list`, until you ask for it again.
+- `/allowed` names every admin, and `/chats` offers the admins added.
+
 ## 0.99.3 - 2026-10-19
 
 ### Changed

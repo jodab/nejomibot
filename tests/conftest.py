@@ -19,8 +19,10 @@ from signalbot import (
 
 from nejomibot import (
     access,
+    backups,
     birthdays,
     commands,
+    contacts,
     healthcheck,
     lists,
     onthisday,
@@ -68,14 +70,19 @@ def settings_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[No
 
 @pytest.fixture(autouse=True)
 def fresh_lists() -> None:
-    """The allowed list, the admins' specials, the reminders, lists and
-    birthdays as the bot has them at a start: it keeps them for good. Nor has
-    OpenWeatherMap been asked yet, nor a photo read for when it was taken."""
-    access.allowed_list.__init__()
+    """The allowed list, the admins added, the admins' specials, the
+    reminders, lists and birthdays as the bot has them at a start: it keeps
+    them for good. Nor has OpenWeatherMap been asked yet, nor a photo read
+    for when it was taken, nor anyone shown a numbered list."""
+    access.allowed_list.reset()
+    access.admin_list.reset()
     specials.own_specials.__init__()
     for kept in (reminders.kept, lists.kept, birthdays.kept):
         kept.reset()
     birthdays.shown.clear()
+    contacts.shown.clear()
+    # Nor any backup made, or failed
+    backups.last_failure = backups.unchanged_at = None
     # Nor what commands did, for edits of them
     commands.done.clear()
     weather.places.clear()

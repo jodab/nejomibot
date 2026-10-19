@@ -2,10 +2,11 @@
 everyday commands, the allowed list (see access.py). For the admins only, in
 direct chats.
 
-/allow takes a phone number, Signal ID or group ID, or the name of a group
-the bot is in or of someone in /contacts. /disallow takes the number /allowed
-shows, an ID, or a name. The admins are in the config, so these can't change
-what they may do, and the bot itself can't be allowed.
+/allow takes a phone number, Signal ID or group ID, the name of a group the
+bot is in, or someone in /contacts, by their number there or their name.
+/disallow takes the number /allowed shows, an ID, or a name. These can't
+change what the admins may do (/admins), and the bot itself can't be
+allowed.
 """
 
 import logging
@@ -14,10 +15,11 @@ import re
 from signalbot import DataMessageContext
 
 from . import access, contacts
-from .access import Entry, allowed_list, is_group
-from .account import fetch_account
+from .access import AllowedList, Entry, allowed_list, is_group
+from .account import Account, Contact, fetch_account
 from .commands import Command, Edits, Handler, answer, argument, undo_with
 from .config import get_settings
+from .help import shown_name
 from .i18n import _, ngettext
 from .messages import describe, escape, unreadable_text
 from .timers import timekeeper
@@ -27,8 +29,9 @@ logger = logging.getLogger(__name__)
 
 def allow_usage() -> str:
     return _(
-        "Send /allow and who: a phone number, Signal ID or group ID, or the name "
-        "of a group the bot is in or of someone in /contacts."
+        "Send /allow and who: a phone number, Signal ID or group ID, the name "
+        "of a group the bot is in, or someone in /contacts, by their number "
+        "there or name."
     )
 
 
@@ -40,9 +43,9 @@ def disallow_usage() -> str:
 
 
 def admin_text(who: str) -> str:
-    return _(
-        "{who} is an admin. Admins are in the config, and may always use every command."
-    ).format(who=who)
+    return _("{who} is an admin, and may use every command: see /admins.").format(
+        who=who
+    )
 
 
 def typed_chat_id(who: str) -> str | None:
@@ -86,10 +89,10 @@ async def list_allowed(context: DataMessageContext) -> str:
         for n, entry in enumerate(allowed.entries, start=1)
     ]
     lines = [""]
-    if admins := get_settings().admins:
+    if admins := access.admins():
         lines.append(
             "👑 "
-            + _("Admins, in the config, may use every command: {admins}").format(
+            + _("The admins may use every command: {admins}").format(
                 admins=", ".join(names.get(admin, admin) for admin in admins)
             )
         )
@@ -99,13 +102,31 @@ async def list_allowed(context: DataMessageContext) -> str:
     return f"📋 **{escape(title)}**\n" + escape("\n".join(entries + lines))
 
 
+def person_entry(account: Account, person: Contact) -> Entry | None:
+    """Someone, as the lists keep them: by phone number, else by Signal ID,
+    with their name."""
+    chat_id = access.chat_id_of(
+        contacts.number_of(account, person) or person.uuid or ""
+    )
+    return Entry(chat_id, contacts.heading_of(account, person)) if chat_id else None
+
+
 async def find_new(context: DataMessageContext, who: str) -> Entry | str:
-    """Whom /allow means: an ID as it is, or a group the bot is in or someone
-    in /contacts, by name or the start of their ID. Else why not."""
+    """Whom /allow means: an ID as it is, or a group the bot is in, by name,
+    or someone in /contacts, by their number there, name or the start of
+    their ID. Else why not."""
     if chat_id := typed_chat_id(who):
         names = await access.names(context.bot)
         return Entry(chat_id, names.get(chat_id, ""))
-    groups = [
+    if contacts.list_number(who) is not None:
+        account = await fetch_account(context.bot)
+        found = contacts.find_one(account, who, contacts.listed_for(context))
+        if isinstance(found, str):
+            return found
+        return person_entry(account, found) or _(
+            "No phone number or ID for {name}."
+        ).format(name=contacts.heading_of(account, found))
+    named = [
         Entry(group.id, group.name)
         for group in context.bot.groups
         if group.member and group.name.casefold() == who.casefold()
@@ -113,22 +134,17 @@ async def find_new(context: DataMessageContext, who: str) -> Entry | str:
     try:
         account = await fetch_account(context.bot)
     except Exception as e:
-        if not groups:
+        if not named:
             raise
         logger.warning("Could not look up people, only groups: %s", describe(e))
         people: list[Entry] = []
     else:
-        # As the list has them: by phone number, else by Signal ID
         people = [
-            Entry(chat_id, contacts.heading_of(account, person))
+            entry
             for person in contacts.find(account, who)
-            if (
-                chat_id := access.chat_id_of(
-                    contacts.number_of(account, person) or person.uuid or ""
-                )
-            )
+            if (entry := person_entry(account, person))
         ]
-    found = groups + people
+    found = named + people
     if not found:
         text = _("Nobody and no group is called {who}.").format(who=who)
         return f"{text}\n{allow_usage()}"
@@ -148,7 +164,7 @@ async def allow(context: DataMessageContext, who: str) -> str:
     name = found.note or found.id
     if found.id == settings.account:
         return _("That's the bot itself.")
-    if found.id in settings.admins:
+    if found.id in access.admins():
         return admin_text(name)
     allowed = allowed_list.reread()
     if found.id in allowed.ids:
@@ -168,13 +184,16 @@ async def allow(context: DataMessageContext, who: str) -> str:
     return text
 
 
-def find_allowed(who: str, names: dict[str, str]) -> Entry | str:
-    """Whom /disallow means, on the list: by its number there, ID or name.
-    Else why not."""
-    entries = allowed_list.reread().entries
+def find_listed(
+    chats: AllowedList, command: str, who: str, names: dict[str, str]
+) -> Entry | str:
+    """Whom /disallow or /admin remove means, on the list: by its number in
+    what command lists, ID or name. Else why not."""
+    entries = chats.reread().entries
+    listing = shown_name(command)
     if who.isdigit():
         if not 1 <= int(who) <= len(entries):
-            return _("There's no {n} in /allowed.").format(n=who)
+            return _("There's no {n} in {command}.").format(n=who, command=listing)
         return entries[int(who) - 1]
     chat_id = typed_chat_id(who)
     wanted = who.casefold()
@@ -185,10 +204,10 @@ def find_allowed(who: str, names: dict[str, str]) -> Entry | str:
         or wanted in (name_of(entry, names).casefold(), entry.note.casefold())
     ]
     if not found:
-        return _("{who} isn't in /allowed.").format(who=who)
+        return _("{who} isn't in {command}.").format(who=who, command=listing)
     if len(found) > 1:
-        return _("{who} could be any of {count} in /allowed: give its number.").format(
-            who=who, count=len(found)
+        return _("{who} could be any of {count} in {command}: give its number.").format(
+            who=who, count=len(found), command=listing
         )
     return found[0]
 
@@ -209,9 +228,9 @@ def timers_posting_to(chat_id: str) -> str:
 async def disallow(context: DataMessageContext, who: str) -> str:
     if not who:
         return disallow_usage()
-    admins = get_settings().admins
+    admins = access.admins()
     names = await access.names(context.bot)
-    if isinstance(found := find_allowed(who, names), str):
+    if isinstance(found := find_listed(allowed_list, "/allowed", who, names), str):
         admin_names = {names.get(admin, admin).casefold() for admin in admins}
         if typed_chat_id(who) in admins or who.casefold() in admin_names:
             return admin_text(who)
@@ -227,7 +246,7 @@ async def disallow(context: DataMessageContext, who: str) -> str:
         text = _("🗑️ {name} may no longer use the everyday commands.")
     text = text.format(name=name)
     if found.id in admins:  # put on the list by hand
-        text += "\n" + _("They're an admin, in the config, so may still use them.")
+        text += "\n" + _("They're an admin, so may still use them.")
     return text + timers_posting_to(found.id)
 
 

@@ -181,7 +181,7 @@ class Delete(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         message = context.message
-        # signalbot only checks who sent it in direct chats
+        # As signalbot checks it; again, as timers and /run call it directly
         if not is_admin(message):
             logger.info("Ignored /delete from someone not an admin")
             return

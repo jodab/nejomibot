@@ -343,6 +343,8 @@ def test_what_timers_mayn_t_run() -> None:
         "/allowed",
         "/allow",
         "/disallow",
+        "/admins",
+        "/admin",
         "/msg",
         "/run",
         "/incoming",

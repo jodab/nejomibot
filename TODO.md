@@ -42,6 +42,35 @@ wait for the owner.
     Sweden's.
   - The admins hear of safety numbers that changed and aren't trusted, not
     of someone new.
+- [ ] **What was chosen for admins, numbers, backups and holidays**
+  (2026-10-19, later), where you didn't say:
+  - `/admins` lists every admin, the config's first, unnumbered, then those
+    added, numbered for `/admin remove`. Only the config's admins add and
+    remove admins (all of them, not just the first); those added may do
+    everything else. The notices, timers' commands and the greeting stay
+    the config's admins'. Admins added are kept by Signal ID alone (your
+    decision): someone the bot doesn't know yet can't be added by phone
+    number.
+  - `/contacts` and `/trust` share one numbering; `/trust` lists everyone,
+    those without a safety number too, so the numbers match. Numbers work in
+    `/allow` and `/admin add`, not in `/birthday add`, where numbers are
+    chats.
+  - Backups: Zstandard, not xz, which takes about 94 MB of memory to
+    compress at its default level; at 04:00 unless `backups_at` says; none
+    when the files say what the latest has, so a bot with a daily photo
+    post, whose list of photos sent changes, still backs up daily; 30 kept, by count rather than
+    age, so a long stop doesn't leave just the one made after it; named `nejomibot-2026-10-19_0400.tar.zst`, your
+    name with the bot's in front, so a copy elsewhere says what it is; every
+    file in `data_dir` but `run.json`, the outbox and files over 10 MB. A
+    failed backup fails `/status`'s check, not the health check ping.
+  - Holidays: the EU's 27, Norway, Iceland, Switzerland, the United Kingdom,
+    the United States, Canada, Australia and New Zealand ("the top 10 of the
+    EU" by population: all 27 are in). The United Kingdom's are England's
+    and Wales's bank holidays; Canada's the federal ones; Switzerland's
+    those most cantons keep. Mother's and Father's Day are left out for
+    Luxembourg and Bulgaria, whose dates aren't settled enough to be sure
+    of. 26 December shows as Boxing Day everywhere, St Stephen's Day too,
+    as Greece's does.
 
 ### For you to do
 

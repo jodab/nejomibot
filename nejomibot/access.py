@@ -1,7 +1,8 @@
 """Who may use the bot.
 
-The admins, listed in the config, may use every command; the admin commands
-only in a direct chat with the bot. Everyone else may use the everyday
+The admins may use every command; the admin commands only in a direct chat
+with the bot. They're those in the config, and those the config's admins
+make admins with /admin add (admins.py). Everyone else may use the everyday
 commands if they're on the allowed list: a contact, in a direct chat with the
 bot, or a group, where anyone in it may use them, there.
 
@@ -10,15 +11,18 @@ ID or group ID a line, and after a # who that is. The admins see it with
 /allowed and change it with /allow and /disallow (allowed.py). It can be
 changed by hand too: the bot rereads it when it changes, and leaves comments
 and lines it can't read as they are. Without the file, the bot starts an
-empty one; in debug mode, one with just debug_group.
+empty one; in debug mode, one with just debug_group. The admins added are
+kept the same way, in data_dir/admins.txt, by Signal ID only: a phone
+number can change hands, a Signal ID can't.
 
-The admins aren't on the list: they're in the config, so no command can take
-away what they may do.
+The config's admins are on neither list, so no command can take away what
+they may do.
 """
 
 import logging
 import re
 import time
+from collections.abc import Callable, Collection, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,10 +41,16 @@ REREAD = 2.0
 MAX_ENTRIES = 1000
 
 HEADER = (
-    "# Who may use nejomibot's everyday commands, besides the admins in its",
-    "# config: a phone number, Signal ID or group ID per line, and after a #",
-    "# who that is. Changed with /allow and /disallow in Signal, or by hand:",
-    "# the bot rereads it, and leaves comments and other lines as they are.",
+    "# Who may use nejomibot's everyday commands, besides its admins: a phone",
+    "# number, Signal ID or group ID per line, and after a # who that is.",
+    "# Changed with /allow and /disallow in Signal, or by hand: the bot",
+    "# rereads it, and leaves comments and other lines as they are.",
+)
+ADMINS_HEADER = (
+    "# nejomibot's admins besides those in its config, who made them admins: a",
+    "# Signal ID per line, and after a # who that is. Changed with /admin add",
+    "# and /admin remove in Signal, or by hand: the bot rereads it, and leaves",
+    "# comments and other lines as they are.",
 )
 
 
@@ -92,9 +102,23 @@ def entry_id(line: str) -> str | None:
 
 
 class AllowedList:
-    """The allowed list, as its file has it."""
+    """A list of chats, as its file has it: the allowed list, or the admins
+    added to the config's, by Signal ID only."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        file: Callable[[], Path] = lambda: get_settings().allowed_file,
+        header: Sequence[str] = HEADER,
+        *,
+        signal_ids_only: bool = False,
+    ) -> None:
+        self.file = file
+        self.header = tuple(header)
+        self.signal_ids_only = signal_ids_only
+        self.reset()
+
+    def reset(self) -> None:
+        """As at a start, with nothing read yet."""
         self.lines: list[str] = []  # the file's, all of them
         self.entries: list[Entry] = []  # each chat once, in the file's order
         self.broken: list[str] = []  # lines that can't be read
@@ -106,17 +130,26 @@ class AllowedList:
     def ids(self) -> set[str]:
         return {entry.id for entry in self.entries}
 
+    def parse(self, line: str) -> Entry | None:
+        """The entry on a line, as parse() reads it, but anything else than a
+        Signal ID on a list of those only. Raises ValueError."""
+        entry = parse(line)
+        if entry and self.signal_ids_only and not re.match(SIGNAL_ID, entry.id):
+            raise ValueError(f"{entry.id} isn't a Signal ID")
+        return entry
+
     def take(self, lines: list[str]) -> None:
         """Make the lines the list."""
         entries: dict[str, Entry] = {}
         broken: list[str] = []
         for number, line in enumerate(lines, start=1):
             try:
-                entry = parse(line)
+                entry = self.parse(line)
             except ValueError as e:
                 # The line may be someone's number: /allowed shows it
-                logger.error("Line %d left alone, as it can't be read", number)
-                logger.debug("Line %d: %s", number, e)
+                name = self.file().name
+                logger.error("%s line %d left alone, as it can't be read", name, number)
+                logger.debug("%s line %d: %s", name, number, e)
                 broken.append(line)
                 continue
             if entry is not None:
@@ -126,7 +159,7 @@ class AllowedList:
     def read(self) -> None:
         """Read the file, or make it if there's none. If it can't be read, the
         list stays as it was."""
-        path = self.path = get_settings().allowed_file
+        path = self.path = self.file()
         self.checked = time.monotonic()
         try:
             stat = path.stat()
@@ -146,10 +179,12 @@ class AllowedList:
         self.take(lines)
 
     def make(self) -> None:
-        """Start the file: empty, or in debug mode, with just debug_group."""
+        """Start the file: empty, or in debug mode, with just debug_group,
+        unless it's for Signal IDs only."""
         settings = get_settings()
-        debug_group = settings.debug_group if settings.debug else None
-        lines = [*HEADER, *([debug_group] if debug_group else [])]
+        debug = settings.debug and not self.signal_ids_only
+        debug_group = settings.debug_group if debug else None
+        lines = [*self.header, *([debug_group] if debug_group else [])]
         try:
             self.save(lines)
         except OSError as e:
@@ -157,12 +192,12 @@ class AllowedList:
             self.take(lines)
             self.seen = None  # not tried again until a file turns up
             return
-        logger.info("Made %s: %d chats", self.path, len(self.ids))
+        logger.info("Made %s, with %d on it", self.path, len(self.ids))
 
     def save(self, lines: list[str]) -> None:
         """Write the lines to the file, and make them the list. Raises OSError,
         and then changes neither."""
-        path = self.path = get_settings().allowed_file
+        path = self.path = self.file()
         write_privately(path, "\n".join(lines) + "\n")
         stat = path.stat()
         self.take(lines)
@@ -224,11 +259,41 @@ class AllowedList:
 
 
 allowed_list = AllowedList()
+# The admins the config's admins made admins
+admin_list = AllowedList(
+    lambda: get_settings().admins_file, ADMINS_HEADER, signal_ids_only=True
+)
+
+
+def sent_by(message: DataMessage, ids: Collection[str]) -> bool:
+    """Whether one of these phone numbers or Signal IDs sent the message."""
+    return any(
+        who in ids for who in (message.source_number, message.source_uuid) if who
+    )
 
 
 def is_admin(message: DataMessage) -> bool:
-    admins = get_settings().admins
-    return any(who in admins for who in (message.source_number, message.source_uuid))
+    """Whether an admin sent the message: one in the config, or one added."""
+    return sent_by(message, get_settings().admins) or sent_by(
+        message, admin_list.current().ids
+    )
+
+
+def is_config_admin(message: DataMessage) -> bool:
+    """Whether one of the config's admins sent the message: only they add and
+    remove admins."""
+    return sent_by(message, get_settings().admins)
+
+
+def from_admin(message: object) -> bool:
+    """Whether the message is an admin's, as the admin commands take it."""
+    return isinstance(message, DataMessage) and is_admin(message)
+
+
+def admins() -> list[str]:
+    """Every admin: the config's, then those added, as their file lists them."""
+    added = [entry.id for entry in admin_list.current().entries]
+    return list(dict.fromkeys([*get_settings().admins, *added]))
 
 
 def permits(bot: SignalBot, message: object) -> bool:
@@ -240,15 +305,19 @@ def permits(bot: SignalBot, message: object) -> bool:
     allowed = allowed_list.current().ids
     if message.is_group():
         return bot.groups.get_id(message.source_or_group_id()) in allowed
-    return is_admin(message) or any(
-        who in allowed for who in (message.source_number, message.source_uuid) if who
-    )
+    return is_admin(message) or sent_by(message, allowed)
 
 
 def recipients() -> list[str]:
     """Every contact and group the bot is set up to talk to: those in the
-    config, and on the allowed list."""
-    return sorted({*get_settings().configured_recipients, *allowed_list.current().ids})
+    config, on the allowed list, and the admins added."""
+    return sorted(
+        {
+            *get_settings().configured_recipients,
+            *allowed_list.current().ids,
+            *admin_list.current().ids,
+        }
+    )
 
 
 async def names(bot: SignalBot) -> dict[str, str]:

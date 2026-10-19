@@ -6,7 +6,16 @@ from helpers import ALICE, BOB, GROUP, ME
 from signalbot import DataMessage, EditMessage, GroupInfo, SignalBot
 
 from nejomibot import access
-from nejomibot.access import HEADER, AllowedList, Entry, chat_id_of, parse, permits
+from nejomibot.access import (
+    ADMINS_HEADER,
+    HEADER,
+    AllowedList,
+    Entry,
+    admin_list,
+    chat_id_of,
+    parse,
+    permits,
+)
 from nejomibot.config import get_settings
 
 ADMIN = "+46700000009"
@@ -171,6 +180,22 @@ def test_debug_mode_starts_with_the_debug_group(
     allowed.start()
     assert allowed.ids == {OTHER_GROUP}
     assert get_settings().allowed_file.read_text().endswith(f"{OTHER_GROUP}\n")
+
+
+def test_the_admins_added_are_by_signal_id_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Even in debug mode, which starts the allowed list with its group
+    monkeypatch.setenv("NEJOMIBOT_DEBUG", "1")
+    monkeypatch.setenv("NEJOMIBOT_DEBUG_GROUP", OTHER_GROUP)
+    get_settings.cache_clear()
+    admin_list.start()
+    path = get_settings().admins_file
+    assert path.read_text().splitlines() == list(ADMINS_HEADER)
+    with path.open("a") as f:
+        f.write(f"{GROUP}  # by hand\n{ALICE}  # Alice\n{CAROL_ID.upper()}  # Carol\n")
+    assert admin_list.reread().entries == [Entry(CAROL_ID, "Carol")]
+    assert admin_list.broken == [f"{GROUP}  # by hand", f"{ALICE}  # Alice"]
 
 
 class FakeGroups:

@@ -14,7 +14,8 @@ from types import FrameType
 from pydantic import ValidationError
 from signalbot import LOGGER_NAME, Config, ConnectionMode, InMemoryConfig, SignalBot
 
-from . import access, health, reminders, rest
+from . import access, backups, health, reminders, rest
+from .admins import Admin, Admins
 from .allowed import Allow, Allowed, Disallow
 from .birthdays import Birthday, Birthdays
 from .client import client
@@ -82,9 +83,9 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
     ]
     # For the admins only, in direct chats: they show what only the admins
     # should see, or change the bot, who may use it, or its timers, or post
-    # to other chats
+    # to other chats. Checked for each message, as /admin changes who they are.
     admins: list[Registration] = [
-        (handler, settings.admins, False, None)
+        (handler, True, False, access.from_admin)
         for handler in (
             Status(),
             Specials(),
@@ -93,6 +94,8 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
             Allowed(),
             Allow(),
             Disallow(),
+            Admins(),
+            Admin(),
             Profile(),
             Name(),
             About(),
@@ -109,8 +112,8 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
     return [
         *everyday,
         *admins,
-        # For the admins only, in every chat; in groups it checks who sent it
-        (Delete(), settings.admins, settings.delete_groups, None),
+        # For the admins only, in every chat
+        (Delete(), True, settings.delete_groups, access.from_admin),
     ]
 
 
@@ -313,6 +316,12 @@ def main() -> None:
         len(access.allowed_list.entries),
         settings.allowed_file,
     )
+    access.admin_list.start()
+    logger.info(
+        "%d admins besides the config's, in %s",
+        len(access.admin_list.entries),
+        settings.admins_file,
+    )
     registrations = handlers(bot, settings)
     for handler, contacts, groups, check in registrations:
         bot.register(handler, contacts=contacts, groups=groups, f=check)
@@ -326,6 +335,8 @@ def main() -> None:
     timekeeper.start(bot, [handler for handler, *_who in registrations])
     logger.info("%d timers, in %s", len(timekeeper.timers), settings.timers_file)
     reminders.start(bot)
+    # A backup every day at backups_at, and now if the latest is a day old
+    backups.start(bot)
     health.start(bot)
 
     bot.start()

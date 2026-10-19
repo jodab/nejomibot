@@ -5,6 +5,7 @@ import pytest
 from helpers import (
     ALICE,
     BOB,
+    BOB_ID,
     CAROL_ID,
     EDIT_FROM_BEFORE,
     GROUP,
@@ -20,7 +21,7 @@ from signalbot import (
     SignalBot,
 )
 
-from nejomibot import access, allowed, commands
+from nejomibot import access, allowed, commands, contacts
 from nejomibot.access import HEADER
 from nejomibot.allowed import Allow, Allowed, Disallow
 from nejomibot.config import get_settings
@@ -101,7 +102,7 @@ async def test_allowed(chat: Chat) -> None:
         f"1 👤 Alice, {ALICE}",
         "2 👥 Gone (the bot isn't in it)",
         "",
-        f"👑 Admins, in the config, may use every command: {ADMIN}",
+        f"👑 The admins may use every command: {ADMIN}",
         "/allow <who> adds one, /disallow <n> removes one.",
         "⚠️ The file has a line the bot can't read, and leaves as it is: not anyone",
     ]
@@ -143,7 +144,7 @@ async def test_allow(chat: Chat, who: str, answer: str, added: str) -> None:
     [
         ("", "Send /allow and who:"),
         (ALICE, "Alice may use the everyday commands already."),
-        (ADMIN, f"{ADMIN} is an admin. Admins are in the config"),
+        (ADMIN, f"{ADMIN} is an admin, and may use every command: see /admins."),
         (ME, "That's the bot itself."),
         ("carol", "Nobody and no group is called carol.\nSend /allow"),
     ],
@@ -152,6 +153,15 @@ async def test_allow_refuses(chat: Chat, who: str, answer: str) -> None:
     await chat.send(f"/allow {who}")
     assert chat.replies[-1].startswith(answer)
     assert listed() == [ALICE]
+
+
+async def test_allow_by_their_number_in_contacts(chat: Chat) -> None:
+    await chat.send("/allow 2")
+    assert chat.replies == ["Which one? Send /contacts first, for their numbers."]
+    contacts.shown[ADMIN] = [(ALICE, None), (BOB, BOB_ID)]
+    await chat.send("/allow 2")
+    assert chat.replies[-1] == "✅ Bob Berg may use the everyday commands now."
+    assert listed() == [ALICE, BOB]
 
 
 async def test_allow_when_full(chat: Chat, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -189,7 +199,7 @@ async def test_disallow_says_which_timers_still_post_there(chat: Chat) -> None:
         ("", "Send /disallow and who:"),
         ("2", "There's no 2 in /allowed."),
         (BOB, f"{BOB} isn't in /allowed."),
-        (ADMIN, f"{ADMIN} is an admin. Admins are in the config"),
+        (ADMIN, f"{ADMIN} is an admin, and may use every command: see /admins."),
     ],
 )
 async def test_disallow_refuses(chat: Chat, who: str, answer: str) -> None:
@@ -205,7 +215,7 @@ async def test_an_admin_put_on_the_list_by_hand_stays_an_admin(
     await chat.send(f"/disallow {ADMIN}")
     assert chat.replies == [
         "🗑️ Admin may no longer use the everyday commands.\n"
-        "They're an admin, in the config, so may still use them."
+        "They're an admin, so may still use them."
     ]
 
 

@@ -251,12 +251,14 @@ async def test_pings_when_all_is_well(
         "OK Bot: running",
         "OK Signal: the account has 2 devices",
     ]
-    # Then what runs, as /status says it: the versions, the uptime, the memory
+    # Then what runs, as /status says it: the versions, the uptime, the
+    # memory, the backups
     lines = about.splitlines()
     assert lines[0] == f"nejomibot {version('nejomibot')}"
     assert lines[2] == "signal-cli-rest-api unset, json-rpc mode"
     assert lines[3].startswith("Up 1 d 2 h, since ")
     assert lines[4] == "Bot memory: 70.0MB (peak 73.0MB)"
+    assert lines[5] == "Backups: none yet"
 
 
 async def test_pings_what_failed(

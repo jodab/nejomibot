@@ -76,6 +76,7 @@ def greeted(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Greeted:
     get_settings.cache_clear()
     access.allowed_list.reread().add(Entry(ALICE))
     access.allowed_list.reread().add(Entry(GROUP))
+    access.admin_list.start()  # as the bot does
     return Greeted(bot, monkeypatch)
 
 

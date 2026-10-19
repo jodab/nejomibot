@@ -9,7 +9,7 @@ the file, e.g. NEJOMIBOT_OPENWEATHER_API_KEY or NEJOMIBOT_DEBUG=1.
 import os
 import re
 import tempfile
-from datetime import date
+from datetime import date, time
 from functools import cache, cached_property
 from pathlib import Path
 from typing import Annotated, Literal, Self
@@ -66,6 +66,12 @@ HostPort = Annotated[str, StringConstraints(pattern=r"^[^:/\s]+:\d+$")]
 Command = Annotated[str, StringConstraints(pattern=r"^/\S+$", to_lower=True)]
 Alias = Annotated[str, StringConstraints(pattern=r"^\S+$")]
 Currency = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
+# The countries whose holidays the calendar has
+Country = Literal[
+    "AT", "AU", "BE", "BG", "CA", "CH", "CY", "CZ", "DE", "DK", "EE", "ES",
+    "FI", "FR", "GB", "GR", "HR", "HU", "IE", "IS", "IT", "LT", "LU", "LV",
+    "MT", "NL", "NO", "NZ", "PL", "PT", "RO", "SE", "SI", "SK", "US",
+]  # fmt: skip
 
 
 def config_file() -> Path:
@@ -98,8 +104,9 @@ class Settings(BaseSettings):
     weather_calls_per_hour: Annotated[int, Field(ge=1)] = 10
 
     # The daily post names the special days of these countries atop the
-    # weather: holidays, flag days and traditions. SE Sweden, GR Greece.
-    holidays: list[Literal["SE", "GR"]] = []
+    # weather: holidays, flag days and traditions. By their ISO 3166 codes,
+    # such as SE for Sweden and GB for the United Kingdom (holidays.py).
+    holidays: list[Country] = []
 
     timezone: TimeZone = "Europe/Stockholm"
 
@@ -132,8 +139,17 @@ class Settings(BaseSettings):
     # again for this long, then dropped
     send_retry_hours: PositiveFloat = 3
 
+    # Every day at backups_at, in timezone, the bot backs up data_dir and its
+    # config (backups.py) into backups_dir, data_dir/backups if not given,
+    # and keeps the newest backups_kept
+    backups: bool = True
+    backups_at: time = time(4, 0)
+    backups_dir: Path | None = None
+    backups_kept: Annotated[int, Field(ge=1)] = 30
+
     # The admins: they may use every command, and they alone the admin
-    # commands, in a direct chat with the bot
+    # commands, in a direct chat with the bot. They may make others admins,
+    # with /admin add, but no command can take away what they may do.
     admins: list[Person] = []
 
     # Every healthcheck_minutes the bot checks signal-cli-rest-api, itself, and
@@ -252,6 +268,16 @@ class Settings(BaseSettings):
     def allowed_file(self) -> Path:
         """Who may use the everyday commands, besides the admins: one per line."""
         return self.data_file("allowed.txt")
+
+    @property
+    def admins_file(self) -> Path:
+        """The admins besides those in the config: one per line."""
+        return self.data_file("admins.txt")
+
+    @property
+    def backups_folder(self) -> Path:
+        """Where the backups go: backups_dir, or else data_dir/backups."""
+        return self.backups_dir or self.data_dir / "backups"
 
     @property
     def outbox_dir(self) -> Path:

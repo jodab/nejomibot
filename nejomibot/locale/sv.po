@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 15:23+0300\n"
+"POT-Creation-Date: 2026-10-19 17:44+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -95,13 +95,99 @@ msgstr[1] "{count} väntande inbjudningar"
 msgid "Asking to join: {groups}"
 msgstr "Vill gå med: {groups}"
 
+#: nejomibot/admins.py
+msgid ""
+"/admin add <who>: make someone an admin, by their number in /contacts, phone "
+"number, Signal ID or name"
+msgstr ""
+"/admin lägg till <vem>: gör någon till admin, med numret i /kontakter, "
+"telefonnummer, Signal-ID eller namn"
+
+#: nejomibot/admins.py
+msgid "/admin remove <n>: no longer, by their number in /admins"
+msgstr "/admin ta bort <n>: inte längre, med numret i /admins"
+
+#: nejomibot/admins.py
+msgid "Only the admins in the config add and remove admins."
+msgstr "Bara admins i konfigurationen lägger till och tar bort admins."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "Admins ({count}):"
+msgstr "Admins ({count}):"
+
+#: nejomibot/admins.py
+msgid "in the config"
+msgstr "i konfigurationen"
+
+#: nejomibot/admins.py
+msgid ""
+"/admin add <who> adds one, /admin remove <n> removes one; only the admins in "
+"the config can."
+msgstr ""
+"/admin lägg till <vem> lägger till en, /admin ta bort <n> tar bort en; det "
+"kan bara admins i konfigurationen."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{name} is a group: admins are people."
+msgstr "{name} är en grupp: admins är personer."
+
+#: nejomibot/admins.py nejomibot/allowed.py
+msgid "That's the bot itself."
+msgstr "Det är boten själv."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{name} is an admin in the config already."
+msgstr "{name} är redan admin i konfigurationen."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid ""
+"The bot doesn't know the Signal ID of {name} yet, by which admins are kept: "
+"once they've written to it, it does."
+msgstr ""
+"Boten känner inte till Signal-ID:t för {name} ännu, som admins sparas med: "
+"när hen har skrivit till boten gör den det."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{name} is an admin already."
+msgstr "{name} är redan admin."
+
+#: nejomibot/admins.py nejomibot/allowed.py
+#, python-brace-format
+msgid "The list is full: {count} at most."
+msgstr "Listan är full: högst {count}."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "👑 {name} is an admin now, and may use every command."
+msgstr "👑 {name} är admin nu och får använda alla kommandon."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{who} is an admin in the config, which no command changes."
+msgstr "{who} är admin i konfigurationen, vilket inget kommando ändrar."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "🗑️ {name} is no longer an admin."
+msgstr "🗑️ {name} är inte längre admin."
+
+#: nejomibot/admins.py
+msgid "They're on /allowed, so may still use the everyday commands."
+msgstr "Hen står i /tillåtna och får fortfarande använda vardagskommandona."
+
 #: nejomibot/allowed.py
 msgid ""
-"Send /allow and who: a phone number, Signal ID or group ID, or the name of a "
-"group the bot is in or of someone in /contacts."
+"Send /allow and who: a phone number, Signal ID or group ID, the name of a "
+"group the bot is in, or someone in /contacts, by their number there or name."
 msgstr ""
-"Skicka /allow och vem: ett telefonnummer, Signal-ID eller grupp-ID, eller "
-"namnet på en grupp boten är med i eller på någon i /contacts."
+"Skicka /allow och vem: ett telefonnummer, Signal-ID eller grupp-ID, namnet "
+"på en grupp boten är med i, eller någon i /contacts, med numret där eller "
+"namnet."
 
 #: nejomibot/allowed.py
 msgid ""
@@ -113,12 +199,8 @@ msgstr ""
 
 #: nejomibot/allowed.py
 #, python-brace-format
-msgid ""
-"{who} is an admin. Admins are in the config, and may always use every "
-"command."
-msgstr ""
-"{who} är admin. Admins står i konfigurationen och får alltid använda alla "
-"kommandon."
+msgid "{who} is an admin, and may use every command: see /admins."
+msgstr "{who} är admin och får använda alla kommandon: se /admins."
 
 #: nejomibot/allowed.py
 msgid "(the bot isn't in it)"
@@ -131,12 +213,17 @@ msgstr "Vilka som får använda vardagskommandona ({count}):"
 
 #: nejomibot/allowed.py
 #, python-brace-format
-msgid "Admins, in the config, may use every command: {admins}"
-msgstr "Admins, i konfigurationen, får använda alla kommandon: {admins}"
+msgid "The admins may use every command: {admins}"
+msgstr "Admins får använda alla kommandon: {admins}"
 
 #: nejomibot/allowed.py
 msgid "/allow <who> adds one, /disallow <n> removes one."
 msgstr "/allow <vem> lägger till, /disallow <n> tar bort."
+
+#: nejomibot/allowed.py nejomibot/contacts.py
+#, python-brace-format
+msgid "No phone number or ID for {name}."
+msgstr "Inget telefonnummer eller ID för {name}."
 
 #: nejomibot/allowed.py
 #, python-brace-format
@@ -149,18 +236,9 @@ msgid "{who} could be any of {count}, give their ID: {ids}"
 msgstr "{who} kan syfta på {count}, ange ID: {ids}"
 
 #: nejomibot/allowed.py
-msgid "That's the bot itself."
-msgstr "Det är boten själv."
-
-#: nejomibot/allowed.py
 #, python-brace-format
 msgid "{name} may use the everyday commands already."
 msgstr "{name} får redan använda vardagskommandona."
-
-#: nejomibot/allowed.py
-#, python-brace-format
-msgid "The list is full: {count} at most."
-msgstr "Listan är full: högst {count}."
 
 #: nejomibot/allowed.py
 #, python-brace-format
@@ -176,20 +254,20 @@ msgstr "✅ Alla i {name} får använda vardagskommandona där nu."
 msgid "The bot isn't in the group: it answers there once added."
 msgstr "Boten är inte med i gruppen: den svarar där när den har lagts till."
 
-#: nejomibot/allowed.py
+#: nejomibot/allowed.py nejomibot/birthdays.py nejomibot/contacts.py
 #, python-brace-format
-msgid "There's no {n} in /allowed."
-msgstr "Det finns inget nummer {n} i /allowed."
+msgid "There's no {n} in {command}."
+msgstr "Det finns ingen {n} i {command}."
 
 #: nejomibot/allowed.py
 #, python-brace-format
-msgid "{who} isn't in /allowed."
-msgstr "{who} finns inte i /allowed."
+msgid "{who} isn't in {command}."
+msgstr "{who} finns inte i {command}."
 
 #: nejomibot/allowed.py
 #, python-brace-format
-msgid "{who} could be any of {count} in /allowed: give its number."
-msgstr "{who} kan syfta på {count} i /allowed: ange numret."
+msgid "{who} could be any of {count} in {command}: give its number."
+msgstr "{who} kan syfta på {count} i {command}: ange numret."
 
 #: nejomibot/allowed.py
 #, python-brace-format
@@ -209,8 +287,32 @@ msgid "🗑️ {name} may no longer use the everyday commands."
 msgstr "🗑️ {name} får inte längre använda vardagskommandona."
 
 #: nejomibot/allowed.py
-msgid "They're an admin, in the config, so may still use them."
-msgstr "Hen är admin, i konfigurationen, och får fortfarande använda dem."
+msgid "They're an admin, so may still use them."
+msgstr "Hen är admin och får fortfarande använda dem."
+
+#: nejomibot/backups.py
+msgid "off"
+msgstr "av"
+
+#: nejomibot/backups.py
+msgid "none yet"
+msgstr "inga ännu"
+
+#: nejomibot/backups.py
+#, python-brace-format
+msgid "{count}, {newest} old"
+msgid_plural "{count}, the newest {newest} old, the oldest {oldest} old"
+msgstr[0] "{count}, {newest} gammal"
+msgstr[1] "{count}, den nyaste {newest} gammal, den äldsta {oldest} gammal"
+
+#: nejomibot/backups.py
+msgid "the last skipped: nothing changed"
+msgstr "den senaste hoppades över: inget hade ändrats"
+
+#: nejomibot/backups.py
+#, python-brace-format
+msgid "the last failed: {error}"
+msgstr "den senaste misslyckades: {error}"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
@@ -374,11 +476,6 @@ msgstr "Vilka? Skicka {command} först, för deras nummer."
 
 #: nejomibot/birthdays.py
 #, python-brace-format
-msgid "There's no {n} in {command}."
-msgstr "Det finns ingen {n} i {command}."
-
-#: nejomibot/birthdays.py
-#, python-brace-format
 msgid "{n} is gone already: removed or changed since."
 msgstr "{n} finns inte längre: borttagen eller ändrad sedan dess."
 
@@ -414,17 +511,30 @@ msgstr ""
 "ångra. Skicka det som ett nytt meddelande i stället."
 
 #: nejomibot/contacts.py
-msgid "Send: /contacts add <phone number, ID or name> <their name>"
+msgid ""
+"Send: /contacts add <number in /contacts, phone number, ID or name> <their "
+"name>"
 msgstr ""
-"Skicka: /kontakter lägg till <telefonnummer, ID eller namn> <deras namn>"
+"Skicka: /kontakter lägg till <nummer i /kontakter, telefonnummer, ID eller "
+"namn> <deras namn>"
 
 #: nejomibot/contacts.py
+#, python-brace-format
 msgid ""
-"Compare their safety number here with the one on their phone, then send: /"
-"trust <name, phone number or ID> <safety number>"
+"To verify a safety number, compare it with the one on their phone, then "
+"send: {command} <who> <safety number>, all 60 digits"
 msgstr ""
-"Jämför säkerhetsnumret här med det i deras telefon och skicka sedan: /trust "
-"<namn, telefonnummer eller ID> <säkerhetsnummer>"
+"För att verifiera ett säkerhetsnummer, jämför det med det i deras telefon "
+"och skicka sedan: {command} <vem> <säkerhetsnummer>, alla 60 siffror"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ""
+"To verify it, compare it with the one on their phone, then send: {command} "
+"{who} <safety number>"
+msgstr ""
+"För att verifiera det, jämför det med det i deras telefon och skicka sedan: "
+"{command} {who} <säkerhetsnummer>"
 
 #: nejomibot/contacts.py nejomibot/health.py nejomibot/status.py
 msgid "unknown"
@@ -465,20 +575,6 @@ msgid "In {groups}"
 msgstr "I {groups}"
 
 #: nejomibot/contacts.py
-#, python-brace-format
-msgid "{count} safety number: {verified} verified, {untrusted} untrusted."
-msgid_plural ""
-"{count} safety numbers: {verified} verified, {untrusted} untrusted."
-msgstr[0] ""
-"{count} säkerhetsnummer: {verified} verifierade, {untrusted} ej betrodda."
-msgstr[1] ""
-"{count} säkerhetsnummer: {verified} verifierade, {untrusted} ej betrodda."
-
-#: nejomibot/contacts.py
-msgid "Who the bot knows"
-msgstr "Vilka boten känner till"
-
-#: nejomibot/contacts.py
 msgid "Contacts"
 msgstr "Kontakter"
 
@@ -491,12 +587,44 @@ msgid "Only a safety number"
 msgstr "Bara ett säkerhetsnummer"
 
 #: nejomibot/contacts.py
+#, python-brace-format
+msgid "{count} safety number: {verified} verified, {untrusted} untrusted."
+msgid_plural ""
+"{count} safety numbers: {verified} verified, {untrusted} untrusted."
+msgstr[0] ""
+"{count} säkerhetsnummer: {verified} verifierade, {untrusted} ej betrodda."
+msgstr[1] ""
+"{count} säkerhetsnummer: {verified} verifierade, {untrusted} ej betrodda."
+
+#: nejomibot/contacts.py
 msgid ""
-"/contacts <who> shows one, with their safety number to compare with their "
-"phone before /trust."
+"/contacts <n> shows one in full; /trust lists the safety numbers, to compare "
+"with their phones."
 msgstr ""
-"/kontakter <vem> visar en, med säkerhetsnumret att jämföra med deras telefon "
-"före /verifiera."
+"/kontakter <n> visar en i sin helhet; /verifiera listar säkerhetsnumren, att "
+"jämföra med deras telefoner."
+
+#: nejomibot/contacts.py
+msgid "Who the bot knows"
+msgstr "Vilka boten känner till"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ""
+"To verify one, compare it with the one on their phone, then send: {command} "
+"<n> <safety number>"
+msgstr ""
+"För att verifiera ett, jämför det med det i deras telefon och skicka sedan: "
+"{command} <n> <säkerhetsnummer>"
+
+#: nejomibot/contacts.py nejomibot/status.py
+msgid "Safety numbers"
+msgstr "Säkerhetsnummer"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "Which one? Send {command} first, for their numbers."
+msgstr "Vilken? Skicka {command} först, för deras nummer."
 
 #: nejomibot/contacts.py
 #, python-brace-format
@@ -522,11 +650,6 @@ msgstr ""
 #, python-brace-format
 msgid "✅ {name} is already verified."
 msgstr "✅ {name} är redan verifierad."
-
-#: nejomibot/contacts.py
-#, python-brace-format
-msgid "No phone number or ID for {name}."
-msgstr "Inget telefonnummer eller ID för {name}."
 
 #: nejomibot/contacts.py
 #, python-brace-format
@@ -736,6 +859,10 @@ msgstr "{used} av gränsen {limit}"
 msgid "(peak {peak})"
 msgstr "(topp {peak})"
 
+#: nejomibot/health.py nejomibot/status.py
+msgid "Backups"
+msgstr "Säkerhetskopior"
+
 #: nejomibot/help.py
 msgid "a random photo"
 msgstr "en slumpvis vald bild"
@@ -849,6 +976,10 @@ msgid "add a contact, or rename"
 msgstr "lägg till en kontakt, eller byt namn"
 
 #: nejomibot/help.py
+msgid "the safety numbers, or one's"
+msgstr "säkerhetsnumren, eller ett av dem"
+
+#: nejomibot/help.py
 msgid "<who> <safety number>"
 msgstr "<vem> <säkerhetsnummer>"
 
@@ -875,6 +1006,18 @@ msgstr "<n>"
 #: nejomibot/help.py
 msgid "take someone off it"
 msgstr "ta bort någon från listan"
+
+#: nejomibot/help.py
+msgid "who the admins are"
+msgstr "vilka som är admins"
+
+#: nejomibot/help.py
+msgid "make someone an admin, or no longer"
+msgstr "gör någon till admin, eller inte längre"
+
+#: nejomibot/help.py
+msgid "add <who> · remove <n>"
+msgstr "lägg till <vem> · ta bort <n>"
 
 #: nejomibot/help.py
 msgid "the bot's profile"
@@ -1006,17 +1149,18 @@ msgstr "radera botens senaste meddelande här"
 
 #: nejomibot/help.py
 msgid ""
-"<who> – a name, number or ID, as /contacts shows; /allow takes groups too"
+"<who> – a number from /contacts or /trust, or a name, phone number or ID; /"
+"allow takes groups too"
 msgstr ""
-"<vem> – ett namn, nummer eller ID, som /kontakter visar; /tillåt tar även "
-"grupper"
+"<vem> – ett nummer från /kontakter eller /verifiera, eller ett namn, "
+"telefonnummer eller ID; /tillåt tar även grupper"
 
 #: nejomibot/help.py
 msgid ""
-"<n> – a number from /allowed, /timers, /delete list, /incoming, /birthdays "
-"or /namedays"
+"<n> – a number from /allowed, /admins, /timers, /delete list, /incoming, /"
+"birthdays or /namedays"
 msgstr ""
-"<n> – ett nummer från /tillåtna, /timers, /radera lista, /inkorg, /"
+"<n> – ett nummer från /tillåtna, /admins, /timers, /radera lista, /inkorg, /"
 "födelsedagar eller /namnsdagar"
 
 #: nejomibot/help.py
@@ -2158,10 +2302,6 @@ msgstr "ingen blockerad"
 #: nejomibot/status.py
 msgid "Recipients"
 msgstr "Mottagare"
-
-#: nejomibot/status.py
-msgid "Safety numbers"
-msgstr "Säkerhetsnummer"
 
 #: nejomibot/status.py
 #, python-brace-format

@@ -1,9 +1,16 @@
-"""/contacts: everyone the bot's Signal account knows, two short lines each,
-and /contacts <who> one of them in full, with their safety number.
+"""/contacts: everyone the bot's Signal account knows, numbered, two short
+lines each, and /contacts <who> one of them in full, with their safety
+number. /trust lists everyone's safety numbers, in the same order and by the
+same numbers, /trust <who> shows one, and /trust <who> <safety number> marks
+it as verified, once it's been compared with the one on their phone.
 /contacts add <who> <name> makes someone a contact by that name, or renames
-them, and /trust marks a safety number as verified, once it's been compared
-with the one on their phone. They show phone numbers, so they only answer
-the admins, in direct chats.
+them. They show phone numbers, so they only answer the admins, in direct
+chats.
+
+Who is someone's number in the list the admin was shown last, by /contacts
+or /trust, whatever changes meanwhile, until they ask for it again; or
+their phone number, ID, the start of it, or their name. /allow and /admin
+add take the numbers too.
 
 People who don't share their phone number on Signal are known only by their
 ID (a UUID), so that's all the bot can show for them.
@@ -11,6 +18,7 @@ ID (a UUID), so that's all the bot can show for them.
 
 import logging
 import re
+from collections.abc import Callable
 
 from signalbot import DataMessageContext, SignalBot, UpdateContact
 
@@ -22,28 +30,50 @@ from .account import (
     Contact,
     Identity,
     fetch_account,
+    find_by_ids,
     full_name,
     with_fresh_profiles,
 )
 from .commands import Command, Edits, Handler, answer, undo_with
 from .config import PHONE_NUMBER, get_settings
+from .help import shown_name
 from .i18n import _, ngettext
-from .messages import escape
+from .incoming import sender_of
+from .messages import collected, escape
 
 logger = logging.getLogger(__name__)
 
 SAFETY_NUMBER_DIGITS = 60
+LIST_NUMBER_DIGITS = 4  # at most, as a list numbers people
+
+type Listed = list[tuple[str | None, str | None]]  # phone numbers and Signal IDs
+
+# The people each admin was shown last, by /contacts or /trust, in order, by
+# who the admin is: a number in place of who is one of them. Only in memory,
+# so after a restart, the list again.
+shown: dict[str, Listed] = {}
 
 
 def add_usage() -> str:
-    return _("Send: /contacts add <phone number, ID or name> <their name>")
+    return _(
+        "Send: /contacts add <number in /contacts, phone number, ID or name> "
+        "<their name>"
+    )
 
 
 def trust_usage() -> str:
     return _(
-        "Compare their safety number here with the one on their phone, then "
-        "send: /trust <name, phone number or ID> <safety number>"
-    )
+        "To verify a safety number, compare it with the one on their phone, "
+        "then send: {command} <who> <safety number>, all 60 digits"
+    ).format(command=shown_name("/trust"))
+
+
+def verify_hint(who: str) -> str:
+    """How to verify a safety number, of who as the admin named them."""
+    return _(
+        "To verify it, compare it with the one on their phone, then send: "
+        "{command} {who} <safety number>"
+    ).format(command=shown_name("/trust"), who=who)
 
 
 def digits(safety_number: str) -> str:
@@ -128,22 +158,52 @@ def short_heading(account: Account, contact: Contact) -> str:
     return heading
 
 
-def person_summary(account: Account, contact: Contact) -> str:
-    """Two short lines, for the list: who, with their number, then how far
-    they're trusted, if they're blocked, and the groups they're in. Styled."""
+def heading_line(account: Account, contact: Contact) -> str:
+    """Who, with their phone number, as the lists show them. Styled."""
     number = number_of(account, contact)
-    first = f"👤 **{escape(short_heading(account, contact))}**"
+    line = f"👤 **{escape(short_heading(account, contact))}**"
     if contact.real_name or not number:
-        first += escape(" · " + (number or _("phone number not shared")))
+        line += escape(" · " + (number or _("phone number not shared")))
+    return line
+
+
+def person_summary(account: Account, contact: Contact) -> str:
+    """Two short lines, for /contacts: who, with their number, then how far
+    they're trusted, if they're blocked, and the groups they're in. Styled."""
     second = [trust_mark(account.identity_of(contact))]
     if contact.blocked:
         second.append(_("🚫 blocked"))
     if groups := groups_of(account, contact):
         second.append("👥 " + ", ".join(groups))
-    return f"{first}\n{escape(' · '.join(second))}"
+    return f"{heading_line(account, contact)}\n{escape(' · '.join(second))}"
 
 
-def person_card(account: Account, contact: Contact) -> str:
+def safety_entry(account: Account, contact: Contact) -> str:
+    """Who, how far their safety number is trusted, and the number, as the
+    apps show it, for /trust. Styled."""
+    identity = account.identity_of(contact)
+    lines = [heading_line(account, contact), escape(trust_text(identity))]
+    if identity and identity.safety_number:
+        lines.extend(format_safety_number(identity.safety_number))
+    return "\n".join(lines)
+
+
+def unverified(account: Account, contact: Contact) -> bool:
+    """Whether they have a safety number that isn't verified yet."""
+    identity = account.identity_of(contact)
+    return bool(identity and identity.safety_number and identity.status != VERIFIED)
+
+
+def safety_card(account: Account, contact: Contact, who: str) -> str:
+    """One person's safety number, for /trust <who>, and how to verify it.
+    Styled."""
+    text = safety_entry(account, contact)
+    if unverified(account, contact):
+        text += "\n" + escape(verify_hint(who))
+    return text
+
+
+def person_card(account: Account, contact: Contact, who: str | None = None) -> str:
     """One person in full, for /contacts <who>: their numbers and ID, About,
     groups, and safety number to compare. Styled."""
     identity = account.identity_of(contact)
@@ -165,84 +225,130 @@ def person_card(account: Account, contact: Contact) -> str:
     text = escape("\n".join(lines[1:]))
     if identity and identity.safety_number:
         text += "\n" + "\n".join(format_safety_number(identity.safety_number))
-        if identity.status != VERIFIED:
-            text += "\n" + escape(trust_usage())
+    if unverified(account, contact):
+        text += "\n" + escape(verify_hint(who or heading_of(account, contact)))
     return f"{lines[0]}\n{text}"
 
 
-def section(icon: str, title: str, people: list[Contact], account: Account) -> str:
-    people = sorted(people, key=lambda c: heading_of(account, c).casefold())
-    return "\n".join(
-        [
-            f"{icon} **{escape(title)}** ({len(people)})",
-            *(person_summary(account, c) for c in people),
-        ]
-    )
+# The lists, numbered alike
 
 
-def contacts_message(account: Account) -> str:
-    """Contacts first, then everyone else signal-cli knows, then anyone it
-    only has a safety number for: two short lines each. Styled."""
+def sections(account: Account) -> list[tuple[str, str, list[Contact]]]:
+    """Everyone, as /contacts and /trust list them: the contacts, everyone
+    else signal-cli knows, then anyone it only has a safety number for, if
+    any; each by name, or by phone number or ID without one."""
     people = known(account)
+    found = [
+        ("📇", _("Contacts"), [c for c in people if is_contact(account, c)]),
+        (
+            "💬",
+            _("Other known recipients"),
+            [c for c in people if not is_contact(account, c)],
+        ),
+    ]
+    if only_safety_numbers := strangers(account):
+        found.append(("🔢", _("Only a safety number"), only_safety_numbers))
+    return [
+        (icon, title, sorted(group, key=lambda c: heading_of(account, c).casefold()))
+        for icon, title, group in found
+    ]
+
+
+def everyone(account: Account) -> Listed:
+    """Everyone's phone number and Signal ID, in the order of the lists."""
+    return [(c.number, c.uuid) for *_head, group in sections(account) for c in group]
+
+
+def numbered(account: Account, entry: Callable[[Account, Contact], str]) -> list[str]:
+    """The sections, each person as entry() has them, numbered from 1 across
+    the sections. Styled."""
+    texts: list[str] = []
+    n = 0
+    for icon, title, people in sections(account):
+        lines = [f"{icon} **{escape(title)}** ({len(people)})"]
+        for contact in people:
+            n += 1
+            lines.append(f"{n} {entry(account, contact)}")
+        texts.append("\n".join(lines))
+    return texts
+
+
+def remember(admin: str, account: Account) -> None:
+    """Keep the order the admin is shown everyone in, for their numbers; not
+    for a timer, /run or a special, which show it to others."""
+    if collected.get() is None:
+        shown[admin] = everyone(account)
+
+
+def safety_count(account: Account) -> str:
+    """E.g. '3 safety numbers: 1 verified, 1 untrusted.'"""
     verified = sum(i.status == VERIFIED for i in account.identities)
     untrusted = sum(i.status == UNTRUSTED for i in account.identities)
     count = len(account.identities)
-    summary = "🔐 " + ngettext(
+    return ngettext(
         "{count} safety number: {verified} verified, {untrusted} untrusted.",
         "{count} safety numbers: {verified} verified, {untrusted} untrusted.",
         count,
     ).format(count=count, verified=verified, untrusted=untrusted)
-    sections = [
-        f"👥 **{escape(_('Who the bot knows'))}**\n" + escape(summary),
-        section(
-            "📇",
-            _("Contacts"),
-            [c for c in people if is_contact(account, c)],
-            account,
-        ),
-        section(
-            "💬",
-            _("Other known recipients"),
-            [c for c in people if not is_contact(account, c)],
-            account,
-        ),
-    ]
-    if only_safety_numbers := strangers(account):
-        sections.append(
-            section("🔢", _("Only a safety number"), only_safety_numbers, account)
-        )
-    sections.append(
-        escape(
-            "🔎 "
-            + _(
-                "/contacts <who> shows one, with their safety number to compare "
-                "with their phone before /trust."
-            )
-        )
+
+
+def contacts_message(account: Account) -> str:
+    """Contacts first, then everyone else signal-cli knows, then anyone it
+    only has a safety number for: numbered, two short lines each. Styled."""
+    hint = _(
+        "/contacts <n> shows one in full; /trust lists the safety numbers, to "
+        "compare with their phones."
     )
-    return "\n\n".join(sections)
+    return "\n\n".join(
+        [
+            f"👥 **{escape(_('Who the bot knows'))}**\n"
+            + escape("🔐 " + safety_count(account)),
+            *numbered(account, person_summary),
+            escape("🔎 " + hint),
+        ]
+    )
 
 
-async def contacts_answer(bot: SignalBot, who: str) -> str:
-    """Everyone, or the one asked for in full. Styled."""
+def safety_numbers_message(account: Account) -> str:
+    """Everyone's safety number, numbered as /contacts numbers them. Styled."""
+    hint = _(
+        "To verify one, compare it with the one on their phone, then send: "
+        "{command} <n> <safety number>"
+    ).format(command=shown_name("/trust"))
+    return "\n\n".join(
+        [
+            f"🔐 **{escape(_('Safety numbers'))}**\n" + escape(safety_count(account)),
+            *numbered(account, safety_entry),
+            escape("🔎 " + hint),
+        ]
+    )
+
+
+async def contacts_answer(bot: SignalBot, who: str, admin: str = "") -> str:
+    """Everyone, numbered for the admin, or the one asked for in full.
+    Styled."""
     account = await with_fresh_profiles(await fetch_account(bot))
     if not who:
+        remember(admin, account)
         return contacts_message(account)
-    if isinstance(found := find_one(account, who), str):
+    if isinstance(found := find_one(account, who, shown.get(admin)), str):
         return escape(found)
-    return person_card(account, found)
+    return person_card(account, found, who)
 
 
-def parse_trust(text: str) -> tuple[str, str] | None:
-    """'/trust Alice 12345 67890 ...' -> ('Alice', '1234567890...'). The
-    safety number is the words of digits at the end, however they're spaced."""
-    words = text.split()[1:]
-    number = ""
-    while words and words[-1].isdigit() and len(number) < SAFETY_NUMBER_DIGITS:
-        number = words.pop() + number
-    if len(number) != SAFETY_NUMBER_DIGITS or not words:
-        return None
-    return " ".join(words), number
+# Who's meant
+
+
+def list_number(who: str) -> int | None:
+    """who as a number in the lists, if it's one."""
+    who = who.strip()
+    return int(who) if who.isdecimal() and len(who) <= LIST_NUMBER_DIGITS else None
+
+
+def current(account: Account, number: str | None, uuid: str | None) -> Contact:
+    """Someone listed, as the account knows them now, if it still does."""
+    found = find_by_ids(account.recipient_by_id, number, uuid)
+    return found or Contact(number=number, uuid=uuid)
 
 
 def find(account: Account, who: str) -> list[Contact]:
@@ -265,8 +371,18 @@ def find(account: Account, who: str) -> list[Contact]:
     return []
 
 
-def find_one(account: Account, who: str) -> Contact | str:
-    """The one person meant, or why there isn't one."""
+def find_one(account: Account, who: str, listed: Listed | None = None) -> Contact | str:
+    """The one person meant, or why there isn't one: by their number in the
+    list the admin was shown last, else as find() finds them."""
+    if (n := list_number(who)) is not None:
+        command = shown_name("/contacts")
+        if listed is None:
+            return _("Which one? Send {command} first, for their numbers.").format(
+                command=command
+            )
+        if not 1 <= n <= len(listed):
+            return _("There's no {n} in {command}.").format(n=n, command=command)
+        return current(account, *listed[n - 1])
     found = find(account, who)
     if not found:
         return _("Nobody called {who} in /contacts.").format(who=who)
@@ -278,8 +394,24 @@ def find_one(account: Account, who: str) -> Contact | str:
     return found[0]
 
 
-async def verify(account: Account, who: str, safety_number: str) -> str:
-    if isinstance(contact := find_one(account, who), str):
+# Safety numbers
+
+
+def parse_trust(text: str) -> tuple[str, str]:
+    """'/trust Alice 12345 67890 ...' -> ('Alice', '1234567890...'): who, and
+    the digits at the end, however they're spaced, up to a safety number's.
+    A word alone is who, as a number in the lists may be."""
+    words = text.split()[1:]
+    number = ""
+    while len(words) > 1 and words[-1].isdigit() and len(number) < SAFETY_NUMBER_DIGITS:
+        number = words.pop() + number
+    return " ".join(words), number
+
+
+async def verify(
+    account: Account, who: str, safety_number: str, listed: Listed | None = None
+) -> str:
+    if isinstance(contact := find_one(account, who, listed), str):
         return contact
     name = heading_of(account, contact)
     identity = account.identity_of(contact)
@@ -300,10 +432,39 @@ async def verify(account: Account, who: str, safety_number: str) -> str:
     return _("✅ {name} verified.").format(name=name)
 
 
-async def add(bot: SignalBot, account: Account, who: str, name: str) -> str:
+async def trust(bot: SignalBot, text: str, admin: str = "") -> str:
+    """/trust, as text: everyone's safety numbers, numbered for the admin,
+    one's, or one marked as verified. Styled."""
+    who, number = parse_trust(text)
+    if len(number) != SAFETY_NUMBER_DIGITS and (
+        number or (who.isdecimal() and list_number(who) is None)
+    ):
+        return escape(trust_usage())  # some of a safety number, or no who
+    account = await fetch_account(bot)
+    if not who:
+        remember(admin, account)
+        return safety_numbers_message(account)
+    listed = shown.get(admin)
+    if number:
+        return escape(await verify(account, who, number, listed))
+    if isinstance(found := find_one(account, who, listed), str):
+        return escape(found)
+    return safety_card(account, found, who)
+
+
+# Adding contacts
+
+
+async def add(
+    bot: SignalBot,
+    account: Account,
+    who: str,
+    name: str,
+    listed: Listed | None = None,
+) -> str:
     """Make them a contact by this name, or rename them. Someone not known
     yet is added by their phone number."""
-    if isinstance(contact := find_one(account, who), str):
+    if isinstance(contact := find_one(account, who, listed), str):
         if not re.match(PHONE_NUMBER, who.strip()):
             return contact
         contact = Contact(number=who.strip())
@@ -334,12 +495,19 @@ def split_who(account: Account, words: list[str]) -> tuple[str, str]:
     return words[0], " ".join(words[1:])
 
 
-async def add_contact(bot: SignalBot, words: list[str]) -> str:
+async def add_contact(
+    bot: SignalBot, words: list[str], listed: Listed | None = None
+) -> str:
     """/contacts add, as words."""
     if len(words) < 2:
         return add_usage()
     account = await fetch_account(bot)
-    return await add(bot, account, *split_who(account, words))
+    return await add(bot, account, *split_who(account, words), listed)
+
+
+def listed_for(context: DataMessageContext) -> Listed | None:
+    """Everyone, as the admin who sent the command was shown them last."""
+    return shown.get(sender_of(context.message))
 
 
 class Contacts(Handler):
@@ -350,24 +518,24 @@ class Contacts(Handler):
         if words[1:2] and words[1].casefold() == "add":
             # An edit of it takes its place, a rename undone first
             await answer(
-                context, lambda: add_contact(bot, words[2:]), edits=Edits.REPLACE
+                context,
+                lambda: add_contact(bot, words[2:], listed_for(context)),
+                edits=Edits.REPLACE,
             )
         else:
-            who = " ".join(words[1:])
+            who, admin = " ".join(words[1:]), sender_of(context.message)
             await answer(
-                context, lambda: contacts_answer(bot, who), slow=True, styled=True
+                context,
+                lambda: contacts_answer(bot, who, admin),
+                slow=True,
+                styled=True,
             )
-
-
-async def trust(bot: SignalBot, text: str) -> str:
-    """/trust, as text."""
-    if not (parsed := parse_trust(text)):
-        return trust_usage()
-    return await verify(await fetch_account(bot), *parsed)
 
 
 class Trust(Handler):
     commands = (Command("/trust", more=True),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
-        await answer(context, lambda: trust(context.bot, context.message.text or ""))
+        bot, text = context.bot, context.message.text or ""
+        admin = sender_of(context.message)
+        await answer(context, lambda: trust(bot, text, admin), styled=True)

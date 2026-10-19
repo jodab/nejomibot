@@ -684,10 +684,10 @@ type Chat = tuple[str, str]  # an ID (group.… or a number), and its name
 
 def people() -> list[str]:
     """The people a timer can post to, in /chats' order: those on the allowed
-    list, as it lists them, then the admins."""
+    list, as it lists them, then the admins, the config's first."""
     allowed = access.allowed_list.current().entries
     contacts_allowed = [entry.id for entry in allowed if not access.is_group(entry.id)]
-    return list(dict.fromkeys([*contacts_allowed, *get_settings().admins]))
+    return list(dict.fromkeys([*contacts_allowed, *access.admins()]))
 
 
 async def chat_list(bot: SignalBot) -> list[Chat]:

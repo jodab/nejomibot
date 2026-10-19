@@ -10,7 +10,7 @@ from aiohttp import web
 from helpers import ME, FakeApi
 from signalbot import SendMessage, SignalBot
 
-from nejomibot import bot, commands
+from nejomibot import access, bot, commands
 from nejomibot.bot import check_aliases, handlers, load_settings, wait_for_account
 from nejomibot.client import client
 from nejomibot.config import get_settings
@@ -27,7 +27,7 @@ def who_answers(monkeypatch: pytest.MonkeyPatch) -> dict[str, tuple[object, ...]
         type(handler).__name__: (
             contacts,
             groups,
-            *(["the allowed list"] if check else []),
+            "the admins" if check is access.from_admin else "the allowed list",
         )
         for handler, contacts, groups, check in handlers(
             cast(SignalBot, None), get_settings()
@@ -36,7 +36,8 @@ def who_answers(monkeypatch: pytest.MonkeyPatch) -> dict[str, tuple[object, ...]
 
 
 def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
-    admins = ([ADMIN], False)
+    # The admins checked for every message too, as /admin changes who they are
+    admins = (True, False, "the admins")
     assert who_answers(monkeypatch) == {
         # The admins, and the allowed list, checked for every message
         "Ping": EVERYONE_ALLOWED,
@@ -58,6 +59,8 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Allowed": admins,
         "Allow": admins,
         "Disallow": admins,
+        "Admins": admins,
+        "Admin": admins,
         "Profile": admins,
         "Name": admins,
         "About": admins,
@@ -69,8 +72,8 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Run": admins,
         "Incoming": admins,
         "Birthday": admins,
-        # Any chat, but in groups it checks for an admin itself
-        "Delete": ([ADMIN], True),
+        # The admins, in any chat
+        "Delete": (True, True, "the admins"),
     }
 
 

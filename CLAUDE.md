@@ -159,17 +159,28 @@ closes the session it used.
 **Who may use what** (`bot.handlers`, `access.py`): everyday commands are
 registered for every chat with `access.permits` as filter, checked for each
 message (admins and allowed contacts in direct chats; groups on the allowed
-list). Admin commands use signalbot's contact filter with `settings.admins`,
-so they answer in direct chats only. `/delete` is registered everywhere (in
-debug mode, in `debug_group`) and checks for an admin itself in groups,
-where it takes nothing after it: `/delete list` and `/delete 2,5,11` show
+list). Admin commands are registered for direct chats only, with
+`access.from_admin` as filter, also checked for each message: the config's
+`admins`, and those they add with `/admin add` (`admins.py`), kept in
+`data_dir/admins.txt` by `access.admin_list`, an `AllowedList` of Signal
+IDs only (the owner's decision, 2026-10-19: a phone number can change
+hands); only the config's admins add and remove admins (`is_config_admin`),
+and the notices, timers and the greeting stay theirs. `/delete` is
+registered everywhere (in debug mode, in `debug_group`) with the same
+filter, and checks for an admin again itself; in groups it takes nothing
+after it: `/delete list` and `/delete 2,5,11` show
 and delete what the bot sent to every chat. `incoming.inbox`, registered apart
 for every direct chat, keeps what anyone but the admins writes, for the
 admin command `/incoming`. `greeting.greeter`, registered the same way,
 greets those on the allowed list who write anything `commands.known()`
 doesn't take, once a day each, naming the bot and the first admin.
-Admins exist only in the config; the allowed list is `data_dir/allowed.txt`,
-reread when it changes.
+The allowed list is `data_dir/allowed.txt`, and the admins added
+`data_dir/admins.txt`, each reread when it changes, at most every 2 s.
+`/contacts` and `/trust` number everyone alike (`contacts.sections`), and
+keep the order each admin was shown last (`contacts.shown`, phone numbers
+and Signal IDs only, not for timers): a number in place of `<who>` in
+`/contacts`, `/trust`, `/contacts add`, `/allow` and `/admin add` is one
+of them (`contacts.find_one`); `/birthday add` takes numbers as chats.
 
 **Commands and aliases** (`commands.py`): every handler is a
 `commands.Handler` that lists its `Command`s: the English name, whether more
@@ -235,9 +246,15 @@ reading them back as its parser does (`styles.unmarked()`).
 
 **Birthdays and holidays** (`birthdays.py`, `holidays.py`): the daily post
 names the day atop the weather: its holidays, in every chat, from rules in
-`holidays.py` (Easter from dateutil); and in a group only, never a direct
-chat (the owner's decision, 2026-10-19), the birthdays and name days of
-those it's for. A contact's is kept by Signal ID and phone number, shows in
+`holidays.py` (Easter from dateutil), for 35 countries by their ISO codes
+(`config.Country`, which a test keeps equal to `holidays.COUNTRIES`); and in
+a group only, never a direct chat (the owner's decision, 2026-10-19), the
+birthdays and name days of those it's for. Only Sweden's and Greece's names
+are marked for translation (the owner's decision, 2026-10-19); the other
+countries use those names, as plain strings, for the days they share with
+them, so such a day comes once, translated, and only where it means the
+same (Ireland's May bank holiday isn't May Day). Their public holidays were
+checked against python-holidays, not a dependency, for 2026 to 2045. A contact's is kept by Signal ID and phone number, shows in
 the groups they're in, and names them by their name in the contacts
 (`Contact.saved_name`) at the time; someone not on Signal's shows in the
 groups given, or in every group.
@@ -265,8 +282,8 @@ never `str(e)`.
 **Health** has two layers. `health.py` runs checks (signal-cli-rest-api
 through signalbot, the bot itself, Signal's servers through the linked
 devices) every `healthcheck_minutes`, logs failures and pings
-`healthcheck_url` with the results, then the versions, uptime and memory
-(`ping_text`). `/status` shows those through the same functions, which live
+`healthcheck_url` with the results, then the versions, uptime, memory and
+backups (`ping_text`). `/status` shows those through the same functions, which live
 in `health.py` because `status.py` imports it. The container check
 (`healthcheck.py`, the image's HEALTHCHECK) asks the running bot over the
 abstract Unix socket
@@ -276,14 +293,29 @@ fails (a restart wouldn't help, and could lose the messages that have waited
 less than half a minute, which aren't on disk yet), and not while the bot
 waits for the account.
 
-**Files the bot keeps**: `allowed.txt`, `timers.txt`, `specials.txt`,
-`reminders.txt`, `lists.txt`, `birthdays.txt`, `sent-photos.txt`, `run.json`
-and `outbox/` in `data_dir`, written through `files.write_privately` (mode
-0600, a `mkstemp` temp file, fsync, replace, fsync of the folder) or
+**Files the bot keeps**: `allowed.txt`, `admins.txt`, `timers.txt`,
+`specials.txt`, `reminders.txt`, `lists.txt`, `birthdays.txt`,
+`sent-photos.txt`, `run.json` and `outbox/` in `data_dir`, written through
+`files.write_privately` (mode 0600, a `mkstemp` temp file, fsync, replace,
+fsync of the folder; `replace_privately` for any writer) or
 `files.append_privately`. In the line files, hand edits, comments and
 unreadable lines are kept as they are; a new one uses `files.KeptLines`, as
 the reminders, lists and birthdays do. Debug mode keeps them in a private
 temp folder per run.
+
+**Backups** (`backups.py`): every day at `backups_at` in `timezone`, and at
+a start if none is from the last day, a `tar.zst` of every file in
+`data_dir` but `run.json` (and the outbox, a folder; files over 10 MB), the
+config and `config.example.toml` from the working directory, written
+through `replace_privately` in a thread, into `settings.backups_folder`
+(`backups_dir`, else `data_dir/backups`), keeping the newest
+`backups_kept`; none when the files say what the latest backup has (SHA-256
+of each, the latest decompressed to compare), which `unchanged_at` keeps,
+in memory, so the backups count as current. tarfile and zstd are Python 3.14's own; entries are built
+from `os.fstat`, as `tar.add` looks up owner names, which loads NSS
+libraries for good (0.7 MB). `backups.state()` feeds `/status`'s Backups
+check (fails when the last backup failed or they haven't been current for
+two days) and the health ping's line. None in debug mode, nor with `backups = false`.
 
 **Translations** (`i18n.py`): messages are English, marked with `_()`,
 `ngettext()`, or `N_()` in tables made ahead of use, and formatted after
@@ -345,3 +377,14 @@ image (amd64; arm64 250 MB, arm/v7 202 MB), with phonenumberslite in place of si
 dependency. 2026-10-19: reminders, lists, birthdays, holidays, notices,
 `/forecast` and `/onthisday` added 0.6 MB (73.9 to 74.5 MB, measured alike),
 and no dependency; `/onthisday` keeps about 300 bytes a photo once used.
+Later that day, admins added, numbered contacts, the safety numbers, the
+backups and 35 countries' holidays: 0.5 MB more of Python's allocations
+after imports and the Swedish translations (tracemalloc, 33.6 to 34.1 MB;
+RSS the same within its noise, 77.3 to 77.6 MB with a 1024×768 picture),
+of which the holiday tables 0.3 MB and tarfile 0.36 MB. The first backup
+keeps 0.8 MB more, and the first comparison with the latest (decompressing
+it) another 0.8 MB, both reused after, not growing: zstd's buffers, which
+glibc keeps; a run peaks 1 to 3 MB higher. The window size changes
+neither. No
+dependency: tarfile and zstd are Python 3.14's, in the image on all three
+platforms (libzstd 1.5.7).

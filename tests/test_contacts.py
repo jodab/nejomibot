@@ -3,10 +3,22 @@ import time
 
 import pytest
 from aiohttp import web
-from helpers import ALICE, ALICE_ID, BOB, CAROL_ID, ME, SAFETY_NUMBER, FakeApi
-from signalbot import SignalBot
+from helpers import (
+    ALICE,
+    ALICE_ID,
+    BOB,
+    BOB_ID,
+    CAROL_ID,
+    DAVE_ID,
+    ME,
+    SAFETY_NUMBER,
+    FakeApi,
+    message_from,
+)
+from signalbot import DataMessageContext, SendMessage, SignalBot
 
 from nejomibot import account as account_module
+from nejomibot import contacts
 from nejomibot.account import (
     Account,
     Contact,
@@ -16,6 +28,8 @@ from nejomibot.account import (
     with_fresh_profiles,
 )
 from nejomibot.contacts import (
+    Contacts,
+    Trust,
     contacts_answer,
     contacts_message,
     find,
@@ -25,7 +39,7 @@ from nejomibot.contacts import (
     person_card,
     verify,
 )
-from nejomibot.messages import escape
+from nejomibot.messages import collected, escape
 
 
 def test_escape() -> None:
@@ -41,21 +55,22 @@ def test_format_safety_number_like_the_apps() -> None:
 
 
 def test_contacts_message(account: Account) -> None:
-    # Two short lines each, as Signal's bubbles are narrow; no safety numbers
+    # Two short lines each, as Signal's bubbles are narrow; no safety numbers.
+    # Numbered across the sections, as /trust numbers them too.
     assert contacts_message(account) == (
         "👥 **Who the bot knows**\n"
         "🔐 3 safety numbers: 1 verified, 1 untrusted.\n\n"
         "📇 **Contacts** (1)\n"
-        f"👤 **Alice** · {ALICE}\n"
+        f"1 👤 **Alice** · {ALICE}\n"
         "✅ Verified · 👥 Familjen\n\n"
         # Not the bot itself; sorted by name, or by ID without one
         "💬 **Other known recipients** (2)\n"
-        f"👤 **Bob Berg** · {BOB}\n"
+        f"2 👤 **Bob Berg** · {BOB}\n"
         "❌ Untrusted: safety number changed · 🚫 blocked\n"
-        "👤 **ca401000…** · phone number not shared\n"
+        "3 👤 **ca401000…** · phone number not shared\n"
         "⚪ Not verified · 👥 Familjen\n\n"
-        "🔎 /contacts <who> shows one, with their safety number to compare with "
-        "their phone before /trust."
+        "🔎 /contacts <n> shows one in full; /trust lists the safety numbers, to "
+        "compare with their phones."
     )
 
 
@@ -65,7 +80,7 @@ def test_contacts_message_lists_safety_numbers_of_strangers(
     account.recipients.pop()  # Carol
     assert (
         "🔢 **Only a safety number** (1)\n"
-        "👤 **ca401000…** · phone number not shared\n"
+        "3 👤 **ca401000…** · phone number not shared\n"
         "⚪ Not verified · 👥 Familjen\n\n"
     ) in contacts_message(account)
 
@@ -95,10 +110,13 @@ def test_person_card_says_how_to_verify(account: Account) -> None:
     account.identities[0].status = "TRUSTED_UNVERIFIED"
     alice = find_one(account, "Alice")
     assert isinstance(alice, Contact)
-    card = person_card(account, alice)
-    assert card.endswith(
-        "\nCompare their safety number here with the one on their phone, then "
-        "send: /trust <name, phone number or ID> <safety number>"
+    assert person_card(account, alice).endswith(
+        "\nTo verify it, compare it with the one on their phone, then send: "
+        "/trust Alice <safety number>"
+    )
+    # As the admin named them
+    assert person_card(account, alice, "1").endswith(
+        "then send: /trust 1 <safety number>"
     )
 
 
@@ -122,7 +140,8 @@ def test_contacts_message_heads_the_unnamed_with_their_number(
     account: Account,
 ) -> None:
     account.recipients.append(Contact(number="+46700000009", uuid="z-uuid"))
-    assert "\n👤 **+46700000009**\nNo safety number yet\n" in contacts_message(account)
+    text = contacts_message(account)
+    assert "\n2 👤 **+46700000009**\nNo safety number yet\n" in text
 
 
 @pytest.mark.parametrize(
@@ -140,12 +159,16 @@ def test_contacts_message_heads_the_unnamed_with_their_number(
             (CAROL_ID, SAFETY_NUMBER),
         ),
         (f"/trust Anna Maria {SAFETY_NUMBER}", ("Anna Maria", SAFETY_NUMBER)),
-        (f"/trust {SAFETY_NUMBER}", None),
-        ("/trust Alice 12345", None),
-        ("/trust", None),
+        (f"/trust 2 {SAFETY_NUMBER}", ("2", SAFETY_NUMBER)),
+        # A word alone is who, as a number in the lists may be
+        ("/trust 2", ("2", "")),
+        (f"/trust {SAFETY_NUMBER}", (SAFETY_NUMBER, "")),
+        ("/trust Alice 12345", ("Alice", "12345")),
+        ("/trust Bob Berg", ("Bob Berg", "")),
+        ("/trust", ("", "")),
     ],
 )
-def test_parse_trust(text: str, parsed: tuple[str, str] | None) -> None:
+def test_parse_trust(text: str, parsed: tuple[str, str]) -> None:
     assert parse_trust(text) == parsed
 
 
@@ -253,3 +276,146 @@ def test_a_big_account_is_quick(account: Account) -> None:
     find(account, "nobody")
     assert time.monotonic() - start < 2
     assert "📇 **Contacts** (1001)" in text
+
+
+# The numbers, as /contacts and /trust show them
+
+ADMIN = "+46700000009"
+
+
+async def say(bot: SignalBot, text: str, sender: str = ADMIN) -> None:
+    """Send the text to /contacts and /trust, as an admin in a direct chat."""
+    context = DataMessageContext(bot, message_from(sender, text))
+    for handler in (Contacts(), Trust()):
+        await handler.handle_data_message(context)
+
+
+async def test_a_number_is_one_of_the_list_shown_last(
+    bot: SignalBot, answers: list[SendMessage], signal_api: FakeApi
+) -> None:
+    await say(bot, "/contacts 2")
+    assert answers[-1].text == "Which one? Send /contacts first, for their numbers."
+    await say(bot, "/contacts")
+    await say(bot, "/contacts 2")
+    assert (answers[-1].text or "").startswith("👤 **Bob Berg**\n")
+    await say(bot, "/contacts 4")
+    assert answers[-1].text == "There's no 4 in /contacts."
+    # Someone new, who'd come first now, doesn't move the numbers shown
+    signal_api.responses[f"/v1/contacts/{ME}?all"].append(
+        {"number": "+46700000004", "uuid": DAVE_ID, "name": "Aaron"}
+    )
+    await say(bot, "/contacts 2")
+    assert (answers[-1].text or "").startswith("👤 **Bob Berg**\n")
+    # Until the list is asked for again
+    await say(bot, "/contacts")
+    await say(bot, "/contacts 2")
+    assert (answers[-1].text or "").startswith("👤 **Aaron**\n")
+
+
+async def test_each_admin_has_the_numbers_they_were_shown(
+    bot: SignalBot, answers: list[SendMessage]
+) -> None:
+    await say(bot, "/contacts")
+    await say(bot, "/contacts 1", sender=ALICE_ID)
+    assert answers[-1].text == "Which one? Send /contacts first, for their numbers."
+    # Kept by phone number and Signal ID alone, not all that's known of them
+    assert contacts.shown == {ADMIN: [(ALICE, ALICE_ID), (BOB, BOB_ID), ("", CAROL_ID)]}
+
+
+async def test_a_timer_shows_no_admin_their_numbers(bot: SignalBot) -> None:
+    # A timer, /run or a special shows the list to others
+    token = collected.set([])
+    try:
+        await contacts_answer(bot, "", ADMIN)
+    finally:
+        collected.reset(token)
+    assert contacts.shown == {}
+
+
+async def test_trust_lists_everyones_safety_numbers(
+    bot: SignalBot, answers: list[SendMessage]
+) -> None:
+    await say(bot, "/trust")
+    text = answers[-1].text or ""
+    assert text.startswith(
+        "🔐 **Safety numbers**\n"
+        "3 safety numbers: 1 verified, 1 untrusted.\n\n"
+        "📇 **Contacts** (1)\n"
+        f"1 👤 **Alice** · {ALICE}\n"
+        "✅ Verified, key from 1970-01-01\n"
+        + "\n".join(format_safety_number(SAFETY_NUMBER))
+        + "\n\n💬 **Other known recipients** (2)\n"
+        f"2 👤 **Bob Berg** · {BOB}\n"
+        "❌ Untrusted: safety number changed, key from "
+    )
+    assert text.endswith(
+        "\n3 👤 **ca401000…** · phone number not shared\n"
+        "⚪ Not verified\n\n"
+        "🔎 To verify one, compare it with the one on their phone, then send: "
+        "/trust <n> <safety number>"
+    )
+    # Numbered as /contacts numbers them
+    await say(bot, "/contacts 3")
+    assert (answers[-1].text or "").startswith(f"👤 **{CAROL_ID}**\n")
+
+
+async def test_trust_shows_one_and_verifies_it_by_number(
+    bot: SignalBot, answers: list[SendMessage], signal_api: FakeApi
+) -> None:
+    signal_api.responses[f"/v1/identities/{ME}"][0]["status"] = "TRUSTED_UNVERIFIED"
+    await say(bot, "/trust")
+    await say(bot, "/trust 1")
+    assert answers[-1].text == "\n".join(
+        [
+            f"👤 **Alice** · {ALICE}",
+            "⚪ Not verified, key from 1970-01-01",
+            *format_safety_number(SAFETY_NUMBER),
+            "To verify it, compare it with the one on their phone, then send: "
+            "/trust 1 <safety number>",
+        ]
+    )
+    await say(bot, f"/trust 1 {SAFETY_NUMBER}")
+    assert answers[-1].text == "✅ Alice verified."
+    assert signal_api.bodies("PUT", TRUST) == [
+        {"verified_safety_number": SAFETY_NUMBER}
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "answer"),
+    [
+        ("/trust bob berg", f"👤 **Bob Berg** · {BOB}\n❌ Untrusted"),
+        ("/trust 1", "Which one? Send /contacts first, for their numbers."),
+        ("/trust Carol", "Nobody called Carol in /contacts."),
+        # Some of a safety number, or one without who
+        ("/trust Alice 12345 67890", "To verify a safety number, compare it"),
+        (f"/trust {SAFETY_NUMBER}", "To verify a safety number, compare it"),
+    ],
+)
+async def test_trust_one_or_why_not(
+    bot: SignalBot, answers: list[SendMessage], text: str, answer: str
+) -> None:
+    await say(bot, text)
+    assert (answers[-1].text or "").startswith(answer)
+
+
+async def test_trust_usage_needs_no_account(
+    bot: SignalBot, answers: list[SendMessage], signal_api: FakeApi
+) -> None:
+    await say(bot, "/trust Alice 12345")
+    assert answers[-1].text == (
+        "To verify a safety number, compare it with the one on their phone, "
+        "then send: /trust <who> <safety number>, all 60 digits"
+    )
+    assert signal_api.requests == []
+
+
+async def test_add_a_contact_by_their_number(
+    bot: SignalBot, answers: list[SendMessage], signal_api: FakeApi
+) -> None:
+    await say(bot, "/contacts")
+    await say(bot, "/contacts add 3 Carl")
+    assert answers[-1].text == f"📇 Added {CAROL_ID} to the contacts, as Carl."
+    assert signal_api.bodies("PUT", f"/v1/contacts/{ME}") == [
+        {"recipient": CAROL_ID, "name": "Carl"}
+    ]
