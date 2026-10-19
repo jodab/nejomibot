@@ -4,6 +4,16 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- `/delete list` shows the bot's 50 latest messages, not 20, and `/incoming`
+  keeps and lists the 50 latest messages to the bot.
+- `/delete` deletes several of the list at once: `/delete 2,5,11`. It stops
+  at one it can't delete, as when Signal can't be reached, and says which it
+  didn't try.
+
 ## 0.97.0 - 2026-10-19
 
 ### Added

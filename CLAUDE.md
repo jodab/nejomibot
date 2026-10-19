@@ -158,8 +158,8 @@ message (admins and allowed contacts in direct chats; groups on the allowed
 list). Admin commands use signalbot's contact filter with `settings.admins`,
 so they answer in direct chats only. `/delete` is registered everywhere (in
 debug mode, in `debug_group`) and checks for an admin itself in groups,
-where it takes nothing after it: `/delete list` and `/delete <n>` show and
-delete what the bot sent to every chat. `incoming.inbox`, registered apart
+where it takes nothing after it: `/delete list` and `/delete 2,5,11` show
+and delete what the bot sent to every chat. `incoming.inbox`, registered apart
 for every direct chat, keeps what anyone but the admins writes, for the
 admin command `/incoming`.
 Admins exist only in the config; the allowed list is `data_dir/allowed.txt`,

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 11:02+0300\n"
+"POT-Creation-Date: 2026-10-19 11:32+0300\n"
 "PO-Revision-Date: 2026-10-18 02:45+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -377,12 +377,12 @@ msgid "The bot's latest messages, newest first:"
 msgstr "Botens senaste meddelanden, nyaste först:"
 
 #: nejomibot/delete.py
-msgid "/delete <n> deletes one, for everyone."
-msgstr "/radera <n> raderar ett, för alla."
+msgid "/delete <n> deletes one for everyone; /delete 2,5,11 several."
+msgstr "/radera <n> raderar ett för alla; /radera 2,5,11 flera."
 
 #: nejomibot/delete.py
-msgid "Which one? Send /delete list first, for their numbers."
-msgstr "Vilket? Skicka /radera list först, för deras nummer."
+msgid "Which ones? Send /delete list first, for their numbers."
+msgstr "Vilka? Skicka /radera list först, för deras nummer."
 
 #: nejomibot/delete.py
 #, python-brace-format
@@ -397,6 +397,11 @@ msgstr ""
 "radera."
 
 #: nejomibot/delete.py
+#, python-brace-format
+msgid "Not tried after that: {numbers}"
+msgstr "Inte försökta efter det: {numbers}"
+
+#: nejomibot/delete.py
 msgid "Deleted"
 msgstr "Raderat"
 
@@ -409,8 +414,8 @@ msgid "/delete list: its latest messages, wherever it sent them"
 msgstr "/radera list: botens senaste meddelanden, var den än skickade dem"
 
 #: nejomibot/delete.py
-msgid "/delete <n>: delete one of those, for everyone"
-msgstr "/radera <n>: radera ett av dem, för alla"
+msgid "/delete <n>: delete one of those for everyone; /delete 2,5,11 several"
+msgstr "/radera <n>: radera ett av dem för alla; /radera 2,5,11 flera"
 
 #: nejomibot/fortune.py
 msgid "Fortune libraries:"
@@ -712,12 +717,12 @@ msgid "messages people sent it; forward some"
 msgstr "meddelanden folk skickat boten; vidarebefordra några"
 
 #: nejomibot/help.py
-msgid "its latest messages anywhere; delete one"
-msgstr "botens senaste meddelanden överallt; radera ett"
+msgid "its latest messages anywhere; delete some"
+msgstr "botens senaste meddelanden överallt; radera några"
 
 #: nejomibot/help.py
-msgid "list · <n>"
-msgstr "list · <n>"
+msgid "list · <n>,…"
+msgstr "list · <n>,…"
 
 #: nejomibot/help.py
 msgid "delete its latest message here"

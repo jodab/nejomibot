@@ -256,8 +256,8 @@ For the admins, in a direct chat with the bot:
 | `/special remove <name>` | Remove a special, unless a timer runs it |
 | `/msg <chats> <text>` | Post the text to other chats, e.g. `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Run commands and post their answers to other chats, e.g. `/run 1 /status` |
-| `/incoming`, `/incoming <n>,<n>` | The 20 latest messages anyone but the admins sent the bot in a direct chat, numbered: when, from whom, and how each starts; `/incoming 4,9` forwards those two to you in full (see [Incoming messages](#incoming-messages)) |
-| `/delete list`, `/delete <n>` | The bot's 20 latest messages, wherever it sent them, numbered: when, where to, and how each starts; `/delete 3` deletes the third for everyone (see [Who may use what](#who-may-use-what)) |
+| `/incoming`, `/incoming <n>,<n>` | The 50 latest messages anyone but the admins sent the bot in a direct chat, numbered: when, from whom, and how each starts; `/incoming 4,9` forwards those two to you in full (see [Incoming messages](#incoming-messages)) |
+| `/delete list`, `/delete <n>,<n>` | The bot's 50 latest messages, wherever it sent them, numbered: when, where to, and how each starts; `/delete 2,5,11` deletes those for everyone (see [Who may use what](#who-may-use-what)) |
 
 And for the admins in any chat, groups too:
 
@@ -315,13 +315,16 @@ deletes messages for everyone within a day of sending them, so the bot
 remembers what it sent for a day, in memory: after a restart, `/delete` only
 reaches what was sent since.
 
-In a direct chat with the bot, `/delete list` shows its 20 latest messages,
+In a direct chat with the bot, `/delete list` shows its 50 latest messages,
 wherever it sent them, groups and people alike, newest first and numbered:
 when, where to, and how each starts, with 📷 for a photo. `/delete 3` then
-deletes the third of them for everyone, and says which. The numbers are
-those of the list you were shown last, whatever the bot sends meanwhile, until
-you ask for it again, or the bot restarts. In a group, `/delete` takes
-nothing after it, as the list shows what went to every chat.
+deletes the third of them for everyone, `/delete 2,5,11` those three, and
+the bot says which it deleted. It deletes them one after the other, and
+stops at one it can't, as when Signal can't be reached, saying which it
+didn't try. The numbers are those of the list you were shown last, whatever
+the bot sends meanwhile, until you ask for it again, or the bot restarts. In
+a group, `/delete` takes nothing after it, as the list shows what went to
+every chat.
 
 When something fails (the weather API, the exchange rate, the photo library),
 the bot posts the error as `Something went wrong: ...` instead of staying
@@ -417,7 +420,7 @@ clock synchronized. A check that takes more than 20 seconds fails.
 
 ### Incoming messages
 
-The bot keeps the 20 latest messages that anyone but the admins sends it in
+The bot keeps the 50 latest messages that anyone but the admins sends it in
 a direct chat, commands too, and strangers' as well, in memory only: a
 restart forgets them. A message its sender deletes for everyone goes from
 the bot too, as a disappearing message does once its time is up, and an edit

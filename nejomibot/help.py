@@ -66,8 +66,8 @@ ADMIN = [
     Line(
         "📤",
         "/delete",
-        N_("its latest messages anywhere; delete one"),
-        N_("list · <n>"),
+        N_("its latest messages anywhere; delete some"),
+        N_("list · <n>,…"),
     ),
 ]
 ANYWHERE = [

@@ -3,9 +3,10 @@
 /delete, in any chat, groups too, deletes the bot's latest message there.
 Sent again, it deletes the one before, and so on.
 
-/delete list, in a direct chat, shows the bot's latest messages, wherever it
-sent them, numbered: when, where, and how each starts. /delete <n> deletes
-one of them. The numbers are those of the list the admin was shown last,
+/delete list, in a direct chat, shows the bot's 50 latest messages,
+wherever it sent them, numbered: when, where, and how each starts. /delete 3
+deletes one of them, /delete 2,5,11 several, one after the other, until one
+can't be. The numbers are those of the list the admin was shown last,
 whatever the bot sends meanwhile, until they ask for the list again.
 
 Signal only deletes messages for everyone within a day of sending them, and
@@ -19,7 +20,7 @@ from signalbot import DataMessageContext, SentMessage, SignalBot
 
 from . import access
 from .access import is_admin
-from .commands import Command, Handler, answer
+from .commands import Command, Handler, answer, numbers_in
 from .config import get_settings
 from .i18n import _, when_text
 from .messages import (
@@ -37,7 +38,7 @@ from .styles import unmarked
 
 logger = logging.getLogger(__name__)
 
-LISTED = 20  # messages /delete list shows
+LISTED = 50  # messages /delete list shows
 
 # The messages each admin was shown last, by who they are, and their lines
 # in the list: /delete <n> takes the numbers from there. Only in memory, so
@@ -132,30 +133,46 @@ async def list_sent(bot: SignalBot, log: SentLog, who: str) -> str:
     if not lines:
         return escape(nothing_sent_text(log.since, now))
     title = _("The bot's latest messages, newest first:")
-    hint = _("/delete <n> deletes one, for everyone.")
+    hint = _("/delete <n> deletes one for everyone; /delete 2,5,11 several.")
     return f"📤 **{escape(title)}**\n" + escape("\n".join([*lines, "", hint]))
 
 
-async def delete_listed(bot: SignalBot, log: SentLog, who: str, number: int) -> str:
-    """Delete the message of that number in the list who was shown last; say
-    which, or why not. Styled."""
+async def delete_listed(
+    bot: SignalBot, log: SentLog, who: str, numbers: list[int]
+) -> str:
+    """Delete the messages of those numbers in the list who was shown last,
+    one after the other, until one can't be, as when Signal can't be
+    reached, where the rest would fail too; say which, and why not. Styled."""
     listed = shown.get(who)
     if listed is None:
-        return escape(_("Which one? Send /delete list first, for their numbers."))
-    if not 1 <= number <= len(listed):
+        return escape(_("Which ones? Send /delete list first, for their numbers."))
+    if wrong := [n for n in numbers if not 1 <= n <= len(listed)]:
         return escape(
-            _("There's no message {n}: /delete list numbers them.").format(n=number)
+            _("There's no message {n}: /delete list numbers them.").format(n=wrong[0])
         )
-    sent, line = listed[number - 1]
-    if not log.take(sent):
-        return escape(
-            _(
+    deleted: list[str] = []
+    notes: list[str] = []
+    for i, n in enumerate(numbers):
+        sent, line = listed[n - 1]
+        if not log.take(sent):
+            gone = _(
                 "Message {n} is gone already: deleted, or too old for Signal to delete."
-            ).format(n=number)
-        )
-    if error := await delete_sent(bot, log, sent):
-        return escape(error)
-    return f"🗑️ **{escape(_('Deleted'))}**\n{escape(line)}"
+            )
+            notes.append(gone.format(n=n))
+        elif error := await delete_sent(bot, log, sent):
+            notes.append(error)
+            if rest := numbers[i + 1 :]:
+                left = _("Not tried after that: {numbers}")
+                notes.append(left.format(numbers=", ".join(map(str, rest))))
+            break
+        else:
+            deleted.append(line)
+    parts: list[str] = []
+    if deleted:
+        parts.append(f"🗑️ **{escape(_('Deleted'))}**\n" + escape("\n".join(deleted)))
+    if notes:
+        parts.append(escape("\n".join(notes)))
+    return "\n\n".join(parts)
 
 
 def usage() -> str:
@@ -163,7 +180,7 @@ def usage() -> str:
         [
             _("/delete: delete the bot's latest message here, for everyone"),
             _("/delete list: its latest messages, wherever it sent them"),
-            _("/delete <n>: delete one of those, for everyone"),
+            _("/delete <n>: delete one of those for everyone; /delete 2,5,11 several"),
         ]
     )
 
@@ -190,14 +207,13 @@ class Delete(Handler):
             logger.info("Ignored /delete with more than its name in a group")
             return
         who = message.source_uuid or message.source_number or ""
-        action = words[1].casefold()
-        number = action.lstrip("#")
-        if action == "list" and len(words) == 2:
+        rest = (message.text or "").split(maxsplit=1)[1]
+        if rest.strip().casefold() == "list":
             await answer(context, lambda: list_sent(bot, log, who), styled=True)
-        elif number.isdecimal() and len(number) <= 4 and len(words) == 2:
+        elif (picked := numbers_in(rest)) is not None:
             await answer(
                 context,
-                lambda: delete_listed(bot, log, who, int(number)),
+                lambda: delete_listed(bot, log, who, picked),
                 edits=False,
                 styled=True,
             )

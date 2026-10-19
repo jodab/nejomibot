@@ -21,6 +21,7 @@ from nejomibot.commands import (
     argument,
     canonical,
     known,
+    numbers_in,
 )
 from nejomibot.config import get_settings
 from nejomibot.messages import collected
@@ -180,6 +181,22 @@ def test_every_name_starts_with_a_slash() -> None:
         assert known(command), command
         for name in names:
             assert name.startswith("/") and not known(name), name
+
+
+@pytest.mark.parametrize(
+    ("text", "numbers"),
+    [
+        ("4,9", [4, 9]),
+        ("4, 9 4", [4, 9]),
+        ("#4", [4]),
+        ("4,x", None),
+        ("²", None),
+        ("1" * 5000, None),  # more than int() reads
+        (",", None),
+    ],
+)
+def test_numbers_in(text: str, numbers: list[int] | None) -> None:
+    assert numbers_in(text) == numbers
 
 
 def test_argument() -> None:

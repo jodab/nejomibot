@@ -28,7 +28,6 @@ from nejomibot.incoming import (
     forward_text,
     forwards,
     list_incoming,
-    numbers_in,
 )
 
 ADMIN = "+46700000009"
@@ -119,7 +118,7 @@ def test_keeps_what_anyone_but_the_admins_writes(clock: Clock) -> None:
     assert (kept[2].sender, kept[2].name) == (ALICE_ID, ALICE)
 
 
-def test_keeps_the_latest_twenty(clock: Clock) -> None:
+def test_keeps_only_the_latest(clock: Clock) -> None:
     for n in range(KEPT + 5):
         incoming.inbox.keep(message(f"m{n}", at=clock.now + timedelta(seconds=n)))
     kept = texts(incoming.inbox)
@@ -180,22 +179,6 @@ def test_keeps_the_formatting(clock: Clock) -> None:
     incoming.inbox.keep(message(text, text_styles=styles))
     # Marks for its styles, the rest as it shows
     assert texts(incoming.inbox) == ["Look \\*here\\*: **so nice**"]
-
-
-@pytest.mark.parametrize(
-    ("text", "numbers"),
-    [
-        ("4,9", [4, 9]),
-        ("4, 9 4", [4, 9]),
-        ("#4", [4]),
-        ("4,x", None),
-        ("²", None),
-        ("1" * 5000, None),  # more than int() reads
-        (",", None),
-    ],
-)
-def test_numbers_in(text: str, numbers: list[int] | None) -> None:
-    assert numbers_in(text) == numbers
 
 
 def keep_three(clock: Clock) -> None:

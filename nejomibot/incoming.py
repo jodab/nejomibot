@@ -1,6 +1,6 @@
 """/incoming: what people write to the bot in direct chats, for the admins.
 
-The bot keeps the 20 latest messages anyone but the admins sends it in a
+The bot keeps the 50 latest messages anyone but the admins sends it in a
 direct chat, commands and strangers' too, with their formatting, in memory
 only: a restart forgets them. One its sender deletes for everyone goes, as
 does one that disappears, once its time is up; an edit replaces the message
@@ -14,7 +14,6 @@ there were. The numbers are those of the list the admin was shown last,
 whatever comes in meanwhile, until they ask for the list again.
 """
 
-import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -32,13 +31,13 @@ from signalbot import (
 
 from . import access
 from .access import is_admin
-from .commands import Command, Handler, answer
+from .commands import Command, Handler, answer, numbers_in
 from .config import get_settings
 from .i18n import _, ngettext, when_text
 from .messages import escape, short
 from .styles import bold, marked, styles_of, unmarked
 
-KEPT = 20  # messages the bot keeps, and /incoming lists
+KEPT = 50  # messages the bot keeps, and /incoming lists
 
 
 @dataclass(frozen=True)
@@ -179,15 +178,6 @@ async def list_incoming(bot: SignalBot, who: str) -> str:
     title = _("Incoming messages, newest first:")
     hint = _("/incoming <n> forwards one to you, in full; /incoming 4,9 several.")
     return f"📥 **{escape(title)}**\n" + escape("\n".join([*lines, "", hint]))
-
-
-def numbers_in(text: str) -> list[int] | None:
-    """The numbers in text such as 4,9 or 4 9, each once; None if it has
-    anything else, or a number too long for a list's."""
-    words = [word.lstrip("#") for word in re.split(r"[\s,]+", text) if word]
-    if not words or not all(word.isdecimal() and len(word) <= 4 for word in words):
-        return None
-    return list(dict.fromkeys(map(int, words)))
 
 
 def forward_text(received: Received, name: str, now: datetime) -> str:

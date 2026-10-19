@@ -85,6 +85,16 @@ def argument(text: str | None) -> str:
     return " ".join((text or "").split()[1:])
 
 
+def numbers_in(text: str) -> list[int] | None:
+    """The numbers in text such as 2,5,11 or 2 5 11, as a list numbers them,
+    each once; None if it has anything else, or a number too long for a
+    list's."""
+    words = [word.lstrip("#") for word in re.split(r"[\s,]+", text) if word]
+    if not words or not all(word.isdecimal() and len(word) <= 4 for word in words):
+        return None
+    return list(dict.fromkeys(map(int, words)))
+
+
 @dataclass(frozen=True)
 class Command:
     """A command, as its handler takes it."""

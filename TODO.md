@@ -402,18 +402,21 @@ with people who have none.
   which would hide it behind a tap. All 1000 of `fortunes_svenska` were
   checked: the 299 explanations come out in italics, through
   `styles.marked()`, and every fortune of every library reads back as it is.
-- [x] `/delete list` and `/delete <n>`: the bot's 20 latest messages,
-  wherever it sent them, and one deleted by its number. The numbers are
+- [x] `/delete list` and `/delete <n>`: the bot's latest messages,
+  wherever it sent them, and one deleted by its number; since 0.97.1 the
+  50 latest, and several at once, `/delete 2,5,11`, one after the other,
+  stopping at one that fails, as the rest likely would. The numbers are
   those of the list each admin was shown last, as anything the bot sends,
   the list itself too, would move numbers counted from the newest. In
   memory only, as before (the owner's choice); in direct chats only, as the
   list shows what went to every chat.
-- [x] `/incoming` (`/inkorg`): the 20 latest messages anyone but the admins
-  sent the bot in a direct chat, commands too (the owner's choice), and
-  `/incoming 4,9` forwards those to the admin who asks, in full. Text only,
-  as attachments stay ignored. In memory only; a sender's delete for
-  everyone, and disappearing messages, are honoured; edits replace. Timers
-  and `/run` can't run it, as they'd post what people wrote to others.
+- [x] `/incoming` (`/inkorg`): the latest messages, 50 since 0.97.1,
+  anyone but the admins sent the bot in a direct chat, commands too (the
+  owner's choice), and `/incoming 4,9` forwards those to the admin who
+  asks, in full. Text only, as attachments stay ignored. In memory only; a
+  sender's delete for everyone, and disappearing messages, are honoured;
+  edits replace. Timers and `/run` can't run it, as they'd post what people
+  wrote to others.
   Tried with signal-cli-rest-api's own envelopes through signalbot's parsing
   and dispatch: a message, an edit, its sender's delete (someone else's
   leaves it be), a group message, a new disappearing time and an admin's
