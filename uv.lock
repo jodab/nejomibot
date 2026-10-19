@@ -334,7 +334,7 @@ wheels = [
 
 [[package]]
 name = "nejomibot"
-version = "0.99.2"
+version = "0.99.3"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
