@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:44+0300\n"
+"POT-Creation-Date: 2026-10-19 18:07+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -2311,6 +2311,11 @@ msgstr "ej betrodda, så inget skickas till: {who}"
 #: nejomibot/status.py
 msgid "all trusted"
 msgstr "alla betrodda"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Time zone {zone}"
+msgstr "Tidszon {zone}"
 
 #: nejomibot/status.py
 #, python-brace-format

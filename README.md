@@ -665,8 +665,9 @@ line each; a check that took a second or more says how long. The second has
 the details, a section each, in short lines:
 
 - **Bot:** the versions of nejomibot, signalbot, Python and
-  signal-cli-rest-api, uptime, the next timer run, messages waiting to be sent
-  again, how long the command took to arrive. signal-cli's version isn't
+  signal-cli-rest-api, its time zone, `timezone`, which the times the bot
+  shows are in, without saying so each time, uptime, the next timer run,
+  messages waiting to be sent again, how long the command took to arrive. signal-cli's version isn't
   there: signal-cli-rest-api doesn't say it.
 - **Signal account:** number and profile, contacts and who's blocked, safety
   numbers (naming those new or changed in the last week), groups, and linked

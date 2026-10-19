@@ -1,5 +1,8 @@
 import os
+from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
+from typing import cast
 
 import pytest
 from helpers import GROUP, ME, FakeApi, group_entry, write
@@ -129,3 +132,15 @@ def test_reports_show_names_as_they_are() -> None:
         [Check("Safety numbers", ok=False, detail="not trusted: ||Carl||")]
     )
     assert checks.endswith("❌ **Safety numbers**\nnot trusted: \\|\\|Carl\\|\\|")
+
+
+def test_the_bots_lines_name_its_time_zone_once() -> None:
+    # Not with each time, as the next timer run had it
+    job = SimpleNamespace(
+        id="timer-1", next_run_time=datetime(2026, 10, 19, 15, 41, tzinfo=UTC)
+    )
+    bot = SimpleNamespace(scheduler=SimpleNamespace(get_jobs=lambda: [job]))
+    lines = status.bot_lines(cast(SignalBot, bot), None, 0.3)
+    assert lines[3] == "Time zone Europe/Stockholm"
+    assert lines[4].startswith("Up ")
+    assert lines[5] == "Next timer run 2026-10-19 17:41"

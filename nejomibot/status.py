@@ -178,12 +178,18 @@ def next_timer_run(bot: SignalBot) -> datetime | None:
 
 
 def bot_lines(bot: SignalBot, about: About | None, message_delay: float) -> list[str]:
+    """The bot's section: its versions, and its time zone, which the times
+    the bot shows are in, without saying so each time."""
     settings = get_settings()
-    lines = [*version_lines(about), up_since(STARTED)]
+    lines = [
+        *version_lines(about),
+        _("Time zone {zone}").format(zone=settings.timezone),
+        up_since(STARTED),
+    ]
     if next_run := next_timer_run(bot):
         lines.append(
             _("Next timer run {time}").format(
-                time=f"{next_run.astimezone(settings.tz):%Y-%m-%d %H:%M %Z}"
+                time=f"{next_run.astimezone(settings.tz):%Y-%m-%d %H:%M}"
             )
         )
     else:
