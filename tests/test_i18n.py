@@ -9,7 +9,7 @@ from pathlib import Path
 import polib
 import pytest
 
-from nejomibot import i18n, timers
+from nejomibot import i18n, reminders, timers
 from nejomibot.commands import known
 from nejomibot.config import get_settings
 from nejomibot.i18n import (
@@ -125,6 +125,7 @@ def test_the_languages_names_are_for_real_commands_and_words(
         *timers.DAY_SETS,
         *timers.DAYS_FROM_NOW,
         timers.EVERY,
+        reminders.IN,
     }
     assert set(names.words) <= words
 

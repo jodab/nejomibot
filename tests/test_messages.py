@@ -11,15 +11,24 @@ from typing import Any
 import pytest
 from aiohttp import web
 from helpers import ALICE, GROUP, FakeApi
-from signalbot import Config, ConnectionMode, InMemoryConfig, SendMessage, SignalBot
+from signalbot import (
+    Config,
+    ConnectionMode,
+    InMemoryConfig,
+    SendMessage,
+    SignalBot,
+    TextMode,
+)
 
 from nejomibot import messages
 from nejomibot.config import get_settings
 from nejomibot.messages import (
     Outbox,
     Outcome,
+    PerChat,
     Posted,
     Sent,
+    for_chat,
     post_message,
     retry_delays,
 )
@@ -421,3 +430,57 @@ async def test_the_log_says_where_to_not_who(
     await outbox.flush()
     assert "Queued a message to a contact, 1 waiting" in caplog.text
     assert ALICE not in caplog.text
+
+
+# Messages some chats get with a text of their own
+
+
+def test_a_message_per_chat() -> None:
+    message = PerChat(
+        text="for all",
+        texts={GROUP: "for the group"},
+        text_mode=TextMode.STYLED,
+        base64_attachments=["aGVq"],
+    )
+    # As it goes to signalbot: a message like any other, as the chat gets it
+    assert for_chat(message, GROUP) == SendMessage(
+        text="for the group", text_mode=TextMode.STYLED, base64_attachments=["aGVq"]
+    )
+    assert type(for_chat(message, ALICE)) is SendMessage
+    assert for_chat(message, ALICE).text == "for all"
+    plain = text("hej")
+    assert for_chat(plain, GROUP) is plain
+
+
+async def test_each_chat_gets_its_own(
+    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    post = FakePost()
+    monkeypatch.setattr(messages, "outbox", Outbox(post))
+    message = PerChat(text="for all", texts={GROUP: "for the group"})
+    for chat in (GROUP, ALICE):
+        await messages.send(bot, chat, message)
+    assert post.sent == [(GROUP, "for the group"), (ALICE, "for all")]
+
+
+# Sending once, and saying when Signal starts rate-limiting the bot
+
+
+async def test_tried_once(new_outbox: NewOutbox) -> None:
+    outbox = new_outbox(FakePost(Outcome.NOT_SENT))
+    assert await outbox.try_once(ALICE, text("now or never")) is Outcome.NOT_SENT
+    assert len(outbox) == 0
+    assert await outbox.try_once(ALICE, text("now")) is Outcome.SENT
+
+
+async def test_says_when_signal_starts_rate_limiting(new_outbox: NewOutbox) -> None:
+    outbox = new_outbox(FakePost(Outcome.RATE_LIMITED, Outcome.RATE_LIMITED))
+    started: list[bool] = []
+    outbox.on_rate_limited = lambda: started.append(True)
+    await outbox.send(ALICE, text("one"))
+    await outbox.send(GROUP, text("two"))
+    # Once, as it starts
+    assert started == [True]
+    assert outbox.rate_limited
+    await outbox.flush()
+    assert not outbox.rate_limited

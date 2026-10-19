@@ -14,8 +14,9 @@ from types import FrameType
 from pydantic import ValidationError
 from signalbot import LOGGER_NAME, Config, ConnectionMode, InMemoryConfig, SignalBot
 
-from . import access, health, rest
+from . import access, health, reminders, rest
 from .allowed import Allow, Allowed, Disallow
+from .birthdays import Birthday, Birthdays
 from .client import client
 from .commands import Handler, aliases, built_in
 from .config import Settings, config_file, get_settings
@@ -26,15 +27,19 @@ from .greeting import greeter
 from .help import Help
 from .incoming import Incoming, inbox
 from .info import Info
+from .lists import Lists
 from .messages import describe, outbox
+from .notices import notices
+from .onthisday import OnThisDay
 from .photos import Photo
 from .ping import Ping
 from .profile import About, Avatar, Name, Profile, Username
 from .relay import Msg, Run
+from .reminders import Remind
 from .specials import Specials
 from .status import Status
 from .timers import Chats, Timers, timekeeper
-from .weather import Weather
+from .weather import Forecast, Weather
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +66,19 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
     # checked for each message, as /allow and /disallow change it
     everyday: list[Registration] = [
         (handler, True, True, allowed)
-        for handler in (Ping(), Photo(), Weather(), Info(), Fortune(), Help())
+        for handler in (
+            Ping(),
+            Photo(),
+            OnThisDay(),
+            Weather(),
+            Forecast(),
+            Info(),
+            Fortune(),
+            Remind(),
+            Lists(),
+            Birthdays(),
+            Help(),
+        )
     ]
     # For the admins only, in direct chats: they show what only the admins
     # should see, or change the bot, who may use it, or its timers, or post
@@ -86,6 +103,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
             Msg(),
             Run(),
             Incoming(),
+            Birthday(),
         )
     ]
     return [
@@ -252,6 +270,7 @@ def shutdown() -> None:
             task.cancel()
         loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
         outbox.keep_all()
+        notices.stopped()
         loop.run_until_complete(health.stop())
         loop.run_until_complete(client.close())
         loop.run_until_complete(loop.shutdown_asyncgens())
@@ -285,6 +304,8 @@ def main() -> None:
     )
     logging.getLogger(LOGGER_NAME).handlers.clear()  # see set_up_logging
     outbox.start(bot)
+    # The admins hear of an update or a stop that wasn't clean, and more
+    notices.start(bot)
 
     access.allowed_list.start()
     logger.info(
@@ -304,6 +325,7 @@ def main() -> None:
     # their commands say timers mayn't
     timekeeper.start(bot, [handler for handler, *_who in registrations])
     logger.info("%d timers, in %s", len(timekeeper.timers), settings.timers_file)
+    reminders.start(bot)
     health.start(bot)
 
     bot.start()

@@ -26,13 +26,17 @@ weather_units = "metric"  # or "imperial"
 # kept for 10 minutes.
 # weather_calls_per_hour = 10
 
+# The daily post names the day's holidays, flag days and traditions of these
+# countries atop the weather: "SE" Sweden, "GR" Greece. None if not set.
+# holidays = ["SE", "GR"]
+
 # The time zone of the bot: timers, and the times it shows
 timezone = "Europe/Stockholm"
 
 photos_dir = "/photos"  # only read
 # Where the bot keeps what it's told: the timers, the specials, the allowed
-# list and the photos sent this round. It must be there; only the bot's user
-# may read it.
+# list, the reminders, the lists, the birthdays and the photos sent this
+# round. It must be there; only the bot's user may read it.
 data_dir = "/data"
 # Where photos that don't say their time zone were taken, if not in timezone
 # photos_timezone = "Europe/Helsinki"
@@ -66,8 +70,9 @@ send_retry_hours = 3
 # their number. They may use every command: the everyday ones anywhere
 # they're allowed, and the admin commands (/status, the specials such as
 # /dailypost, /contacts, /trust, /allowed, /allow, /disallow, the profile
-# commands, the timers, /msg and /run) only in a direct chat with the bot;
-# /delete in any chat. No command can change who the admins are. Everyone
+# commands, the timers, /msg, /run, /birthday and /nameday) only in a direct
+# chat with the bot; /delete in any chat. They hear from the bot of an update,
+# a crash, a rate limit and a changed safety number. No command can change who the admins are. Everyone
 # else is let in with /allow. The bot's greeting, for those on the allowed
 # list who write to it but send no command, names the first to contact.
 admins = [

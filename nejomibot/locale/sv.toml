@@ -26,9 +26,18 @@
 "/msg" = ["/skicka"]
 "/run" = ["/kör", "/kor"]
 "/incoming" = ["/inkorg"]
+"/onthisday" = ["/dennadag"]
+"/forecast" = ["/prognos"]
+"/remind" = ["/påminn", "/paminn"]
+"/list" = ["/lista"]
+"/birthdays" = ["/födelsedagar", "/fodelsedagar"]
+"/namedays" = ["/namnsdagar"]
+"/birthday" = ["/födelsedag", "/fodelsedag"]
+"/nameday" = ["/namnsdag"]
 
-# Words for when a timer runs (/timer add mån-fre 07:30 ...), each next to
-# the English one it means. The first is how /timers shows it.
+# Words for when a timer runs (/timer add mån-fre 07:30 ...) or a reminder
+# is due (/påminn om 30m ...), each next to the English one it means. The
+# first is how /timers shows it.
 [words]
 mon = ["mån"]
 tue = ["tis"]
@@ -50,3 +59,4 @@ weekends = ["helger", "helg"]
 today = ["idag"]
 tomorrow = ["imorgon"]
 every = ["varje", "var"]
+in = ["om"]

@@ -1,7 +1,7 @@
 import json
 import logging
 from collections.abc import AsyncIterator
-from datetime import datetime
+from datetime import UTC, datetime, timedelta, timezone
 from typing import Any, cast
 from zoneinfo import ZoneInfo
 
@@ -142,6 +142,40 @@ SPRINGFIELD = [
 WEATHER = json.dumps(
     {"weather": [{"id": 800}], "main": {"temp": 1, "feels_like": 1, "humidity": 1}}
 )
+SUMMER = timezone(timedelta(hours=2))  # Stockholm's in October, till the 25th
+
+
+def step(at: str, temperature: float, code: int, rain: float = 0) -> Any:
+    """Three hours of OpenWeatherMap's forecast, from at, in Stockholm."""
+    start = datetime.fromisoformat(at).replace(tzinfo=SUMMER)
+    return {
+        "dt": int(start.timestamp()),
+        "main": {"temp": temperature},
+        "weather": [{"id": code, "description": "in English"}],
+        "pop": rain,
+    }
+
+
+FORECAST: Any = {
+    "city": {"timezone": 7200},
+    "list": [
+        step("2026-10-19 14:00", 12.4, 500, 0.8),
+        step("2026-10-19 17:00", 10, 804, 0.3),
+        step("2026-10-19 20:00", 8, 800),
+        step("2026-10-19 23:00", 6, 800),
+        step("2026-10-20 02:00", 4, 600, 0.9),  # at night: not the day's weather
+        step("2026-10-20 05:00", 3, 801),
+        step("2026-10-20 08:00", 7, 802),
+        step("2026-10-20 11:00", 11, 803, 0.24),
+        step("2026-10-20 14:00", 12, 804),
+        step("2026-10-20 17:00", 9, 803),
+        step("2026-10-20 20:00", 6, 801),
+        step("2026-10-20 23:00", 5, 800),
+        step("2026-10-21 02:00", -1.6, 800),
+        step("2026-10-21 08:00", 0, 600, 0.04),
+        step("2026-10-21 14:00", 2, 803),
+    ],
+}
 
 
 @pytest.fixture
@@ -168,8 +202,13 @@ async def api(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[dict[str, Any]]:
         asked.append((request.path, dict(request.query)))
         return web.json_response(reply["places"].get(request.query["q"], []))
 
+    async def forecast(request: web.Request) -> web.Response:
+        asked.append((request.path, dict(request.query)))
+        return web.json_response(reply.get("forecast", FORECAST))
+
     app = web.Application()
     app.router.add_get("/weather", handler)
+    app.router.add_get("/forecast", forecast)
     app.router.add_get("/direct", geocoding)
     app.router.add_get("/loop", loop)
     runner = web.AppRunner(app)
@@ -177,6 +216,7 @@ async def api(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[dict[str, Any]]:
     await web.TCPSite(runner, "127.0.0.1", 0).start()
     port = runner.addresses[0][1]
     monkeypatch.setattr(weather, "API_URL", f"http://127.0.0.1:{port}/weather")
+    monkeypatch.setattr(weather, "FORECAST_URL", f"http://127.0.0.1:{port}/forecast")
     monkeypatch.setattr(weather, "GEOCODING_URL", f"http://127.0.0.1:{port}/direct")
     yield reply
     await runner.cleanup()
@@ -452,3 +492,156 @@ async def test_the_key_stays_out_of_errors(
         "Något gick fel: OpenWeatherMap går inte att nå: ConnectionTimeoutError"
     )
     assert "test-key" not in caplog.text
+
+
+# Sunrise and sunset
+
+
+def at_utc(text: str) -> int:
+    return int(datetime.fromisoformat(text).replace(tzinfo=UTC).timestamp())
+
+
+def with_sun(data: Any, zone: int) -> Any:
+    sun = {"sunrise": at_utc("2026-10-19 05:35"), "sunset": at_utc("2026-10-19 15:21")}
+    return data | {"timezone": zone, "sys": sun}
+
+
+def test_the_sun() -> None:
+    data = with_sun(api_data(804, "mulet", 9, 7, 80), 7200)
+    now = datetime(2026, 10, 19, 8, 0, tzinfo=TZ)
+    lines = weather.format_weather(data, "Stockholm", now).splitlines()
+    assert lines[-1] == "🌅 07:35 · 🌇 17:21 · 9 tim 46 min dagsljus"
+    # In the place's time
+    data = with_sun(api_data(804, "mulet", 9, 7, 80), 10800)
+    lines = weather.format_weather(data, "Helsingfors", now).splitlines()
+    assert lines[-1] == "🌅 08:35 · 🌇 18:21 · 9 tim 46 min dagsljus"
+
+
+@pytest.mark.parametrize(
+    "sun",
+    [
+        {},  # not said
+        {"sys": {"sunrise": 0, "sunset": 0}, "timezone": 0},  # polar night or day
+        {"sys": {"sunrise": "soon"}, "timezone": 0},
+    ],
+)
+def test_no_sun(sun: Any) -> None:
+    data = api_data(804, "mulet", 9, 7, 80) | sun
+    now = datetime(2026, 10, 19, 8, 0, tzinfo=TZ)
+    assert len(weather.format_weather(data, "Kiruna", now).splitlines()) == 6
+
+
+# The forecast
+
+
+def test_format_forecast() -> None:
+    steps = weather.forecast_steps(FORECAST)
+    now = datetime(2026, 10, 19, 13, 30, tzinfo=SUMMER)
+    # Each day's worst weather from 06:00 to 21:00, its lowest and highest
+    # temperature, and its highest chance of rain or snow, if any
+    assert weather.format_forecast(steps, "Stockholm", now) == "\n".join(
+        [
+            "**Prognos för Stockholm**",
+            "Idag: 🌦️ Lätt regn",
+            "🌡️ 6 till 12°C · ☔ 80%",
+            "Imorgon: ☁️ Mulet",
+            "🌡️ 3 till 12°C · ☔ 90%",
+        ]
+    )
+
+
+def test_a_forecast_kept_past_midnight() -> None:
+    # Kept from the evening before: yesterday's steps aren't a day of it
+    steps = weather.forecast_steps(FORECAST)
+    now = datetime(2026, 10, 20, 0, 10, tzinfo=SUMMER)
+    assert weather.format_forecast(steps, "Stockholm", now).splitlines()[1] == (
+        "Idag: ☁️ Mulet"
+    )
+
+
+def test_late_in_the_evening_the_day_after() -> None:
+    # Today has no daytime left: tomorrow and the day after
+    steps = weather.forecast_steps(FORECAST)[3:]
+    now = datetime(2026, 10, 19, 22, 30, tzinfo=SUMMER)
+    assert weather.format_forecast(steps, "Stockholm", now).splitlines()[1:] == [
+        "Imorgon: ☁️ Mulet",
+        "🌡️ 3 till 12°C · ☔ 90%",
+        "Onsdag: 🌨️ Lätt snöfall",
+        "🌡️ -2 till 2°C",
+    ]
+
+
+NOT_AS_EXPECTED: list[Any] = [
+    {},
+    {"city": {"timezone": 0}, "list": []},
+    {"city": {}, "list": [{}]},
+]
+
+
+@pytest.mark.parametrize("data", NOT_AS_EXPECTED)
+def test_forecast_data_not_as_expected(data: Any) -> None:
+    with pytest.raises(weather.WeatherError, match="prognosdatan"):
+        weather.forecast_steps(data)
+
+
+async def test_the_forecast_is_kept_for_30_minutes(
+    api: dict[str, Any], clock: Clock
+) -> None:
+    message = await weather.forecast_message()
+    assert message.startswith("**Prognos för Stockholm**\n")
+    clock.now += 30 * 60 - 1
+    await weather.forecast_message()
+    clock.now += 1
+    await weather.forecast_message()
+    assert paths(api) == ["/direct", "/forecast", "/forecast"]
+    # Three days of three hours
+    assert api["asked"][1][1] == {
+        "lat": "59.3251172",
+        "lon": "18.0710935",
+        "units": "metric",
+        "lang": "sv",
+        "cnt": "24",
+        "appid": "test-key",
+    }
+
+
+async def test_a_forecast_for_a_place_named_is_counted(
+    api: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_WEATHER_CALLS_PER_HOUR", "1")
+    get_settings.cache_clear()
+    api["places"] |= {"Göteborg": GOTHENBURG}
+    # Finding Göteborg is the hour's one call
+    assert (await weather.forecast_message("Göteborg")).startswith(
+        "⏳ Boten frågar OpenWeatherMap om platser högst 1 gång i timmen."
+    )
+    # weather_city's isn't counted
+    assert (await weather.forecast_message()).startswith("**Prognos för Stockholm**")
+
+
+async def test_the_forecast_command(
+    api: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    api["places"] = {"Göteborg": GOTHENBURG}
+    replies: list[str] = []
+
+    async def nothing(context: DataMessageContext) -> None:
+        pass
+
+    async def reply(context: DataMessageContext, message: SendMessage) -> None:
+        replies.append(message.text or "")
+
+    monkeypatch.setattr(commands, "mark_read", nothing)
+    monkeypatch.setattr(commands, "show_typing", nothing)
+    monkeypatch.setattr(commands, "reply", reply)
+    message = DataMessage(
+        server_delivered_timestamp=0,
+        server_received_timestamp=0,
+        timestamp=0,
+        source_number=ALICE,
+        text="/prognos Göteborg",
+    )
+    context = DataMessageContext(cast(SignalBot, None), message)
+    await weather.Forecast().handle_data_message(context)
+    [answer] = replies
+    assert answer.startswith("**Prognos för Göteborg, SE**\n")

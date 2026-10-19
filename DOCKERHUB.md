@@ -8,8 +8,11 @@ and it answers a handful of commands. It speaks English and Swedish.
 > myself how to better use Claude Code, so everything you see here is
 > entirely AI coded under my guidance.
 
-- 🌤️ **A daily post:** the weather, then the photo of the day, at the time you choose
-- 📷 **`/photo`:** a random photo, with when it was taken and a map link
+- 🌤️ **A daily post:** the weather, then the photo of the day, at the time you choose,
+  with the day's holidays, and in each group the birthdays and name days of those in it
+- 📷 **`/photo`:** a random photo, with when it was taken and a map link; `/onthisday`,
+  one from this day in an earlier year
+- 🔔 **`/remind` and `/list`:** reminders, and a list such as for shopping, for each chat
 - ⏰ **Timers:** any of its commands on a schedule, posted to the chats you choose
 - 🔐 **Only the people and groups you allow** may use it; you manage it from Signal
 - 🩺 **Health checks**, and a container health check
@@ -207,7 +210,7 @@ Troubleshooting, below.
    ```
 
    Everyone in the group may now use the everyday commands there: `/photo`,
-   `/weather`, `/info`, `/fortune`, `/help` and more.
+   `/weather`, `/forecast`, `/remind`, `/list`, `/help` and more.
 3. To let someone use the bot in a direct chat with it, allow them by their
    number: `/allow +46700000002`.
 
@@ -245,6 +248,10 @@ That's it: the bot is up and running. 🎉
 - **See how it's doing:** send it `/status`. `docker compose ps` shows the
   containers as `healthy` a minute after they start (with Podman,
   `podman ps` does).
+- **Birthdays, name days and holidays in the daily post:** `/birthday add
+  1990-03-14 Alice` for a contact, shown in the groups they're in, and
+  `holidays = ["SE", "GR"]` in the settings for Sweden's and Greece's days;
+  see [the README](https://github.com/jodab/nejomibot#birthdays-name-days-and-holidays).
 - **Commands of your own, other names for commands, and all the settings:**
   see the [README](https://github.com/jodab/nejomibot#readme).
 

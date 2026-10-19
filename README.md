@@ -179,8 +179,10 @@ chats, `1,2`, and days work too, as in `mon-fri 07:30` ([more](#timers)).
 `/timer run 1` posts it right away, to see that it works.
 
 That's it: the bot is up and running. Next, perhaps: warnings when it's
-down, with `healthcheck_url` ([how](#health-checks)); [specials](#specials)
-of your own; and a profile picture:
+down, with `healthcheck_url` ([how](#health-checks)); birthdays, name days
+and holidays atop the daily post
+([how](#birthdays-name-days-and-holidays)); [specials](#specials) of your
+own; and a profile picture:
 
 ```sh
 docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg
@@ -222,11 +224,17 @@ The everyday commands, for everyone the bot may talk to:
 | Command | Reply |
 |---|---|
 | `/photo` | A random photo with the date it was taken, an age if set, and a map link |
+| `/onthisday` | A photo taken on this day in an earlier year, or else within three days of it, captioned as `/photo` captions it, under how many years ago (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/cache` | Number and size of photos in the library |
-| `/weather`, `/weather <city>` | Current weather in `weather_city`, or in the city named, such as `/weather Helsinki`, under its heading in bold (see [The weather](#the-weather)) |
+| `/weather`, `/weather <city>` | Current weather in `weather_city`, or in the city named, such as `/weather Helsinki`, under its heading in bold, with the day's sunrise and sunset (see [The weather](#the-weather)) |
+| `/forecast`, `/forecast <city>` | The weather today and tomorrow there: each day's worst weather, its lowest and highest temperature, and its chance of rain or snow (see [The weather](#the-weather)) |
 | `/info`, `/time` | The time in the places in `clocks`, and the `exchange_rate` |
 | `/ping` | `pong!` and how long the ping took to arrive |
 | `/fortune`, `/fortune <library>`, `/fortune all`, `/fortune list` | A random fortune, from `fortune_library` (`fortunes_svenska` if not set), the library named, or every library; `list` names them. What explains a proverb of `fortunes_svenska` is in italics |
+| `/remind <when> <text>`, `/remind`, `/remind remove <n>` | A reminder, which the bot posts in the chat when it's due, such as `/remind tomorrow 08:00 Pick up Bob`; alone, the chat's reminders, numbered (see [Reminders and lists](#reminders-and-lists)) |
+| `/list`, `/list add <things>`, `/list remove <n>,<n>`, `/list clear` | The chat's list, such as for shopping: `/list add milk, eggs` puts things on it, `/list remove 2,5` takes them off (see [Reminders and lists](#reminders-and-lists)) |
+| `/birthdays` | In a group, the birthdays of those it's for, the coming ones first; for the admins, in a direct chat, all of them, numbered (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
+| `/namedays` | The name days, as `/birthdays` lists the birthdays |
 | `/help` | The commands the asker may use, a line each |
 
 For the admins, in a direct chat with the bot:
@@ -257,6 +265,9 @@ For the admins, in a direct chat with the bot:
 | `/msg <chats> <text>` | Post the text to other chats, e.g. `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Run commands and post their answers to other chats, e.g. `/run 1 /status` |
 | `/incoming`, `/incoming <n>,<n>` | The 50 latest messages anyone but the admins sent the bot in a direct chat, numbered: when, from whom, and how each starts; `/incoming 4,9` forwards those two to you in full (see [Incoming messages](#incoming-messages)) |
+| `/birthday add <date> [<chats>] <who>` | A birthday: a contact's, as `/contacts` finds them, shown in the groups they're in; or someone's not on Signal, by name, shown in the groups `<chats>` numbers in `/chats`, or else in every group (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
+| `/nameday add <date> [<chats>] <who>` | A name day, as `/birthday add` takes it |
+| `/birthday remove <n>`, `/nameday remove <n>` | Remove one, by its number in `/birthdays` or `/namedays` |
 | `/delete list`, `/delete <n>,<n>` | The bot's 50 latest messages, wherever it sent them, numbered: when, where to, and how each starts; `/delete 2,5,11` deletes those for everyone (see [Who may use what](#who-may-use-what)) |
 
 And for the admins in any chat, groups too:
@@ -270,8 +281,8 @@ A command can have other names: a few it has had all along (`/test` for
 configuration, and the names in the bot's language (see
 [Languages](#languages)). With
 `language = "sv"`, `/väder` is `/weather`, `/hjälp` is `/help`,
-`/dagensbild` is `/dailypost` and `/dagenscitat` is `/dailyquote`; `/help`
-shows every name a command has.
+`/påminn` is `/remind`, `/lista` is `/list`, `/dagensbild` is `/dailypost`
+and `/dagenscitat` is `/dailyquote`; `/help` shows every name a command has.
 
 ### Who may use what
 
@@ -306,7 +317,8 @@ itself typing while it works on the slower ones. Both are best effort: if they
 fail, the answer still comes. Editing a message runs its command again, except
 for those that change things or post elsewhere: `/delete` (but `/delete
 list`), `/contacts add`, `/allow`, `/disallow`, `/timer`, `/special`, `/msg`,
-`/run` and the specials of your own.
+`/run`, `/remind` and `/list` (but alone, which list), `/birthday`,
+`/nameday` and the specials of your own.
 
 The bot needs a number of its own, registered for it. If its number is also
 signed in on a phone, as when signal-cli is linked to that phone, a command
@@ -387,10 +399,36 @@ default), finding them included, so a new place takes two calls; past that,
 it says when to try again. `weather_city` isn't counted, so `/weather` alone,
 the daily post and `/status` always get its weather.
 
+The weather ends with the day's sunrise and sunset there, and the daylight
+between, in the place's own time, from the same answer of OpenWeatherMap's:
+`🌅 07:35 · 🌇 17:21 · 9 h 46 min of daylight`; where the sun doesn't both
+rise and set that day, there's none.
+
+`/forecast` is the weather today and tomorrow, in `weather_city` or a place
+named as `/weather` takes it, from OpenWeatherMap's forecast for every three
+hours: for each day, the worst weather from 06:00 to 21:00 there (a
+thunderstorm, then snow, rain, drizzle, mist and the like, clouds, and a
+clear sky last), the lowest and highest temperature, and the highest chance
+of rain or snow, if any. Late in the evening, once today has no daytime
+left, it's tomorrow and the day after. The bot keeps a place's forecast for
+30 minutes, and counts the calls for places named as `/weather` does:
+
+```
+Forecast for Stockholm
+Today: 🌦️ Light rain
+🌡️ 6 to 12°C · ☔ 80%
+Tomorrow: ☁️ Overcast clouds
+🌡️ 3 to 12°C · ☔ 20%
+```
+
 ### Photos and the daily post
 
 `/dailypost` is the daily post: the weather, under its heading in bold, then
-the photo of the day, captioned "Photo of the day!" in bold. It's for timers: `/timer add 08:00 1,2
+the photo of the day, captioned "Photo of the day!" in bold. Atop the
+weather go the day's holidays, and in a group, the birthdays and name days
+of those it's for (see
+[Birthdays, name days and holidays](#birthdays-name-days-and-holidays)).
+It's for timers: `/timer add 08:00 1,2
 /dailypost` posts it at 08:00 in the bot's `timezone`, whatever the server's
 own time zone, to chats 1 and 2 of `/chats`. It sends the same weather and the
 same photo to every chat. The photo is picked at random among those it hasn't
@@ -419,6 +457,113 @@ gives the age of who's in the photos on the day, after `photos_age_emoji`.
 A photo with a GPS position links to where it was taken: on Google Maps, or
 with `photos_map = "openstreetmap"`, OpenStreetMap's short link, such as
 `https://osm.org/go/0bC2KJ9q?m=`, which shows a marker there.
+
+`/onthisday` is a photo taken on this day in an earlier year, captioned as
+`/photo` captions it, under "3 years ago today" in bold; without one, a photo
+taken within three days of the day, the nearest first, under "3 years ago,
+around this day". Like `/photo`, it doesn't count toward the round. When
+each photo was taken is as its caption has it, in the bot's `timezone`: the
+bot reads it once for each photo, from the file's header, and keeps it in
+memory, about 300 bytes a photo, reading a photo again only when it changes.
+So the first `/onthisday` after a start takes longer: 0.2 s for 1150 photos
+on a desktop whose disk cache has them.
+
+### Reminders and lists
+
+`/remind` is for everyone allowed: a reminder the bot posts once, when it's
+due, in the chat it was asked for in, a group's for everyone in it:
+
+```
+/remind 18:00 Take the cake out     today, or tomorrow if 18:00 has been
+/remind 30m Call Bob                in 30 minutes; also 2h, 1h30m, in 2h
+/remind tomorrow 08:00 Pick up Bob
+/remind fri 17:00 Pizza!            the coming Friday
+/remind 2026-12-24 15:00 Presents!
+/remind                             the chat's reminders, numbered
+/remind remove 2                    or 2,3
+```
+
+When one is due, in the bot's `timezone`, the bot posts "⏰ Pick up Bob" in
+the chat; it looks at the start of every minute. A chat has at most 20, a
+year ahead at most; for one every week, an admin's [timer](#timers) does it.
+One due while the bot was down comes once it's up, with a note that it's
+late; more than a day late, it's dropped. A group gets its reminders only
+while the bot is in it. In Swedish, `/påminn`, and `om 30m` for `in 30m`.
+
+`/list` is a list for each chat, such as for shopping, which everyone in a
+group shares:
+
+```
+/list                     the list, numbered
+/list add milk, eggs      put things on it, separated by commas or line breaks
+/list remove 2,5          take those off, by their numbers
+/list clear               take everything off
+```
+
+A list has at most 100 things. In Swedish, `/lista`.
+
+They're kept in `data_dir/reminders.txt` and `data_dir/lists.txt`, a line
+each, which can be changed by hand: the bot reads them again when they
+change, and leaves comments and lines it can't read as they are. Timers,
+specials and `/run` can't run them, as they're each chat's own.
+
+### Birthdays, name days and holidays
+
+The daily post names the day atop the weather. In every chat, the day's
+holidays, flag days and traditions in the countries of `holidays` (`SE` for
+Sweden, `GR` for Greece; none by default), each after its country's flag, a
+day both keep once, after both flags; and in a group, the birthdays and name
+days of those it's for:
+
+```
+🇸🇪 National Day of Sweden · flag day
+🎂 Alice turns 36 today!
+🌸 Happy name day, Bob!
+
+Weather in Stockholm
+...
+```
+
+- Sweden: its public holidays and their eves, its flag days
+  ([förordning 1982:270](https://lagen.nu/1982:270)), the Sundays of Advent,
+  and Shrove Tuesday, Valentine's Day, Walpurgis Night, Mother's Day,
+  Father's Day and Lucia. The day of the election to the Riksdag, the second
+  Sunday of September every fourth year, is a flag day; so is the day of the
+  election to the European Parliament, but its date is set anew each time,
+  so it isn't there.
+- Greece: its public holidays, by the Orthodox Easter, and Tsiknopempti,
+  Maundy Thursday, Holy Saturday, Valentine's Day, Mother's Day, Father's
+  Day, Christmas Eve and New Year's Eve.
+
+The admins keep the birthdays and name days, in a direct chat with the bot:
+
+```
+/birthday add 1990-03-14 Alice       a contact; with the year, the age shows
+/birthday add 03-14 Bob              without the year, it doesn't
+/birthday add 1940-05-01 1 Grandma   someone not on Signal, in chat 1 of /chats
+/birthday add 1940-05-01 Grandma     someone not on Signal, in every group
+/nameday add 08-08 Alice
+/birthday remove 2                   by its number in /birthdays
+```
+
+Someone on Signal is given as `/contacts` takes them, by name, phone number
+or ID, and must be a contact saved by name, with `/contacts add <who>
+<name>`: theirs show in the groups they're in, by that name, as the contacts
+have it at the time, so a rename shows. A contact has one birthday and one
+name day: adding another changes it. Someone not on Signal is given by a
+name no contact has: theirs show in the groups given, by their numbers in
+`/chats`, or else in every group the daily post goes to. The answer says
+which, so a contact's name mistyped shows. Birthdays and name days never
+show in a direct chat. A birthday on 29 February comes on the 28th in other
+years.
+
+`/birthdays` and `/namedays`, for everyone allowed, list them, the coming
+ones first: in a group, those it gets; in a direct chat, for the admins, all
+of them, numbered through the year, so the numbers change only when one is
+added or removed, with where someone not on Signal shows. They're kept in
+`data_dir/birthdays.txt`, a line each, with a contact's Signal ID and phone
+number, and their name as it was saved, which shows if the contacts can't be
+read. It can be changed by hand, as the other files.
 
 ### /status
 
@@ -487,8 +632,9 @@ bot, to the chats numbered by `/chats`, given as one word, like `1,2`:
 `/msg` posts the text as the bot. `/run` runs each command as a timer does, as
 an admin would in a direct chat with the bot, and posts its answers to the
 chats, one command after the other; every chat gets the same photo. Like a
-timer, `/run` can't manage timers, specials or who may use the bot, nor run
-`/msg` or `/run`. Mind what goes where: `/status` shows phone numbers and the
+timer, `/run` can't manage timers, specials, birthdays or who may use the
+bot, nor run `/msg` or `/run`, nor what's each chat's own: `/remind`,
+`/list`, `/birthdays` and `/namedays`. Mind what goes where: `/status` shows phone numbers and the
 server's addresses to everyone in the chat. Both answer with where they
 posted, and where it only waits to be sent (see
 [Who may use what](#who-may-use-what)) or may not have arrived; `/run`
@@ -555,10 +701,12 @@ own words: in Swedish `mån-fre`, `vardagar`, `helger`, `imorgon`, `varje 2h`.
 The commands, each with its `/`, are separated by `;`.
 
 A timer runs each command once, as an admin would in a direct chat with the
-bot, so it can run any command but those that manage timers, specials or the
-allowed list, or post to other chats themselves (`/msg`, `/run`), and posts
-its answers to all the timer's chats before the next command runs: every chat
-gets the same photo. It can run [specials](#specials) of your own too.
+bot, so it can run any command but those that manage timers, specials,
+birthdays or the allowed list, post to other chats themselves (`/msg`,
+`/run`), or are each chat's own (`/remind`, `/list`, `/birthdays`,
+`/namedays`), and posts its answers to all the timer's chats before the next
+command runs: every chat gets the same photo, and each group the birthdays
+of its own. It can run [specials](#specials) of your own too.
 
 Timers are kept in `data_dir/timers.txt`, a line each, its fields
 separated by `|`: the timer's number, when, its chats (group IDs and phone
@@ -732,7 +880,8 @@ after a start, the bot checks its health:
   and is later than 0.101 (see
   [Which signal-cli-rest-api](#which-signal-cli-rest-api)).
 - **The bot:** signalbot has started, which it does once signal-cli-rest-api
-  has the account, and no message has waited more than 15 minutes to be sent.
+  has the account, and no message has waited more than 15 minutes to be sent;
+  if Signal rate-limits the bot, it says so, and what lifts the limit.
 - **Signal:** Signal's servers answer for the account: the bot asks
   signal-cli-rest-api for the account's linked devices, which signal-cli asks
   Signal for. That's the one thing a health check asks of Signal.
@@ -752,6 +901,30 @@ the bot has been up, and so its container, as the bot is its process, and
 the bot's memory, with its peak and the container's limit, if there is one.
 healthchecks.io shows it with each ping in the check's log. signal-cli's
 version isn't there: signal-cli-rest-api doesn't say it.
+
+### Notices to the admins
+
+The bot tells the admins itself, in a direct chat with each, what they'd
+otherwise find out late:
+
+- **An update, or a stop that wasn't clean.** After an update, the versions:
+  `🔄 Updated: nejomibot 0.98.0 → 0.99.0.`; after a crash, a kill or a power
+  cut, that it's up again, since when it had run, and that messages that had
+  waited less than half a minute may be lost. It knows from
+  `data_dir/run.json`, which it writes as it starts, and as it stops.
+- **Signal rate-limits the bot.** As it starts to, how to lift the limit:
+  `signal-account.sh rate-limit --to <your number>`, and a captcha. Once in
+  six hours at most, and tried once, as while Signal rate-limits the bot, it
+  may not get through either; the health check says so too, while messages
+  wait, and with `healthcheck_url`, so does the ping.
+- **A safety number changes.** signal-cli won't send to someone whose safety
+  number changed until it's trusted, so the admins hear whose, to compare it
+  with `/contacts`, then `/trust`. The bot looks every `healthcheck_minutes`,
+  which asks nothing of Signal's servers, and at a start, for changes since
+  it last ran.
+
+In debug mode, which starts anew each time, there's no update or stop to
+tell of.
 
 ### The containers' health checks
 
@@ -903,8 +1076,9 @@ update renames or removes a setting, the bot says which, and won't start until
 the configuration is changed to match `config.example.toml`.
 
 The bot only reads the photo library. What it's told and what it does, the
-timers, the specials, the allowed list, the photos sent this round and the
-messages waiting to be sent, it keeps in `data_dir` (`/data` in the
+timers, the specials, the allowed list, the reminders, the lists, the
+birthdays and name days, the photos sent this round, the messages waiting to
+be sent and the version that ran last, it keeps in `data_dir` (`/data` in the
 container, beside the config), which must be there at startup: those files
 list phone numbers, so only the bot's user may read them. Each is written
 whole, through a temp file that's on disk before it takes the file's place,
@@ -914,9 +1088,10 @@ so neither a crash nor a power cut leaves one half written.
 
 With `NEJOMIBOT_DEBUG=1` the bot only talks to `debug_group`, and to the
 admins, and keeps its list of photos sent, its allowed list, its timers, its
-specials and its waiting messages in a temp folder of its own instead of
-`data_dir`, new at each start and gone when it stops: the allowed list just
-`debug_group`, and no timers or specials of your own. `/chats` offers only
+specials, its reminders, lists and birthdays, and its waiting messages in a
+temp folder of its own instead of `data_dir`, new at each start and gone
+when it stops: the allowed list just `debug_group`, and no timers, specials
+or birthdays of your own. `/chats` offers only
 `debug_group` and the admins, so `/msg`, `/run` and timers can't reach anyone
 else. Use it to test changes without posting to anyone else, and `/timer add`
 to try the daily post. Stop the production bot first: two bots on the same
@@ -1089,13 +1264,14 @@ nejomibot/
   i18n.py       translations
   locale/       the translations: sv.po, the messages; sv.toml, the names
   photos.py     /photo, /cache: random photo with EXIF date, age, location
+  onthisday.py  /onthisday: a photo from this day in an earlier year
   specials.py   /dailypost, /dailyquote, /specials, /special: several posts in one
   messages.py   sending, through signalbot, the outbox, and the wording of errors
   styles.py     Signal's text styles, as signal-cli-rest-api's marks
   rest.py       what signalbot can't do: asking signal-cli-rest-api itself
   client.py     the HTTP session for what the bot asks itself
   receipts.py   read receipts and the typing indicator
-  weather.py    /weather: OpenWeatherMap
+  weather.py    /weather, /forecast: OpenWeatherMap
   info.py       /info: clocks and exchange rate
   ping.py       /ping
   fortune.py    /fortune
@@ -1109,13 +1285,18 @@ nejomibot/
   delete.py     /delete: delete the bot's latest messages, here or anywhere
   incoming.py   /incoming: the latest messages people sent the bot
   greeting.py   the greeting for the allowed list's messages that aren't commands
+  notices.py    notices to the admins: an update, a crash, a rate limit, safety numbers
+  reminders.py  /remind: reminders, posted in their chat when due
+  lists.py      /list: a list for each chat
+  birthdays.py  /birthdays, /namedays, /birthday, /nameday: for the daily post
+  holidays.py   the calendar's holidays, flag days and traditions
   timers.py     /timers, /chats, /timer: commands on a schedule, the daily post
   timers_cli.py nejomibot-timers: the timers from a terminal
   relay.py      /msg, /run: post to other chats
   help.py       /help
   system.py     process, container and host facts from /proc and /sys
   publicip.py   public IPv4/IPv6 addresses, ASN and location
-  files.py      writing the files in data_dir, privately
+  files.py      the files in data_dir: written privately, read back when changed
 deploy/         examples: Podman Quadlets, and a Compose file
 tests/
 tools/          build-image.sh: test and build the image, for x86 and ARM;

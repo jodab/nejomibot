@@ -86,10 +86,12 @@ async def started(bot: SignalBot) -> SignalBot:
 
 
 class Waiting:
-    """An outbox with messages waiting since then."""
+    """An outbox with messages waiting since then, and maybe rate-limited."""
 
-    def __init__(self, since: datetime | None, count: int) -> None:
-        self.since, self.count = since, count
+    def __init__(
+        self, since: datetime | None, count: int, *, rate_limited: bool = False
+    ) -> None:
+        self.since, self.count, self.rate_limited = since, count, rate_limited
 
     def oldest(self) -> datetime | None:
         return self.since
@@ -114,6 +116,15 @@ async def test_bot_check(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setattr(health, "outbox", Waiting(NOW - timedelta(minutes=20), 2))
     assert bot_check(bot, NOW) == Check(
         "Bot", ok=False, detail="2 messages waiting to be sent, the first for 20 min"
+    )
+    # Saying why, when it's Signal's limit, and what lifts it
+    waiting = Waiting(NOW - timedelta(minutes=40), 1, rate_limited=True)
+    monkeypatch.setattr(health, "outbox", waiting)
+    assert bot_check(bot, NOW) == Check(
+        "Bot",
+        ok=False,
+        detail="1 message waiting to be sent, the first for 40 min. Signal "
+        "rate-limits the bot: signal-account.sh rate-limit lifts it",
     )
 
 

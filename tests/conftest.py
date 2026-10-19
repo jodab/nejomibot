@@ -8,9 +8,27 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
 from helpers import ME, FakeApi
-from signalbot import Config, ConnectionMode, InMemoryConfig, SignalBot
+from signalbot import (
+    Config,
+    ConnectionMode,
+    DataMessageContext,
+    InMemoryConfig,
+    SendMessage,
+    SignalBot,
+)
 
-from nejomibot import access, healthcheck, specials, system, weather
+from nejomibot import (
+    access,
+    birthdays,
+    commands,
+    healthcheck,
+    lists,
+    onthisday,
+    reminders,
+    specials,
+    system,
+    weather,
+)
 
 # bot imports every handler, as it does when the bot runs: commands.known()
 # knows the commands of those Python has read
@@ -50,13 +68,18 @@ def settings_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[No
 
 @pytest.fixture(autouse=True)
 def fresh_lists() -> None:
-    """The allowed list and the admins' specials as the bot has them at a
-    start: it keeps them for good. Nor has OpenWeatherMap been asked yet."""
+    """The allowed list, the admins' specials, the reminders, lists and
+    birthdays as the bot has them at a start: it keeps them for good. Nor has
+    OpenWeatherMap been asked yet, nor a photo read for when it was taken."""
     access.allowed_list.__init__()
     specials.own_specials.__init__()
+    for kept in (reminders.kept, lists.kept, birthdays.kept):
+        kept.reset()
     weather.places.clear()
     weather.latest.clear()
+    weather.forecasts.clear()
     weather.calls.clear()
+    onthisday.taken.clear()
 
 
 @pytest.fixture(autouse=True)
@@ -139,3 +162,21 @@ async def bot(signal_api: FakeApi) -> AsyncIterator[SignalBot]:
 @pytest.fixture
 async def account(bot: SignalBot) -> Account:
     return await fetch_account(bot)
+
+
+@pytest.fixture
+def answers(monkeypatch: pytest.MonkeyPatch) -> list[SendMessage]:
+    """What commands answer, kept here rather than sent; they mark nothing
+    read, nor show typing."""
+    found: list[SendMessage] = []
+
+    async def reply(context: DataMessageContext, message: SendMessage) -> None:
+        found.append(message)
+
+    async def nothing(context: DataMessageContext) -> None:
+        pass
+
+    monkeypatch.setattr(commands, "reply", reply)
+    monkeypatch.setattr(commands, "mark_read", nothing)
+    monkeypatch.setattr(commands, "show_typing", nothing)
+    return found

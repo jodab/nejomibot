@@ -41,7 +41,7 @@ from pathlib import Path
 from typing import NamedTuple, Self
 
 import aiohttp
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from signalbot import (
     DataMessageContext,
     SendError,
@@ -353,6 +353,8 @@ class Outbox:
         self._wake: asyncio.Event | None = None  # wakes the retries early
         self._numbers = itertools.count()  # for the files' names
         self.sent = SentLog(now)
+        # Called as Signal starts rate-limiting the bot (notices.py)
+        self.on_rate_limited: Callable[[], None] | None = None
 
     def start(self, bot: SignalBot) -> None:
         """Send through the bot, from now on; first the messages kept from
@@ -374,6 +376,11 @@ class Outbox:
 
     def __len__(self) -> int:
         return sum(len(queue) for queue in self._queues.values())
+
+    @property
+    def rate_limited(self) -> bool:
+        """Whether Signal rate-limits the bot, as far as the latest sends tell."""
+        return self._rate_limited
 
     def oldest(self) -> datetime | None:
         """When the message that has waited longest was queued, if any waits."""
@@ -400,6 +407,12 @@ class Outbox:
                     return outcome
             self._queue(recipient, message)
             return outcome
+
+    async def try_once(self, recipient: str, message: SendMessage) -> Outcome:
+        """Send now, or not at all, as for what's no use late. Never raises,
+        once started."""
+        async with self._locks[recipient]:
+            return await self._try(recipient, message)
 
     def _queue(self, recipient: str, message: SendMessage) -> None:
         at = self._now()
@@ -484,6 +497,8 @@ class Outbox:
             message = delayed(message, queued_at)
         outcome, timestamp = await self._post(recipient, message)
         if outcome is Outcome.RATE_LIMITED:
+            if not self._rate_limited and self.on_rate_limited is not None:
+                self.on_rate_limited()
             self._rate_limited = True
         if outcome is not Outcome.SENT:
             return outcome
@@ -545,15 +560,51 @@ def dropped_text(count: int) -> str:
 outbox = Outbox()
 
 
+class PerChat(SendMessage):
+    """A message some chats get with a text of their own, such as the daily
+    post, with the birthdays of those in a group: texts by chat, as the
+    outbox knows it, and for the rest, its text."""
+
+    texts: dict[str, str] = Field(default_factory=dict[str, str])
+
+
+def for_chat(message: SendMessage, chat: str) -> SendMessage:
+    """The message as the chat gets it."""
+    if not isinstance(message, PerChat):
+        return message
+    fields = {name: getattr(message, name) for name in SendMessage.model_fields}
+    text = message.texts.get(chat, message.text)
+    return SendMessage.model_validate(fields | {"text": text})
+
+
 def chat_of(bot: SignalBot, recipient: str) -> str:
     """The recipient as the outbox knows it: a group by its group.… ID."""
     return bot.groups.resolve(recipient) or recipient
 
 
+def chats_of(context: DataMessageContext) -> set[str]:
+    """The chat the command came from, as the outbox knows it. A direct chat
+    may be known by phone number or by ID."""
+    message = context.message
+    if message.is_group():
+        return {chat_of(context.bot, message.source_or_group_id())}
+    return {who for who in (message.source_uuid, message.source_number) if who}
+
+
+def chat_id(context: DataMessageContext) -> str:
+    """The chat the command came from, as the bot keeps it, as timers do: a
+    group by its group.… ID, a person by phone number, else by ID."""
+    message = context.message
+    if message.is_group():
+        return chat_of(context.bot, message.source_or_group_id())
+    return message.source_number or message.source_uuid or ""
+
+
 async def send(bot: SignalBot, recipient: str, message: SendMessage) -> Outcome:
-    """Send to a contact or group, retrying while Signal can't be reached:
-    what became of it. Never raises."""
-    return await outbox.send(chat_of(bot, recipient), message)
+    """Send to a contact or group, as the chat gets it, retrying while Signal
+    can't be reached: what became of it. Never raises."""
+    chat = chat_of(bot, recipient)
+    return await outbox.send(chat, for_chat(message, chat))
 
 
 def arrival_delay(context: DataMessageContext) -> float:

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 12:29+0300\n"
+"POT-Creation-Date: 2026-10-19 13:59+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -212,6 +212,169 @@ msgstr "🗑️ {name} får inte längre använda vardagskommandona."
 msgid "They're an admin, in the config, so may still use them."
 msgstr "Hen är admin, i konfigurationen, och får fortfarande använda dem."
 
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🌸 Happy name day, {name}!"
+msgstr "🌸 Grattis på namnsdagen, {name}!"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🎂 {name} turns {age} today!"
+msgstr "🎂 {name} fyller {age} år idag!"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🎂 Happy birthday, {name}!"
+msgstr "🎂 Grattis på födelsedagen, {name}!"
+
+#: nejomibot/birthdays.py
+msgid "every group"
+msgstr "alla grupper"
+
+#: nejomibot/birthdays.py
+msgid "No birthdays here."
+msgstr "Inga födelsedagar här."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🎂 {count} birthday"
+msgid_plural "🎂 {count} birthdays"
+msgstr[0] "🎂 {count} födelsedag"
+msgstr[1] "🎂 {count} födelsedagar"
+
+#: nejomibot/birthdays.py
+msgid "No name days here."
+msgstr "Inga namnsdagar här."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🌸 {count} name day"
+msgid_plural "🌸 {count} name days"
+msgstr[0] "🌸 {count} namnsdag"
+msgstr[1] "🌸 {count} namnsdagar"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "(turns {age})"
+msgstr "(fyller {age})"
+
+#: nejomibot/birthdays.py
+msgid "Birthdays and name days show in groups, for those in them."
+msgstr "Födelsedagar och namnsdagar visas i grupper, för dem som är med i dem."
+
+#: nejomibot/birthdays.py
+msgid "/birthday add <date> [<chats>] <who>: a birthday, e.g."
+msgstr "/födelsedag add <datum> [<chattar>] <vem>: en födelsedag, t.ex."
+
+#: nejomibot/birthdays.py
+msgid "/birthday add 1990-03-14 Alice: a contact, where they are"
+msgstr ""
+"/födelsedag add 1990-03-14 Alice: en kontakt, i grupperna kontakten är med i"
+
+#: nejomibot/birthdays.py
+msgid ""
+"/birthday add 03-14 1,2 Grandma: someone not on Signal, in chats 1 and 2 of /"
+"chats; without them, in every group"
+msgstr ""
+"/födelsedag add 03-14 1,2 Mormor: någon som inte har Signal, i chatt 1 och 2 "
+"i /chats; utan dem, i alla grupper"
+
+#: nejomibot/birthdays.py
+msgid "/birthday remove <n>: remove one, by its number in /birthdays"
+msgstr "/födelsedag remove <n>: ta bort en, med dess nummer i /födelsedagar"
+
+#: nejomibot/birthdays.py
+msgid "/nameday add <date> [<chats>] <who>: a name day, as /birthday takes it"
+msgstr ""
+"/namnsdag add <datum> [<chattar>] <vem>: en namnsdag, som /födelsedag tar den"
+
+#: nejomibot/birthdays.py
+msgid "/nameday remove <n>: remove one, by its number in /namedays"
+msgstr "/namnsdag remove <n>: ta bort en, med dess nummer i /namnsdagar"
+
+#: nejomibot/birthdays.py nejomibot/contacts.py
+#, python-brace-format
+msgid "Nobody called {who} in /contacts."
+msgstr "Ingen som heter {who} i /kontakter."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid ""
+"Save {who} as a contact first, by the name to show: /contacts add {who} "
+"<name>"
+msgstr ""
+"Spara {who} som kontakt först, med namnet som ska visas: /kontakter add "
+"{who} <namn>"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{text} isn't a day: give it as 1990-03-14, or 03-14."
+msgstr "{text} är inget datum: ange det som 1990-03-14, eller 03-14."
+
+#: nejomibot/birthdays.py
+msgid "A name day has no year: give it as 08-08."
+msgstr "En namnsdag har inget år: ange den som 08-08."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{day} is still to come."
+msgstr "{day} har inte kommit än."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "A name has at most {count} characters."
+msgstr "Ett namn har högst {count} tecken."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{name} is no group: they show in groups only."
+msgstr "{name} är ingen grupp: de visas bara i grupper."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{name} is there already, on that day."
+msgstr "{name} finns redan, på den dagen."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "There are {count} birthdays and name days already: remove one first."
+msgstr "Det finns redan {count} födelsedagar och namnsdagar: ta bort en först."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "✅ Added: {day} · {name}"
+msgstr "✅ Tillagd: {day} · {name}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "✅ Changed: {day} · {name}"
+msgstr "✅ Ändrad: {day} · {name}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "👥 In the groups {name} is in"
+msgstr "👥 I grupperna {name} är med i"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "👥 In every group: no contact is called {name}"
+msgstr "👥 I alla grupper: ingen kontakt heter {name}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "Which? Give its number, as {command} shows."
+msgstr "Vilken? Ange dess nummer, som {command} visar."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "There's no {n} in {command}."
+msgstr "Det finns ingen {n} i {command}."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🗑️ Removed: {what}"
+msgstr "🗑️ Borttaget: {what}"
+
 #: nejomibot/contacts.py
 msgid "Send: /contacts add <phone number, ID or name> <their name>"
 msgstr "Skicka: /kontakter add <telefonnummer, ID eller namn> <deras namn>"
@@ -295,11 +458,6 @@ msgid ""
 msgstr ""
 "/kontakter <vem> visar en, med säkerhetsnumret att jämföra med deras telefon "
 "före /verifiera."
-
-#: nejomibot/contacts.py
-#, python-brace-format
-msgid "Nobody called {who} in /contacts."
-msgstr "Ingen som heter {who} i /kontakter."
 
 #: nejomibot/contacts.py
 #, python-brace-format
@@ -461,26 +619,6 @@ msgstr "{detail}, på {seconds} s"
 msgid "timed out"
 msgstr "svarade inte i tid"
 
-#: nejomibot/health.py
-#, python-brace-format
-msgid "{seconds} s"
-msgstr "{seconds} s"
-
-#: nejomibot/health.py
-#, python-brace-format
-msgid "{days} d {hours} h"
-msgstr "{days} d {hours} tim"
-
-#: nejomibot/health.py
-#, python-brace-format
-msgid "{hours} h {minutes} min"
-msgstr "{hours} tim {minutes} min"
-
-#: nejomibot/health.py
-#, python-brace-format
-msgid "{minutes} min"
-msgstr "{minutes} min"
-
 #: nejomibot/health.py nejomibot/status.py
 msgid "Bot"
 msgstr "Bot"
@@ -496,6 +634,10 @@ msgid "{count} message waiting to be sent, the first for {duration}"
 msgid_plural "{count} messages waiting to be sent, the first for {duration}"
 msgstr[0] "{count} meddelande har väntat på att skickas i {duration}"
 msgstr[1] "{count} meddelanden väntar på att skickas, det första i {duration}"
+
+#: nejomibot/health.py
+msgid "Signal rate-limits the bot: signal-account.sh rate-limit lifts it"
+msgstr "Signal begränsar boten: signal-account.sh rate-limit häver det"
 
 #: nejomibot/health.py
 msgid "running"
@@ -560,6 +702,10 @@ msgid "a random photo"
 msgstr "en slumpvis vald bild"
 
 #: nejomibot/help.py
+msgid "a photo from this day, years ago"
+msgstr "en bild från den här dagen, för år sedan"
+
+#: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "hur många bilder, och hur stora"
 
@@ -570,6 +716,10 @@ msgstr "[<ort>]"
 #: nejomibot/help.py
 msgid "the weather now"
 msgstr "vädret just nu"
+
+#: nejomibot/help.py
+msgid "the weather today and tomorrow"
+msgstr "vädret idag och imorgon"
 
 #: nejomibot/help.py
 msgid "the time, and an exchange rate"
@@ -586,6 +736,38 @@ msgstr "[<bibliotek>|all|list]"
 #: nejomibot/help.py
 msgid "a fortune"
 msgstr "en spådom"
+
+#: nejomibot/help.py
+msgid "<when> <text>"
+msgstr "<när> <text>"
+
+#: nejomibot/help.py
+msgid "a reminder, here"
+msgstr "en påminnelse, här"
+
+#: nejomibot/help.py
+msgid "[remove <n>]"
+msgstr "[remove <n>]"
+
+#: nejomibot/help.py
+msgid "the reminders here; remove one"
+msgstr "påminnelserna här; ta bort en"
+
+#: nejomibot/help.py
+msgid "[add <things> · remove <n>,…]"
+msgstr "[add <saker> · remove <n>,…]"
+
+#: nejomibot/help.py
+msgid "this chat's list"
+msgstr "den här chattens lista"
+
+#: nejomibot/help.py
+msgid "the birthdays, the coming ones first"
+msgstr "födelsedagarna, de närmaste först"
+
+#: nejomibot/help.py
+msgid "the name days, the coming ones first"
+msgstr "namnsdagarna, de närmaste först"
 
 #: nejomibot/help.py
 msgid "these commands"
@@ -744,6 +926,26 @@ msgid "messages people sent it; forward some"
 msgstr "meddelanden folk skickat boten; vidarebefordra några"
 
 #: nejomibot/help.py
+msgid "a birthday"
+msgstr "en födelsedag"
+
+#: nejomibot/help.py
+msgid "add <date> [<chats>] <who>"
+msgstr "add <datum> [<chattar>] <vem>"
+
+#: nejomibot/help.py
+msgid "a name day"
+msgstr "en namnsdag"
+
+#: nejomibot/help.py
+msgid "remove <n>"
+msgstr "remove <n>"
+
+#: nejomibot/help.py
+msgid "remove one; /nameday too"
+msgstr "ta bort en; /namnsdag också"
+
+#: nejomibot/help.py
 msgid "its latest messages anywhere; delete some"
 msgstr "botens senaste meddelanden överallt; radera några"
 
@@ -763,8 +965,12 @@ msgstr ""
 "grupper"
 
 #: nejomibot/help.py
-msgid "<n> – a number from /allowed, /timers, /delete list or /incoming"
-msgstr "<n> – ett nummer från /tillåtna, /timers, /radera list eller /inkorg"
+msgid ""
+"<n> – a number from /allowed, /timers, /delete list, /incoming, /birthdays "
+"or /namedays"
+msgstr ""
+"<n> – ett nummer från /tillåtna, /timers, /radera list, /inkorg, /"
+"födelsedagar eller /namnsdagar"
 
 #: nejomibot/help.py
 #, python-brace-format
@@ -780,6 +986,14 @@ msgid ""
 "<chats> – numbers from /chats, like 1,2; a timer without them posts to you"
 msgstr ""
 "<chattar> – nummer från /chats, som 1,2; en timer utan dem postar till dig"
+
+#: nejomibot/help.py
+msgid ""
+"<date> – 1990-03-14, or 03-14 without the year; for someone not on Signal, "
+"<who> is a name, shown in <chats>, or in every group"
+msgstr ""
+"<datum> – 1990-03-14, eller 03-14 utan år; för någon som inte har Signal är "
+"<vem> ett namn, som visas i <chattar>, eller i alla grupper"
 
 #: nejomibot/help.py
 msgid ""
@@ -813,6 +1027,190 @@ msgstr "Kommandon"
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
 msgstr "Alla kommandon fungerar också med sina engelska namn."
+
+#: nejomibot/holidays.py
+msgid "New Year's Day"
+msgstr "Nyårsdagen"
+
+#: nejomibot/holidays.py
+msgid "Epiphany"
+msgstr "Trettondedag jul"
+
+#: nejomibot/holidays.py
+msgid "The King's name day"
+msgstr "Konungens namnsdag"
+
+#: nejomibot/holidays.py
+msgid "Valentine's Day"
+msgstr "Alla hjärtans dag"
+
+#: nejomibot/holidays.py
+msgid "Shrove Tuesday"
+msgstr "Fettisdagen"
+
+#: nejomibot/holidays.py
+msgid "The Crown Princess's name day"
+msgstr "Kronprinsessans namnsdag"
+
+#: nejomibot/holidays.py
+msgid "Maundy Thursday"
+msgstr "Skärtorsdagen"
+
+#: nejomibot/holidays.py
+msgid "Good Friday"
+msgstr "Långfredagen"
+
+#: nejomibot/holidays.py
+msgid "Holy Saturday"
+msgstr "Påskafton"
+
+#: nejomibot/holidays.py
+msgid "Easter Sunday"
+msgstr "Påskdagen"
+
+#: nejomibot/holidays.py
+msgid "Easter Monday"
+msgstr "Annandag påsk"
+
+#: nejomibot/holidays.py
+msgid "The King's birthday"
+msgstr "Konungens födelsedag"
+
+#: nejomibot/holidays.py
+msgid "Walpurgis Night"
+msgstr "Valborgsmässoafton"
+
+#: nejomibot/holidays.py
+msgid "May Day"
+msgstr "Första maj"
+
+#: nejomibot/holidays.py
+msgid "Ascension Day"
+msgstr "Kristi himmelsfärdsdag"
+
+#: nejomibot/holidays.py
+msgid "Mother's Day"
+msgstr "Mors dag"
+
+#: nejomibot/holidays.py
+msgid "Veterans' Day"
+msgstr "Veterandagen"
+
+#: nejomibot/holidays.py
+msgid "Whit Sunday"
+msgstr "Pingstdagen"
+
+#: nejomibot/holidays.py
+msgid "National Day of Sweden"
+msgstr "Sveriges nationaldag"
+
+#: nejomibot/holidays.py
+msgid "Midsummer Eve"
+msgstr "Midsommarafton"
+
+#: nejomibot/holidays.py
+msgid "Midsummer Day"
+msgstr "Midsommardagen"
+
+#: nejomibot/holidays.py
+msgid "The Crown Princess's birthday"
+msgstr "Kronprinsessans födelsedag"
+
+#: nejomibot/holidays.py
+msgid "The Queen's name day"
+msgstr "Drottningens namnsdag"
+
+#: nejomibot/holidays.py
+msgid "Election day"
+msgstr "Valdagen"
+
+#: nejomibot/holidays.py
+msgid "United Nations Day"
+msgstr "FN-dagen"
+
+#: nejomibot/holidays.py
+msgid "All Saints' Day"
+msgstr "Alla helgons dag"
+
+#: nejomibot/holidays.py
+msgid "Gustavus Adolphus Day"
+msgstr "Gustav Adolfsdagen"
+
+#: nejomibot/holidays.py
+msgid "Father's Day"
+msgstr "Fars dag"
+
+#: nejomibot/holidays.py
+msgid "First Sunday of Advent"
+msgstr "Första advent"
+
+#: nejomibot/holidays.py
+msgid "Second Sunday of Advent"
+msgstr "Andra advent"
+
+#: nejomibot/holidays.py
+msgid "Third Sunday of Advent"
+msgstr "Tredje advent"
+
+#: nejomibot/holidays.py
+msgid "Fourth Sunday of Advent"
+msgstr "Fjärde advent"
+
+#: nejomibot/holidays.py
+msgid "Nobel Day"
+msgstr "Nobeldagen"
+
+#: nejomibot/holidays.py
+msgid "St Lucy's Day"
+msgstr "Luciadagen"
+
+#: nejomibot/holidays.py
+msgid "The Queen's birthday"
+msgstr "Drottningens födelsedag"
+
+#: nejomibot/holidays.py
+msgid "Christmas Eve"
+msgstr "Julafton"
+
+#: nejomibot/holidays.py
+msgid "Christmas Day"
+msgstr "Juldagen"
+
+#: nejomibot/holidays.py
+msgid "Boxing Day"
+msgstr "Annandag jul"
+
+#: nejomibot/holidays.py
+msgid "New Year's Eve"
+msgstr "Nyårsafton"
+
+#: nejomibot/holidays.py
+msgid "Tsiknopempti"
+msgstr "Tsiknopempti"
+
+#: nejomibot/holidays.py
+msgid "Clean Monday"
+msgstr "Ren måndag"
+
+#: nejomibot/holidays.py
+msgid "Greek Independence Day"
+msgstr "Greklands nationaldag"
+
+#: nejomibot/holidays.py
+msgid "Whit Monday"
+msgstr "Annandag pingst"
+
+#: nejomibot/holidays.py
+msgid "Dormition of the Virgin Mary"
+msgstr "Marie himmelsfärd"
+
+#: nejomibot/holidays.py
+msgid "Ochi Day"
+msgstr "Ochi-dagen"
+
+#: nejomibot/holidays.py
+msgid "flag day"
+msgstr "flaggdag"
 
 #: nejomibot/i18n.py
 msgid "Monday"
@@ -900,6 +1298,26 @@ msgstr "{weekday} {day} {month} {time}"
 msgid "yesterday {time}"
 msgstr "igår {time}"
 
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{seconds} s"
+msgstr "{seconds} s"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{days} d {hours} h"
+msgstr "{days} d {hours} tim"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{hours} h {minutes} min"
+msgstr "{hours} tim {minutes} min"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{minutes} min"
+msgstr "{minutes} min"
+
 #: nejomibot/incoming.py
 #, python-brace-format
 msgid "No messages kept since the bot started, at {time}."
@@ -980,6 +1398,58 @@ msgstr "valutakurstjänsten svarade med ett fel ({error})"
 msgid "the exchange rate API has no rate for {currency}"
 msgstr "valutakurstjänsten har ingen kurs för {currency}"
 
+#: nejomibot/lists.py
+msgid "/list add <things>: put things on the list, e.g. /list add milk, eggs"
+msgstr ""
+"/lista add <saker>: sätt upp saker på listan, t.ex. /lista add mjölk, ägg"
+
+#: nejomibot/lists.py
+msgid "/list remove <n>,…: take them off, by their numbers"
+msgstr "/lista remove <n>,…: stryk dem, med deras nummer"
+
+#: nejomibot/lists.py
+msgid "/list clear: take everything off"
+msgstr "/lista clear: stryk allt"
+
+#: nejomibot/lists.py
+msgid "📝 The list is empty."
+msgstr "📝 Listan är tom."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "📝 The list: {count} thing"
+msgid_plural "📝 The list: {count} things"
+msgstr[0] "📝 Listan: {count} sak"
+msgstr[1] "📝 Listan: {count} saker"
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "A thing on the list has at most {count} characters."
+msgstr "En sak på listan har högst {count} tecken."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "A list has at most {count} things: take some off first."
+msgstr "En lista har högst {count} saker: stryk några först."
+
+#: nejomibot/lists.py
+msgid "Which? Give their numbers, as /list shows."
+msgstr "Vilka? Ange deras nummer, som /lista visar."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "There's no {n} on the list."
+msgstr "Det finns ingen {n} på listan."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "🗑️ Took off: {things}"
+msgstr "🗑️ Struket: {things}"
+
+#: nejomibot/lists.py
+msgid "🗑️ The list is empty now."
+msgstr "🗑️ Listan är tom nu."
+
 #: nejomibot/messages.py
 #, python-brace-format
 msgid "signal-cli-rest-api answered {status} {reason}"
@@ -1020,6 +1490,63 @@ msgstr[0] ""
 "{count} meddelande kunde inte skickas på {hours} timmar och har slängts"
 msgstr[1] ""
 "{count} meddelanden kunde inte skickas på {hours} timmar och har slängts"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "🔄 Updated: nejomibot {old} → {new}."
+msgstr "🔄 Uppdaterad: nejomibot {old} → {new}."
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid ""
+"⚠️ Up again, after a stop that wasn't clean, such as a crash, a kill or a "
+"power cut. It had run since {time}. Messages that had waited less than half "
+"a minute to be sent may be lost."
+msgstr ""
+"⚠️ Igång igen, efter ett stopp som inte gick rätt till, som en krasch, en "
+"tvångsavslutning eller ett strömavbrott. Den hade varit igång sedan {time}. "
+"Meddelanden som hade väntat mindre än en halv minut på att skickas kan ha "
+"gått förlorade."
+
+#: nejomibot/notices.py
+msgid ""
+"⚠️ Signal rate-limits the bot, so messages wait, and are tried every half "
+"hour. To lift the limit, run signal-account.sh rate-limit --to <your number> "
+"on the server, and solve the captcha."
+msgstr ""
+"⚠️ Signal begränsar boten, så meddelanden väntar och provas igen varje "
+"halvtimme. Häv begränsningen med signal-account.sh rate-limit --to <ditt "
+"nummer> på servern, och lös captchan."
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid ""
+"🔐 The safety number of {name} has changed: they may have a new phone, or it "
+"may not be them. The bot can't send to them until it's trusted: compare it "
+"with theirs with /contacts {name}, then /trust."
+msgstr ""
+"🔐 Säkerhetsnumret för {name} har ändrats: personen kan ha en ny telefon, "
+"eller så är det inte hen. Boten kan inte skicka till hen förrän numret är "
+"betrott: jämför det med hens, med /kontakter {name}, sedan /verifiera."
+
+#: nejomibot/onthisday.py
+#, python-brace-format
+msgid "{count} year ago today"
+msgid_plural "{count} years ago today"
+msgstr[0] "För {count} år sedan idag"
+msgstr[1] "För {count} år sedan idag"
+
+#: nejomibot/onthisday.py
+#, python-brace-format
+msgid "{count} year ago, around this day"
+msgid_plural "{count} years ago, around this day"
+msgstr[0] "För {count} år sedan, runt den här dagen"
+msgstr[1] "För {count} år sedan, runt den här dagen"
+
+#: nejomibot/onthisday.py
+msgid "No photos from this day, or the days around it, in earlier years."
+msgstr ""
+"Inga bilder från den här dagen, eller dagarna runt den, från tidigare år."
 
 #: nejomibot/photos.py
 #, python-brace-format
@@ -1288,6 +1815,91 @@ msgstr "✉️ Skickat till {chats}."
 #, python-brace-format
 msgid "▶️ Posted the answers to {chats}."
 msgstr "▶️ Postade svaren i {chats}."
+
+#: nejomibot/reminders.py
+msgid "/remind <when> <text>: a reminder here, e.g."
+msgstr "/påminn <när> <text>: en påminnelse här, t.ex."
+
+#: nejomibot/reminders.py
+msgid "/remind tomorrow 08:00 Pick up Bob"
+msgstr "/påminn imorgon 08:00 Hämta Bob"
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid ""
+"<when> is a time (18:00), a day and a time (fri 17:00, tomorrow 08:00, "
+"{date} 15:00), or how soon (30m, 2h, 1h30m), in {zone} time"
+msgstr ""
+"<när> är en tid (18:00), en dag och en tid (fre 17:00, imorgon 08:00, {date} "
+"15:00), eller hur snart (30m, 2h, om 1h30m), enligt tiden i {zone}"
+
+#: nejomibot/reminders.py
+msgid "/remind: the reminders here"
+msgstr "/påminn: påminnelserna här"
+
+#: nejomibot/reminders.py
+msgid "/remind remove <n>: remove one"
+msgstr "/påminn remove <n>: ta bort en"
+
+#: nejomibot/reminders.py
+msgid "No reminders here."
+msgstr "Inga påminnelser här."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "🔔 {count} reminder here"
+msgid_plural "🔔 {count} reminders here"
+msgstr[0] "🔔 {count} påminnelse här"
+msgstr[1] "🔔 {count} påminnelser här"
+
+#: nejomibot/reminders.py
+msgid "When?"
+msgstr "När?"
+
+#: nejomibot/reminders.py
+msgid "What should the reminder say?"
+msgstr "Vad ska påminnelsen säga?"
+
+#: nejomibot/reminders.py nejomibot/timers.py
+#, python-brace-format
+msgid "{when} has already been."
+msgstr "{when} har redan varit."
+
+#: nejomibot/reminders.py
+msgid "A reminder can be at most a year ahead."
+msgstr "En påminnelse kan vara högst ett år framåt."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "A reminder has at most {count} characters."
+msgstr "En påminnelse har högst {count} tecken."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "There are {count} reminders here already: remove one first."
+msgstr "Det finns redan {count} påminnelser här: ta bort en först."
+
+#: nejomibot/reminders.py nejomibot/timers.py
+msgid "Added"
+msgstr "Tillagd"
+
+#: nejomibot/reminders.py
+msgid "Which reminder? Give its number, as /remind shows."
+msgstr "Vilken påminnelse? Ange dess nummer, som /påminn visar."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "No reminder #{n} here."
+msgstr "Ingen påminnelse #{n} här."
+
+#: nejomibot/reminders.py nejomibot/timers.py
+msgid "Removed"
+msgstr "Borttagen"
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "⏰ {text}"
+msgstr "⏰ {text}"
 
 #: nejomibot/specials.py
 msgid "Photo of the day!"
@@ -1680,12 +2292,9 @@ msgid "A timer on a date runs once: give it one time, and no days."
 msgstr "En timer på ett datum körs en gång: ge den en tid, och inga dagar."
 
 #: nejomibot/timers.py
-msgid ""
-"Timers, specials and /run can't manage timers, specials or who may use the "
-"bot, nor run /msg, /run or /incoming."
-msgstr ""
-"Timrar, specialkommandon och /run kan inte hantera timrar, specialkommandon "
-"eller vilka som får använda boten, och inte köra /msg, /run eller /inkorg."
+#, python-brace-format
+msgid "Timers, specials and /run can't run {command}."
+msgstr "Timrar, specialkommandon och /run kan inte köra {command}."
 
 #: nejomibot/timers.py
 msgid "A timer's commands can't have a |: the timers file uses it."
@@ -1736,18 +2345,9 @@ msgstr[0] "⏰ {count} timer"
 msgstr[1] "⏰ {count} timrar"
 
 #: nejomibot/timers.py
-msgid "Added"
-msgstr "Tillagd"
-
-#: nejomibot/timers.py
 #, python-brace-format
 msgid "There's no chat {n}: /chats numbers them."
 msgstr "Det finns ingen chatt {n}: /chats numrerar dem."
-
-#: nejomibot/timers.py
-#, python-brace-format
-msgid "{when} has already been."
-msgstr "{when} har redan varit."
 
 #: nejomibot/timers.py
 #, python-brace-format
@@ -1767,10 +2367,6 @@ msgstr "Ingen timer #{n}."
 #, python-brace-format
 msgid "▶️ Ran timer #{n}"
 msgstr "▶️ Körde timer #{n}"
-
-#: nejomibot/timers.py
-msgid "Removed"
-msgstr "Borttagen"
 
 #: nejomibot/weather.py
 msgid "thunderstorm with light rain"
@@ -1993,12 +2589,17 @@ msgid "overcast clouds"
 msgstr "mulet"
 
 #: nejomibot/weather.py
-msgid "the weather data isn't as expected"
-msgstr "väderdatan ser inte ut som väntat"
-
-#: nejomibot/weather.py
 msgid "unknown weather"
 msgstr "okänt väder"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "🌅 {sunrise} · 🌇 {sunset} · {daylight} of daylight"
+msgstr "🌅 {sunrise} · 🌇 {sunset} · {daylight} dagsljus"
+
+#: nejomibot/weather.py
+msgid "the weather data isn't as expected"
+msgstr "väderdatan ser inte ut som väntat"
 
 #: nejomibot/weather.py
 #, python-brace-format
@@ -2056,3 +2657,25 @@ msgstr "OpenWeatherMap går inte att nå: {error}"
 #, python-brace-format
 msgid "OpenWeatherMap knows no place called {city}"
 msgstr "OpenWeatherMap känner inte till någon plats som heter {city}"
+
+#: nejomibot/weather.py
+msgid "the forecast data isn't as expected"
+msgstr "prognosdatan ser inte ut som väntat"
+
+#: nejomibot/weather.py
+msgid "Today"
+msgstr "Idag"
+
+#: nejomibot/weather.py
+msgid "Tomorrow"
+msgstr "Imorgon"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "🌡️ {low} to {high}"
+msgstr "🌡️ {low} till {high}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "Forecast for {city}"
+msgstr "Prognos för {city}"

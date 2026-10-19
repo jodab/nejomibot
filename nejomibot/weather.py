@@ -2,7 +2,14 @@
 Alone, in weather_city, which the heading names weather_city_name, if set;
 with a place, as in /weather Helsinki, there, the heading naming the place
 OpenWeatherMap found, in the bot's language if it has the name in it, with
-its state or region and country: Weather in Springfield, Illinois, US.
+its state or region and country: Weather in Springfield, Illinois, US. It
+ends with the day's sunrise, sunset and daylight there, in its time.
+
+/forecast, alone or with a place as /weather takes it: the weather today and
+tomorrow, from OpenWeatherMap's forecast for every three hours. For each
+day, the worst weather from 06:00 to 21:00 there, the lowest and highest
+temperature, and the highest chance of rain or snow. Late in the evening,
+tomorrow and the day after.
 
 OpenWeatherMap's geocoding finds places by name, the best known first (it
 doesn't say so, but Stockholm is the one in Sweden, not Maine's), and the bot
@@ -13,16 +20,18 @@ as places don't move, then the weather there, as OpenWeatherMap no longer
 develops its weather by city name.
 
 It keeps each place's weather for 10 minutes, as OpenWeatherMap's changes
-every 10 minutes, and answers with that when asked again sooner. About places
-named, it asks OpenWeatherMap at most weather_calls_per_hour times an hour,
-finding them included, and says when to try again past that. weather_city's
-weather, as in the daily post, isn't counted, so it's never refused.
+every 10 minutes, and its forecast for 30, and answers with those when asked
+again sooner. About places named, it asks OpenWeatherMap at most
+weather_calls_per_hour times an hour, finding them included, and says when to
+try again past that. weather_city's weather and forecast, as in the daily
+post, aren't counted, so they're never refused.
 """
 
 import logging
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
 from math import ceil
 from time import monotonic
 from typing import Any
@@ -33,17 +42,25 @@ from signalbot import DataMessageContext
 from .client import client
 from .commands import Command, Handler, answer, argument
 from .config import get_settings
-from .i18n import N_, _, day_and_time, ngettext
+from .i18n import N_, _, day_and_time, format_duration, ngettext, weekday_name
 from .messages import ServiceError, error_text, escape, log_failure, web_error
 from .styles import bold
 
 logger = logging.getLogger(__name__)
 
 API_URL = "https://api.openweathermap.org/data/2.5/weather"
+FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
 GEOCODING_URL = "https://api.openweathermap.org/geo/1.0/direct"
 TIMEOUT = aiohttp.ClientTimeout(total=15)
 # Seconds a place's weather is kept, as OpenWeatherMap's changes every 10 minutes
 FRESH = 10 * 60
+# Seconds a forecast is kept: OpenWeatherMap's are for every three hours
+FORECAST_FRESH = 30 * 60
+# The forecast's three-hour steps the bot asks for: three days' worth, enough
+# for today and tomorrow, or late in the evening, tomorrow and the day after
+FORECAST_STEPS = 24
+# Hours of the day whose weather a day's forecast shows, the worst of them
+DAYTIME = range(6, 22)
 HOUR = 60 * 60
 MAX_PLACES = 100  # names whose place is kept, the oldest going first
 
@@ -160,6 +177,32 @@ def humidity_icon(humidity: int) -> str:
     return "🏜️" if humidity < 30 else "💧"
 
 
+def described(code: int, given: str) -> str:
+    """The condition in the bot's language: as the bot words it, else as
+    OpenWeatherMap does."""
+    known = DESCRIPTIONS.get(code)
+    return (_(known) if known else given or _("unknown weather")).capitalize()
+
+
+def sun_line(data: dict[str, Any]) -> str | None:
+    """Sunrise, sunset and the daylight between, at the place, in its time;
+    None where the sun doesn't both rise and set that day, or OpenWeatherMap
+    doesn't say."""
+    try:
+        zone = timezone(timedelta(seconds=int(data["timezone"])))
+        rise, sets = int(data["sys"]["sunrise"]), int(data["sys"]["sunset"])
+    except KeyError, TypeError, ValueError, OverflowError:
+        return None
+    if not 0 < rise < sets:
+        return None
+    up, down = (datetime.fromtimestamp(at, zone) for at in (rise, sets))
+    return _("🌅 {sunrise} · 🌇 {sunset} · {daylight} of daylight").format(
+        sunrise=f"{up:%H:%M}",
+        sunset=f"{down:%H:%M}",
+        daylight=format_duration(down - up),
+    )
+
+
 def format_weather(
     data: dict[str, Any], city: str, now: datetime, units: str = "metric"
 ) -> str:
@@ -174,8 +217,7 @@ def format_weather(
     except (KeyError, IndexError, TypeError, ValueError, AttributeError) as e:
         raise WeatherError(_("the weather data isn't as expected")) from e
 
-    known = DESCRIPTIONS.get(code)
-    description = (_(known) if known else given or _("unknown weather")).capitalize()
+    description = described(code, given)
     unit = UNITS.get(units, "°")
     celsius = temp if units == "metric" else (temp - 32) * 5 / 9
     heading = _("Weather in {city}").format(city=city)
@@ -190,6 +232,8 @@ def format_weather(
             icon=humidity_icon(humidity), humidity=f"{humidity}%"
         ),
     ]
+    if sun := sun_line(data):
+        lines.append(sun)
     return f"{bold(heading)}\n" + escape("\n".join(lines))
 
 
@@ -291,31 +335,69 @@ async def place(city: str, *, counted: bool = False) -> Place:
     return places[key]
 
 
-# Each place's latest weather, by where it is, and when it came
-latest: dict[tuple[str, str], tuple[float, dict[str, Any]]] = {}
+# What OpenWeatherMap said about each place, by where it is, and when
+type Kept[T] = dict[tuple[str, str], tuple[float, T]]
+
+# Each place's latest weather, and forecast
+latest: Kept[dict[str, Any]] = {}
+forecasts: Kept[list[Step]] = {}
 
 
-async def fetch_weather(city: str = "") -> tuple[Place, dict[str, Any]]:
-    """The weather in the city named, else in weather_city, and where that
-    is: what the bot got in the last 10 minutes, or else asked anew, which is
-    counted for a city named. Raises WeatherError."""
+async def fetch[T](
+    url: str,
+    kept: Kept[T],
+    fresh: float,
+    read: Callable[[Any], T],
+    city: str = "",
+    **params: str,
+) -> tuple[Place, T]:
+    """What OpenWeatherMap's url says about the city named, else about
+    weather_city, as read() reads it, and where that is: what the bot got in
+    the last fresh seconds, or else asked anew, which is counted for a city
+    named. Raises WeatherError."""
     settings = get_settings()
     where = await place(city or settings.weather_city, counted=bool(city))
     now = monotonic()
-    for old in [key for key, (at, _data) in latest.items() if now - at >= FRESH]:
-        del latest[old]
+    for old in [key for key, (at, _value) in kept.items() if now - at >= fresh]:
+        del kept[old]
     key = (where.lat, where.lon)
-    if key not in latest:
+    if key not in kept:
         data = await ask(
-            API_URL,
+            url,
             counted=bool(city),
             lat=where.lat,
             lon=where.lon,
             units=settings.weather_units,
             lang=settings.language,
+            **params,
         )
-        latest[key] = (monotonic(), data)
-    return where, latest[key][1]
+        kept[key] = (monotonic(), read(data))
+    return where, kept[key][1]
+
+
+async def fetch_weather(city: str = "") -> tuple[Place, dict[str, Any]]:
+    """The weather in the city named, else in weather_city, and where that
+    is, from the last 10 minutes. Raises WeatherError."""
+    return await fetch(API_URL, latest, FRESH, lambda data: data, city)
+
+
+def failed(what: str, city: str, error: Exception) -> str:
+    """What to answer when the weather can't be had, logged. Styled."""
+    if isinstance(error, TooOften):
+        logger.info("%s: weather_calls_per_hour reached for places named", what)
+        return escape(str(error))
+    # A name that's no place is no failure, and what follows a command is for
+    # DEBUG alone
+    if not (city and isinstance(error, NoPlace)):
+        log_failure(logger, what, error)
+    return escape(error_text(error))
+
+
+def named(where: Place, city: str) -> str:
+    """How the heading names the place: as found, or weather_city as the
+    config names it."""
+    settings = get_settings()
+    return where.name if city else settings.weather_city_name or settings.weather_city
 
 
 async def weather_message(city: str = "") -> str:
@@ -324,22 +406,11 @@ async def weather_message(city: str = "") -> str:
     settings = get_settings()
     try:
         where, data = await fetch_weather(city)
-        configured = settings.weather_city_name or settings.weather_city
         return format_weather(
-            data,
-            where.name if city else configured,
-            datetime.now(settings.tz),
-            settings.weather_units,
+            data, named(where, city), datetime.now(settings.tz), settings.weather_units
         )
-    except TooOften as e:
-        logger.info("The weather: weather_calls_per_hour reached for places named")
-        return escape(str(e))
     except Exception as e:
-        # A name that's no place is no failure, and what follows a command is
-        # for DEBUG alone
-        if not (city and isinstance(e, NoPlace)):
-            log_failure(logger, "The weather", e)
-        return escape(error_text(e))
+        return failed("The weather", city, e)
 
 
 class Weather(Handler):
@@ -348,3 +419,125 @@ class Weather(Handler):
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         city = argument(context.message.text)
         await answer(context, lambda: weather_message(city), slow=True, styled=True)
+
+
+# The forecast
+
+
+@dataclass(frozen=True)
+class Step:
+    """Three hours of a forecast."""
+
+    at: datetime  # when they start, in the place's time
+    temperature: float
+    code: int
+    description: str  # as OpenWeatherMap gives it
+    rain: float  # the chance of rain or snow, 0 to 1
+
+
+def forecast_steps(data: Any) -> list[Step]:
+    """OpenWeatherMap's forecast, as steps. Raises WeatherError."""
+    try:
+        zone = timezone(timedelta(seconds=int(data["city"]["timezone"])))
+        steps = [
+            Step(
+                at=datetime.fromtimestamp(int(item["dt"]), zone),
+                temperature=float(item["main"]["temp"]),
+                code=int(item["weather"][0]["id"]),
+                description=str(item["weather"][0].get("description") or ""),
+                rain=float(item.get("pop") or 0),
+            )
+            for item in data["list"]
+        ]
+    except (
+        KeyError,
+        IndexError,
+        TypeError,
+        ValueError,
+        AttributeError,
+        OverflowError,
+    ) as e:
+        raise WeatherError(_("the forecast data isn't as expected")) from e
+    if not steps:
+        raise WeatherError(_("the forecast data isn't as expected"))
+    return steps
+
+
+def severity(code: int) -> tuple[int, int]:
+    """How bad the weather is, for a day's worst: a thunderstorm, snow, rain,
+    drizzle, mist and the like, clouds, and a clear sky last; within each,
+    by OpenWeatherMap's code, which has the heavier and cloudier later."""
+    groups = {2: 6, 6: 5, 5: 4, 3: 3, 7: 2}
+    return groups.get(code // 100, 1 if code > 800 else 0), code
+
+
+def day_name(day: date, today: date) -> str:
+    if day == today:
+        return _("Today")
+    if day == today + timedelta(days=1):
+        return _("Tomorrow")
+    return weekday_name(day)
+
+
+def format_forecast(
+    steps: list[Step], city: str, now: datetime, units: str = "metric"
+) -> str:
+    """Today and tomorrow, or tomorrow and the day after once today has no
+    daytime left: each day's worst weather in the daytime, its lowest and
+    highest temperature, and its highest chance of rain or snow. now is in
+    the place's time. Styled."""
+    days: dict[date, list[Step]] = {}
+    for step in steps:
+        days.setdefault(step.at.date(), []).append(step)
+    today = now.date()
+    shown = [
+        (day, its)
+        for day, its in days.items()
+        if day > today
+        or (day == today and any(step.at.hour in DAYTIME for step in its))
+    ][:2]
+    unit = UNITS.get(units, "°")
+    lines: list[str] = []
+    for day, its in shown:
+        daytime = [step for step in its if step.at.hour in DAYTIME] or its
+        worst = max(daytime, key=lambda step: severity(step.code))
+        lines.append(
+            f"{day_name(day, today)}: {condition_icon(worst.code)} "
+            + described(worst.code, worst.description)
+        )
+        temperatures = [round(step.temperature) for step in its]
+        line = _("🌡️ {low} to {high}").format(
+            low=min(temperatures), high=f"{max(temperatures)}{unit}"
+        )
+        if (rain := round(max(step.rain for step in its), 1)) > 0:
+            line += f" · ☔ {rain:.0%}"
+        lines.append(line)
+    heading = _("Forecast for {city}").format(city=city)
+    return f"{bold(heading)}\n" + escape("\n".join(lines))
+
+
+async def forecast_message(city: str = "") -> str:
+    """The forecast for the city named, else for weather_city; or why it
+    can't be had. Styled."""
+    settings = get_settings()
+    try:
+        where, steps = await fetch(
+            FORECAST_URL,
+            forecasts,
+            FORECAST_FRESH,
+            forecast_steps,
+            city,
+            cnt=str(FORECAST_STEPS),
+        )
+        now = datetime.now(steps[0].at.tzinfo)
+        return format_forecast(steps, named(where, city), now, settings.weather_units)
+    except Exception as e:
+        return failed("The forecast", city, e)
+
+
+class Forecast(Handler):
+    commands = (Command("/forecast", more=True),)
+
+    async def handle(self, context: DataMessageContext, command: Command) -> None:
+        city = argument(context.message.text)
+        await answer(context, lambda: forecast_message(city), slow=True, styled=True)

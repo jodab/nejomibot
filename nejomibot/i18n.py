@@ -156,6 +156,20 @@ def when_text(at: datetime, now: datetime) -> str:
     return f"{local:%Y-%m-%d} {time}"
 
 
+def format_duration(duration: timedelta) -> str:
+    """E.g. '3 d 4 h', '4 h 12 min', '12 min' or '45 s'."""
+    seconds = int(duration.total_seconds())
+    if seconds < 60:
+        return _("{seconds} s").format(seconds=seconds)
+    hours, minutes = divmod(seconds // 60, 60)
+    days, hours = divmod(hours, 24)
+    if days:
+        return _("{days} d {hours} h").format(days=days, hours=hours)
+    if hours:
+        return _("{hours} h {minutes} min").format(hours=hours, minutes=minutes)
+    return _("{minutes} min").format(minutes=minutes)
+
+
 def format_file_size(size: float) -> str:
     """E.g. '1.5MB'."""
     for unit in ["B", "KB", "MB", "GB", "TB"]:

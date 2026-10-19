@@ -25,9 +25,25 @@ wait for the owner.
   file of specials uses it"), though only the first `|` of a line counts and
   the file now has spoilers' `||`: the refusal could go, the `|` kept as
   `\|`.
+- [ ] **What was chosen for the features of 2026-10-19**, where you didn't
+  say, any of which can change:
+  - The Swedish names: `/dennadag` (`/onthisday`), `/prognos`, `/påminn`,
+    `/lista`, `/födelsedag`, `/födelsedagar`, `/namnsdag`, `/namnsdagar`.
+  - Reminders come once (one every week is an admin's timer), at most 20 a
+    chat and a year ahead, and are dropped when more than a day late.
+  - `/forecast` shows today and tomorrow, not more days.
+  - The calendar leaves out days set anew each time, such as the election to
+    the European Parliament, and the trade's own, such as Kanelbullens dag.
+    Greece's 26 December shows as Boxing Day, so that it's one line with
+    Sweden's.
+  - The admins hear of safety numbers that changed and aren't trusted, not
+    of someone new.
 
 ### For you to do
 
+- [ ] **Holidays in the daily post** (2026-10-19): set `holidays = ["SE",
+  "GR"]` in the server's config.toml, as it's none by default, then add the
+  birthdays and name days with `/birthday add` and `/nameday add`.
 - [ ] **Perhaps say on 0.94.0's release page that its images are broken**
   (2026-10-18), and to use 0.94.1: `gh release edit v0.94.0 --notes-file
   ...`. It stays as published, as releases do.

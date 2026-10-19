@@ -120,9 +120,9 @@ async def test_msg(chat: Chat, signal_api: FakeApi) -> None:
         ("/run 1 /frobnicate", "/frobnicate isn't a command the bot knows."),
         (
             "/run 1 /timer add 08:00 /ping",
-            "Timers, specials and /run can't manage timers",
+            "Timers, specials and /run can't run /timer.",
         ),
-        ("/run 1 /msg 2 Hello", "Timers, specials and /run can't manage timers"),
+        ("/run 1 /msg 2 Hello", "Timers, specials and /run can't run /msg."),
         ("/run 4 /ping", "There's no chat 4: /chats numbers them."),
     ],
 )

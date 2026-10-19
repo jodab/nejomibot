@@ -27,7 +27,7 @@ from .messages import (
     DELETABLE_FOR,
     Sent,
     SentLog,
-    chat_of,
+    chats_of,
     error_text,
     escape,
     log_failure,
@@ -44,15 +44,6 @@ LISTED = 50  # messages /delete list shows
 # in the list: /delete <n> takes the numbers from there. Only in memory, so
 # after a restart, the list again.
 shown: dict[str, list[tuple[Sent, str]]] = {}
-
-
-def chats_of(context: DataMessageContext) -> set[str]:
-    """The chat the command came from, as the outbox knows it. A direct chat
-    may be known by phone number or by ID."""
-    message = context.message
-    if message.is_group():
-        return {chat_of(context.bot, message.source_or_group_id())}
-    return {who for who in (message.source_uuid, message.source_number) if who}
 
 
 async def remote_delete(bot: SignalBot, sent: Sent) -> None:

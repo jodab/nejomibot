@@ -9,10 +9,12 @@ timer that posts to chats 1 and 2 (or, without numbers, to the admin);
 now.
 
 A timer runs each command once, as an admin would in a direct chat with the
-bot, so it can run any command but those that manage timers, specials or the
-allowed list, or post to chats of their own. Its answers are collected rather
-than sent, then posted to each of the timer's chats, so every group gets the
-same photo.
+bot, so it can run any command but those that manage timers, specials,
+birthdays or the allowed list, post to chats of their own, or answer for the
+chat they're sent in, as /remind and /list do. Its answers are collected
+rather than sent, then posted to each of the timer's chats, so every group
+gets the same photo; one with a text for some chats, as the daily post's
+with birthdays, gets it there.
 
 Timers are kept in data_dir/timers.txt, one per line, which
 nejomibot-timers edits too: the bot rereads the file when it changes. In debug
@@ -606,8 +608,9 @@ class Timekeeper:
 timekeeper = Timekeeper()
 
 
-# What a timer can run: any command but those that manage timers, specials or
-# who may use the bot, or post to chats of their own (Command.timers)
+# What a timer can run: any command but those that manage timers, specials,
+# birthdays or who may use the bot, post to chats of their own, or answer for
+# their own chat (Command.timers)
 
 
 def check_commands(
@@ -618,9 +621,8 @@ def check_commands(
     for command in commands:
         found = find(canonical(command))
         if found is not None and not found.timers:
-            return _(
-                "Timers, specials and /run can't manage timers, specials or who "
-                "may use the bot, nor run /msg, /run or /incoming."
+            return _("Timers, specials and /run can't run {command}.").format(
+                command=command.split()[0]
             )
         if "|" in command:
             return _("A timer's commands can't have a |: the timers file uses it.")

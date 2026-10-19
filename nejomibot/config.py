@@ -97,6 +97,10 @@ class Settings(BaseSettings):
     # post, is asked at most every 10 minutes, and isn't counted.
     weather_calls_per_hour: Annotated[int, Field(ge=1)] = 10
 
+    # The daily post names the special days of these countries atop the
+    # weather: holidays, flag days and traditions. SE Sweden, GR Greece.
+    holidays: list[Literal["SE", "GR"]] = []
+
     timezone: TimeZone = "Europe/Stockholm"
 
     photos_dir: Path = Path("/photos")

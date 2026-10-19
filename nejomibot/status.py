@@ -32,13 +32,12 @@ from .health import (
     Check,
     CheckFailed,
     check_health,
-    format_duration,
     memory_check,
     run_check,
     up_since,
     version_lines,
 )
-from .i18n import _, format_file_size, ngettext
+from .i18n import _, format_duration, format_file_size, ngettext
 from .info import fetch_rate
 from .messages import arrival_delay, describe, escape, outbox
 from .photos import scan_photos

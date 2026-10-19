@@ -3,7 +3,9 @@ before: texts, and what other commands answer.
 
 Two come with the bot: /dailypost, the weather, then the photo of the day,
 captioned "Photo of the day!" in bold (none twice until every photo has been
-sent, so each run uses one up); and /dailyquote, a proverb or quote from
+sent, so each run uses one up), with the day's holidays atop the weather, if
+it has any, and in a group, the birthdays and name days of those it's for
+(birthdays.py); and /dailyquote, a proverb or quote from
 fortunes_svenska, headed "Proverb or quote of the day:" in bold. The admins
 make their own, in a direct chat with the bot:
 
@@ -34,16 +36,19 @@ import logging
 import re
 from collections.abc import Collection, Iterable
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Self
 
-from signalbot import DataMessageContext, SendMessage, TextMode, TextStyle
+from signalbot import DataMessageContext, SendMessage, SignalBot, TextMode, TextStyle
 
+from . import birthdays
 from .commands import Command, Handler, Reply, aliases, answer, built_in, canonical
 from .config import get_settings
 from .files import write_privately
 from .fortune import OWN, fortune_answer
+from .holidays import days_on
 from .i18n import _, ngettext
-from .messages import escape, unreadable_text
+from .messages import PerChat, escape, unreadable_text
 from .photos import photo_message
 from .styles import Styles, marked, styles_of
 from .timers import check_commands, timekeeper
@@ -70,10 +75,29 @@ HEADER = (
 # The two the bot comes with
 
 
-async def daily_post() -> list[Reply]:
-    """The weather, then the photo of the day. Styled."""
+def atop(lines: list[str], text: str) -> str:
+    """The styled text under the lines, if any, a blank line between."""
+    return escape("\n".join(lines)) + f"\n\n{text}" if lines else text
+
+
+async def daily_post(bot: SignalBot, day: date | None = None) -> list[Reply]:
+    """The weather, then the photo of the day. Atop the weather, the day's
+    holidays, in the countries of the setting holidays, and in a group, the
+    birthdays and name days of those it's for: today's, or the day's.
+    Styled."""
     weather = await weather_message()
-    return [weather, await photo_message(_("Photo of the day!"), track_sent=True)]
+    day = day or datetime.now(get_settings().tz).date()
+    holidays = days_on(day, get_settings().holidays)
+    greetings = await birthdays.greetings(bot, day)
+    post = PerChat(
+        text=atop(holidays, weather),
+        texts={
+            group: atop([*holidays, *lines], weather)
+            for group, lines in greetings.items()
+        },
+        text_mode=TextMode.STYLED,
+    )
+    return [post, await photo_message(_("Photo of the day!"), track_sent=True)]
 
 
 async def daily_quote() -> str:
@@ -255,12 +279,20 @@ own_specials = OwnSpecials()
 
 def headed(text: str, message: SendMessage) -> SendMessage:
     """The message, styled, the text in marks before its own, a blank line
-    between."""
-    own = message.text or ""
-    if message.text_mode != TextMode.STYLED:
-        own = escape(own)
-    body = f"{text}\n\n{own}" if own else text
-    return message.model_copy(update={"text": body, "text_mode": TextMode.STYLED})
+    between; in each chat's text too, for a message with some."""
+
+    def head(own: str) -> str:
+        if message.text_mode != TextMode.STYLED:
+            own = escape(own)
+        return f"{text}\n\n{own}" if own else text
+
+    update: dict[str, object] = {
+        "text": head(message.text or ""),
+        "text_mode": TextMode.STYLED,
+    }
+    if isinstance(message, PerChat):
+        update["texts"] = {chat: head(own) for chat, own in message.texts.items()}
+    return message.model_copy(update=update)
 
 
 async def posts(parts: Parts) -> list[SendMessage]:
@@ -407,7 +439,8 @@ class Specials(Handler):
         text = context.message.text or ""
         words = text.split()
         if command.name == "/dailypost":
-            await answer(context, daily_post, slow=True, styled=True)
+            bot = context.bot
+            await answer(context, lambda: daily_post(bot), slow=True, styled=True)
         elif command.name == "/dailyquote":
             await answer(context, daily_quote, styled=True)
         elif command.name in ("/specials", "/special"):

@@ -5,7 +5,8 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from PIL import Image, TiffImagePlugin
+from helpers import make_jpeg
+from PIL import Image
 from signalbot import TextMode, TextStyle
 
 from nejomibot import photos
@@ -21,42 +22,6 @@ def born(monkeypatch: pytest.MonkeyPatch) -> None:
     """Captions show the age of who's in the photos, born on BORN."""
     monkeypatch.setenv("NEJOMIBOT_PHOTOS_BIRTH_DATE", BORN)
     get_settings.cache_clear()
-
-
-def make_jpeg(
-    path: Path,
-    taken: str | None = None,
-    offset: str | None = None,
-    created: str | None = None,
-    where: tuple[float, float] | None = None,
-) -> Path:
-    exif = Image.Exif()
-    if taken:
-        exif.get_ifd(0x8769)[0x9003] = taken  # DateTimeOriginal
-    if offset:
-        exif.get_ifd(0x8769)[0x9011] = offset  # OffsetTimeOriginal
-    if created:
-        exif.get_ifd(0x8769)[0x9004] = created  # CreateDate (DateTimeDigitized)
-    if where:
-        gps = exif.get_ifd(0x8825)
-        for (ref, tag), value, sides in zip(
-            ((1, 2), (3, 4)), where, ("NS", "EW"), strict=True
-        ):
-            gps[ref] = sides[value < 0]
-            gps[tag] = dms(abs(value))
-    Image.new("RGB", (4, 3), "red").save(path, exif=exif)
-    return path
-
-
-def dms(degrees: float) -> tuple[TiffImagePlugin.IFDRational, ...]:
-    """Degrees, minutes and seconds, as cameras save them."""
-    minutes, seconds = divmod(round(degrees * 3600 * 100), 60 * 100)
-    whole, minutes = divmod(minutes, 60)
-    return (
-        TiffImagePlugin.IFDRational(whole, 1),
-        TiffImagePlugin.IFDRational(minutes, 1),
-        TiffImagePlugin.IFDRational(seconds, 100),
-    )
 
 
 def caption(path: Path, heading: str = "") -> str:

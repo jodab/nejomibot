@@ -4,7 +4,8 @@ bot. The chats are numbers from /chats, such as 1,2.
 /msg 1,2 Hello! posts the text to chats 1 and 2, as the bot. /run 1 /status
 runs the commands as a timer does, as an admin would in a direct chat with the
 bot, and posts their answers to the chats instead: /run 1,2 /weather; /photo.
-Like a timer, /run can't manage timers, specials or who may use the bot.
+Like a timer, /run can't run what manages timers, specials, birthdays or who
+may use the bot, nor what answers for its own chat, as /remind does.
 
 Both answer where they posted, and where it only waits to be sent, as Signal
 can't be reached, or may not have arrived.

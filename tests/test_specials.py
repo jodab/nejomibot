@@ -1,7 +1,8 @@
+from datetime import date
 from typing import Any, cast
 
 import pytest
-from helpers import ALICE, text_styles
+from helpers import ALICE, ALICE_ID, GROUP, text_styles
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -15,6 +16,7 @@ from nejomibot import commands, specials
 from nejomibot.commands import known
 from nejomibot.config import get_settings
 from nejomibot.fortune import FORTUNES_DIR, read_fortunes
+from nejomibot.messages import for_chat
 from nejomibot.specials import (
     HEADER,
     Part,
@@ -109,6 +111,39 @@ async def test_the_daily_post(chat: Chat, monkeypatch: pytest.MonkeyPatch) -> No
     ]
 
 
+async def test_the_daily_post_names_the_day(
+    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_HOLIDAYS", '["SE"]')
+    get_settings.cache_clear()
+
+    async def weather_message() -> str:
+        return "**Weather**"
+
+    async def photo_message(
+        caption: str = "", *, track_sent: bool = False
+    ) -> SendMessage:
+        return SendMessage(text=caption)
+
+    monkeypatch.setattr(specials, "weather_message", weather_message)
+    monkeypatch.setattr(specials, "photo_message", photo_message)
+    get_settings().data_file("birthdays.txt").write_text(
+        f"birthday | 1990-06-06 | {ALICE_ID} {ALICE} | Alice\n"
+    )
+    post, photo = await specials.daily_post(bot, date(2026, 6, 6))
+    assert isinstance(post, SendMessage)
+    assert photo == SendMessage(text="Photo of the day!")
+    holiday = "🇸🇪 National Day of Sweden · flag day"
+    # In the group Alice is in, her birthday too; elsewhere, the day alone
+    in_group = f"{holiday}\n🎂 Alice turns 36 today!\n\n**Weather**"
+    assert for_chat(post, GROUP).text == in_group
+    assert for_chat(post, ALICE).text == f"{holiday}\n\n**Weather**"
+    # A special's text heads it in every chat
+    post = headed("**Hi!**", post)
+    assert for_chat(post, GROUP).text == f"**Hi!**\n\n{in_group}"
+    assert for_chat(post, ALICE).text == f"**Hi!**\n\n{holiday}\n\n**Weather**"
+
+
 @pytest.mark.usefixtures("swedish")
 async def test_the_daily_quote(chat: Chat) -> None:
     [text] = await chat.send("/dagenscitat")
@@ -178,9 +213,9 @@ def test_parts_keep_the_english_names() -> None:
         ("", "What should it post?"),
         (" ; \n ", "What should it post?"),
         ("Hi /frobnicate", "/frobnicate isn't a command the bot knows."),
-        ("/timer add 08:00 /ping", "Timers, specials and /run can't manage"),
-        ("/specials", "Timers, specials and /run can't manage"),
-        ("/msg 1 Hi", "Timers, specials and /run can't manage"),
+        ("/timer add 08:00 /ping", "Timers, specials and /run can't run /timer."),
+        ("/specials", "Timers, specials and /run can't run /specials."),
+        ("/msg 1 Hi", "Timers, specials and /run can't run /msg."),
         ("Hi | there /ping", "A special can't have a |"),
         ("Hi /Morning", "/Morning is a special of yours"),
         ("; ".join(["/ping"] * 6), "A special has at most 5 parts."),

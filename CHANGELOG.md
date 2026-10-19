@@ -4,6 +4,63 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- Birthdays and name days in the daily post, atop the weather, in the groups
+  of those they're for: "🎂 Alice turns 36 today!", "🌸 Happy name day,
+  Bob!". The admins keep them, in a direct chat with the bot: `/birthday add
+  1990-03-14 Alice` for a contact, as `/contacts` finds them, saved by name,
+  shown in the groups they're in by their name in the contacts; `/birthday
+  add 1940-05-01 1 Grandma` for someone not on Signal, in the groups given by
+  their numbers in `/chats`, or without them, in every group; `/nameday add
+  08-08 Alice`; `/birthday remove 2`. Never in a direct chat. `/birthdays` and
+  `/namedays`, for everyone allowed, list them, the coming ones first: in a
+  group, its own; for the admins, in a direct chat, all of them, numbered.
+  Kept in `data_dir/birthdays.txt`. In Swedish, `/födelsedag`,
+  `/födelsedagar`, `/namnsdag`, `/namnsdagar`.
+- `holidays`, none by default: the daily post names the day's holidays, flag
+  days and traditions of these countries atop the weather, `SE` for Sweden
+  and `GR` for Greece, each after its flag: "🇸🇪 National Day of Sweden ·
+  flag day".
+- `/remind`, for everyone allowed: a reminder the bot posts in the chat when
+  it's due, once: `/remind 18:00 Take the cake out`, `/remind 30m Call Bob`,
+  `/remind tomorrow 08:00 Pick up Bob`, `/remind fri 17:00 Pizza!`.
+  `/remind` alone lists the chat's, and `/remind remove 2` removes one. Kept
+  in `data_dir/reminders.txt`. In Swedish, `/påminn`, and `om 30m`.
+- `/list`, for everyone allowed: a list for each chat, such as for shopping:
+  `/list add milk, eggs`, `/list remove 2,5`, `/list clear`. Kept in
+  `data_dir/lists.txt`. In Swedish, `/lista`.
+- `/forecast`, `/forecast <city>`: the weather today and tomorrow, from
+  OpenWeatherMap's forecast: each day's worst weather in the daytime, its
+  lowest and highest temperature, and its chance of rain or snow. Kept for
+  30 minutes; a place named counts toward `weather_calls_per_hour`. In
+  Swedish, `/prognos`.
+- `/onthisday`: a photo taken on this day in an earlier year, or else within
+  three days of it, under "3 years ago today". In Swedish, `/dennadag`.
+- Notices to the admins, in a direct chat: after an update, the versions;
+  after a stop that wasn't clean, that the bot is up again; when Signal
+  starts rate-limiting the bot, how to lift the limit; and when someone's
+  safety number changes, whose, as the bot can't send to them until it's
+  trusted. The bot keeps which version ran last in `data_dir/run.json`.
+
+### Changed
+
+- `/weather` ends with the day's sunrise, sunset and daylight, in the
+  place's own time: "🌅 07:35 · 🌇 17:21 · 9 h 46 min of daylight". So does
+  the daily post's weather.
+- What timers, specials and `/run` can't run, they now name: "Timers,
+  specials and /run can't run /msg." They can't run `/remind`, `/list`,
+  `/birthdays`, `/namedays`, `/birthday` or `/nameday` either.
+- The bot's health check says when Signal rate-limits the bot, and what
+  lifts the limit, while messages wait.
+
+### Updating
+
+- For holidays in the daily post, set `holidays`, such as `holidays = ["SE",
+  "GR"]`; see config.example.toml.
+
 ## 0.98.0 - 2026-10-19
 
 ### Added

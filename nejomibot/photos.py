@@ -112,13 +112,17 @@ def mark_sent(path: Path) -> None:
         logger.warning("Could not add %s to the sent photos: %r", path, e)
 
 
+def exif_of(img: Image.Image) -> Image.Exif:
+    """The image's EXIF, as its header has it: a PNG's after the image data
+    is left out, as reading it would take the whole image."""
+    return img.getexif() if "exif" in img.info else Image.Exif()
+
+
 def read_photo(path: Path) -> Image.Exif | None:
-    """The photo's EXIF, or None if it's no image Pillow can read. EXIF is
-    read with the header, so a PNG's after the image data is left out, as
-    reading it would take the whole image."""
+    """The photo's EXIF, or None if it's no image Pillow can read."""
     try:
         with open_image(path) as img:
-            exif = img.getexif() if "exif" in img.info else Image.Exif()
+            exif = exif_of(img)
             img.verify()
     except Exception as e:
         logger.error("Image validation failed for '%s': %s", path, e)

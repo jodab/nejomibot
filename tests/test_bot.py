@@ -41,9 +41,14 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         # The admins, and the allowed list, checked for every message
         "Ping": EVERYONE_ALLOWED,
         "Photo": EVERYONE_ALLOWED,
+        "OnThisDay": EVERYONE_ALLOWED,
         "Weather": EVERYONE_ALLOWED,
+        "Forecast": EVERYONE_ALLOWED,
         "Info": EVERYONE_ALLOWED,
         "Fortune": EVERYONE_ALLOWED,
+        "Remind": EVERYONE_ALLOWED,
+        "Lists": EVERYONE_ALLOWED,
+        "Birthdays": EVERYONE_ALLOWED,
         "Help": EVERYONE_ALLOWED,
         # The admins, in direct chats only
         "Status": admins,
@@ -63,6 +68,7 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Msg": admins,
         "Run": admins,
         "Incoming": admins,
+        "Birthday": admins,
         # Any chat, but in groups it checks for an admin itself
         "Delete": ([ADMIN], True),
     }

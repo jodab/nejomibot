@@ -31,11 +31,18 @@ class Line:
 
 EVERYDAY = [
     Line("📷", "/photo", N_("a random photo")),
+    Line("🎞️", "/onthisday", N_("a photo from this day, years ago")),
     Line("📂", "/cache", N_("how many photos, and how big")),
     Line("🌤️", "/weather", N_("the weather now"), N_("[<city>]")),
+    Line("🌦️", "/forecast", N_("the weather today and tomorrow"), N_("[<city>]")),
     Line("🕰️", "/info", N_("the time, and an exchange rate")),
     Line("🏓", "/ping", N_("is the bot there?")),
     Line("🔮", "/fortune", N_("a fortune"), N_("[<library>|all|list]")),
+    Line("🔔", "/remind", N_("a reminder, here"), N_("<when> <text>")),
+    Line("🔕", "/remind", N_("the reminders here; remove one"), N_("[remove <n>]")),
+    Line("📝", "/list", N_("this chat's list"), N_("[add <things> · remove <n>,…]")),
+    Line("🎂", "/birthdays", N_("the birthdays, the coming ones first")),
+    Line("🌸", "/namedays", N_("the name days, the coming ones first")),
     Line("❓", "/help", N_("these commands")),
 ]
 ADMIN = [
@@ -63,6 +70,9 @@ ADMIN = [
     Line("✉️", "/msg", N_("post a message to chats"), N_("<chats> <text>")),
     Line("▶️", "/run", N_("post commands' answers to chats"), N_("<chats> <commands>")),
     Line("📥", "/incoming", N_("messages people sent it; forward some"), N_("[<n>,…]")),
+    Line("🎁", "/birthday", N_("a birthday"), N_("add <date> [<chats>] <who>")),
+    Line("💐", "/nameday", N_("a name day"), N_("add <date> [<chats>] <who>")),
+    Line("🗑️", "/birthday", N_("remove one; /nameday too"), N_("remove <n>")),
     Line(
         "📤",
         "/delete",
@@ -113,12 +123,19 @@ def notes() -> list[str]:
     date = example_date(datetime.now(settings.tz).date())
     return [
         _("<who> – a name, number or ID, as /contacts shows; /allow takes groups too"),
-        _("<n> – a number from /allowed, /timers, /delete list or /incoming"),
+        _(
+            "<n> – a number from /allowed, /timers, /delete list, /incoming, "
+            "/birthdays or /namedays"
+        ),
         _(
             "<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · "
             "every 2h, in {zone} time"
         ).format(date=date, zone=zone),
         _("<chats> – numbers from /chats, like 1,2; a timer without them posts to you"),
+        _(
+            "<date> – 1990-03-14, or 03-14 without the year; for someone not on "
+            "Signal, <who> is a name, shown in <chats>, or in every group"
+        ),
         _(
             "<parts> – text and commands, separated by ;, e.g. Good morning! "
             "/weather; /dailyquote"

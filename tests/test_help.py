@@ -57,7 +57,8 @@ def test_a_line_per_command() -> None:
     lines = help_message(admin=False).splitlines()
     assert lines[0] == "**Commands**"
     assert lines[1] == "📷 `/photo` – a random photo"
-    assert lines[6] == "🔮 `/fortune [<library>|all|list]` – a fortune"
+    assert lines[8] == "🔮 `/fortune [<library>|all|list]` – a fortune"
+    assert lines[9] == "🔔 `/remind <when> <text>` – a reminder, here"
 
 
 def test_aliases_are_listed(monkeypatch: pytest.MonkeyPatch) -> None:

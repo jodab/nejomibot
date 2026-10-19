@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from aiohttp import web
-from signalbot import TextStyle
+from PIL import Image, TiffImagePlugin
+from signalbot import DataMessage, EditMessage, GroupInfo, TextStyle
 
 ME = "+46700000000"
 ALICE = "+46700000001"
@@ -35,6 +36,73 @@ class Clock:
 
     def __call__(self) -> float:
         return self.now
+
+
+# As a message in GROUP names it: by the ID signalbot calls internal
+GROUP_INTERNAL_ID = "internal-Familjen"
+
+
+def message_from(
+    sender: str, text: str, *, in_group: bool = False, edit: bool = False
+) -> DataMessage:
+    """A message as signalbot gives it: from the sender, by phone number or
+    Signal ID, in a direct chat with the bot or in GROUP; an edit if edit."""
+    by_number = sender.startswith("+")
+    fields: dict[str, Any] = {
+        "server_delivered_timestamp": 0,
+        "server_received_timestamp": 0,
+        "timestamp": NOW_MS,
+        "source": sender,
+        "source_number": sender if by_number else None,
+        "source_uuid": None if by_number else sender,
+        "group_info": (
+            GroupInfo.model_validate({"groupId": GROUP_INTERNAL_ID, "revision": 1})
+            if in_group
+            else None
+        ),
+        "text": text,
+    }
+    if edit:
+        return EditMessage(**fields, target_sent_timestamp=1)
+    return DataMessage(**fields)
+
+
+def make_jpeg(
+    path: Path,
+    taken: str | None = None,
+    offset: str | None = None,
+    created: str | None = None,
+    where: tuple[float, float] | None = None,
+) -> Path:
+    """A small JPEG photo, with EXIF as a camera saves it: when it was
+    taken, in a time zone, and where."""
+    exif = Image.Exif()
+    if taken:
+        exif.get_ifd(0x8769)[0x9003] = taken  # DateTimeOriginal
+    if offset:
+        exif.get_ifd(0x8769)[0x9011] = offset  # OffsetTimeOriginal
+    if created:
+        exif.get_ifd(0x8769)[0x9004] = created  # CreateDate (DateTimeDigitized)
+    if where:
+        gps = exif.get_ifd(0x8825)
+        for (ref, tag), value, sides in zip(
+            ((1, 2), (3, 4)), where, ("NS", "EW"), strict=True
+        ):
+            gps[ref] = sides[value < 0]
+            gps[tag] = dms(abs(value))
+    Image.new("RGB", (4, 3), "red").save(path, exif=exif)
+    return path
+
+
+def dms(degrees: float) -> tuple[TiffImagePlugin.IFDRational, ...]:
+    """Degrees, minutes and seconds, as cameras save them."""
+    minutes, seconds = divmod(round(degrees * 3600 * 100), 60 * 100)
+    whole, minutes = divmod(minutes, 60)
+    return (
+        TiffImagePlugin.IFDRational(whole, 1),
+        TiffImagePlugin.IFDRational(minutes, 1),
+        TiffImagePlugin.IFDRational(seconds, 100),
+    )
 
 
 def write(root: Path, path: str, text: str) -> None:

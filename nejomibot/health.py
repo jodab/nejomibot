@@ -35,7 +35,7 @@ from . import healthcheck, system
 from .account import Device, fetch_devices
 from .client import client
 from .config import get_settings
-from .i18n import _, format_file_size, ngettext
+from .i18n import _, format_duration, format_file_size, ngettext
 from .messages import describe, outbox
 
 logger = logging.getLogger(__name__)
@@ -93,20 +93,6 @@ async def run_check(name: str, check: Callable[[], Awaitable[str]]) -> Check:
     return Check(name, ok=True, detail=detail, seconds=time.monotonic() - start)
 
 
-def format_duration(duration: timedelta) -> str:
-    """E.g. '3 d 4 h', '4 h 12 min', '12 min' or '45 s'."""
-    seconds = int(duration.total_seconds())
-    if seconds < 60:
-        return _("{seconds} s").format(seconds=seconds)
-    hours, minutes = divmod(seconds // 60, 60)
-    days, hours = divmod(hours, 24)
-    if days:
-        return _("{days} d {hours} h").format(days=days, hours=hours)
-    if hours:
-        return _("{hours} h {minutes} min").format(hours=hours, minutes=minutes)
-    return _("{minutes} min").format(minutes=minutes)
-
-
 def is_too_old(version: str) -> bool:
     """A signal-cli-rest-api release up to LAST_TOO_OLD."""
     try:
@@ -138,6 +124,10 @@ def bot_check(bot: SignalBot, now: datetime) -> Check:
             "{count} messages waiting to be sent, the first for {duration}",
             waiting,
         ).format(count=waiting, duration=format_duration(now - oldest))
+        if outbox.rate_limited:
+            detail += ". " + _(
+                "Signal rate-limits the bot: signal-account.sh rate-limit lifts it"
+            )
         return Check(name, ok=False, detail=detail)
     return Check(name, ok=True, detail=_("running"))
 

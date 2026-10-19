@@ -197,7 +197,11 @@ surely failed retried for `send_retry_hours` with a note that they're late
 shutdown, and they're loaded at start. `send()` returns the `Outcome`, which
 `/msg` and `/run` report. While a timer, `/run` or a special runs a command,
 the `collected` ContextVar gathers its replies instead of sending them, and
-`mark_read` and `show_typing` do nothing.
+`mark_read` and `show_typing` do nothing. A `PerChat` message has a text of
+its own for some chats, as the daily post's for the groups of those with a
+birthday: `send()` gives each chat its own, so timers, `/run`, specials and
+replies all do. As Signal starts rate-limiting the bot, the outbox calls
+`on_rate_limited` (notices.py).
 
 **Timers** (`timers.py`): kept in `data_dir/timers.txt`, which
 `nejomibot-timers` (`timers_cli.py`, reusing timers.py) edits too; reread
@@ -220,6 +224,25 @@ file at each lookup and rereads it when it changed. Their texts keep the
 formatting given in Signal (`DataMessage.text_styles`), which
 `styles.marked()` writes as signal-cli-rest-api's marks and checks by
 reading them back as its parser does (`styles.unmarked()`).
+
+**Birthdays and holidays** (`birthdays.py`, `holidays.py`): the daily post
+names the day atop the weather: its holidays, in every chat, from rules in
+`holidays.py` (Easter from dateutil); and in a group only, never a direct
+chat (the owner's decision, 2026-10-19), the birthdays and name days of
+those it's for. A contact's is kept by Signal ID and phone number, shows in
+the groups they're in, and names them by their name in the contacts
+(`Contact.saved_name`) at the time; someone not on Signal's shows in the
+groups given, or in every group.
+
+**Reminders and lists** (`reminders.py`, `lists.py`): each chat's own, for
+everyone allowed. A job at the start of every minute posts the reminders
+due, after taking them out of the file, so none is posted twice. Timers
+can't run them, nor the birthday lists, as they answer for their own chat.
+
+**Notices** (`notices.py`): the admins hear of an update or a stop that
+wasn't clean (`data_dir/run.json`, written at start and at shutdown), of
+Signal starting to rate-limit the bot (tried once, `Outbox.try_once`), and
+of changed safety numbers, looked at every `healthcheck_minutes`.
 
 **Beyond signalbot**: `rest.py` (direct requests) and `account.py` (pydantic
 models for contacts, safety numbers, devices; `Account` looks people up
@@ -246,11 +269,13 @@ less than half a minute, which aren't on disk yet), and not while the bot
 waits for the account.
 
 **Files the bot keeps**: `allowed.txt`, `timers.txt`, `specials.txt`,
-`sent-photos.txt` and `outbox/` in `data_dir`, written through
-`files.write_privately` (mode 0600, a `mkstemp` temp file, fsync, replace,
-fsync of the folder) or `files.append_privately`. In the first three, hand
-edits, comments and unreadable lines are kept as they are. Debug mode keeps
-them in a private temp folder per run.
+`reminders.txt`, `lists.txt`, `birthdays.txt`, `sent-photos.txt`, `run.json`
+and `outbox/` in `data_dir`, written through `files.write_privately` (mode
+0600, a `mkstemp` temp file, fsync, replace, fsync of the folder) or
+`files.append_privately`. In the line files, hand edits, comments and
+unreadable lines are kept as they are; a new one uses `files.KeptLines`, as
+the reminders, lists and birthdays do. Debug mode keeps them in a private
+temp folder per run.
 
 **Translations** (`i18n.py`): messages are English, marked with `_()`,
 `ngettext()`, or `N_()` in tables made ahead of use, and formatted after
@@ -286,13 +311,14 @@ messages, run `tools/translations.sh` and translate `sv.po`.
 - Python 3.14 only: the code uses `except A, B:` without parentheses (PEP 758)
   and `type` aliases.
 - Tests: `tests/conftest.py` gives each test fresh settings
-  (`get_settings.cache_clear()`), a fresh allowed list, specials and debug
-  folder, points `signal_service` at `127.0.0.1:1`, closes the HTTP session,
-  and imports `nejomibot.bot` so every handler is known. `tests/helpers.py`
-  has the made-up people and groups and `FakeApi`, a stand-in
-  signal-cli-rest-api (import from there, not from conftest); the `bot`
-  fixture is a real signalbot against it. Deprecation warnings fail the
-  tests. All test data is made up.
+  (`get_settings.cache_clear()`), a fresh allowed list, specials, reminders,
+  lists, birthdays and debug folder, points `signal_service` at
+  `127.0.0.1:1`, closes the HTTP session, and imports `nejomibot.bot` so
+  every handler is known; its `answers` fixture keeps what commands answer.
+  `tests/helpers.py` has the made-up people and groups, `message_from`,
+  `make_jpeg` and `FakeApi`, a stand-in signal-cli-rest-api (import from
+  there, not from conftest); the `bot` fixture is a real signalbot against
+  it. Deprecation warnings fail the tests. All test data is made up.
 - Comments and docstrings are short, plain sentences saying what something
   does and why; module docstrings explain the feature as an admin uses it.
 
@@ -303,4 +329,6 @@ translations and one picture opened (70 MB with `photos_heif = false`;
 mostly signalbot, aiohttp and pydantic; runs vary by a MB) and a 232 MB
 image (amd64; arm64 250 MB, arm/v7 202 MB), with phonenumberslite in place of signalbot's phonenumbers
 (`exclude-dependencies` in pyproject.toml). Measure both when adding a
-dependency.
+dependency. 2026-10-19: reminders, lists, birthdays, holidays, notices,
+`/forecast` and `/onthisday` added 0.6 MB (73.9 to 74.5 MB, measured alike),
+and no dependency; `/onthisday` keeps about 300 bytes a photo once used.

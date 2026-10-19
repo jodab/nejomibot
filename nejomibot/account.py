@@ -63,16 +63,24 @@ class Contact(BaseModel):
     blocked: bool = False
 
     @property
-    def real_name(self) -> str | None:
-        """The nickname given them, their name in the contacts, the name they
-        gave themselves or their username, if any."""
+    def saved_name(self) -> str | None:
+        """The nickname given them or their name in the contacts, as /contacts
+        add saves it, if any: not one they gave themselves."""
         nickname = self.nickname or Nickname()
-        profile = self.profile or Profile()
         return (
             full_name(nickname.name)
             or full_name(nickname.given_name, nickname.family_name)
             or full_name(self.name)
             or full_name(self.given_name)
+        )
+
+    @property
+    def real_name(self) -> str | None:
+        """The name saved for them, the name they gave themselves or their
+        username, if any."""
+        profile = self.profile or Profile()
+        return (
+            self.saved_name
             or full_name(profile.given_name, profile.lastname)
             or full_name(self.username)
         )

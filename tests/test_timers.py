@@ -47,10 +47,7 @@ TZ = ZoneInfo("Europe/Stockholm")
 NOW = datetime(2026, 10, 12, 16, 0, tzinfo=TZ)  # a Monday
 ADMIN = "+46700000009"
 FRIENDS = "group.RnJpZW5kcw=="
-CANT = (
-    "Timers, specials and /run can't manage timers, specials or who may use the "
-    "bot, nor run /msg, /run or /incoming."
-)
+CANT = "Timers, specials and /run can't run {}."
 
 
 def at(text: str) -> datetime:
@@ -290,17 +287,21 @@ def test_parse_add_refuses(text: str, why: str) -> None:
         ),
         (["/weather", "/frobnicate"], "/frobnicate isn't a command"),
         (["/väder"], "/väder isn't a command"),
-        (["/timer add 08:00 /ping"], CANT),
-        (["/chats"], CANT),
-        (["/allowed"], CANT),
-        (["/allow +46700000001"], CANT),
-        (["/disallow 1"], CANT),
-        (["/msg 1 Hello"], CANT),
-        (["/run 1 /ping"], CANT),
-        (["/incoming"], CANT),
-        (["/incoming 1,2"], CANT),
-        (["/specials"], CANT),
-        (["/special add /x Hi"], CANT),
+        (["/timer add 08:00 /ping"], CANT.format("/timer")),
+        (["/chats"], CANT.format("/chats")),
+        (["/allowed"], CANT.format("/allowed")),
+        (["/allow +46700000001"], CANT.format("/allow")),
+        (["/disallow 1"], CANT.format("/disallow")),
+        (["/msg 1 Hello"], CANT.format("/msg")),
+        (["/run 1 /ping"], CANT.format("/run")),
+        (["/incoming"], CANT.format("/incoming")),
+        (["/incoming 1,2"], CANT.format("/incoming")),
+        (["/specials"], CANT.format("/specials")),
+        (["/special add /x Hi"], CANT.format("/special")),
+        (["/remind 18:00 Hi"], CANT.format("/remind")),
+        (["/list add milk"], CANT.format("/list")),
+        (["/birthdays"], CANT.format("/birthdays")),
+        (["/nameday add 08-08 Alice"], CANT.format("/nameday")),
         (["/about a|b"], "A timer's commands can't have a |"),
     ],
 )
@@ -317,15 +318,17 @@ def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic"], "/timer": ["/t"]}')
     get_settings.cache_clear()
     assert check_commands(["/väder", "/dagensbild", "/Pic", "/spådom startrek"]) is None
+    # Named as given
     for command in ("/t add 08:00 /ping", "/skicka 1 Hej", "/kör 1 /ping"):
-        assert (check_commands([command]) or "").startswith(
-            "Timrar, specialkommandon och /run kan inte hantera timrar"
+        assert check_commands([command]) == (
+            f"Timrar, specialkommandon och /run kan inte köra {command.split()[0]}."
         )
 
 
 def test_what_timers_mayn_t_run() -> None:
-    # What changes timers, specials or who may use the bot, posts to chats of
-    # its own, or shows what others wrote to the bot
+    # What changes timers, specials, birthdays or who may use the bot, posts
+    # to chats of its own, shows what others wrote to the bot, or is a chat's
+    # own, as reminders and lists are
     assert {
         command.name
         for handler in commands.handlers()
@@ -343,6 +346,12 @@ def test_what_timers_mayn_t_run() -> None:
         "/incoming",
         "/specials",
         "/special",
+        "/birthday",
+        "/nameday",
+        "/birthdays",
+        "/namedays",
+        "/remind",
+        "/list",
     }
 
 

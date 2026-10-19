@@ -19,7 +19,6 @@ from nejomibot.config import get_settings
 from nejomibot.delete import (
     LISTED,
     Delete,
-    chats_of,
     delete_latest,
     delete_listed,
     list_sent,
@@ -27,7 +26,7 @@ from nejomibot.delete import (
     nothing_text,
     start_text,
 )
-from nejomibot.messages import Sent, SentLog
+from nejomibot.messages import Sent, SentLog, chats_of
 
 NOW = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)
 # As a group message names its group: by the ID signalbot calls internal
