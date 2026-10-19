@@ -40,6 +40,42 @@ def pic(monkeypatch: pytest.MonkeyPatch) -> None:
     get_settings.cache_clear()
 
 
+@pytest.mark.usefixtures("swedish")
+@pytest.mark.parametrize(
+    ("text", "english"),
+    [
+        ("/lista lägg till mjölk", "/list add mjölk"),
+        # Any case and spaces; what follows stays as it is
+        ("/lista  Lägg\nTILL mjölk,\nägg", "/list  add mjölk,\nägg"),
+        ("/timer ta bort 3", "/timer remove 3"),
+        ("/timer radera 3", "/timer remove 3"),
+        ("/timer kör 3", "/timer run 3"),
+        ("/timers lista", "/timers list"),
+        ("/radera lista", "/delete list"),
+        ("/spådom alla", "/fortune all"),
+        ("/spådom lista", "/fortune list"),
+        ("/lista töm", "/list clear"),
+        ("/födelsedag lägg till 03-14 Alice", "/birthday add 03-14 Alice"),
+        ("/kontakter lägg till Alice Ali", "/contacts add Alice Ali"),
+        ("/om ta bort", "/about remove"),
+        ("/dagenspost förhandsvisa imorgon", "/dailypost preview imorgon"),
+        # The English ones too, in any language
+        ("/list add milk", "/list add milk"),
+        # Only a command's own subcommands, whole words, right after it
+        ("/väder alla", "/weather alla"),
+        ("/kontakter tabort", "/contacts tabort"),
+        ("/lista mjölk lägg till", "/list mjölk lägg till"),
+        ("/listan töm", "/listan töm"),
+    ],
+)
+def test_subcommands_in_the_language(text: str, english: str) -> None:
+    assert canonical(text) == english
+
+
+def test_subcommands_in_english_only_in_english() -> None:
+    assert canonical("/list lägg till milk") == "/list lägg till milk"
+
+
 @pytest.mark.usefixtures("pic")
 @pytest.mark.parametrize(
     ("text", "command"),
@@ -174,7 +210,8 @@ def test_known_commands() -> None:
     weather = known("/WEATHER")
     assert weather is not None and weather.name == "/weather"
     assert known("weather") is None  # only an alias may be a plain word
-    assert known("/fortune startrek") == Command("/fortune", more=True)
+    fortune = known("/fortune startrek")
+    assert fortune is not None and (fortune.name, fortune.more) == ("/fortune", True)
     msg = known("/msg 1 Hi")
     assert msg is not None and not msg.timers
     assert known("/weather Stockholm") == Command("/weather", more=True)

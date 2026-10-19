@@ -9,7 +9,7 @@ from pathlib import Path
 import polib
 import pytest
 
-from nejomibot import i18n, reminders, timers
+from nejomibot import commands, i18n, reminders, timers
 from nejomibot.commands import known
 from nejomibot.config import get_settings
 from nejomibot.i18n import (
@@ -126,6 +126,13 @@ def test_the_languages_names_are_for_real_commands_and_words(
         *timers.DAYS_FROM_NOW,
         timers.EVERY,
         reminders.IN,
+        # Subcommands, as the handlers list them
+        *(
+            word
+            for handler in commands.handlers()
+            for command in handler.commands
+            for word in (*command.subcommands, *command.name.split()[1:])
+        ),
     }
     assert set(names.words) <= words
 
@@ -147,7 +154,7 @@ def test_the_image_reads_them_compiled(
     assert languages() == ["en", "sv"]
     assert swedish.translations.gettext("Photo of the day!") == "Dagens bild!"
     assert swedish.translations.ngettext("{n} day", "{n} days", 2) == "{n} dagar"
-    assert swedish.commands["/dailypost"] == ["/dagensbild"]
+    assert swedish.commands["/dailypost"] == ["/dagenspost", "/dagensbild"]
 
 
 def test_a_broken_names_file_is_an_error(

@@ -264,33 +264,35 @@ msgstr "Födelsedagar och namnsdagar visas i grupper, för dem som är med i dem
 
 #: nejomibot/birthdays.py
 msgid "/birthday add <date> [<chats>] <who>: a birthday, e.g."
-msgstr "/födelsedag add <datum> [<chattar>] <vem>: en födelsedag, t.ex."
+msgstr "/födelsedag lägg till <datum> [<chattar>] <vem>: en födelsedag, t.ex."
 
 #: nejomibot/birthdays.py
 msgid "/birthday add 1990-03-14 Alice: a contact, where they are"
 msgstr ""
-"/födelsedag add 1990-03-14 Alice: en kontakt, i grupperna kontakten är med i"
+"/födelsedag lägg till 1990-03-14 Alice: en kontakt, i grupperna kontakten är "
+"med i"
 
 #: nejomibot/birthdays.py
 msgid ""
 "/birthday add 03-14 1,2 Grandma: someone not on Signal, in chats 1 and 2 of /"
 "chats; without them, in every group"
 msgstr ""
-"/födelsedag add 03-14 1,2 Mormor: någon som inte har Signal, i chatt 1 och 2 "
-"i /chats; utan dem, i alla grupper"
+"/födelsedag lägg till 03-14 1,2 Mormor: någon som inte har Signal, i chatt 1 "
+"och 2 i /chats; utan dem, i alla grupper"
 
 #: nejomibot/birthdays.py
 msgid "/birthday remove <n>: remove one, by its number in /birthdays"
-msgstr "/födelsedag remove <n>: ta bort en, med dess nummer i /födelsedagar"
+msgstr "/födelsedag ta bort <n>: ta bort en, med dess nummer i /födelsedagar"
 
 #: nejomibot/birthdays.py
 msgid "/nameday add <date> [<chats>] <who>: a name day, as /birthday takes it"
 msgstr ""
-"/namnsdag add <datum> [<chattar>] <vem>: en namnsdag, som /födelsedag tar den"
+"/namnsdag lägg till <datum> [<chattar>] <vem>: en namnsdag, som /födelsedag "
+"tar den"
 
 #: nejomibot/birthdays.py
 msgid "/nameday remove <n>: remove one, by its number in /namedays"
-msgstr "/namnsdag remove <n>: ta bort en, med dess nummer i /namnsdagar"
+msgstr "/namnsdag ta bort <n>: ta bort en, med dess nummer i /namnsdagar"
 
 #: nejomibot/birthdays.py nejomibot/contacts.py
 #, python-brace-format
@@ -303,8 +305,8 @@ msgid ""
 "Save {who} as a contact first, by the name to show: /contacts add {who} "
 "<name>"
 msgstr ""
-"Spara {who} som kontakt först, med namnet som ska visas: /kontakter add "
-"{who} <namn>"
+"Spara {who} som kontakt först, med namnet som ska visas: /kontakter lägg "
+"till {who} <namn>"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
@@ -413,7 +415,8 @@ msgstr ""
 
 #: nejomibot/contacts.py
 msgid "Send: /contacts add <phone number, ID or name> <their name>"
-msgstr "Skicka: /kontakter add <telefonnummer, ID eller namn> <deras namn>"
+msgstr ""
+"Skicka: /kontakter lägg till <telefonnummer, ID eller namn> <deras namn>"
 
 #: nejomibot/contacts.py
 msgid ""
@@ -576,12 +579,12 @@ msgstr "/radera <n> raderar ett för alla; /radera 2,5,11 flera."
 
 #: nejomibot/delete.py
 msgid "Which ones? Send /delete list first, for their numbers."
-msgstr "Vilka? Skicka /radera list först, för deras nummer."
+msgstr "Vilka? Skicka /radera lista först, för deras nummer."
 
 #: nejomibot/delete.py
 #, python-brace-format
 msgid "There's no message {n}: /delete list numbers them."
-msgstr "Det finns inget meddelande {n}: /radera list numrerar dem."
+msgstr "Det finns inget meddelande {n}: /radera lista numrerar dem."
 
 #: nejomibot/delete.py
 #, python-brace-format
@@ -605,7 +608,7 @@ msgstr "/radera: radera botens senaste meddelande här, för alla"
 
 #: nejomibot/delete.py
 msgid "/delete list: its latest messages, wherever it sent them"
-msgstr "/radera list: botens senaste meddelanden, var den än skickade dem"
+msgstr "/radera lista: botens senaste meddelanden, var den än skickade dem"
 
 #: nejomibot/delete.py
 msgid "/delete <n>: delete one of those for everyone; /delete 2,5,11 several"
@@ -621,7 +624,7 @@ msgstr "Hittade inga spådomar."
 
 #: nejomibot/fortune.py
 msgid "Unknown fortune library. Use /fortune list to see the names."
-msgstr "Okänt spådomsbibliotek. Skicka /fortune list för att se namnen."
+msgstr "Okänt spådomsbibliotek. Skicka /spådom lista för att se namnen."
 
 #: nejomibot/greeting.py
 msgid "Hi, I'm a bot."
@@ -767,7 +770,7 @@ msgstr "är boten där?"
 
 #: nejomibot/help.py
 msgid "[<library>|all|list]"
-msgstr "[<bibliotek>|all|list]"
+msgstr "[<bibliotek>|alla|lista]"
 
 #: nejomibot/help.py
 msgid "a fortune"
@@ -783,7 +786,7 @@ msgstr "en påminnelse, här"
 
 #: nejomibot/help.py
 msgid "[remove <n>]"
-msgstr "[remove <n>]"
+msgstr "[ta bort <n>]"
 
 #: nejomibot/help.py
 msgid "the reminders here; remove one"
@@ -791,7 +794,7 @@ msgstr "påminnelserna här; ta bort en"
 
 #: nejomibot/help.py
 msgid "[add <things> · remove <n>,…]"
-msgstr "[add <saker> · remove <n>,…]"
+msgstr "[lägg till <saker> · ta bort <n>,…]"
 
 #: nejomibot/help.py
 msgid "this chat's list"
@@ -815,7 +818,7 @@ msgstr "hur boten och servern mår"
 
 #: nejomibot/help.py
 msgid "the daily post, here"
-msgstr "dagens bild, här"
+msgstr "dagens post, här"
 
 #: nejomibot/help.py
 msgid "what it says atop the weather, in each chat"
@@ -839,7 +842,7 @@ msgstr "vilka boten känner till"
 
 #: nejomibot/help.py
 msgid "add <who> <name>"
-msgstr "add <vem> <namn>"
+msgstr "lägg till <vem> <namn>"
 
 #: nejomibot/help.py
 msgid "add a contact, or rename"
@@ -915,11 +918,11 @@ msgstr "en ny timer"
 
 #: nejomibot/help.py
 msgid "add <when> [<chats>] <commands>"
-msgstr "add <när> [<chattar>] <kommandon>"
+msgstr "lägg till <när> [<chattar>] <kommandon>"
 
 #: nejomibot/help.py
 msgid "remove <n> · run <n>"
-msgstr "remove <n> · run <n>"
+msgstr "ta bort <n> · kör <n>"
 
 #: nejomibot/help.py
 msgid "remove one, or run it now"
@@ -935,11 +938,11 @@ msgstr "ett nytt, eller en ändring"
 
 #: nejomibot/help.py
 msgid "add <name> <parts>"
-msgstr "add <namn> <delar>"
+msgstr "lägg till <namn> <delar>"
 
 #: nejomibot/help.py
 msgid "remove <name>"
-msgstr "remove <namn>"
+msgstr "ta bort <namn>"
 
 #: nejomibot/help.py
 msgid "remove one"
@@ -975,7 +978,7 @@ msgstr "en födelsedag"
 
 #: nejomibot/help.py
 msgid "add <date> [<chats>] <who>"
-msgstr "add <datum> [<chattar>] <vem>"
+msgstr "lägg till <datum> [<chattar>] <vem>"
 
 #: nejomibot/help.py
 msgid "a name day"
@@ -983,7 +986,7 @@ msgstr "en namnsdag"
 
 #: nejomibot/help.py
 msgid "remove <n>"
-msgstr "remove <n>"
+msgstr "ta bort <n>"
 
 #: nejomibot/help.py
 msgid "remove one; /nameday too"
@@ -995,7 +998,7 @@ msgstr "botens senaste meddelanden överallt; radera några"
 
 #: nejomibot/help.py
 msgid "list · <n>,…"
-msgstr "list · <n>,…"
+msgstr "lista · <n>,…"
 
 #: nejomibot/help.py
 msgid "delete its latest message here"
@@ -1013,7 +1016,7 @@ msgid ""
 "<n> – a number from /allowed, /timers, /delete list, /incoming, /birthdays "
 "or /namedays"
 msgstr ""
-"<n> – ett nummer från /tillåtna, /timers, /radera list, /inkorg, /"
+"<n> – ett nummer från /tillåtna, /timers, /radera lista, /inkorg, /"
 "födelsedagar eller /namnsdagar"
 
 #: nejomibot/help.py
@@ -1049,7 +1052,7 @@ msgstr ""
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"
-msgstr "remove – efter /om, /profilbild eller /användarnamn tar bort det"
+msgstr "ta bort – efter /om, /profilbild eller /användarnamn tar bort det"
 
 #: nejomibot/help.py
 #, python-brace-format
@@ -1450,15 +1453,16 @@ msgstr "valutakurstjänsten har ingen kurs för {currency}"
 #: nejomibot/lists.py
 msgid "/list add <things>: put things on the list, e.g. /list add milk, eggs"
 msgstr ""
-"/lista add <saker>: sätt upp saker på listan, t.ex. /lista add mjölk, ägg"
+"/lista lägg till <saker>: sätt upp saker på listan, t.ex. /lista lägg till "
+"mjölk, ägg"
 
 #: nejomibot/lists.py
 msgid "/list remove <n>,…: take them off, by their numbers"
-msgstr "/lista remove <n>,…: stryk dem, med deras nummer"
+msgstr "/lista ta bort <n>,…: stryk dem, med deras nummer"
 
 #: nejomibot/lists.py
 msgid "/list clear: take everything off"
-msgstr "/lista clear: stryk allt"
+msgstr "/lista töm: stryk allt"
 
 #: nejomibot/lists.py
 msgid "📝 The list is empty."
@@ -1656,11 +1660,12 @@ msgstr "Skicka /name <nytt namn>."
 
 #: nejomibot/profile.py
 msgid "Send /about <text>, or /about remove."
-msgstr "Skicka /about <text>, eller /about remove."
+msgstr "Skicka /om <text>, eller /om ta bort."
 
 #: nejomibot/profile.py
 msgid "Send a picture with /avatar as its caption, or /avatar remove."
-msgstr "Skicka en bild med /avatar som bildtext, eller /avatar remove."
+msgstr ""
+"Skicka en bild med /profilbild som bildtext, eller /profilbild ta bort."
 
 #: nejomibot/profile.py
 msgid ""
@@ -1668,8 +1673,8 @@ msgid ""
 "digits or _, not starting with a digit; Signal adds a number to it, like "
 "mybot.42, unless you give one."
 msgstr ""
-"Skicka /username <namn>, eller /username remove. Ett namn är 3 till 32 "
-"bokstäver, siffror eller _, och börjar inte med en siffra; Signal lägger "
+"Skicka /användarnamn <namn>, eller /användarnamn ta bort. Ett namn är 3 till "
+"32 bokstäver, siffror eller _, och börjar inte med en siffra; Signal lägger "
 "till ett nummer, som mybot.42, om du inte anger ett."
 
 #: nejomibot/profile.py
@@ -1692,7 +1697,7 @@ msgid ""
 "avatar remove first, then set it again."
 msgstr ""
 "signal-cli kan inte ge tillbaka profilbilden, och ändringen skulle ta bort "
-"den: /avatar remove först, och sätt den sedan igen."
+"den: /profilbild ta bort först, och sätt den sedan igen."
 
 #: nejomibot/profile.py
 #, python-brace-format
@@ -1842,8 +1847,8 @@ msgid ""
 "Send /run <chats> <commands>, e.g. /run 1 /weather; /photo. The chats are "
 "numbers from /chats."
 msgstr ""
-"Skicka /run <chattar> <kommandon>, t.ex. /run 1 /weather; /photo. Chattarna "
-"är nummer från /chats."
+"Skicka /kör <chattar> <kommandon>, t.ex. /kör 1 /väder; /bild. Chattarna är "
+"nummer från /chats."
 
 #: nejomibot/relay.py
 #, python-brace-format
@@ -1888,7 +1893,7 @@ msgstr "/påminn: påminnelserna här"
 
 #: nejomibot/reminders.py
 msgid "/remind remove <n>: remove one"
-msgstr "/påminn remove <n>: ta bort en"
+msgstr "/påminn ta bort <n>: ta bort en"
 
 #: nejomibot/reminders.py
 msgid "No reminders here."
@@ -1965,7 +1970,7 @@ msgstr "Inget ovanför vädret."
 #: nejomibot/specials.py
 #, python-brace-format
 msgid "👁️ The daily post on {day}"
-msgstr "👁️ Dagens bild på {day}"
+msgstr "👁️ Dagens post på {day}"
 
 #: nejomibot/specials.py
 msgid "In a direct chat"
@@ -2020,11 +2025,11 @@ msgstr "/specials: dina egna kommandon, av text och andra kommandon"
 
 #: nejomibot/specials.py
 msgid "/special add <name> <parts>: a new one, or a change, e.g."
-msgstr "/special add <namn> <delar>: ett nytt, eller en ändring, t.ex."
+msgstr "/special lägg till <namn> <delar>: ett nytt, eller en ändring, t.ex."
 
 #: nejomibot/specials.py
 msgid "/special add /morning Good morning! /weather"
-msgstr "/special add /morgon God morgon! /väder"
+msgstr "/special lägg till /morgon God morgon! /väder"
 
 #: nejomibot/specials.py
 msgid ""
@@ -2040,7 +2045,7 @@ msgstr "Texten behåller formateringen du ger den i Signal, som fetstil."
 
 #: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
-msgstr "/special remove <namn>: ta bort ett"
+msgstr "/special ta bort <namn>: ta bort ett"
 
 #: nejomibot/specials.py
 msgid "No specials of your own yet."
@@ -2316,11 +2321,11 @@ msgstr "/timers: timrarna"
 
 #: nejomibot/timers.py
 msgid "/timer add <when> [<chats>] <commands>: a new one, e.g."
-msgstr "/timer add <när> [<chattar>] <kommandon>: en ny, t.ex."
+msgstr "/timer lägg till <när> [<chattar>] <kommandon>: en ny, t.ex."
 
 #: nejomibot/timers.py
 msgid "/timer add mon-fri 07:30 1,2 /weather; /photo"
-msgstr "/timer add mån-fre 07:30 1,2 /väder; /bild"
+msgstr "/timer lägg till mån-fre 07:30 1,2 /väder; /bild"
 
 #: nejomibot/timers.py
 msgid "The chats are numbers from /chats; without them, it posts to you."
@@ -2328,7 +2333,7 @@ msgstr "Chattarna är nummer från /chats; utan dem postar den till dig."
 
 #: nejomibot/timers.py
 msgid "/timer remove <n>, /timer run <n>: remove one, or run it now"
-msgstr "/timer remove <n>, /timer run <n>: ta bort en, eller kör den nu"
+msgstr "/timer ta bort <n>, /timer kör <n>: ta bort en, eller kör den nu"
 
 #: nejomibot/timers.py
 #, python-brace-format
@@ -2360,7 +2365,7 @@ msgstr "En timer på ett datum körs en gång: ge den en tid, och inga dagar."
 #: nejomibot/timers.py
 #, python-brace-format
 msgid "Timers, specials and /run can't run {command}."
-msgstr "Timrar, specialkommandon och /run kan inte köra {command}."
+msgstr "Timrar, specialkommandon och /kör kan inte köra {command}."
 
 #: nejomibot/timers.py
 msgid "A timer's commands can't have a |: the timers file uses it."
@@ -2388,7 +2393,7 @@ msgstr "Vilka kommandon?"
 
 #: nejomibot/timers.py
 msgid "For /timer add, e.g. /timer add 08:00 1,2 /weather; /photo"
-msgstr "För /timer add, t.ex. /timer add 08:00 1,2 /dagensbild"
+msgstr "För /timer lägg till, t.ex. /timer lägg till 08:00 1,2 /dagenspost"
 
 #: nejomibot/timers.py
 msgid "Timers can post to:"

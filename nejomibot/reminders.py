@@ -235,7 +235,9 @@ def remind_answer(context: DataMessageContext, words: list[str]) -> str:
 
 
 class Remind(Handler):
-    commands = (Command("/remind", more=True, timers=False),)
+    commands = (
+        Command("/remind", more=True, timers=False, subcommands=("remove", "delete")),
+    )
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         words = (context.message.text or "").split()

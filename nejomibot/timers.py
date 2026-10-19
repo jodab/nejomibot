@@ -842,8 +842,13 @@ async def timer_answer(context: DataMessageContext, words: list[str]) -> str | N
 
 class Timers(Handler):
     commands = (
-        Command("/timers", more=True, timers=False),
-        Command("/timer", more=True, timers=False),
+        Command("/timers", more=True, timers=False, subcommands=("list",)),
+        Command(
+            "/timer",
+            more=True,
+            timers=False,
+            subcommands=("add", "remove", "delete", "run", "list"),
+        ),
     )
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

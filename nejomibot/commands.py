@@ -4,7 +4,9 @@ A command has the name its handler gives it, in English, and aliases: other
 names the bot comes with (ALIASES), and from the language (see i18n) and the
 setting aliases. A message that starts with an alias is handled as if it
 started with its command: /pic as /photo, /spådom startrek as /fortune
-startrek.
+startrek. So are the language's words for what follows a command, its
+subcommands: /lista lägg till mjölk as /list add mjölk, /spådom alla as
+/fortune all.
 
 Each handler is a Handler that lists its commands, saying of each whether
 more may follow its name and whether timers and /run may run it. answer()
@@ -47,6 +49,7 @@ from .styles import utf16_length
 logger = logging.getLogger(__name__)
 
 FIRST_WORD = re.compile(r"^\S+")
+COMMAND_AND_SPACE = re.compile(r"^(\S+)\s+")
 # Names the bot has had all along, in every language
 ALIASES = {"/status": ["/test"], "/info": ["/time"], "/contacts": ["/safety"]}
 
@@ -66,12 +69,42 @@ def aliases() -> dict[str, str]:
 
 
 def canonical(text: str) -> str:
-    """The text, an alias at its start replaced by its command."""
+    """The text, an alias at its start replaced by its command, and the
+    language's words for a subcommand after it by the English ones."""
     if (word := FIRST_WORD.match(text)) and (
         command := aliases().get(word[0].casefold())
     ):
-        return command + text[word.end() :]
+        text = command + text[word.end() :]
+    return in_english(text)
+
+
+def in_english(text: str) -> str:
+    """The text, the language's words for a subcommand right after its
+    command replaced by the English, as the command takes it."""
+    if not (head := COMMAND_AND_SPACE.match(text)):
+        return text
+    rest = text[head.end() :]
+    for english, phrase in subcommand_words(head[1].lower()):
+        pattern = r"\s+".join(map(re.escape, phrase.split())) + r"(?=\s|$)"
+        if found := re.match(pattern, rest, re.IGNORECASE):
+            return text[: head.end()] + english + rest[found.end() :]
     return text
+
+
+def subcommand_words(command: str) -> list[tuple[str, str]]:
+    """The language's words for the command's subcommands, the longest
+    first, each with the English it means."""
+    words = language().words
+    if not words:
+        return []
+    english: set[str] = set()
+    for handler in handlers():
+        for each in handler.commands:
+            name, _space, second = each.name.partition(" ")
+            if name == command:
+                english.update(each.subcommands, [second] if second else [])
+    found = [(word, phrase) for word in english for phrase in words.get(word, [])]
+    return sorted(found, key=lambda each: -len(each[1]))
 
 
 def resolved(context: DataMessageContext) -> DataMessageContext:
@@ -112,6 +145,9 @@ class Command:
     name: str  # in English, as /help shows it
     more: bool = False  # more may follow the name, as in /fortune startrek
     timers: bool = True  # timers and /run may run it
+    # What may follow it to say what it does, in English, as add in /timer
+    # add: the language's words for these are taken too (in_english)
+    subcommands: tuple[str, ...] = ()
 
     def takes(self, text: str) -> bool:
         """Whether the text is the command, by its name, in any case: the

@@ -109,7 +109,7 @@ async def test_the_daily_post(chat: Chat, monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setattr(specials, "weather_message", weather_message)
     monkeypatch.setattr(specials, "photo_message", photo_message)
     # By its Swedish name, as an admin sends it
-    assert await chat.send("/dagensbild") == [
+    assert await chat.send("/dagenspost") == [
         "Vädret",
         "Dagens bild! (from the round: True)",
     ]
@@ -200,14 +200,17 @@ async def test_the_preview_command(
     chat: Chat, bot: SignalBot, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     chat.bot = bot
-    [text] = await chat.send("/dagensbild preview imorgon")
-    assert text.startswith("**👁️ Dagens bild på ")
-    assert await chat.send("/dagensbild preview snart") == [
+    [text] = await chat.send("/dagenspost förhandsvisa imorgon")
+    assert text.startswith("**👁️ Dagens post på ")
+    # Its old name, and the English word, too
+    [text] = await chat.send("/dagensbild preview")
+    assert text.startswith("**👁️ Dagens post på ")
+    assert await chat.send("/dagenspost förhandsvisa snart") == [
         "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
     ]
     # Nor do timers run it, which would post every group's to their chats
-    assert check_commands(["/dagensbild preview"]) == (
-        "Timrar, specialkommandon och /run kan inte köra /dagensbild preview."
+    assert check_commands(["/dagenspost förhandsvisa"]) == (
+        "Timrar, specialkommandon och /kör kan inte köra /dagenspost förhandsvisa."
     )
 
 
@@ -463,6 +466,15 @@ async def test_formatting_after_an_alias(
     get_settings.cache_clear()
     assert await chat.send(f"{alias} add /hi Hi there!", ("there", "BOLD")) == [
         "✅ **Added /hi**\nHi **there**!"
+    ]
+
+
+@pytest.mark.usefixtures("swedish")
+async def test_formatting_after_a_subcommand(chat: Chat) -> None:
+    # lägg till is replaced by add, shorter than it, and the formatting moves
+    # with the rest of the text
+    assert await chat.send("/special lägg till /hej Hej på er!", ("på er", "BOLD")) == [
+        "✅ **La till /hej**\nHej **på er**!"
     ]
 
 

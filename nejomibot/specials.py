@@ -499,8 +499,13 @@ class Specials(Handler):
         Command("/dailypost preview", more=True, timers=False),
         Command("/dailypost"),
         Command("/dailyquote"),
-        Command("/specials", more=True, timers=False),
-        Command("/special", more=True, timers=False),
+        Command("/specials", more=True, timers=False, subcommands=("list",)),
+        Command(
+            "/special",
+            more=True,
+            timers=False,
+            subcommands=("add", "remove", "list"),
+        ),
     )
 
     @classmethod

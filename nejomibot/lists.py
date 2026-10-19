@@ -147,7 +147,14 @@ def list_answer(context: DataMessageContext, text: str) -> str:
 
 
 class Lists(Handler):
-    commands = (Command("/list", more=True, timers=False),)
+    commands = (
+        Command(
+            "/list",
+            more=True,
+            timers=False,
+            subcommands=("add", "remove", "delete", "clear"),
+        ),
+    )
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         text = context.message.text or ""

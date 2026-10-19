@@ -190,7 +190,11 @@ never recurses). A new command goes into its module, `bot.handlers()`,
 `help.py` and the README's tables; tests catch a missing registration, help
 line or README row. It gets a Swedish name in `locale/sv.toml`, unless the
 English one is close to the Swedish word or already common in Swedish
-(`/ping`, `/chats`, `/special`).
+(`/ping`, `/chats`, `/special`). What may follow a command to say what it
+does, its subcommands (`add`, `remove`, `list`...), it lists in
+`Command.subcommands`; `canonical()` replaces the language's words for them
+(`[words]` in the toml, such as `lägg till`) right after the command, so
+handlers read English, and the timers and specials files keep it.
 
 **Sending** (`messages.py`): handlers answer through `reply()`, which goes
 through `send()` to the `Outbox`: each chat's messages in order, sends that

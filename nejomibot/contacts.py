@@ -343,7 +343,7 @@ async def add_contact(bot: SignalBot, words: list[str]) -> str:
 
 
 class Contacts(Handler):
-    commands = (Command("/contacts", more=True),)
+    commands = (Command("/contacts", more=True, subcommands=("add",)),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         bot, words = context.bot, (context.message.text or "").split()

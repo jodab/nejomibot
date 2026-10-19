@@ -57,6 +57,7 @@ MAX_DAYS = 200  # birthdays and name days together
 MAX_NAME = 100
 DATE = re.compile(r"^(?:(\d{4})-)?(\d{2})-(\d{2})$")
 CHAT_NUMBERS = re.compile(r"^[\d,]+$")
+CHANGES = ("add", "remove", "delete")  # what follows /birthday and /nameday
 
 HEADER = (
     "# nejomibot's birthdays and name days, one per line:",
@@ -487,8 +488,8 @@ class Birthday(Handler):
     what it edits; timers don't run them."""
 
     commands = (
-        Command("/birthday", more=True, timers=False),
-        Command("/nameday", more=True, timers=False),
+        Command("/birthday", more=True, timers=False, subcommands=CHANGES),
+        Command("/nameday", more=True, timers=False, subcommands=CHANGES),
     )
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
@@ -499,7 +500,5 @@ class Birthday(Handler):
             context,
             lambda: birthday_answer(context, kind, words),
             # An edit of one that changes something takes its place
-            edits=Edits.REPLACE
-            if action in ("add", "remove", "delete")
-            else Edits.RUN_AGAIN,
+            edits=Edits.REPLACE if action in CHANGES else Edits.RUN_AGAIN,
         )

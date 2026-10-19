@@ -317,11 +317,13 @@ def test_check_commands(commands: list[str], why: str | None) -> None:
 def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic"], "/timer": ["/t"]}')
     get_settings.cache_clear()
-    assert check_commands(["/väder", "/dagensbild", "/Pic", "/spådom startrek"]) is None
+    assert check_commands(["/väder", "/dagenspost", "/Pic", "/spådom startrek"]) is None
+    # /dagenspost's old name too
+    assert check_commands(["/dagensbild"]) is None
     # Named as given
     for command in ("/t add 08:00 /ping", "/skicka 1 Hej", "/kör 1 /ping"):
         assert check_commands([command]) == (
-            f"Timrar, specialkommandon och /run kan inte köra {command.split()[0]}."
+            f"Timrar, specialkommandon och /kör kan inte köra {command.split()[0]}."
         )
 
 
@@ -574,8 +576,8 @@ async def test_the_daily_post_sends_everyone_the_same(
     bot = cast(SignalBot, FakeBot())
     keeper = Timekeeper()
     keeper.start(bot, [h for h, *_ in handlers(bot, get_settings())])
-    # As an admin adds it in Swedish: /timer add 08:00 1,2 /dagensbild
-    timer = add(keeper, "08:00", [GROUP, ALICE], "/dagensbild")
+    # As an admin adds it in Swedish: /timer lägg till 08:00 1,2 /dagenspost
+    timer = add(keeper, "08:00", [GROUP, ALICE], "/dagenspost")
     await keeper.run(timer.id)
     assert sent == [
         (GROUP, "Vädret"),
@@ -848,15 +850,14 @@ async def test_the_file_keeps_the_english_names(
     admin_chat: tuple[Timekeeper, list[str]],
 ) -> None:
     keeper, replies = admin_chat
-    await command(keeper, "/timer add 08:00 /dagensbild; /spådom startrek")
+    # Subcommands too: /spådom alla as /fortune all
+    await command(keeper, "/timer lägg till 08:00 /dagenspost; /spådom alla")
     assert replies[-1].startswith(
         "✅ **Tillagd**\n**#1** · dagligen 08:00\n💬 Admin\n"
-        "▶️ /dailypost; /fortune startrek\n🔜 Nästa: "
+        "▶️ /dailypost; /fortune all\n🔜 Nästa: "
     )
-    assert keeper.timers[1].commands == ["/dailypost", "/fortune startrek"]
-    assert (
-        "| /dailypost; /fortune startrek |" in (get_settings().timers_file).read_text()
-    )
+    assert keeper.timers[1].commands == ["/dailypost", "/fortune all"]
+    assert "| /dailypost; /fortune all |" in (get_settings().timers_file).read_text()
     # A line by hand, with Swedish names, reads as English too
     assert parse_line(
         f"2 | 08:00 | {ALICE} | /väder; /Bild | 2026-10-12 08:00", NOW

@@ -93,9 +93,11 @@ ANYWHERE = [
 
 def shown_name(command: str) -> str:
     """The command by its first name in the language, if it has one; one of
-    two words by its first: /dailypost preview as /dagensbild preview."""
-    first, space, rest = command.partition(" ")
-    return next(iter(language().commands.get(first, [])), first) + space + rest
+    two words, its subcommand too: /dailypost preview as /dagenspost
+    förhandsvisa."""
+    first, space, second = command.partition(" ")
+    name = next(iter(language().commands.get(first, [])), first)
+    return name + space + next(iter(language().words.get(second, [])), second)
 
 
 def other_names(command: str) -> list[str]:

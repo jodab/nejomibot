@@ -282,8 +282,13 @@ A command can have other names: a few it has had all along (`/test` for
 configuration, and the names in the bot's language (see
 [Languages](#languages)). With
 `language = "sv"`, `/väder` is `/weather`, `/hjälp` is `/help`,
-`/påminn` is `/remind`, `/lista` is `/list`, `/dagensbild` is `/dailypost`
+`/påminn` is `/remind`, `/lista` is `/list`, `/dagenspost` is `/dailypost`
 and `/dagenscitat` is `/dailyquote`; `/help` shows every name a command has.
+So do the words that follow a command to say what it does, its
+subcommands: in Swedish, `lägg till` is `add`, `ta bort` or `radera`
+`remove`, `lista` `list`, `töm` `clear`, `kör` `run`, `alla` `all` and
+`förhandsvisa` `preview`, as in `/lista lägg till mjölk` or `/timer ta bort
+3`. The English ones work too, in any language.
 
 ### Who may use what
 
@@ -576,7 +581,7 @@ show in a direct chat. A birthday on 29 February comes on the 28th in other
 years.
 
 To see what the daily post will say on a day, before it comes:
-`/dailypost preview 10-25` (in Swedish, `/dagensbild preview 10-25`), or
+`/dailypost preview 10-25` (in Swedish, `/dagenspost förhandsvisa 10-25`), or
 `/dailypost preview` for today, shows the lines atop the weather in each
 group the bot is in, and in a direct chat, without posting anything else or
 using up a photo.
@@ -829,7 +834,10 @@ picks a translation from [nejomibot/locale](nejomibot/locale):
 - `sv.po` translates the messages, in gettext's format, which translation
   tools such as Poedit read. Untranslated messages show in English.
 - `sv.toml` has the language's names for commands, like the aliases in the
-  configuration, and its words for days and times in `/timer add`.
+  configuration, its words for days and times in `/timer add`, and for
+  subcommands, such as `lägg till` for `add`. A command lists the
+  subcommands it takes, so only those are read in the language, right after
+  it; the timers and specials files keep them in English.
 
 Day and month names come from the translations too, so the bot needs no
 locales installed. The fortune libraries aren't translated: each is in its own

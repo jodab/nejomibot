@@ -177,7 +177,7 @@ def usage() -> str:
 
 
 class Delete(Handler):
-    commands = (Command("/delete", more=True),)
+    commands = (Command("/delete", more=True, subcommands=("list",)),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         message = context.message

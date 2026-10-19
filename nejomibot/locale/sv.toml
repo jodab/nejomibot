@@ -21,7 +21,7 @@
 "/avatar" = ["/profilbild"]
 "/username" = ["/användarnamn", "/anvandarnamn"]
 "/delete" = ["/radera"]
-"/dailypost" = ["/dagensbild"]
+"/dailypost" = ["/dagenspost", "/dagensbild"]  # its old name, still taken
 "/dailyquote" = ["/dagenscitat"]
 "/msg" = ["/skicka"]
 "/run" = ["/kör", "/kor"]
@@ -35,9 +35,9 @@
 "/birthday" = ["/födelsedag", "/fodelsedag"]
 "/nameday" = ["/namnsdag"]
 
-# Words for when a timer runs (/timer add mån-fre 07:30 ...) or a reminder
-# is due (/påminn om 30m ...), each next to the English one it means. The
-# first is how /timers shows it.
+# Words for when a timer runs (/timer lägg till mån-fre 07:30 ...) or a
+# reminder is due (/påminn om 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
 [words]
 mon = ["mån"]
 tue = ["tis"]
@@ -60,3 +60,14 @@ today = ["idag"]
 tomorrow = ["imorgon"]
 every = ["varje", "var"]
 in = ["om"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/lista lägg till mjölk), each next to the English one it means. The first
+# is how /hjälp shows it.
+add = ["lägg till"]
+remove = ["ta bort", "radera"]
+list = ["lista"]
+clear = ["töm"]
+run = ["kör"]
+all = ["alla"]
+preview = ["förhandsvisa"]

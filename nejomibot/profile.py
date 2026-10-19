@@ -363,14 +363,14 @@ class Name(Handler):
 
 
 class About(Handler):
-    commands = (Command("/about", more=True),)
+    commands = (Command("/about", more=True, subcommands=(REMOVE,)),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         await answer(context, lambda: about_command(context.message.text), slow=True)
 
 
 class Avatar(Handler):
-    commands = (Command("/avatar", more=True),)
+    commands = (Command("/avatar", more=True, subcommands=(REMOVE,)),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         message = context.message
@@ -382,7 +382,7 @@ class Avatar(Handler):
 
 
 class Username(Handler):
-    commands = (Command("/username", more=True),)
+    commands = (Command("/username", more=True, subcommands=(REMOVE,)),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         await answer(context, lambda: username_command(context.message.text), slow=True)

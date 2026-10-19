@@ -129,7 +129,7 @@ def fortune_answer(library: str) -> str:
 
 
 class Fortune(Handler):
-    commands = (Command("/fortune", more=True),)
+    commands = (Command("/fortune", more=True, subcommands=(LIST, ALL)),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         library = argument(context.message.text)

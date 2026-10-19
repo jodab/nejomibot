@@ -4,6 +4,17 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- Subcommands in the bot's language: in Swedish, `lägg till` for `add`, `ta
+  bort` or `radera` for `remove`, `lista` for `list`, `töm` for `clear`,
+  `kör` for `run`, `alla` for `all` and `förhandsvisa` for `preview`, as in
+  `/lista lägg till mjölk` or `/timer ta bort 3`. `/hjälp` and the Swedish
+  messages show them, and the English ones work too.
+- In Swedish, `/dailypost` is `/dagenspost`; `/dagensbild` still works.
+
 ## 0.99.2 - 2026-10-19
 
 ### Added

@@ -7,7 +7,7 @@ language picks a translation from nejomibot/locale:
   which only development has.
 - <language>.toml, if there is one, has the language's names for commands,
   as aliases do in the config, and its words for those the bot reads in
-  commands, such as days for timers.
+  commands: days for timers, and subcommands, such as lägg till for add.
 
 Mark text with _() where it's used, ngettext() when it depends on a number,
 and N_() in a table made ahead of use, then _() it when used. Put values in
