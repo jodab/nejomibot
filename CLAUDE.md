@@ -161,7 +161,9 @@ debug mode, in `debug_group`) and checks for an admin itself in groups,
 where it takes nothing after it: `/delete list` and `/delete 2,5,11` show
 and delete what the bot sent to every chat. `incoming.inbox`, registered apart
 for every direct chat, keeps what anyone but the admins writes, for the
-admin command `/incoming`.
+admin command `/incoming`. `greeting.greeter`, registered the same way,
+greets those on the allowed list who write anything `commands.known()`
+doesn't take, once a day each, naming the bot and the first admin.
 Admins exist only in the config; the allowed list is `data_dir/allowed.txt`,
 reread when it changes.
 

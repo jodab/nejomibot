@@ -60,6 +60,11 @@ def sender_of(message: DataMessage | RemoteDelete) -> str:
     return message.source_uuid or message.source_number or ""
 
 
+def attachments_of(message: DataMessage) -> int:
+    """How many attachments the message has, a sticker as one."""
+    return len(message.attachments or []) + bool(message.sticker)
+
+
 def text_of(message: DataMessage) -> str:
     """The message's text in marks, with its formatting, if marks can say it."""
     text = message.text or ""
@@ -90,7 +95,7 @@ class Inbox(DataMessageHandler, RemoteDeleteHandler):
         key or disappearing time. An edit replaces what it edits, in its place."""
         if message.is_group() or is_admin(message):
             return
-        attachments = len(message.attachments or []) + bool(message.sticker)
+        attachments = attachments_of(message)
         if not (message.text or attachments):
             return
         sender = sender_of(message)

@@ -22,6 +22,7 @@ from .config import Settings, config_file, get_settings
 from .contacts import Contacts, Trust
 from .delete import Delete
 from .fortune import Fortune
+from .greeting import greeter
 from .help import Help
 from .incoming import Incoming, inbox
 from .info import Info
@@ -296,6 +297,9 @@ def main() -> None:
         bot.register(handler, contacts=contacts, groups=groups, f=check)
     # What anyone writes in a direct chat, and deletes, for /incoming
     bot.register(inbox, contacts=True, groups=False)
+    # A greeting for the allowed list's messages that aren't commands; it
+    # checks who wrote them itself
+    bot.register(greeter, contacts=True, groups=False)
     # Timers run their commands through the same handlers, but for those
     # their commands say timers mayn't
     timekeeper.start(bot, [handler for handler, *_who in registrations])

@@ -63,7 +63,8 @@ send_retry_hours = 3
 # /dailypost, /contacts, /trust, /allowed, /allow, /disallow, the profile
 # commands, the timers, /msg and /run) only in a direct chat with the bot;
 # /delete in any chat. No command can change who the admins are. Everyone
-# else is let in with /allow.
+# else is let in with /allow. The bot's greeting, for those on the allowed
+# list who write to it but send no command, names the first to contact.
 admins = [
     "+46700000001",  # you
 ]

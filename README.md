@@ -284,6 +284,16 @@ they're on the [allowed list](#the-allowed-list): a contact, in a direct chat
 with the bot, or a group, where everyone in it may use them, there. The bot
 answers nobody else.
 
+Someone on the allowed list who writes to the bot in a direct chat, but no
+command, is greeted: "Hi, I'm Mybot, a bot. Try /help for a list of
+commands. Contact Alice for more information." The names are the bot's
+profile name and the first admin's name, as the bot's contacts have it
+(`/contacts add`), else their profile name; without one, the greeting does
+without it. It comes once a day at most for each person, so a thank-you
+after it isn't greeted again, and a restart forgets who was. Commands are
+answered as ever, never with the greeting; a mistyped one isn't a command,
+so it's greeted. The admins, strangers and groups aren't, nor edits.
+
 Admins are only ever set in the configuration, so no command can take away
 what an admin may do, or make someone an admin.
 
@@ -1072,6 +1082,7 @@ nejomibot/
   profile.py    /profile, /name, /about, /avatar, /username
   delete.py     /delete: delete the bot's latest messages, here or anywhere
   incoming.py   /incoming: the latest messages people sent the bot
+  greeting.py   the greeting for the allowed list's messages that aren't commands
   timers.py     /timers, /chats, /timer: commands on a schedule, the daily post
   timers_cli.py nejomibot-timers: the timers from a terminal
   relay.py      /msg, /run: post to other chats

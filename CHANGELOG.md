@@ -4,6 +4,16 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- A greeting for those on the allowed list who write to the bot in a direct
+  chat, but no command: "Hi, I'm Mybot, a bot. Try /help for a list of
+  commands. Contact Alice for more information.", with the bot's profile
+  name and the first admin's name as the bot's contacts have it. Once a day
+  at most for each person; commands are answered as ever, never with it.
+
 ## 0.97.1 - 2026-10-19
 
 ### Changed

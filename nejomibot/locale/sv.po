@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 11:32+0300\n"
-"PO-Revision-Date: 2026-10-18 02:45+0300\n"
+"POT-Creation-Date: 2026-10-19 12:01+0300\n"
+"PO-Revision-Date: 2026-10-19 12:03+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
@@ -428,6 +428,29 @@ msgstr "Hittade inga spådomar."
 #: nejomibot/fortune.py
 msgid "Unknown fortune library. Use /fortune list to see the names."
 msgstr "Okänt spådomsbibliotek. Skicka /fortune list för att se namnen."
+
+#: nejomibot/greeting.py
+msgid "Hi, I'm a bot."
+msgstr "Hej, jag är en bot."
+
+#: nejomibot/greeting.py
+#, python-brace-format
+msgid "Hi, I'm {name}, a bot."
+msgstr "Hej, jag är {name}, en bot."
+
+#: nejomibot/greeting.py
+#, python-brace-format
+msgid "Try {help} for a list of commands."
+msgstr "Prova {help} för en lista med kommandon."
+
+#: nejomibot/greeting.py
+#, python-brace-format
+msgid "Contact {admin} for more information."
+msgstr "Kontakta {admin} för mer information."
+
+#: nejomibot/greeting.py
+msgid "Contact the bot's admin for more information."
+msgstr "Kontakta botens admin för mer information."
 
 #: nejomibot/health.py
 #, python-brace-format
