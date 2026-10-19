@@ -151,7 +151,12 @@ async def test_run_here_speaks_for_itself(chat: Chat, signal_api: FakeApi) -> No
 async def test_edits_post_nothing(chat: Chat, signal_api: FakeApi) -> None:
     await chat.send("/msg 1 Hello", edit=True)
     await chat.send("/run 1 /ping", edit=True)
-    assert chat.replies == []
+    # What they posted has gone out, so they say an edit isn't run
+    assert chat.replies == [
+        f"✏️ An edit of {command} isn't run, as what it did can't be undone. "
+        "Send it as a new message instead."
+        for command in ("/msg", "/run")
+    ]
     assert signal_api.requests == []
 
 

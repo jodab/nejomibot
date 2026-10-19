@@ -4,6 +4,28 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `/dailypost preview`, for the admins in a direct chat: what the daily post
+  will say atop the weather on a day, such as `/dailypost preview 10-25`,
+  `2026-10-25` or `tomorrow`, today without one, in each group the bot is in
+  and in a direct chat, without posting anything else or using up a photo.
+  In Swedish, `/dagensbild preview`.
+
+### Changed
+
+- Edits of commands that add or remove something now work: the edit takes
+  the place of what it edits, which is undone first. Editing `/remind 18:00
+  Cake` to `/remind 19:00 Cake` leaves one reminder, at 19:00. That's
+  `/remind`, `/list`, `/birthday`, `/nameday`, `/timer add` and `remove`,
+  `/special add` and `remove`, `/allow`, `/disallow` and `/contacts add`.
+  Edits of `/msg`, `/run`, `/timer run` and `/delete <n>`, whose posts and
+  deletions can't be undone, aren't run, and the bot says so, as it does for
+  an edit of a message from before a restart. The admins' own specials run
+  again when edited, as `/dailypost` does.
+
 ## 0.99.1 - 2026-10-19
 
 ### Changed

@@ -48,6 +48,12 @@ EVERYDAY = [
 ADMIN = [
     Line("🩺", "/status", N_("how the bot and the server are")),
     Line("🌅", "/dailypost", N_("the daily post, here")),
+    Line(
+        "👁️",
+        "/dailypost preview",
+        N_("what it says atop the weather, in each chat"),
+        N_("[<date>]"),
+    ),
     Line("📜", "/dailyquote", N_("the daily quote, here")),
     Line("👥", "/contacts", N_("who the bot knows"), N_("[<who>]")),
     Line("📇", "/contacts", N_("add a contact, or rename"), N_("add <who> <name>")),
@@ -86,8 +92,10 @@ ANYWHERE = [
 
 
 def shown_name(command: str) -> str:
-    """The command by its first name in the language, if it has one."""
-    return next(iter(language().commands.get(command, [])), command)
+    """The command by its first name in the language, if it has one; one of
+    two words by its first: /dailypost preview as /dagensbild preview."""
+    first, space, rest = command.partition(" ")
+    return next(iter(language().commands.get(first, [])), first) + space + rest
 
 
 def other_names(command: str) -> list[str]:

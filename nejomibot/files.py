@@ -8,6 +8,7 @@ import logging
 import os
 import tempfile
 from collections.abc import Callable, Collection, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
@@ -49,6 +50,14 @@ def append_privately(path: Path, line: str) -> None:
     with os.fdopen(fd, "a", encoding="utf-8") as f:
         os.fchmod(fd, 0o600)  # if it was made before, with another mode
         f.write(f"{line}\n")
+
+
+@dataclass(frozen=True)
+class Change:
+    """A change made to a file of lines, to undo."""
+
+    added: tuple[str, ...]  # the lines put last
+    removed: tuple[tuple[int, str], ...]  # the lines taken out, and where they were
 
 
 class KeptLines[T]:
@@ -131,18 +140,33 @@ class KeptLines[T]:
         self.take(lines)
         self.seen = (stat.st_mtime_ns, stat.st_size)
 
-    def add(self, *entries: T) -> None:
+    def add(self, *entries: T) -> Change:
         """Add the entries, last. Raises OSError."""
-        self.current().change((), entries)
+        return self.current().change((), entries)
 
-    def remove(self, entries: Collection[T]) -> None:
+    def remove(self, entries: Collection[T]) -> Change:
         """Take out the lines of these entries, as entries last gave them.
         Raises OSError."""
-        self.change(entries)
+        return self.change(entries)
 
-    def change(self, gone: Collection[T], added: Sequence[T] = ()) -> None:
+    def change(self, gone: Collection[T], added: Sequence[T] = ()) -> Change:
         """Take out the lines of what's gone, as entries last gave them, and
         add what's added, last, in one write. Raises OSError."""
         out = {i for i, entry in self.found if any(entry is e for e in gone)}
+        removed = tuple((i, self.lines[i]) for i in sorted(out))
         kept = [line for i, line in enumerate(self.lines) if i not in out]
-        self.save([*(kept if self.lines else self.header), *map(self.line_of, added)])
+        new = tuple(map(self.line_of, added))
+        self.save([*(kept if self.lines else self.header), *new])
+        return Change(new, removed)
+
+    def revert(self, change: Change) -> None:
+        """Undo the change, as far as the file still has it: take out the
+        lines it added, the last of each, and put those it took out back
+        where they were. Raises OSError."""
+        lines = list(self.current().lines)
+        for line in reversed(change.added):
+            if line in lines:
+                del lines[len(lines) - 1 - lines[::-1].index(line)]
+        for index, line in change.removed:
+            lines.insert(min(index, len(lines)), line)
+        self.save(lines)

@@ -4,10 +4,10 @@ from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 import pytest
-from helpers import ALICE, BOB, GROUP, message_from
+from helpers import ALICE, BOB, EDIT_FROM_BEFORE, GROUP, NOW_MS, message_from
 from signalbot import DataMessageContext, SendMessage, SignalBot
 
-from nejomibot import reminders
+from nejomibot import commands, reminders
 from nejomibot.config import get_settings
 from nejomibot.reminders import (
     Remind,
@@ -181,11 +181,29 @@ async def test_so_many_a_chat(
     assert (await ask(bot, answers, "/remind 19:00 Two", BOB)).startswith("✅")
 
 
-async def test_an_edit_adds_none(bot: SignalBot, answers: list[SendMessage]) -> None:
-    assert await ask(bot, answers, "/remind 18:00 Cake", edit=True) == ""
+async def test_an_edit_takes_the_place_of_what_it_edits(
+    bot: SignalBot, answers: list[SendMessage]
+) -> None:
+    await ask(bot, answers, "/remind 18:00 Take the cake out")
+    assert await ask(bot, answers, "/remind 19:00 Take the cake out", edit=True) == (
+        "✅ **Added**\n#1 · Monday 19 October 19:00 · Take the cake out"
+    )
+    assert the_file() == [
+        f"1 | 2026-10-19 19:00:00+02:00 | {ALICE} | Take the cake out"
+    ]
+    # Showing them runs again
+    assert (await ask(bot, answers, "/remind", edit=True)).startswith("**🔔 1 reminder")
+
+
+async def test_an_edit_of_a_message_from_before_a_start(
+    bot: SignalBot, answers: list[SendMessage], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The bot can't tell what the message did, as it has started again since
+    monkeypatch.setattr(commands, "STARTED", NOW_MS / 1000 + 60)
+    assert await ask(bot, answers, "/remind 18:00 Cake", edit=True) == (
+        EDIT_FROM_BEFORE
+    )
     assert not get_settings().data_file("reminders.txt").exists()
-    # But shows them again
-    assert (await ask(bot, answers, "/remind", edit=True)).startswith("No reminders")
 
 
 async def test_posted_when_due(

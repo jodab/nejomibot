@@ -1,7 +1,9 @@
 import logging
+from collections.abc import Callable
 from typing import Any, cast
 
 import pytest
+from helpers import ALICE, EDIT_FROM_BEFORE
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -15,13 +17,16 @@ from nejomibot import commands
 from nejomibot.commands import (
     ALIASES,
     Command,
+    Edits,
     Handler,
     aliases,
     answer,
     argument,
+    cannot_undo,
     canonical,
     known,
     numbers_in,
+    undo_with,
 )
 from nejomibot.config import get_settings
 from nejomibot.messages import collected
@@ -104,16 +109,20 @@ class SeenWithMore(Seen):
     commands = (Command("/fortune", more=True),)
 
 
-def context_of(text: str | None, *, edit: bool = False) -> DataMessageContext:
+def context_of(
+    text: str | None, *, edit: bool = False, at: int = 0, of: int | None = None
+) -> DataMessageContext:
+    """A message sent at at, in ms; with edit, an edit of the message sent
+    then, or of that sent at of, sent at at."""
     fields: dict[str, Any] = {
         "server_delivered_timestamp": 0,
         "server_received_timestamp": 0,
-        "timestamp": 0,
-        "source_number": "+46700000001",
+        "timestamp": at + 1 if edit and of is None else at,
+        "source_number": ALICE,
         "text": text,
     }
     message = (
-        EditMessage(**fields, target_sent_timestamp=1)
+        EditMessage(**fields, target_sent_timestamp=at if of is None else of)
         if edit
         else DataMessage(**fields)
     )
@@ -282,11 +291,168 @@ async def test_answer_logs_an_expected_failure_in_a_line(
     assert "Traceback" not in caplog.text
 
 
-async def test_answer_lets_an_edit_be(replies: Replies) -> None:
-    await answer(context_of("/allow Bob", edit=True), lambda: "Allowed", edits=False)
-    assert replies.done == replies.sent == []
+# Edits
+
+# A message sent while the bot runs
+RUNNING = int((commands.STARTED + 10 * 60) * 1000)
+NOT_RUN = (
+    "✏️ An edit of /msg isn't run, as what it did can't be undone. Send it as a "
+    "new message instead."
+)
+
+
+def adding(items: list[str], item: str) -> Callable[[], str]:
+    """A command that adds the item, and says how to undo that."""
+
+    def run() -> str:
+        items.append(item)
+        undo_with(lambda: items.remove(item))
+        return f"Added {item}"
+
+    return run
+
+
+async def test_an_edit_of_what_shows_something_runs_again(replies: Replies) -> None:
     await answer(context_of("/weather", edit=True), lambda: "Sunny")
     assert [m.text for m in replies.sent] == ["Sunny"]
+
+
+async def test_an_edit_of_what_cant_be_undone_isnt_run(replies: Replies) -> None:
+    ran: list[str] = []
+    await answer(
+        context_of("/msg 1 Hi", edit=True),
+        lambda: ran.append("msg"),
+        edits=Edits.NOT_RUN,
+    )
+    assert [m.text for m in replies.sent] == [NOT_RUN]
+    # /delete's, quietly: what it posted would be the next to go
+    await answer(
+        context_of("/delete", edit=True), lambda: ran.append("del"), edits=Edits.IGNORE
+    )
+    assert ran == []
+    assert len(replies.sent) == 1
+
+
+async def test_an_edit_takes_the_place_of_what_it_edits(replies: Replies) -> None:
+    items: list[str] = []
+    for text, item, edit in [
+        ("/add mlik", "mlik", False),
+        ("/add milk", "milk", True),
+        ("/add milk!", "milk!", True),  # an edit of the edit, of the same message
+    ]:
+        context = context_of(text, edit=edit, at=RUNNING)
+        await answer(context, adding(items, item), edits=Edits.REPLACE)
+    assert items == ["milk!"]
+    assert [m.text for m in replies.sent] == ["Added mlik", "Added milk", "Added milk!"]
+
+
+@pytest.mark.parametrize("names_the_latest", [True, False])
+async def test_an_edit_of_an_edit(replies: Replies, names_the_latest: bool) -> None:
+    # Signal Desktop names the latest edit, others the first message
+    items: list[str] = []
+    first, edited, again = RUNNING, RUNNING + 1000, RUNNING + 2000
+    await answer(context_of("/a", at=first), adding(items, "a"), edits=Edits.REPLACE)
+    context = context_of("/b", edit=True, at=edited, of=first)
+    await answer(context, adding(items, "b"), edits=Edits.REPLACE)
+    of = edited if names_the_latest else first
+    context = context_of("/c", edit=True, at=again, of=of)
+    await answer(context, adding(items, "c"), edits=Edits.REPLACE)
+    assert items == ["c"]
+
+
+async def test_an_edit_of_a_refused_edit_is_refused(replies: Replies) -> None:
+    items: list[str] = []
+    before_the_start = RUNNING - 10 * 60 * 1000
+    context = context_of("/a", edit=True, at=RUNNING, of=before_the_start)
+    await answer(context, adding(items, "a"), edits=Edits.REPLACE)
+    # The next edit names the edit, sent while the bot runs
+    context = context_of("/b", edit=True, at=RUNNING + 1000, of=RUNNING)
+    await answer(context, adding(items, "b"), edits=Edits.REPLACE)
+    assert items == []
+    assert [m.text for m in replies.sent] == [EDIT_FROM_BEFORE] * 2
+
+
+async def test_an_edit_of_what_changed_nothing_runs(replies: Replies) -> None:
+    items: list[str] = []
+    # The message the edit edits was no command, or one refused
+    context = context_of("/add milk", edit=True, at=RUNNING)
+    await answer(context, adding(items, "milk"), edits=Edits.REPLACE)
+    assert items == ["milk"]
+
+
+async def test_an_edit_of_a_message_from_before_the_start(replies: Replies) -> None:
+    items: list[str] = []
+    context = context_of("/add milk", edit=True, at=RUNNING - 10 * 60 * 1000)
+    await answer(context, adding(items, "milk"), edits=Edits.REPLACE)
+    assert items == []
+    assert [m.text for m in replies.sent] == [EDIT_FROM_BEFORE]
+
+
+async def test_an_edit_of_what_cant_be_undone_says_why(replies: Replies) -> None:
+    def contact() -> str:
+        cannot_undo("Not that one.")
+        return "Made"
+
+    await answer(context_of("/x", at=RUNNING), contact, edits=Edits.REPLACE)
+    for _ in range(2):
+        await answer(
+            context_of("/x", edit=True, at=RUNNING), contact, edits=Edits.REPLACE
+        )
+    assert [m.text for m in replies.sent] == ["Made", "Not that one.", "Not that one."]
+
+
+async def test_an_undo_that_fails(replies: Replies) -> None:
+    def broken() -> str:
+        def undo() -> None:
+            raise OSError("disk full")
+
+        undo_with(undo)
+        return "Done"
+
+    await answer(context_of("/x", at=RUNNING), broken, edits=Edits.REPLACE)
+    for _ in range(2):
+        await answer(
+            context_of("/x", edit=True, at=RUNNING), broken, edits=Edits.REPLACE
+        )
+    assert [m.text for m in replies.sent] == [
+        "Done",
+        "Something went wrong: disk full",
+        "✏️ That edit isn't run: undoing what the message it edits did failed. Send "
+        "it as a new message instead.",
+    ]
+
+
+async def test_what_commands_did_is_kept_a_day(
+    replies: Replies, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    clock = [1000.0]
+    monkeypatch.setattr(commands.time, "monotonic", lambda: clock[0])
+    items: list[str] = []
+    await answer(
+        context_of("/add", at=RUNNING), adding(items, "a"), edits=Edits.REPLACE
+    )
+    clock[0] += commands.EDITABLE_FOR + 1
+    await answer(
+        context_of("/add", at=RUNNING + 1), adding(items, "b"), edits=Edits.REPLACE
+    )
+    assert list(commands.done) == [(ALICE, RUNNING + 1)]
+    # And so many at most
+    monkeypatch.setattr(commands, "MAX_DONE", 1)
+    await answer(
+        context_of("/add", at=RUNNING + 2), adding(items, "c"), edits=Edits.REPLACE
+    )
+    assert list(commands.done) == [(ALICE, RUNNING + 2)]
+
+
+async def test_a_timers_commands_keep_nothing(replies: Replies) -> None:
+    token = collected.set([])
+    try:
+        await answer(
+            context_of("/add", at=RUNNING), lambda: "Added", edits=Edits.REPLACE
+        )
+    finally:
+        collected.reset(token)
+    assert commands.done == {}
 
 
 async def test_the_log_says_what_and_where_not_who(

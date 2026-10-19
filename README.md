@@ -243,6 +243,7 @@ For the admins, in a direct chat with the bot:
 |---|---|
 | `/status`, `/test` | Health check, in two messages: the checks, failed ones first, then the details: the bot and its versions, Signal, public IPs and ASN, container, host |
 | `/dailypost` | The daily post, as a timer posts it: the weather, then the photo of the day (it uses up a photo of the round) |
+| `/dailypost preview [<date>]` | What the daily post will say atop the weather on the day, such as `10-25`, `2026-10-25` or `tomorrow`, today without one: in each group the bot is in, and in a direct chat. It posts nothing else, nor uses up a photo |
 | `/dailyquote` | The daily quote, as a timer posts it: a proverb or quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in bold, what explains a proverb in italics |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, two short lines each, and whether they're verified; with `<who>`, one in full, with their safety number |
 | `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` is their phone number, ID or the start of it, or their name: the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number |
@@ -314,11 +315,28 @@ forget them, so the bot can't either.
 
 It marks each command as read, in groups as well as direct chats, and shows
 itself typing while it works on the slower ones. Both are best effort: if they
-fail, the answer still comes. Editing a message runs its command again, except
-for those that change things or post elsewhere: `/delete` (but `/delete
-list`), `/contacts add`, `/allow`, `/disallow`, `/timer`, `/special`, `/msg`,
-`/run`, `/remind` and `/list` (but alone, which list), `/birthday`,
-`/nameday` and the specials of your own.
+fail, the answer still comes.
+
+Signal lets a message be edited for a day, and the bot answers an edited
+command as if it had come instead of the one it edits:
+
+- A command that shows something, or sets a value, such as `/weather` or
+  `/name`, runs again.
+- One that adds or removes something takes the place of what it edits: what
+  that did is undone first, then the edit runs. So editing `/remind 18:00
+  Cake` to `/remind 19:00 Cake` leaves one reminder, at 19:00, and editing
+  `/list remove 2` to `/list remove 3` puts 2 back first. That's `/remind`,
+  `/list`, `/birthday`, `/nameday`, `/timer add` and `remove`, `/special add`
+  and `remove`, `/allow`, `/disallow` and `/contacts add`, which renames back
+  first; a contact it made stays, as the bot can't take contacts out.
+- What the bot posted, or deleted, can't be undone, so an edit of `/msg`,
+  `/run`, `/timer run` or `/delete <n>` isn't run, and the bot says so. One
+  of `/delete` alone is let be, quietly, as what it posted would be the next
+  to go.
+
+The bot keeps what each command did for a day, in memory only: after a
+restart, an edit of a message from before isn't run, as the bot can't tell
+what that did, and it says so; send the command anew instead.
 
 The bot needs a number of its own, registered for it. If its number is also
 signed in on a phone, as when signal-cli is linked to that phone, a command
@@ -557,6 +575,12 @@ which, so a contact's name mistyped shows. Birthdays and name days never
 show in a direct chat. A birthday on 29 February comes on the 28th in other
 years.
 
+To see what the daily post will say on a day, before it comes:
+`/dailypost preview 10-25` (in Swedish, `/dagensbild preview 10-25`), or
+`/dailypost preview` for today, shows the lines atop the weather in each
+group the bot is in, and in a direct chat, without posting anything else or
+using up a photo.
+
 `/birthdays` and `/namedays`, for everyone allowed, list them, the coming
 ones first: in a group, those it gets; in a direct chat, for the admins, all
 of them, numbered, with where someone not on Signal shows. As with `/delete
@@ -777,9 +801,10 @@ A special runs its commands as a timer does, as an admin would in a direct
 chat with the bot, and posts what they answer one after the other: it can
 have any command a timer can, `/dailypost` and `/dailyquote` too, but not
 another special of your own. Like those two, specials are for timers, `/run`
-and the admins in a direct chat. Editing a message doesn't run a special of
-your own again, as its commands may change something. A special a timer runs
-can be changed, but not removed: remove the timer first.
+and the admins in a direct chat. Editing a message runs a special of your
+own again, as its commands change nothing; an edit of `/special add` or
+`remove` takes the place of what it edits. A special a timer runs can be
+changed, but not removed: remove the timer first.
 
 The specials of your own are kept in `data_dir/specials.txt`, a line each:
 the name, a `|`, and the parts, their commands by their English names, their

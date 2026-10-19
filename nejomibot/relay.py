@@ -17,7 +17,7 @@ from collections.abc import Callable
 
 from signalbot import DataMessageContext, SendMessage, SignalBot
 
-from .commands import Command, Handler, answer
+from .commands import Command, Edits, Handler, answer
 from .config import get_settings
 from .i18n import _
 from .messages import Outcome, send
@@ -127,7 +127,8 @@ class Msg(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         text = context.message.text or ""
-        await answer(context, lambda: post_text(context.bot, text), edits=False)
+        # What it posted has gone out: an edit isn't run, and says so
+        await answer(context, lambda: post_text(context.bot, text), edits=Edits.NOT_RUN)
 
 
 class Run(Handler):
@@ -139,5 +140,5 @@ class Run(Handler):
         await answer(
             context,
             lambda: post_answers(context.bot, message.text or "", sender),
-            edits=False,
+            edits=Edits.NOT_RUN,
         )

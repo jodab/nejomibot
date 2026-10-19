@@ -9,7 +9,7 @@ import pytest
 from apscheduler.schedulers.asyncio import (  # pyright: ignore[reportMissingTypeStubs]
     AsyncIOScheduler,
 )
-from helpers import ALICE, BOB, GROUP, ME, FakeApi
+from helpers import ALICE, BOB, EDIT_FROM_BEFORE, GROUP, ME, FakeApi
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -352,6 +352,7 @@ def test_what_timers_mayn_t_run() -> None:
         "/namedays",
         "/remind",
         "/list",
+        "/dailypost preview",
     }
 
 
@@ -666,8 +667,10 @@ def context_of(
         "source_number": ADMIN,
         "text": text,
     }
+    # An edit is of the message before, as Signal names it
     if edit:
-        message = EditMessage(**fields, target_sent_timestamp=1)
+        fields["timestamp"] = 3
+        message = EditMessage(**fields, target_sent_timestamp=2)
     else:
         message = DataMessage(**fields)
     return DataMessageContext(cast(SignalBot, keeper.bot), message)
@@ -774,10 +777,33 @@ async def test_refused(
     assert keeper.timers == {}
 
 
-async def test_edits_change_nothing(admin_chat: tuple[Timekeeper, list[str]]) -> None:
+async def test_an_edit_takes_the_place_of_what_it_edits(
+    admin_chat: tuple[Timekeeper, list[str]],
+) -> None:
+    keeper, replies = admin_chat
+    await command(keeper, "/timer add 08:00 1 /ping")
+    await command(keeper, "/timer add 09:00 1 /ping", edit=True)
+    assert [timer.when for timer in keeper.timers.values()] == ["daily 09:00"]
+    # A timer removed comes back, with its number, for an edit to remove another
+    [timer] = keeper.timers.values()
+    await command(keeper, f"/timer remove {timer.id}")
+    await command(keeper, "/timer remove 9", edit=True)
+    assert list(keeper.timers) == [timer.id]
+    assert replies[-1] == "No timer #9."
+    # What a run posted has gone out
+    await command(keeper, f"/timer run {timer.id}", edit=True)
+    assert replies[-1] == (
+        "✏️ An edit of /timer isn't run, as what it did can't be undone. Send it "
+        "as a new message instead."
+    )
+
+
+async def test_an_edit_of_a_message_from_before_a_start(
+    admin_chat: tuple[Timekeeper, list[str]],
+) -> None:
     keeper, replies = admin_chat
     await command(keeper, "/timer add 08:00 1 /ping", edit=True)
-    assert replies == []
+    assert replies == [EDIT_FROM_BEFORE]
     assert keeper.timers == {}
 
 

@@ -23,6 +23,11 @@ Specials are for timers, /run and the admins, in a direct chat. Text keeps
 the formatting the admin gives it in Signal: bold, italic, strikethrough,
 monospace and spoiler.
 
+/dailypost preview, or /dailypost preview 10-25, 2026-10-25 or tomorrow,
+shows an admin what the daily post will say atop the weather on that day,
+today if none is given, in each group the bot is in and in a direct chat,
+without posting it, or using up a photo.
+
 The admins' own are kept in data_dir/specials.txt, one per line, their
 commands by their English names, as the timers file keeps them, their texts
 in signal-cli-rest-api's marks for the formatting (styles.py). It can be
@@ -32,26 +37,37 @@ with /special add, but not removed.
 """
 
 import asyncio
+import contextlib
 import logging
 import re
 from collections.abc import Collection, Iterable
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Self
 
 from signalbot import DataMessageContext, SendMessage, SignalBot, TextMode, TextStyle
 
 from . import birthdays
-from .commands import Command, Handler, Reply, aliases, answer, built_in, canonical
+from .commands import (
+    Command,
+    Edits,
+    Handler,
+    Reply,
+    aliases,
+    answer,
+    built_in,
+    canonical,
+    undo_with,
+)
 from .config import get_settings
 from .files import write_privately
 from .fortune import OWN, fortune_answer
 from .holidays import days_on
-from .i18n import _, ngettext
+from .i18n import _, ngettext, weekday_and_day
 from .messages import PerChat, escape, unreadable_text
 from .photos import photo_message
 from .styles import Styles, marked, styles_of
-from .timers import check_commands, timekeeper
+from .timers import DAYS_FROM_NOW, check_commands, in_language, timekeeper
 from .weather import weather_message
 
 logger = logging.getLogger(__name__)
@@ -98,6 +114,55 @@ async def daily_post(bot: SignalBot, day: date | None = None) -> list[Reply]:
         text_mode=TextMode.STYLED,
     )
     return [post, await photo_message(_("Photo of the day!"), track_sent=True)]
+
+
+def preview_day(words: list[str], today: date) -> date | None:
+    """The day /dailypost preview is for: today, unless the words say which,
+    as tomorrow, 10-25 (the next one) or 2026-10-25; None if they don't."""
+    if not words:
+        return today
+    word = words[0].casefold()
+    if len(words) > 1:
+        return None
+    if (ahead := in_language(DAYS_FROM_NOW).get(word)) is not None:
+        return today + timedelta(days=ahead)
+    if (found := birthdays.parse_date(word)) is None:
+        return None
+    year, month, day = found
+    if year is not None:
+        return date(year, month, day)
+    for each in range(today.year, today.year + 5):  # 29 February, every 4th
+        with contextlib.suppress(ValueError):
+            if (next_one := date(each, month, day)) >= today:
+                return next_one
+    return None
+
+
+async def preview(bot: SignalBot, words: list[str], today: date) -> str:
+    """What the daily post will say atop the weather on the day the words
+    say, or today: in each group the bot is in, and in a direct chat.
+    Styled."""
+    if (day := preview_day(words, today)) is None:
+        return escape(
+            _("Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today.")
+        )
+    settings = get_settings()
+    holidays = days_on(day, settings.holidays)
+    greetings = await birthdays.greetings(bot, day)
+    groups = sorted(
+        (group.name or f"{group.id[:14]}…", group.id)
+        for group in bot.groups
+        if group.member and (not settings.debug or group.id == settings.debug_group)
+    )
+    nothing = _("Nothing atop the weather.")
+    title = _("👁️ The daily post on {day}").format(day=weekday_and_day(day))
+    parts = [f"**{escape(title)}**"]
+    for name, group in groups:
+        lines = "\n".join([*holidays, *greetings.get(group, [])]) or nothing
+        parts.append(f"👥 **{escape(name)}**\n{escape(lines)}")
+    lines = "\n".join(holidays) or nothing
+    parts.append(f"👤 **{escape(_('In a direct chat'))}**\n{escape(lines)}")
+    return "\n\n".join(parts)
 
 
 async def daily_quote() -> str:
@@ -360,7 +425,8 @@ def add_special(text: str, styles: Iterable[TextStyle] | None) -> str:
     parts = parse_parts(given, {*found.specials, name}, given_styles)
     if isinstance(parts, str):
         return escape(parts)
-    changed = name in found.specials
+    previous = found.specials.get(name)
+    changed = previous is not None
     if not changed and len(found.specials) >= MAX_SPECIALS:
         return escape(
             _("There are {count} specials already: remove one first.").format(
@@ -368,6 +434,10 @@ def add_special(text: str, styles: Iterable[TextStyle] | None) -> str:
             )
         )
     own_specials.add(name, parts)
+    if previous is None:
+        undo_with(lambda: own_specials.remove(name))
+    else:
+        undo_with(lambda: own_specials.add(name, previous))
     done = _("Changed {name}") if changed else _("Added {name}")
     return f"✅ **{escape(done.format(name=name))}**\n{parts_text(parts, styled=True)}"
 
@@ -398,6 +468,7 @@ def remove_special(name: str) -> str:
             ).format(timers=", ".join(f"#{n}" for n in running))
         )
     own_specials.remove(name)
+    undo_with(lambda: own_specials.add(name, parts))
     removed = _("Removed {name}").format(name=name)
     return f"🗑️ **{escape(removed)}**\n{parts_text(parts, styled=True)}"
 
@@ -418,12 +489,14 @@ def specials_answer(
 
 
 class Specials(Handler):
-    """Runs the specials: /dailypost and /dailyquote, which an edit runs again,
-    and the admins' own, which it doesn't, as their commands may change
-    something. /specials and /special list and change the admins' own:
-    neither timers nor edits run those, but for the list."""
+    """Runs the specials: /dailypost and /dailyquote, and the admins' own,
+    which an edit runs again, as their commands change nothing. /specials and
+    /special list and change the admins' own, which timers don't run; an edit
+    of a change takes its place. /dailypost preview shows what the daily
+    post will say, which timers don't run either, as it shows every group's."""
 
     commands = (
+        Command("/dailypost preview", more=True, timers=False),
         Command("/dailypost"),
         Command("/dailyquote"),
         Command("/specials", more=True, timers=False),
@@ -438,7 +511,11 @@ class Specials(Handler):
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         text = context.message.text or ""
         words = text.split()
-        if command.name == "/dailypost":
+        if command.name == "/dailypost preview":
+            bot = context.bot
+            today = datetime.now(get_settings().tz).date()
+            await answer(context, lambda: preview(bot, words[2:], today), styled=True)
+        elif command.name == "/dailypost":
             bot = context.bot
             await answer(context, lambda: daily_post(bot), slow=True, styled=True)
         elif command.name == "/dailyquote":
@@ -448,8 +525,12 @@ class Specials(Handler):
             await answer(
                 context,
                 lambda: specials_answer(words, text, styles),
-                edits=words[1:2] in ([], ["list"]),
+                # Listing them runs again; an edit of a change takes its place
+                edits=Edits.RUN_AGAIN
+                if words[1:2] in ([], ["list"])
+                else Edits.REPLACE,
                 styled=True,
             )
         elif parts := own_specials.specials.get(command.name):
-            await answer(context, lambda: posts(parts), edits=False, slow=True)
+            # Their commands are what timers may run, which change nothing
+            await answer(context, lambda: posts(parts), slow=True)

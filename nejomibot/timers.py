@@ -39,7 +39,7 @@ from signalbot import (
 )
 
 from . import access
-from .commands import Command, Handler, answer, canonical, known
+from .commands import Command, Edits, Handler, answer, canonical, known, undo_with
 from .config import SIGNAL_ID, get_settings
 from .files import write_privately
 from .i18n import _, day_and_time, language_words, ngettext
@@ -526,6 +526,20 @@ class Timekeeper:
         self.schedule(timer)
         return timer
 
+    def restore(self, timer: Timer) -> None:
+        """Put a timer that was removed back, with its number, unless another
+        has it now. Raises OSError."""
+        self.reread()
+        if timer.id in self.timers:
+            return
+        self.timers[timer.id] = timer
+        try:
+            self.write()
+        except OSError:
+            del self.timers[timer.id]
+            raise
+        self.schedule(timer)
+
     def remove(self, timer_id: int) -> Timer | None:
         self.reread()
         if (timer := self.timers.pop(timer_id, None)) is None:
@@ -621,8 +635,10 @@ def check_commands(
     for command in commands:
         found = find(canonical(command))
         if found is not None and not found.timers:
+            # As typed: /dailypost preview's two words, or one
+            typed = " ".join(command.split()[: len(found.name.split())])
             return _("Timers, specials and /run can't run {command}.").format(
-                command=command.split()[0]
+                command=typed
             )
         if "|" in command:
             return _("A timer's commands can't have a |: the timers file uses it.")
@@ -769,7 +785,9 @@ def add_new(
         return _("There are {count} timers already: remove one first.").format(
             count=MAX_TIMERS
         )
-    return keeper.add(schedule.text, chats, [canonical(c) for c in commands])
+    timer = keeper.add(schedule.text, chats, [canonical(c) for c in commands])
+    undo_with(lambda: keeper.remove(timer.id))
+    return timer
 
 
 async def new_timer(context: DataMessageContext) -> Timer | str:
@@ -814,6 +832,7 @@ async def timer_answer(context: DataMessageContext, words: list[str]) -> str | N
         return escape(_("▶️ Ran timer #{n}").format(n=timer.id))
     if (timer := timekeeper.remove(int(number))) is None:
         return escape(_("No timer #{n}.").format(n=number))
+    undo_with(lambda: timekeeper.restore(timer))
     names = await access.names(context.bot)
     return f"🗑️ **{escape(_('Removed'))}**\n{card(timer, names)}"
 
@@ -829,13 +848,21 @@ class Timers(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         words = (context.message.text or "").split()
+        action = words[1].casefold() if len(words) > 1 else "list"
         await answer(
             context,
             lambda: timer_answer(context, words),
-            # Only listing them is fine again
-            edits=words[1:2] in ([], ["list"]),
+            edits=edits_of(action),
             styled=True,
         )
+
+
+def edits_of(action: str) -> Edits:
+    """Listing them runs again; an edit of a change takes its place; what a
+    timer run posted has gone out."""
+    if action in ("add", "remove", "delete"):
+        return Edits.REPLACE
+    return Edits.NOT_RUN if action == "run" else Edits.RUN_AGAIN
 
 
 class Chats(Handler):

@@ -2,7 +2,16 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
-from helpers import ALICE, BOB, CAROL_ID, GROUP, ME, FakeApi, group_entry
+from helpers import (
+    ALICE,
+    BOB,
+    CAROL_ID,
+    EDIT_FROM_BEFORE,
+    GROUP,
+    ME,
+    FakeApi,
+    group_entry,
+)
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -30,16 +39,17 @@ class Chat:
         self.bot = bot
         self.replies: list[str] = []
 
-    async def send(self, text: str, *, edit: bool = False) -> None:
+    async def send(self, text: str, *, edit: bool = False, at: int = 2) -> None:
+        """Send the text, at at, in ms; with edit, as an edit of what was."""
         fields: dict[str, Any] = {
             "server_delivered_timestamp": 0,
             "server_received_timestamp": 0,
-            "timestamp": 2,
+            "timestamp": at + 1 if edit else at,
             "source_number": ADMIN,
             "text": text,
         }
         message = (
-            EditMessage(**fields, target_sent_timestamp=1)
+            EditMessage(**fields, target_sent_timestamp=at)
             if edit
             else DataMessage(**fields)
         )
@@ -199,10 +209,20 @@ async def test_an_admin_put_on_the_list_by_hand_stays_an_admin(
     ]
 
 
-async def test_edits_change_nothing(chat: Chat) -> None:
-    await chat.send(f"/allow {CAROL}", edit=True)
-    await chat.send(f"/disallow {ALICE}", edit=True)
-    assert chat.replies == []
+async def test_an_edit_takes_the_place_of_what_it_edits(chat: Chat) -> None:
+    await chat.send(f"/allow {CAROL}")
+    await chat.send(f"/allow {BOB}", edit=True)
+    assert listed() == [ALICE, BOB]
+    # Alice back where she was, so 2 is what it was
+    await chat.send("/disallow 1")
+    await chat.send("/disallow 2", edit=True)
+    assert listed() == [ALICE]
+
+
+async def test_an_edit_of_a_message_from_before_a_start(chat: Chat) -> None:
+    await chat.send(f"/allow {CAROL}", edit=True, at=5)
+    await chat.send(f"/disallow {ALICE}", edit=True, at=6)
+    assert chat.replies == [EDIT_FROM_BEFORE] * 2
     assert listed() == [ALICE]
 
 

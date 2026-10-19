@@ -76,6 +76,8 @@ def fresh_lists() -> None:
     for kept in (reminders.kept, lists.kept, birthdays.kept):
         kept.reset()
     birthdays.shown.clear()
+    # Nor what commands did, for edits of them
+    commands.done.clear()
     weather.places.clear()
     weather.latest.clear()
     weather.forecasts.clear()

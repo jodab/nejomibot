@@ -133,6 +133,13 @@ def month_name(day: date) -> str:
     )[day.month - 1]
 
 
+def weekday_and_day(day: date) -> str:
+    """E.g. 'Sunday 25 October'."""
+    return _("{weekday} {day} {month}").format(
+        weekday=weekday_name(day), day=day.day, month=month_name(day)
+    )
+
+
 def day_and_time(moment: datetime) -> str:
     """E.g. 'Sunday 11 October 15:30'."""
     return _("{weekday} {day} {month} {time}").format(

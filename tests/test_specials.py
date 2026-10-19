@@ -39,6 +39,7 @@ class Chat:
     def __init__(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self.replies: list[SendMessage] = []
         self.ran: list[str] = []
+        self.bot: SignalBot | None = None  # what needs one, sets one
         self.keeper = Timekeeper()
         monkeypatch.setattr(commands, "reply", self.reply)
         monkeypatch.setattr(commands, "mark_read", self.nothing)
@@ -72,14 +73,17 @@ class Chat:
             "text": text,
             "text_styles": text_styles(text, *styled) or None,
         }
+        # An edit is of the message before, as Signal names it
+        if edit:
+            fields["timestamp"] = 3
         message = (
-            EditMessage(**fields, target_sent_timestamp=1)
+            EditMessage(**fields, target_sent_timestamp=2)
             if edit
             else DataMessage(**fields)
         )
         self.replies.clear()
         await Specials().handle_data_message(
-            DataMessageContext(cast(SignalBot, None), message)
+            DataMessageContext(cast(SignalBot, self.bot), message)
         )
         return [reply.text or "" for reply in self.replies]
 
@@ -142,6 +146,69 @@ async def test_the_daily_post_names_the_day(
     post = headed("**Hi!**", post)
     assert for_chat(post, GROUP).text == f"**Hi!**\n\n{in_group}"
     assert for_chat(post, ALICE).text == f"**Hi!**\n\n{holiday}\n\n**Weather**"
+
+
+@pytest.mark.parametrize(
+    ("words", "day"),
+    [
+        ([], date(2026, 10, 19)),
+        (["tomorrow"], date(2026, 10, 20)),
+        (["10-25"], date(2026, 10, 25)),
+        (["10-18"], date(2027, 10, 18)),  # the next one
+        (["2026-12-24"], date(2026, 12, 24)),
+        (["02-29"], date(2028, 2, 29)),
+        (["soon"], None),
+        (["10-25", "x"], None),
+        (["10-32"], None),
+    ],
+)
+def test_the_day_previewed(words: list[str], day: date | None) -> None:
+    assert specials.preview_day(words, date(2026, 10, 19)) == day
+
+
+async def test_the_preview(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NEJOMIBOT_HOLIDAYS", '["SE"]')
+    get_settings.cache_clear()
+    get_settings().data_file("birthdays.txt").write_text(
+        f"birthday | 1990-06-06 | {ALICE_ID} {ALICE} | Alice\n"
+        "nameday | 06-06 | * | Grandma\n"
+    )
+    # In each group the bot is in, and in a direct chat, which has no
+    # birthdays
+    text = await specials.preview(bot, ["06-06"], date(2026, 10, 19))
+    assert text == "\n".join(
+        [
+            "**👁️ The daily post on Sunday 6 June**",
+            "",
+            "👥 **Familjen**",
+            "🇸🇪 National Day of Sweden · flag day",
+            "🎂 Alice turns 37 today!",
+            "🌸 Happy name day, Grandma!",
+            "",
+            "👤 **In a direct chat**",
+            "🇸🇪 National Day of Sweden · flag day",
+        ]
+    )
+    assert (await specials.preview(bot, [], date(2026, 10, 19))).endswith(
+        "👥 **Familjen**\nNothing atop the weather.\n\n"
+        "👤 **In a direct chat**\nNothing atop the weather."
+    )
+
+
+@pytest.mark.usefixtures("swedish")
+async def test_the_preview_command(
+    chat: Chat, bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    chat.bot = bot
+    [text] = await chat.send("/dagensbild preview imorgon")
+    assert text.startswith("**👁️ Dagens bild på ")
+    assert await chat.send("/dagensbild preview snart") == [
+        "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
+    ]
+    # Nor do timers run it, which would post every group's to their chats
+    assert check_commands(["/dagensbild preview"]) == (
+        "Timrar, specialkommandon och /run kan inte köra /dagensbild preview."
+    )
 
 
 @pytest.mark.usefixtures("swedish")
@@ -318,13 +385,20 @@ async def test_a_special_posts_its_parts_in_order(chat: Chat) -> None:
     assert chat.ran == ["/status", "/ping"]
 
 
-async def test_an_edit_runs_or_changes_none_of_the_admins_own(chat: Chat) -> None:
-    # Their commands may change something
+async def test_an_edit_runs_a_special_again_or_changes_it(chat: Chat) -> None:
     await chat.send("/special add /morning /ping")
-    assert await chat.send("/morning", edit=True) == []
-    assert await chat.send("/special add /bins Bins!", edit=True) == []
-    assert chat.ran == []
-    assert list(own_specials.current().specials) == ["/morning"]
+    # One of the admins' own runs again: its commands change nothing
+    assert await chat.send("/morning", edit=True) == ["/ping!"]
+    # An edit of a change takes the place of what it edits
+    await chat.send("/special add /bins Bins!")
+    await chat.send("/special add /bins Bins tonight!", edit=True)
+    assert own_specials.current().specials["/bins"] == (Part("Bins tonight!"),)
+    await chat.send("/special add /morning /weather")
+    await chat.send("/special add /morning /fortune", edit=True)
+    assert own_specials.current().specials["/morning"] == (Part("", "/fortune"),)
+    await chat.send("/special remove /bins")
+    await chat.send("/special remove /morning", edit=True)
+    assert list(own_specials.current().specials) == ["/bins"]
 
 
 def test_a_heading_is_in_marks() -> None:

@@ -16,7 +16,7 @@ from signalbot import DataMessageContext
 from . import access, contacts
 from .access import Entry, allowed_list, is_group
 from .account import fetch_account
-from .commands import Command, Handler, answer, argument
+from .commands import Command, Edits, Handler, answer, argument, undo_with
 from .config import get_settings
 from .i18n import _, ngettext
 from .messages import describe, escape, unreadable_text
@@ -156,6 +156,7 @@ async def allow(context: DataMessageContext, who: str) -> str:
     if len(allowed.entries) >= access.MAX_ENTRIES:
         return _("The list is full: {count} at most.").format(count=access.MAX_ENTRIES)
     allowed_list.add(found)
+    undo_with(lambda: allowed_list.remove(found.id))
     logger.info("Allowed a %s", "group" if is_group(found.id) else "contact")
     logger.debug("Allowed %s", found.line)
     if not is_group(found.id):
@@ -215,7 +216,8 @@ async def disallow(context: DataMessageContext, who: str) -> str:
         if typed_chat_id(who) in admins or who.casefold() in admin_names:
             return admin_text(who)
         return found
-    allowed_list.remove(found.id)
+    gone = allowed_list.remove(found.id)
+    undo_with(lambda: allowed_list.restore(gone))
     logger.info("Disallowed a %s", "group" if is_group(found.id) else "contact")
     logger.debug("Disallowed %s", found.line)
     name = name_of(found, names)
@@ -230,8 +232,8 @@ async def disallow(context: DataMessageContext, who: str) -> str:
 
 
 # How the admins manage who may use the bot, so timers don't run them. An
-# edit runs /allowed again, as it only lists; /allow and /disallow change the
-# list, so only a new message does.
+# edit runs /allowed again, as it only lists; an edit of /allow or /disallow
+# takes the place of what it edits, which is undone first.
 
 
 class Allowed(Handler):
@@ -246,7 +248,7 @@ class Allow(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         who = argument(context.message.text)
-        await answer(context, lambda: allow(context, who), edits=False)
+        await answer(context, lambda: allow(context, who), edits=Edits.REPLACE)
 
 
 class Disallow(Handler):
@@ -254,4 +256,4 @@ class Disallow(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         who = argument(context.message.text)
-        await answer(context, lambda: disallow(context, who), edits=False)
+        await answer(context, lambda: disallow(context, who), edits=Edits.REPLACE)

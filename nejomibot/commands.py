@@ -10,13 +10,23 @@ Each handler is a Handler that lists its commands, saying of each whether
 more may follow its name and whether timers and /run may run it. answer()
 does what every command does: logs it, marks it read, shows the bot typing
 for a slow one, and replies with what it says, or with what went wrong.
+
+Signal lets a message be edited for a day, and the bot gets the edit as a
+message of its own, naming the one it edits. What answer() does with it
+depends on the command (Edits): one that shows something, or sets a value,
+runs again; one that adds or removes something first has what the message
+did undone, so the edit takes its place, as the command said how with
+undo_with(); one whose post or deletion can't be undone isn't run.
 """
 
 import inspect
 import logging
 import re
+import time
 from collections.abc import Awaitable, Callable, Sequence
-from dataclasses import dataclass
+from contextvars import ContextVar
+from dataclasses import dataclass, field
+from enum import Enum, auto
 from typing import ClassVar
 
 from signalbot import (
@@ -29,7 +39,7 @@ from signalbot import (
 )
 
 from .config import get_settings
-from .i18n import language
+from .i18n import _, language
 from .messages import collected, error_text, escape, log_failure, reply
 from .receipts import mark_read, show_typing
 from .styles import utf16_length
@@ -161,11 +171,117 @@ type Reply = str | SendMessage
 type Replies = Reply | Sequence[Reply] | None
 
 
+class Edits(Enum):
+    """What an edit of a command's message does."""
+
+    RUN_AGAIN = auto()  # it shows something, or sets a value: run it again
+    REPLACE = auto()  # it adds or removes something: undo that, then run
+    NOT_RUN = auto()  # a post or deletion can't be undone: say so
+    IGNORE = auto()  # as NOT_RUN, quietly, for /delete, whose note would go next
+
+
+# What the commands that add or remove something did, by the message, so an
+# edit of it can undo that first. An edit names the message it edits by when
+# it was sent: Signal Desktop names the latest edit, others the first message,
+# so what an edit did is kept under both. For a day, as Signal lets a message
+# be edited for a day, and only in memory: after a restart, an edit of a
+# message from before isn't run, as the bot can't tell what that did.
+EDITABLE_FOR = 24 * 60 * 60  # seconds
+MAX_DONE = 500
+STARTED = time.time()
+# A message stamped this soon after the start may be from before it, as the
+# sender's clock may be ahead of the bot's
+CLOCKS_DIFFER = 120  # seconds
+
+type Undo = Callable[[], object]  # may return an awaitable, which is awaited
+
+
+@dataclass
+class Done:
+    """What a message's command did, to undo for an edit of it."""
+
+    at: float  # when, by time.monotonic
+    undos: list[Undo] = field(default_factory=list[Undo])
+    final: str = ""  # why it can't be undone, if it can't
+
+
+done: dict[tuple[str, int], Done] = {}
+doing: ContextVar[Done | None] = ContextVar("doing", default=None)
+
+
+def undo_with(undo: Undo) -> None:
+    """For a command that adds or removes something: how to undo what it
+    just did, if an edit of its message comes. The last is undone first."""
+    if (now := doing.get()) is not None:
+        now.undos.append(undo)
+
+
+def cannot_undo(why: str) -> None:
+    """For a command that did what can't be undone: an edit of its message
+    says why, and isn't run."""
+    if (now := doing.get()) is not None:
+        now.final = why
+
+
+def message_keys(message: DataMessage) -> set[tuple[str, int]]:
+    """Who sent the message, and when, as Signal knows it; an edit also by
+    the message it edits, which the next edit may name instead."""
+    sender = message.source_uuid or message.source_number or ""
+    keys = {(sender, message.timestamp)}
+    if isinstance(message, EditMessage):
+        keys.add((sender, message.target_sent_timestamp))
+    return keys
+
+
+def remember(keys: set[tuple[str, int]], did: Done) -> None:
+    """Keep what a command did, for as long as its message can be edited, and
+    no more than MAX_DONE names' worth."""
+    now = time.monotonic()
+    for old in [k for k, each in done.items() if now - each.at > EDITABLE_FOR]:
+        del done[old]
+    for key in sorted(keys):
+        done.pop(key, None)  # last, as the newest
+        done[key] = did
+    while len(done) > MAX_DONE:
+        del done[next(iter(done))]
+
+
+async def undo_first(message: EditMessage) -> str | None:
+    """Undo what the message the edit edits did, so the edit takes its place;
+    or why it can't be, as when the bot can't tell what that did."""
+    sender = message.source_uuid or message.source_number or ""
+    when = message.target_sent_timestamp
+    if (first := done.get((sender, when))) is None:
+        if when / 1000 < STARTED + CLOCKS_DIFFER:
+            return _(
+                "✏️ That edit isn't run: the bot has started again since the "
+                "message it edits, so it can't tell what that did. Send it as a "
+                "new message instead."
+            )
+        return None  # the bot has had it, and it changed nothing
+    if first.final:
+        return first.final
+    try:
+        for undo in reversed(first.undos):
+            if inspect.isawaitable(result := undo()):
+                await result
+    except Exception:
+        first.final = _(
+            "✏️ That edit isn't run: undoing what the message it edits did "
+            "failed. Send it as a new message instead."
+        )
+        raise
+    # Undone: forgotten by every name, so nothing undoes it again
+    for key in [key for key, each in done.items() if each is first]:
+        del done[key]
+    return None
+
+
 async def answer(
     context: DataMessageContext,
     what: Callable[[], Replies | Awaitable[Replies]],
     *,
-    edits: bool = True,
+    edits: Edits = Edits.RUN_AGAIN,
     slow: bool = False,
     styled: bool = False,
 ) -> None:
@@ -173,14 +289,20 @@ async def answer(
     styled, or as the messages it makes; or with what went wrong. Its name
     and the kind of chat go in the log, the rest only at DEBUG.
 
-    An EditMessage is a DataMessage, so an edit runs its command again; with
-    edits false, as for commands that change something or post elsewhere,
-    it's let be. A slow command shows the bot typing meanwhile."""
+    An EditMessage is a DataMessage: what an edit does, edits says. A slow
+    command shows the bot typing meanwhile."""
     message = context.message
     words = (message.text or "").split()
     name = words[0].lower() if words else "?"
-    if not edits and isinstance(message, EditMessage):
+    edited = isinstance(message, EditMessage)
+    if edited and edits in (Edits.NOT_RUN, Edits.IGNORE):
         logger.info("Ignored an edited %s %s", name, chat_kind(message))
+        if edits is Edits.NOT_RUN:
+            note = _(
+                "✏️ An edit of {command} isn't run, as what it did can't be "
+                "undone. Send it as a new message instead."
+            ).format(command=name)
+            await reply(context, SendMessage(text=note))
         return
     logger.info("Received %s %s", name, chat_kind(message))
     logger.debug(
@@ -189,13 +311,31 @@ async def answer(
     await mark_read(context)
     if slow:
         await show_typing(context)
+    # What it does is kept for an edit, but for a timer, /run or a special's
+    keep = edits is Edits.REPLACE and collected.get() is None
+    did = Done(time.monotonic()) if keep else None
+    ran = False
     try:
-        replies = what()
-        if inspect.isawaitable(replies):
-            replies = await replies
+        why = await undo_first(message) if did and edited else None
+        if why:
+            # So an edit of this edit is refused too, whichever it names
+            remember(message_keys(message), Done(time.monotonic(), final=why))
+            replies = escape(why) if styled else why
+        else:
+            ran = True
+            token = doing.set(did)
+            try:
+                replies = what()
+                if inspect.isawaitable(replies):
+                    replies = await replies
+            finally:
+                doing.reset(token)
     except Exception as e:
         log_failure(logger, name, e)
         replies = escape(error_text(e)) if styled else error_text(e)
+    # What it did before it failed, too
+    if did is not None and ran:
+        remember(message_keys(message), did)
     if replies is None:
         return
     mode = TextMode.STYLED if styled else None

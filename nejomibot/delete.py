@@ -20,7 +20,7 @@ from signalbot import DataMessageContext, SentMessage, SignalBot
 
 from . import access
 from .access import is_admin
-from .commands import Command, Handler, answer, numbers_in
+from .commands import Command, Edits, Handler, answer, numbers_in
 from .config import get_settings
 from .i18n import _, when_text
 from .messages import (
@@ -189,9 +189,11 @@ class Delete(Handler):
         words = (message.text or "").split()
         if len(words) == 1:
             # Deleted is reply enough: anything posted would be the next to
-            # go. It deletes, so only a new message does.
+            # go. A deletion can't be undone, so an edit is let be, quietly.
             chats = chats_of(context)
-            await answer(context, lambda: delete_latest(bot, log, chats), edits=False)
+            await answer(
+                context, lambda: delete_latest(bot, log, chats), edits=Edits.IGNORE
+            )
             return
         if message.is_group():
             # Not in groups: the list shows what the bot sent to every chat
@@ -205,7 +207,7 @@ class Delete(Handler):
             await answer(
                 context,
                 lambda: delete_listed(bot, log, who, picked),
-                edits=False,
+                edits=Edits.NOT_RUN,
                 styled=True,
             )
         else:

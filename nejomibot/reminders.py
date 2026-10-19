@@ -26,7 +26,7 @@ from datetime import UTC, datetime, timedelta
 from signalbot import DataMessageContext, SendMessage, SignalBot
 
 from .access import chat_id_of, is_group
-from .commands import Command, Handler, answer, numbers_in
+from .commands import Command, Edits, Handler, answer, numbers_in, undo_with
 from .config import get_settings
 from .files import KeptLines
 from .i18n import _, day_and_time, format_duration, ngettext
@@ -203,7 +203,8 @@ def add_reminder(chat: str, chats: set[str], words: list[str], now: datetime) ->
         )
     number = max((each.number for each in others), default=0) + 1
     reminder = Reminder(number, due, chat, text)
-    kept.add(reminder)
+    change = kept.add(reminder)
+    undo_with(lambda: kept.revert(change))
     return f"✅ **{escape(_('Added'))}**\n{escape(reminder_line(reminder))}"
 
 
@@ -215,7 +216,8 @@ def remove_reminders(chats: set[str], words: list[str]) -> str:
     if wrong := [n for n in numbers if n not in found]:
         return escape(_("No reminder #{n} here.").format(n=wrong[0]))
     gone = [found[n] for n in numbers]
-    kept.remove(gone)
+    change = kept.remove(gone)
+    undo_with(lambda: kept.revert(change))
     return f"🗑️ **{escape(_('Removed'))}**\n" + "\n".join(
         escape(reminder_line(each)) for each in gone
     )
@@ -240,8 +242,9 @@ class Remind(Handler):
         await answer(
             context,
             lambda: remind_answer(context, words),
-            # Only listing them is fine again
-            edits=len(words) == 1,
+            # Listing them runs again; an edit of one that changes them
+            # takes its place
+            edits=Edits.RUN_AGAIN if len(words) == 1 else Edits.REPLACE,
             styled=True,
         )
 

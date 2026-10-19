@@ -39,7 +39,7 @@ from signalbot import DataMessageContext, GroupEntry, SignalBot
 
 from .access import chat_id_of, is_admin, is_group
 from .account import Contact, by_ids, fetch_account, fetch_recipients
-from .commands import Command, Handler, answer, numbers_in
+from .commands import Command, Edits, Handler, answer, numbers_in, undo_with
 from .config import GROUP_ID, get_settings
 from .contacts import find, find_one, is_contact, number_of
 from .files import KeptLines
@@ -406,7 +406,8 @@ async def add(bot: SignalBot, kind: str, words: list[str], on: date) -> str:
         return _(
             "There are {count} birthdays and name days already: remove one first."
         ).format(count=MAX_DAYS)
-    kept.change(old, [new])
+    change = kept.change(old, [new])
+    undo_with(lambda: kept.revert(change))
     done = _("✅ Changed: {day} · {name}") if old else _("✅ Added: {day} · {name}")
     lines = [done.format(day=day_text(new.next(on)), name=name)]
     if their_ids:
@@ -451,7 +452,8 @@ def remove(kind: str, who: str, words: list[str], on: date) -> str:
         else:
             gone.append(still)
     if gone:
-        kept.remove(gone)
+        change = kept.remove(gone)
+        undo_with(lambda: kept.revert(change))
         removed = ", ".join(f"{day_text(e.next(on))} · {e.name}" for e in gone)
         lines.insert(0, _("🗑️ Removed: {what}").format(what=removed))
     return "\n".join(lines)
@@ -481,7 +483,8 @@ class Birthdays(Handler):
 
 
 class Birthday(Handler):
-    """Adding and removing them, for the admins: neither edits nor timers."""
+    """Adding and removing them, for the admins: an edit takes the place of
+    what it edits; timers don't run them."""
 
     commands = (
         Command("/birthday", more=True, timers=False),
@@ -495,6 +498,8 @@ class Birthday(Handler):
         await answer(
             context,
             lambda: birthday_answer(context, kind, words),
-            # They change something; what they say without it is fine again
-            edits=action not in ("add", "remove", "delete"),
+            # An edit of one that changes something takes its place
+            edits=Edits.REPLACE
+            if action in ("add", "remove", "delete")
+            else Edits.RUN_AGAIN,
         )

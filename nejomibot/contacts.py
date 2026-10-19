@@ -25,7 +25,7 @@ from .account import (
     full_name,
     with_fresh_profiles,
 )
-from .commands import Command, Handler, answer
+from .commands import Command, Edits, Handler, answer, undo_with
 from .config import PHONE_NUMBER, get_settings
 from .i18n import _, ngettext
 from .messages import escape
@@ -314,6 +314,9 @@ async def add(bot: SignalBot, account: Account, who: str, name: str) -> str:
         )
     was = heading_of(account, contact)
     await bot.contacts.update(UpdateContact(name=name), recipient)
+    if is_contact(account, contact) and (old := contact.name):
+        # For an edit: the old name back. A contact made can't be taken out.
+        undo_with(lambda: bot.contacts.update(UpdateContact(name=old), recipient))
     if is_contact(account, contact):
         return _("✏️ Renamed {was} to {name} in the contacts.").format(
             was=was, name=name
@@ -345,8 +348,10 @@ class Contacts(Handler):
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         bot, words = context.bot, (context.message.text or "").split()
         if words[1:2] and words[1].casefold() == "add":
-            # It changes the contacts, so only a new message does
-            await answer(context, lambda: add_contact(bot, words[2:]), edits=False)
+            # An edit of it takes its place, a rename undone first
+            await answer(
+                context, lambda: add_contact(bot, words[2:]), edits=Edits.REPLACE
+            )
         else:
             who = " ".join(words[1:])
             await answer(

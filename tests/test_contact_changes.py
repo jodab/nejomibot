@@ -1,6 +1,15 @@
 import pytest
-from helpers import BOB, BOB_ID, CAROL_ID, ME, FakeApi
-from signalbot import DataMessageContext, EditMessage, SignalBot
+from helpers import (
+    ALICE_ID,
+    BOB,
+    BOB_ID,
+    CAROL_ID,
+    EDIT_FROM_BEFORE,
+    ME,
+    FakeApi,
+    message_from,
+)
+from signalbot import DataMessageContext, SendMessage, SignalBot
 
 from nejomibot import contacts
 from nejomibot.account import Account
@@ -68,20 +77,38 @@ async def test_usage(bot: SignalBot, signal_api: FakeApi) -> None:
     assert signal_api.requests == []
 
 
-async def test_an_edit_changes_nothing(
-    bot: SignalBot, signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+async def test_an_edit_of_a_message_from_before_a_start(
+    bot: SignalBot,
+    signal_api: FakeApi,
+    answers: list[SendMessage],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     async def fetch_account(bot: SignalBot) -> Account:
         raise AssertionError("an edit mustn't get this far")
 
     monkeypatch.setattr(contacts, "fetch_account", fetch_account)
-    message = EditMessage(
-        server_delivered_timestamp=0,
-        server_received_timestamp=0,
-        timestamp=2,
-        source_number=BOB,
-        text=f"/contacts add {CAROL_ID} Carl",
-        target_sent_timestamp=1,
-    )
+    text = f"/contacts add {CAROL_ID} Carl"
+    message = message_from(BOB, text, edit=True, timestamp=1)
     await Contacts().handle_data_message(DataMessageContext(bot, message))
+    # The bot can't tell what the message it edits did
+    assert [answer.text for answer in answers] == [EDIT_FROM_BEFORE]
     assert signal_api.requests == []
+
+
+async def test_an_edit_renames_in_its_place(
+    bot: SignalBot, signal_api: FakeApi, answers: list[SendMessage]
+) -> None:
+    first = message_from(BOB, "/contacts add alice Ali")
+    await Contacts().handle_data_message(DataMessageContext(bot, first))
+    edit = message_from(BOB, "/contacts add alice Ally", edit=True)
+    await Contacts().handle_data_message(DataMessageContext(bot, edit))
+    # The name the first gave is undone, then the edit's given
+    assert signal_api.bodies("PUT", CONTACTS) == [
+        {"recipient": ALICE_ID, "name": "Ali"},
+        {"recipient": ALICE_ID, "name": "Alice"},
+        {"recipient": ALICE_ID, "name": "Ally"},
+    ]
+    assert [answer.text for answer in answers] == [
+        "✏️ Renamed Alice to Ali in the contacts.",
+        "✏️ Renamed Alice to Ally in the contacts.",
+    ]

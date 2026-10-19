@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 15:01+0300\n"
+"POT-Creation-Date: 2026-10-19 15:23+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -384,6 +384,32 @@ msgstr "{n} finns inte längre: borttagen eller ändrad sedan dess."
 #, python-brace-format
 msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Borttaget: {what}"
+
+#: nejomibot/commands.py
+msgid ""
+"✏️ That edit isn't run: the bot has started again since the message it edits, "
+"so it can't tell what that did. Send it as a new message instead."
+msgstr ""
+"✏️ Ändringen körs inte: boten har startat om sedan meddelandet den ändrar, så "
+"den kan inte veta vad det gjorde. Skicka det som ett nytt meddelande i "
+"stället."
+
+#: nejomibot/commands.py
+msgid ""
+"✏️ That edit isn't run: undoing what the message it edits did failed. Send it "
+"as a new message instead."
+msgstr ""
+"✏️ Ändringen körs inte: det gick inte att ångra vad meddelandet den ändrar "
+"gjorde. Skicka det som ett nytt meddelande i stället."
+
+#: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
+"a new message instead."
+msgstr ""
+"✏️ En ändring av {command} körs inte, eftersom det den gjorde inte går att "
+"ångra. Skicka det som ett nytt meddelande i stället."
 
 #: nejomibot/contacts.py
 msgid "Send: /contacts add <phone number, ID or name> <their name>"
@@ -790,6 +816,14 @@ msgstr "hur boten och servern mår"
 #: nejomibot/help.py
 msgid "the daily post, here"
 msgstr "dagens bild, här"
+
+#: nejomibot/help.py
+msgid "what it says atop the weather, in each chat"
+msgstr "vad den säger ovanför vädret, i varje chatt"
+
+#: nejomibot/help.py
+msgid "[<date>]"
+msgstr "[<datum>]"
 
 #: nejomibot/help.py
 msgid "the daily quote, here"
@@ -1297,6 +1331,11 @@ msgstr "November"
 #: nejomibot/i18n.py
 msgid "December"
 msgstr "December"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{weekday} {day} {month}"
+msgstr "{weekday} {day} {month}"
 
 #: nejomibot/i18n.py
 #, python-brace-format
@@ -1914,6 +1953,23 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Photo of the day!"
 msgstr "Dagens bild!"
+
+#: nejomibot/specials.py
+msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."
+msgstr "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
+
+#: nejomibot/specials.py
+msgid "Nothing atop the weather."
+msgstr "Inget ovanför vädret."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "👁️ The daily post on {day}"
+msgstr "👁️ Dagens bild på {day}"
+
+#: nejomibot/specials.py
+msgid "In a direct chat"
+msgstr "I en direktchatt"
 
 #: nejomibot/specials.py
 msgid "Proverb or quote of the day:"

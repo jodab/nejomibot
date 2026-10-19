@@ -38,20 +38,31 @@ class Clock:
         return self.now
 
 
+# What an edit says of a message from before the bot's start
+EDIT_FROM_BEFORE = (
+    "✏️ That edit isn't run: the bot has started again since the message it "
+    "edits, so it can't tell what that did. Send it as a new message instead."
+)
 # As a message in GROUP names it: by the ID signalbot calls internal
 GROUP_INTERNAL_ID = "internal-Familjen"
 
 
 def message_from(
-    sender: str, text: str, *, in_group: bool = False, edit: bool = False
+    sender: str,
+    text: str,
+    *,
+    in_group: bool = False,
+    edit: bool = False,
+    timestamp: int = NOW_MS,
 ) -> DataMessage:
     """A message as signalbot gives it: from the sender, by phone number or
-    Signal ID, in a direct chat with the bot or in GROUP; an edit if edit."""
+    Signal ID, in a direct chat with the bot or in GROUP, sent at timestamp;
+    with edit, an edit of the message sent then, as Signal names it."""
     by_number = sender.startswith("+")
     fields: dict[str, Any] = {
         "server_delivered_timestamp": 0,
         "server_received_timestamp": 0,
-        "timestamp": NOW_MS,
+        "timestamp": timestamp + 1000 if edit else timestamp,
         "source": sender,
         "source_number": sender if by_number else None,
         "source_uuid": None if by_number else sender,
@@ -63,7 +74,7 @@ def message_from(
         "text": text,
     }
     if edit:
-        return EditMessage(**fields, target_sent_timestamp=1)
+        return EditMessage(**fields, target_sent_timestamp=timestamp)
     return DataMessage(**fields)
 
 

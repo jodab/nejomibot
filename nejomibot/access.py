@@ -202,12 +202,25 @@ class AllowedList:
         self.reread()
         self.save([*self.lines, entry.line])
 
-    def remove(self, chat_id: str) -> None:
+    def remove(self, chat_id: str) -> list[tuple[int, str]]:
         """Every line with the ID goes; comments and lines that can't be read
-        stay. Raises OSError if the file can't be written; then nothing
-        changes."""
+        stay. The lines that went, and where they were. Raises OSError if the
+        file can't be written; then nothing changes."""
         self.reread()
-        self.save([line for line in self.lines if entry_id(line) != chat_id])
+        lines = list(enumerate(self.lines))
+        gone = [(i, line) for i, line in lines if entry_id(line) == chat_id]
+        self.save([line for _i, line in lines if entry_id(line) != chat_id])
+        return gone
+
+    def restore(self, lines: list[tuple[int, str]]) -> None:
+        """Put lines that were removed back where they were, unless their ID
+        is back already. Raises OSError; then nothing changes."""
+        self.reread()
+        now = list(self.lines)
+        for index, line in lines:
+            if entry_id(line) not in self.ids:
+                now.insert(min(index, len(now)), line)
+        self.save(now)
 
 
 allowed_list = AllowedList()

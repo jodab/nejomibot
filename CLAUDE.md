@@ -304,12 +304,17 @@ messages, run `tools/translations.sh` and translate `sv.po`.
   every library logs at WARNING through the same handler.
 - Styled replies (`TextMode.STYLED`) need `messages.escape()` on any text from
   outside, such as names and errors; a special's texts are in marks already.
-- An `EditMessage` is a `DataMessage`, so an edit runs its command again,
-  which is wanted wherever that works: commands that show something, or set
-  a value (`/name`, `/trust`), so the edit applies the correction. Those
-  that would do it twice, such as adding a timer or someone to the allowed
-  list, deleting, or posting elsewhere, pass `answer(edits=False)` and
-  ignore edits.
+- An `EditMessage` is a `DataMessage`, and `answer(edits=...)` says what an
+  edit does (`commands.Edits`): `RUN_AGAIN`, for commands that show
+  something or set a value (`/name`, `/trust`); `REPLACE`, for those that
+  add or remove something, which say how to undo it with `undo_with()` (or
+  `cannot_undo()`), so an edit undoes what its message did, then runs;
+  `NOT_RUN` for posts and deletions, which says so; `IGNORE` for `/delete`
+  alone. What a command did is kept by the message (sender and timestamp)
+  for a day, in memory, and an edit's also under its own timestamp, as
+  Signal Desktop names the latest edit and other clients the first message;
+  an edit of a message from before the start isn't run. A new command that changes something uses `REPLACE`
+  and registers its undo; `KeptLines` changes give one (`revert`).
 - signalbot's logger stays at WARNING: at INFO it logs every message the bot
   receives, in full.
 - Python 3.14 only: the code uses `except A, B:` without parentheses (PEP 758)

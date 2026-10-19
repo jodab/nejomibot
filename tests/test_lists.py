@@ -1,5 +1,5 @@
 import pytest
-from helpers import ALICE, BOB, GROUP, message_from
+from helpers import ALICE, BOB, GROUP, NOW_MS, message_from
 from signalbot import DataMessageContext, SendMessage, SignalBot
 
 from nejomibot import lists
@@ -15,9 +15,12 @@ async def ask(
     *,
     in_group: bool = False,
     edit: bool = False,
+    timestamp: int = NOW_MS,
 ) -> str:
     answers.clear()
-    message = message_from(sender, text, in_group=in_group, edit=edit)
+    message = message_from(
+        sender, text, in_group=in_group, edit=edit, timestamp=timestamp
+    )
     await Lists().handle_data_message(DataMessageContext(bot, message))
     return "\n".join(answer.text or "" for answer in answers)
 
@@ -84,12 +87,20 @@ async def test_so_many_things(
     )
 
 
-async def test_an_edit_changes_nothing(
+async def test_an_edit_takes_the_place_of_what_it_edits(
     bot: SignalBot, answers: list[SendMessage]
 ) -> None:
-    assert await ask(bot, answers, "/list add milk", edit=True) == ""
-    assert not get_settings().data_file("lists.txt").exists()
-    assert (await ask(bot, answers, "/list", edit=True)).startswith("📝 The list is")
+    added, removed = NOW_MS, NOW_MS + 5000
+    await ask(bot, answers, "/list add milk, eggs, flour", timestamp=added)
+    await ask(bot, answers, "/list remove 2", timestamp=removed)
+    # Eggs back where they were, so 3 is what it was: flour
+    assert await ask(bot, answers, "/list remove 3", edit=True, timestamp=removed) == (
+        "🗑️ Took off: flour\n\n**📝 The list: 2 things**\n1 milk\n2 eggs"
+    )
+    assert await ask(bot, answers, "/list add milk, butter", edit=True, timestamp=added)
+    assert the_file() == [f"{ALICE} | milk", f"{ALICE} | butter"]
+    # Showing it runs again
+    assert (await ask(bot, answers, "/list", edit=True)).startswith("**📝 The list")
 
 
 def test_lines() -> None:

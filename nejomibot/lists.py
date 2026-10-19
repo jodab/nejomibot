@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from signalbot import DataMessageContext
 
 from .access import chat_id_of
-from .commands import Command, Handler, answer, numbers_in
+from .commands import Command, Edits, Handler, answer, numbers_in, undo_with
 from .files import KeptLines
 from .i18n import _, ngettext
 from .messages import chat_id, chats_of, escape
@@ -99,7 +99,8 @@ def add_items(chat: str, chats: set[str], text: str) -> str:
                 count=MAX_ITEMS
             )
         )
-    kept.add(*(Item(chat, thing) for thing in things))
+    change = kept.add(*(Item(chat, thing) for thing in things))
+    undo_with(lambda: kept.revert(change))
     return list_text(chats)
 
 
@@ -112,7 +113,8 @@ def remove_items(chats: set[str], text: str) -> str:
     if wrong := [n for n in numbers if not 1 <= n <= len(found)]:
         return escape(_("There's no {n} on the list.").format(n=wrong[0]))
     gone = [found[n - 1] for n in numbers]
-    kept.remove(gone)
+    change = kept.remove(gone)
+    undo_with(lambda: kept.revert(change))
     removed = _("🗑️ Took off: {things}").format(
         things=", ".join(item.text for item in gone)
     )
@@ -122,7 +124,8 @@ def remove_items(chats: set[str], text: str) -> str:
 def clear(chats: set[str]) -> str:
     """Styled."""
     if found := items(chats):
-        kept.remove(found)
+        change = kept.remove(found)
+        undo_with(lambda: kept.revert(change))
     return escape(_("🗑️ The list is empty now."))
 
 
@@ -151,7 +154,8 @@ class Lists(Handler):
         await answer(
             context,
             lambda: list_answer(context, text),
-            # Only showing it is fine again
-            edits=len(text.split()) == 1,
+            # Showing it runs again; an edit of one that changes it takes
+            # its place
+            edits=Edits.RUN_AGAIN if len(text.split()) == 1 else Edits.REPLACE,
             styled=True,
         )

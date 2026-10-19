@@ -40,12 +40,14 @@ async def ask(
     sender: str = ADMIN,
     *,
     in_group: bool = False,
+    edit: bool = False,
 ) -> str:
-    """What the bot answers the message, as text."""
+    """What the bot answers the message, as text; with edit, an edit of the
+    one before."""
     answers.clear()
     changes = text.split()[0] in ("/birthday", "/nameday")
     handler: Handler = Birthday() if changes else Birthdays()
-    message = message_from(sender, text, in_group=in_group)
+    message = message_from(sender, text, in_group=in_group, edit=edit)
     await handler.handle_data_message(DataMessageContext(bot, message))
     return "\n".join(answer.text or "" for answer in answers)
 
@@ -212,6 +214,26 @@ async def test_removed_by_the_list_shown_last(
         "Which ones? Send /namedays first, for their numbers."
     )
     assert the_file() == ["birthday | 10-19 | * | Today"]
+
+
+async def test_an_edit_takes_the_place_of_what_it_edits(
+    bot: SignalBot, answers: list[SendMessage]
+) -> None:
+    await ask(bot, answers, "/birthday add 1990-03-14 Alice")
+    assert await ask(bot, answers, "/birthday add 1990-03-15 Alice", edit=True) == (
+        "✅ Added: 15 March · Alice\n👥 In the groups Alice is in"
+    )
+    await ask(bot, answers, "/nameday add 05-01 Grandma")
+    await ask(bot, answers, "/nameday add 05-02 Grandma", edit=True)
+    assert the_file() == [
+        f"birthday | 1990-03-15 | {ALICE_ID} {ALICE} | Alice",
+        "nameday | 05-02 | * | Grandma",
+    ]
+    # One removed comes back, for the edit to remove another
+    await ask(bot, answers, "/birthdays")
+    await ask(bot, answers, "/birthday remove 1")
+    await ask(bot, answers, "/birthday remove 2", edit=True)
+    assert len(the_file()) == 2
 
 
 async def test_where_they_show(bot: SignalBot, signal_api: FakeApi) -> None:

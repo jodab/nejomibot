@@ -492,5 +492,9 @@ async def test_an_edit_deletes_nothing_by_number(
         target_sent_timestamp=ms(NOW) - 1,
     )
     await Delete().handle_data_message(DataMessageContext(bot, edit))
-    assert replies.sent == []
+    # A deletion can't be undone, so an edit of one isn't run, and says so
+    assert [message.text for message in replies.sent] == [
+        "✏️ An edit of /delete isn't run, as what it did can't be undone. Send "
+        "it as a new message instead."
+    ]
     assert deletes.bodies("DELETE", REMOTE_DELETE) == []
