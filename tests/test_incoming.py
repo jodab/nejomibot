@@ -42,7 +42,9 @@ PHOTO = Attachment.model_validate(
 
 class Clock:
     def __init__(self) -> None:
-        self.now = datetime.now(UTC)
+        # The start of this minute, so messages a second or two apart show
+        # the same time
+        self.now = datetime.now(UTC).replace(second=0, microsecond=0)
 
     def __call__(self) -> datetime:
         return self.now
@@ -164,8 +166,8 @@ async def test_what_its_sender_deletes_goes(clock: Clock) -> None:
 
 def test_what_disappears_goes(clock: Clock) -> None:
     inbox = incoming.inbox
-    inbox.keep(message("Soon gone", expires_in_seconds=60))
-    inbox.keep(message("Stays"))
+    inbox.keep(message("Soon gone", at=clock.now, expires_in_seconds=60))
+    inbox.keep(message("Stays", at=clock.now + timedelta(seconds=1)))
     clock.now += timedelta(seconds=59)
     assert texts(inbox) == ["Stays", "Soon gone"]
     clock.now += timedelta(seconds=2)
