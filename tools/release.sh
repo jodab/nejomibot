@@ -3,6 +3,9 @@
 #
 # Usage: tools/release.sh patch|minor|major
 #
+# For now, patch only: nejomibot stays on 0.99.x until the owner says it
+# moves to 1.0, and minor and major stop with an error.
+#
 # Releases main as it is on GitHub, once CI has passed on it. It moves the
 # version in pyproject.toml and uv.lock up a patch (0.93.4 to 0.93.5), minor
 # (0.94.0) or major (1.0.0) version, makes CHANGELOG.md's Unreleased section
@@ -67,6 +70,10 @@ case "$*" in
     ;;
   *) die "Usage: tools/release.sh patch|minor|major (see --help)" ;;
 esac
+# The owner's decision, 2026-10-19: 0.99.x until they say it's time for 1.0.
+# Take this out then.
+[[ $1 == patch ]] ||
+  die "No $1 release for now: nejomibot stays on 0.99.x until the owner says it moves to 1.0, so tools/release.sh patch"
 gh auth status >/dev/null 2>&1 || die "gh isn't logged in to GitHub: gh auth login"
 git fetch --quiet --tags origin
 

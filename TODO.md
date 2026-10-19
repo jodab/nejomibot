@@ -17,6 +17,10 @@ tests, ShellCheck, and actionlint on the workflows.
 These would change what people in Signal see, or how the bot is run, so they
 wait for the owner.
 
+- [ ] **When to move to 1.0** (2026-10-19): until you say so, nejomibot
+  stays on 0.99.x, patch releases only. `tools/release.sh` stops on minor
+  and major; take its guard out (after the usage check) when it's time.
+
 - [ ] **`/dailyquote` is an admin command, as `/dailypost` is** (2026-10-18):
   for timers, `/run` and the admins in a direct chat, like every special.
   Unlike `/dailypost`, it uses nothing up, so it could be an everyday

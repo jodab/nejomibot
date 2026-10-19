@@ -19,8 +19,9 @@ or else in every group.
 A contact has one birthday and one name day: adding another changes it.
 /birthdays and /namedays, for everyone allowed, list them, the coming ones
 first: in a group, those it gets; in a direct chat, for the admins, all of
-them, numbered through the year, so the numbers change only when one is
-added or removed. A birthday on 29 February comes on the 28th in other years.
+them, numbered. /birthday remove and /nameday remove take the numbers of the
+list the admin was shown last, whatever changes meanwhile, until they ask
+for it again. A birthday on 29 February comes on the 28th in other years.
 
 They're kept in data_dir/birthdays.txt, a line each, which can be changed by
 hand: the bot reads it again when it changes, and leaves comments and lines
@@ -149,6 +150,11 @@ def line_of(occasion: Occasion) -> str:
 
 kept = KeptLines("birthdays.txt", HEADER, parse_line, line_of)
 
+# The birthdays or name days each admin was shown last, by which and by who
+# they are: /birthday remove and /nameday remove take the numbers from there.
+# Only in memory, so after a restart, the list again.
+shown: dict[tuple[str, str], list[Occasion]] = {}
+
 
 # Whose day shows where
 
@@ -223,11 +229,11 @@ def today() -> date:
     return datetime.now(get_settings().tz).date()
 
 
-def through_the_year(kind: str) -> list[Occasion]:
-    """The kind's, numbered as their lists number them: by day, then as the
-    file has them."""
+def coming(kind: str, on: date) -> list[Occasion]:
+    """The kind's, the soonest first, the day's own first of all, then as
+    the file has them."""
     found = [each for each in kept.current().entries if each.kind == kind]
-    return sorted(found, key=lambda each: (each.month, each.day))
+    return sorted(found, key=lambda each: each.next(on))
 
 
 def day_text(day: date) -> str:
@@ -252,11 +258,10 @@ def list_text(
     found: list[Occasion],
     contacts: Contacts,
     on: date,
-    numbers: dict[int, int] | None = None,
     where: Callable[[Occasion], str] | None = None,
 ) -> str:
-    """The birthdays or name days found, the coming ones first, with their
-    numbers by id(), if given, and where they show, if asked. Styled."""
+    """The birthdays or name days found, as they come, the soonest first;
+    for the admins, numbered, with where they show. Styled."""
     count = len(found)
     if kind == BIRTHDAY:
         none = _("No birthdays here.")
@@ -267,11 +272,11 @@ def list_text(
     if not found:
         return escape(none)
     lines = [f"**{escape(title.format(count=count))}**"]
-    for each in sorted(found, key=lambda each: each.next(on)):
+    for n, each in enumerate(found, start=1):
         day = each.next(on)
         line = f"{day_text(day)} · {name_of(each, contacts)}"
-        if numbers is not None:
-            line = f"{numbers[id(each)]} · {line}"
+        if where:  # the admins' list, whose numbers remove takes
+            line = f"{n} · {line}"
         if each.year is not None and (age := day.year - each.year) > 0:
             line += " " + _("(turns {age})").format(age=age)
         if where and (place := where(each)):
@@ -282,25 +287,26 @@ def list_text(
 
 async def list_answer(context: DataMessageContext, kind: str) -> str:
     """In a group, those it gets; in a direct chat, for the admins, all of
-    them, numbered, with where they show. Styled."""
+    them, numbered for them to remove some, with where they show. Styled."""
     bot, message = context.bot, context.message
     if not message.is_group() and not is_admin(message):
         return escape(_("Birthdays and name days show in groups, for those in them."))
-    found = through_the_year(kind)
+    on = today()
+    found = coming(kind, on)
     contacts = await contacts_by_id() if found else {}
     if message.is_group():
         group = chat_of(bot, message.source_or_group_id())
         here = [each for each in found if group in shows_in(each, contacts, bot.groups)]
-        return list_text(kind, here, contacts, today())
-    numbers = {id(each): n for n, each in enumerate(found, start=1)}
+        return list_text(kind, here, contacts, on)
+    shown[kind, admin_of(context)] = found
     return list_text(
-        kind,
-        found,
-        contacts,
-        today(),
-        numbers,
-        lambda each: where_text(each, bot.groups),
+        kind, found, contacts, on, lambda each: where_text(each, bot.groups)
     )
+
+
+def admin_of(context: DataMessageContext) -> str:
+    """Who sent the command, as the lists they were shown are kept."""
+    return context.message.source_uuid or context.message.source_number or ""
 
 
 # Adding and removing them
@@ -414,27 +420,52 @@ async def add(bot: SignalBot, kind: str, words: list[str], on: date) -> str:
     return "\n".join(lines)
 
 
-def remove(kind: str, words: list[str], on: date) -> str:
-    """Remove the birthdays or name days by their numbers; or say why not."""
+def remove(kind: str, who: str, words: list[str], on: date) -> str:
+    """Remove the birthdays or name days of those numbers in the list who was
+    shown last, as the file has them now; or say why not."""
     listing = shown_name("/birthdays" if kind == BIRTHDAY else "/namedays")
     if not (numbers := numbers_in(" ".join(words))):
         return _("Which? Give its number, as {command} shows.").format(command=listing)
-    found = through_the_year(kind)
-    if wrong := [n for n in numbers if not 1 <= n <= len(found)]:
+    if (listed := shown.get((kind, who))) is None:
+        return _("Which ones? Send {command} first, for their numbers.").format(
+            command=listing
+        )
+    if wrong := [n for n in numbers if not 1 <= n <= len(listed)]:
         return _("There's no {n} in {command}.").format(n=wrong[0], command=listing)
-    gone = [found[n - 1] for n in numbers]
-    kept.remove(gone)
-    removed = ", ".join(f"{day_text(each.next(on))} · {each.name}" for each in gone)
-    return _("🗑️ Removed: {what}").format(what=removed)
+    entries = kept.current().entries
+    gone: list[Occasion] = []
+    lines: list[str] = []
+    for n in numbers:
+        # Alike, not the same: the file may have been read again since
+        still = next(
+            (
+                each
+                for each in entries
+                if each == listed[n - 1] and all(each is not g for g in gone)
+            ),
+            None,
+        )
+        if still is None:
+            note = _("{n} is gone already: removed or changed since.")
+            lines.append(note.format(n=n))
+        else:
+            gone.append(still)
+    if gone:
+        kept.remove(gone)
+        removed = ", ".join(f"{day_text(e.next(on))} · {e.name}" for e in gone)
+        lines.insert(0, _("🗑️ Removed: {what}").format(what=removed))
+    return "\n".join(lines)
 
 
-async def birthday_answer(bot: SignalBot, kind: str, words: list[str]) -> str:
+async def birthday_answer(
+    context: DataMessageContext, kind: str, words: list[str]
+) -> str:
     """What to answer /birthday or /nameday, as words."""
     action = words[1].casefold() if len(words) > 1 else ""
     if action == "add":
-        return await add(bot, kind, words[2:], today())
+        return await add(context.bot, kind, words[2:], today())
     if action in ("remove", "delete"):
-        return remove(kind, words[2:], today())
+        return remove(kind, admin_of(context), words[2:], today())
     return usage(kind)
 
 
@@ -463,7 +494,7 @@ class Birthday(Handler):
         action = words[1].casefold() if len(words) > 1 else ""
         await answer(
             context,
-            lambda: birthday_answer(context.bot, kind, words),
+            lambda: birthday_answer(context, kind, words),
             # They change something; what they say without it is fine again
             edits=action not in ("add", "remove", "delete"),
         )

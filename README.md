@@ -267,7 +267,7 @@ For the admins, in a direct chat with the bot:
 | `/incoming`, `/incoming <n>,<n>` | The 50 latest messages anyone but the admins sent the bot in a direct chat, numbered: when, from whom, and how each starts; `/incoming 4,9` forwards those two to you in full (see [Incoming messages](#incoming-messages)) |
 | `/birthday add <date> [<chats>] <who>` | A birthday: a contact's, as `/contacts` finds them, shown in the groups they're in; or someone's not on Signal, by name, shown in the groups `<chats>` numbers in `/chats`, or else in every group (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/nameday add <date> [<chats>] <who>` | A name day, as `/birthday add` takes it |
-| `/birthday remove <n>`, `/nameday remove <n>` | Remove one, by its number in `/birthdays` or `/namedays` |
+| `/birthday remove <n>`, `/nameday remove <n>` | Remove one, by its number in the list `/birthdays` or `/namedays` showed you last; `/birthday remove 2,5` several |
 | `/delete list`, `/delete <n>,<n>` | The bot's 50 latest messages, wherever it sent them, numbered: when, where to, and how each starts; `/delete 2,5,11` deletes those for everyone (see [Who may use what](#who-may-use-what)) |
 
 And for the admins in any chat, groups too:
@@ -559,8 +559,10 @@ years.
 
 `/birthdays` and `/namedays`, for everyone allowed, list them, the coming
 ones first: in a group, those it gets; in a direct chat, for the admins, all
-of them, numbered through the year, so the numbers change only when one is
-added or removed, with where someone not on Signal shows. They're kept in
+of them, numbered, with where someone not on Signal shows. As with `/delete
+list`, `/birthday remove` and `/nameday remove` take the numbers of the list
+you were shown last, whatever changes meanwhile, until you ask for it again,
+or the bot restarts; one removed or changed since is named. They're kept in
 `data_dir/birthdays.txt`, a line each, with a contact's Signal ID and phone
 number, and their name as it was saved, which shows if the contacts can't be
 read. It can be changed by hand, as the other files.
@@ -1250,7 +1252,8 @@ secret `DOCKERHUB_TOKEN`; nothing else does. It attests each image's build
 provenance, and on Docker Hub makes [DOCKERHUB.md](DOCKERHUB.md) the image's
 page, for which the token must be allowed to read, write and delete.
 [tools/release.sh](tools/release.sh) makes a release once CI has passed:
-the version, the changelog, a signed tag, and the release on GitHub.
+the version, the changelog, a signed tag, and the release on GitHub. For
+now, it makes patch releases only: nejomibot stays on 0.99.x until 1.0.
 
 ## Layout
 

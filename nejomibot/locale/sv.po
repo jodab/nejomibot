@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 13:59+0300\n"
+"POT-Creation-Date: 2026-10-19 15:01+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -367,8 +367,18 @@ msgstr "Vilken? Ange dess nummer, som {command} visar."
 
 #: nejomibot/birthdays.py
 #, python-brace-format
+msgid "Which ones? Send {command} first, for their numbers."
+msgstr "Vilka? Skicka {command} först, för deras nummer."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
 msgid "There's no {n} in {command}."
 msgstr "Det finns ingen {n} i {command}."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{n} is gone already: removed or changed since."
+msgstr "{n} finns inte längre: borttagen eller ändrad sedan dess."
 
 #: nejomibot/birthdays.py
 #, python-brace-format

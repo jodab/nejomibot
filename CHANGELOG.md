@@ -4,6 +4,17 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- `/birthdays` and `/namedays` number the admins' list as it's shown, the
+  coming ones first, from 1. `/birthday remove` and `/nameday remove` take
+  the numbers of the list the admin was shown last, as `/delete` and
+  `/incoming` do: after a restart, send the list again first.
+- `tools/release.sh` makes patch releases only, for now: nejomibot stays on
+  0.99.x until 1.0. A minor or major release stops with an error.
+
 ## 0.99.0 - 2026-10-19
 
 ### Added

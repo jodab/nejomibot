@@ -75,6 +75,7 @@ def fresh_lists() -> None:
     specials.own_specials.__init__()
     for kept in (reminders.kept, lists.kept, birthdays.kept):
         kept.reset()
+    birthdays.shown.clear()
     weather.places.clear()
     weather.latest.clear()
     weather.forecasts.clear()

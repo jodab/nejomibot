@@ -116,7 +116,7 @@ async def test_someone_not_on_signal(
             f"{ADMIN} is no group: they show in groups only.",
         ),
         ("/birthday remove", "Which? Give its number, as /birthdays shows."),
-        ("/nameday remove 1", "There's no 1 in /namedays."),
+        ("/nameday remove 1", "Which ones? Send /namedays first, for their"),
     ],
 )
 async def test_refused(
@@ -144,14 +144,14 @@ async def test_the_lists(bot: SignalBot, answers: list[SendMessage]) -> None:
     # Someone not on Signal in a group the bot isn't in
     path.write_text(path.read_text() + f"birthday | 10-21 | {FRIENDS} | Bob\n")
     # For the admins, in a direct chat: all of them, the coming ones first,
-    # numbered through the year, with where they show but for contacts
+    # numbered as shown, with where they show but for contacts
     assert await ask(bot, answers, "/birthdays") == "\n".join(
         [
             "**🎂 4 birthdays**",
-            "2 · 20 October · Grandma (turns 86) · 👥 every group",
-            "3 · 21 October · Bob · 👥 group.RnJpZW5k…",
-            "4 · 24 December · Santa · 👥 Familjen",
-            "1 · 14 March · Alice (turns 37)",
+            "1 · 20 October · Grandma (turns 86) · 👥 every group",
+            "2 · 21 October · Bob · 👥 group.RnJpZW5k…",
+            "3 · 24 December · Santa · 👥 Familjen",
+            "4 · 14 March · Alice (turns 37)",
         ]
     )
     # In a group, those it gets, unnumbered
@@ -170,11 +170,48 @@ async def test_the_lists(bot: SignalBot, answers: list[SendMessage]) -> None:
     assert await ask(bot, answers, "/namedays", ALICE, in_group=True) == (
         "No name days here."
     )
-    # By the numbers of the admins' list
-    assert await ask(bot, answers, "/birthday remove 2,3") == (
+    # By the numbers of the list the admin was shown
+    assert await ask(bot, answers, "/birthday remove 1,2") == (
         "🗑️ Removed: 20 October · Grandma, 21 October · Bob"
     )
     assert len(the_file()) == 2
+
+
+async def test_removed_by_the_list_shown_last(
+    bot: SignalBot, answers: list[SendMessage], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    other = "+46700000008"
+    monkeypatch.setenv("NEJOMIBOT_ADMINS", f'["{ADMIN}", "{other}"]')
+    get_settings.cache_clear()
+    await ask(bot, answers, "/birthday add 10-20 Grandma")
+    await ask(bot, answers, "/birthday add 12-24 Santa")
+    # Not before a list
+    assert await ask(bot, answers, "/birthday remove 1") == (
+        "Which ones? Send /birthdays first, for their numbers."
+    )
+    await ask(bot, answers, "/birthdays")
+    assert await ask(bot, answers, "/birthday remove 3") == (
+        "There's no 3 in /birthdays."
+    )
+    # What's added since doesn't change the numbers shown, nor the next day
+    await ask(bot, answers, "/birthday add 10-19 Today")
+    assert await ask(bot, answers, "/birthday remove 2") == (
+        "🗑️ Removed: 24 December · Santa"
+    )
+    assert await ask(bot, answers, "/birthday remove 2,1") == "\n".join(
+        [
+            "🗑️ Removed: 20 October · Grandma",
+            "2 is gone already: removed or changed since.",
+        ]
+    )
+    # Each admin has the list they were shown; name days have their own
+    assert await ask(bot, answers, "/birthday remove 1", other) == (
+        "Which ones? Send /birthdays first, for their numbers."
+    )
+    assert await ask(bot, answers, "/nameday remove 1") == (
+        "Which ones? Send /namedays first, for their numbers."
+    )
+    assert the_file() == ["birthday | 10-19 | * | Today"]
 
 
 async def test_where_they_show(bot: SignalBot, signal_api: FakeApi) -> None:

@@ -54,6 +54,10 @@ posted where and when. When unsure whether a change is user-facing, ask.
   made-up values (`+4670000000x`, `group.ZmFtaWx5`, Alice and Bob, Stockholm
   and Helsinki); personal values belong in the untracked `config.toml`. Don't
   rewrite git history unless asked.
+- **0.99.x until 1.0** (the owner's decision, 2026-10-19): every release
+  is a patch release until the owner says it's time for 1.0; a minor one
+  would be 0.100.0. `tools/release.sh` stops on minor and major; its guard
+  comes out only when the owner says so.
 - **Commits.** Commit or push only when asked. Commits are signed; if signing
   doesn't work from the session, leave the commit to the owner.
 - **The live Signal account.** When testing against it, send only to the
@@ -95,7 +99,7 @@ uv run pyright                             # type check, strict
 shellcheck tools/*.sh                      # the shell tools; CI runs it, the build doesn't
 tools/translations.sh                      # after changing any message (needs GNU gettext)
 tools/build-image.sh                       # test stage first, then the amd64, arm64, arm/v7 image
-tools/release.sh patch                     # a release (or minor, major), once CI passed; see --help
+tools/release.sh patch                     # a release, once CI passed; patch only until 1.0; see --help
 uv run nejomibot-timers                    # the timers from a terminal, as the image has it
 ```
 
