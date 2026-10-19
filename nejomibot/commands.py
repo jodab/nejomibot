@@ -1,9 +1,10 @@
 """Commands: how the bot takes them, by any of their names, and answers them.
 
 A command has the name its handler gives it, in English, and aliases: other
-names from the setting aliases and from the language (see i18n). A message
-that starts with an alias is handled as if it started with its command: /pic
-as /photo, /spådom startrek as /fortune startrek.
+names the bot comes with (ALIASES), and from the language (see i18n) and the
+setting aliases. A message that starts with an alias is handled as if it
+started with its command: /pic as /photo, /spådom startrek as /fortune
+startrek.
 
 Each handler is a Handler that lists its commands, saying of each whether
 more may follow its name and whether timers and /run may run it. answer()
@@ -36,13 +37,16 @@ from .styles import utf16_length
 logger = logging.getLogger(__name__)
 
 FIRST_WORD = re.compile(r"^\S+")
+# Names the bot has had all along, in every language
+ALIASES = {"/status": ["/test"], "/info": ["/time"], "/contacts": ["/safety"]}
 
 
 def aliases() -> dict[str, str]:
-    """Each alias, in lower case, and its command: the language's, then the
-    settings', which win."""
+    """Each alias, in lower case, and its command: the bot's own, the
+    language's, then the settings', which win."""
     table: dict[str, str] = {}
     for command, names in [
+        *ALIASES.items(),
         *language().commands.items(),
         *get_settings().aliases.items(),
     ]:
@@ -88,18 +92,13 @@ class Command:
     name: str  # in English, as /help shows it
     more: bool = False  # more may follow the name, as in /fortune startrek
     timers: bool = True  # timers and /run may run it
-    hidden: tuple[str, ...] = ()  # names it has had all along, not in /help
 
     def takes(self, text: str) -> bool:
-        """Whether the text is the command, by any of its names, in any case:
-        the whole text, or its start, if more may follow."""
-        for name in (self.name, *self.hidden):
-            if self.more:
-                if re.match(rf"{re.escape(name)}(\s|$)", text, re.IGNORECASE):
-                    return True
-            elif text.lower() == name.lower():
-                return True
-        return False
+        """Whether the text is the command, by its name, in any case: the
+        whole text, or its start, if more may follow."""
+        if self.more:
+            return bool(re.match(rf"{re.escape(self.name)}(\s|$)", text, re.IGNORECASE))
+        return text.lower() == self.name.lower()
 
 
 class Handler(DataMessageHandler):

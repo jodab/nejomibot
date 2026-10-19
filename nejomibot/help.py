@@ -3,7 +3,8 @@ find them by, as Signal's bubbles are narrow. Everyone allowed sees the
 everyday commands; an admin, in a direct chat, all of them.
 
 A command shows by its name in the bot's language, if it has one, and with
-the aliases the config gives it; its English name works in any language."""
+its aliases: those the bot comes with, and those the config gives it; its
+English name works in any language."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,7 +12,7 @@ from datetime import datetime
 from signalbot import DataMessageContext
 
 from . import access
-from .commands import Command, Handler, answer
+from .commands import ALIASES, Command, Handler, aliases, answer
 from .config import get_settings
 from .i18n import N_, SOURCE_LANGUAGE, _, language
 from .messages import escape
@@ -61,6 +62,13 @@ ADMIN = [
     Line("🗑️", "/special", N_("remove one"), N_("remove <name>")),
     Line("✉️", "/msg", N_("post a message to chats"), N_("<chats> <text>")),
     Line("▶️", "/run", N_("post commands' answers to chats"), N_("<chats> <commands>")),
+    Line("📥", "/incoming", N_("messages people sent it; forward some"), N_("[<n>,…]")),
+    Line(
+        "📤",
+        "/delete",
+        N_("its latest messages anywhere; delete one"),
+        N_("list · <n>"),
+    ),
 ]
 ANYWHERE = [
     Line("↩️", "/delete", N_("delete its latest message here")),
@@ -72,14 +80,25 @@ def shown_name(command: str) -> str:
     return next(iter(language().commands.get(command, [])), command)
 
 
+def other_names(command: str) -> list[str]:
+    """The command's aliases: the bot's own, then the config's, but those the
+    config gives another command."""
+    table = aliases()
+    names = [*ALIASES.get(command, []), *get_settings().aliases.get(command, [])]
+    return [name for name in names if table[name.casefold()] == command]
+
+
 def command_line(command: Line) -> str:
-    """E.g. '📷 `/photo` – a random photo (/pic)'. Styled."""
+    """E.g. '📷 `/photo` – a random photo (/pic)': the aliases on the
+    command's first line only. Styled."""
     usage = shown_name(command.name)
     if command.args:
         usage += f" {_(command.args)}"
     line = f"{command.icon} `{usage}` – {escape(_(command.what))}"
-    if aliases := get_settings().aliases.get(command.name):
-        line += f" ({escape(', '.join(aliases))})"
+    lines = EVERYDAY + ADMIN + ANYWHERE
+    first = next(each for each in lines if each.name == command.name)
+    if first is command and (names := other_names(command.name)):
+        line += f" ({escape(', '.join(names))})"
     return line
 
 
@@ -94,7 +113,7 @@ def notes() -> list[str]:
     date = example_date(datetime.now(settings.tz).date())
     return [
         _("<who> – a name, number or ID, as /contacts shows; /allow takes groups too"),
-        _("<n> – a number from /allowed or /timers"),
+        _("<n> – a number from /allowed, /timers, /delete list or /incoming"),
         _(
             "<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · "
             "every 2h, in {zone} time"

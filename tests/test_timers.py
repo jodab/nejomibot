@@ -49,7 +49,7 @@ ADMIN = "+46700000009"
 FRIENDS = "group.RnJpZW5kcw=="
 CANT = (
     "Timers, specials and /run can't manage timers, specials or who may use the "
-    "bot, nor run /msg or /run."
+    "bot, nor run /msg, /run or /incoming."
 )
 
 
@@ -297,6 +297,8 @@ def test_parse_add_refuses(text: str, why: str) -> None:
         (["/disallow 1"], CANT),
         (["/msg 1 Hello"], CANT),
         (["/run 1 /ping"], CANT),
+        (["/incoming"], CANT),
+        (["/incoming 1,2"], CANT),
         (["/specials"], CANT),
         (["/special add /x Hi"], CANT),
         (["/about a|b"], "A timer's commands can't have a |"),
@@ -322,8 +324,8 @@ def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_what_timers_mayn_t_run() -> None:
-    # What changes timers, specials or who may use the bot, or posts to chats
-    # of its own
+    # What changes timers, specials or who may use the bot, posts to chats of
+    # its own, or shows what others wrote to the bot
     assert {
         command.name
         for handler in commands.handlers()
@@ -338,6 +340,7 @@ def test_what_timers_mayn_t_run() -> None:
         "/disallow",
         "/msg",
         "/run",
+        "/incoming",
         "/specials",
         "/special",
     }

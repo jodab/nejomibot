@@ -66,6 +66,26 @@ def test_aliases_are_listed(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "📷 `/photo` – a random photo (/pic, pic)" in help_message(admin=False)
 
 
+def test_the_bots_own_aliases_are_listed() -> None:
+    text = help_message(admin=True)
+    assert "🕰️ `/info` – the time, and an exchange rate (/time)" in text
+    assert "🩺 `/status` – how the bot and the server are (/test)" in text
+    assert "👥 `/contacts [<who>]` – who the bot knows (/safety)" in text
+    # On the command's first line only
+    assert "📇 `/contacts add <who> <name>` – add a contact, or rename\n" in text
+
+
+def test_an_alias_is_listed_by_the_command_it_is(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The config's, before the bot's own
+    monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/test"], "/status": ["/s"]}')
+    get_settings.cache_clear()
+    text = help_message(admin=True)
+    assert "📷 `/photo` – a random photo (/test)" in text
+    assert "🩺 `/status` – how the bot and the server are (/s)" in text
+
+
 @pytest.mark.usefixtures("swedish")
 def test_in_swedish() -> None:
     text = help_message(admin=True)

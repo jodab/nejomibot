@@ -157,18 +157,22 @@ registered for every chat with `access.permits` as filter, checked for each
 message (admins and allowed contacts in direct chats; groups on the allowed
 list). Admin commands use signalbot's contact filter with `settings.admins`,
 so they answer in direct chats only. `/delete` is registered everywhere (in
-debug mode, in `debug_group`) and checks for an admin itself in groups.
+debug mode, in `debug_group`) and checks for an admin itself in groups,
+where it takes nothing after it: `/delete list` and `/delete <n>` show and
+delete what the bot sent to every chat. `incoming.inbox`, registered apart
+for every direct chat, keeps what anyone but the admins writes, for the
+admin command `/incoming`.
 Admins exist only in the config; the allowed list is `data_dir/allowed.txt`,
 reread when it changes.
 
 **Commands and aliases** (`commands.py`): every handler is a
 `commands.Handler` that lists its `Command`s: the English name, whether more
-may follow it, whether timers and `/run` may run it, and hidden names it has
-always had (`/test`, `/time`...). Every name the bot comes with, the
-language's too, starts with `/` (tests check); only the config's aliases may
-be plain words. The base class replaces an alias (the config's `aliases` and
-the language's names in `locale/<language>.toml`) by the English command and
-calls `handle()`, which mostly calls `answer()`: log, read receipt, typing
+may follow it, and whether timers and `/run` may run it. Every name the bot
+comes with, the language's too, starts with `/` (tests check); only the
+config's aliases may be plain words. The base class replaces an alias (the
+bot's own, `commands.ALIASES`: `/test`, `/time`, `/safety`; the language's
+names in `locale/<language>.toml`; the config's `aliases`, which win) by the
+English command and calls `handle()`, which mostly calls `answer()`: log, read receipt, typing
 for slow ones, reply plain or styled, failures as `error_text()`, and edits
 ignored where running again would do it twice (see Conventions).
 `commands.known()` finds any command, the admins' own specials too (through
@@ -186,7 +190,7 @@ English one is close to the Swedish word or already common in Swedish
 through `send()` to the `Outbox`: each chat's messages in order, sends that
 surely failed retried for `send_retry_hours` with a note that they're late
 (every half hour while Signal rate-limits the bot), and a `SentLog` for
-`/delete`. A message waiting 30 s gets a file of its own in
+`/delete`, with how each message starts, for `/delete list`. A message waiting 30 s gets a file of its own in
 `data_dir/outbox` (deleted once sent or dropped), every waiting one at
 shutdown, and they're loaded at start. `send()` returns the `Outcome`, which
 `/msg` and `/run` report. While a timer, `/run` or a special runs a command,

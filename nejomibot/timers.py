@@ -620,7 +620,7 @@ def check_commands(
         if found is not None and not found.timers:
             return _(
                 "Timers, specials and /run can't manage timers, specials or who "
-                "may use the bot, nor run /msg or /run."
+                "may use the bot, nor run /msg, /run or /incoming."
             )
         if "|" in command:
             return _("A timer's commands can't have a |: the timers file uses it.")

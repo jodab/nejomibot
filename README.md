@@ -223,10 +223,10 @@ The everyday commands, for everyone the bot may talk to:
 |---|---|
 | `/photo` | A random photo with the date it was taken, an age if set, and a map link |
 | `/cache` | Number and size of photos in the library |
-| `/weather` | Current weather in `weather_city` |
+| `/weather` | Current weather in `weather_city`, under its heading in bold |
 | `/info`, `/time` | The time in the places in `clocks`, and the `exchange_rate` |
 | `/ping` | `pong!` and how long the ping took to arrive |
-| `/fortune`, `/fortune <library>`, `/fortune all`, `/fortune list` | A random fortune, from `fortune_library` (`fortunes_svenska` if not set), the library named, or every library; `list` names them |
+| `/fortune`, `/fortune <library>`, `/fortune all`, `/fortune list` | A random fortune, from `fortune_library` (`fortunes_svenska` if not set), the library named, or every library; `list` names them. What explains a proverb of `fortunes_svenska` is in italics |
 | `/help` | The commands the asker may use, a line each |
 
 For the admins, in a direct chat with the bot:
@@ -235,7 +235,7 @@ For the admins, in a direct chat with the bot:
 |---|---|
 | `/status`, `/test` | Health check, in two messages: the checks, failed ones first, then the details: the bot and its versions, Signal, public IPs and ASN, container, host |
 | `/dailypost` | The daily post, as a timer posts it: the weather, then the photo of the day (it uses up a photo of the round) |
-| `/dailyquote` | The daily quote, as a timer posts it: a proverb or quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in bold |
+| `/dailyquote` | The daily quote, as a timer posts it: a proverb or quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in bold, what explains a proverb in italics |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, two short lines each, and whether they're verified; with `<who>`, one in full, with their safety number |
 | `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` is their phone number, ID or the start of it, or their name: the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number |
 | `/trust <name, number or ID> <safety number>` | Mark a safety number as verified, after comparing it with the one on their phone |
@@ -256,6 +256,8 @@ For the admins, in a direct chat with the bot:
 | `/special remove <name>` | Remove a special, unless a timer runs it |
 | `/msg <chats> <text>` | Post the text to other chats, e.g. `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Run commands and post their answers to other chats, e.g. `/run 1 /status` |
+| `/incoming`, `/incoming <n>,<n>` | The 20 latest messages anyone but the admins sent the bot in a direct chat, numbered: when, from whom, and how each starts; `/incoming 4,9` forwards those two to you in full (see [Incoming messages](#incoming-messages)) |
+| `/delete list`, `/delete <n>` | The bot's 20 latest messages, wherever it sent them, numbered: when, where to, and how each starts; `/delete 3` deletes the third for everyone (see [Who may use what](#who-may-use-what)) |
 
 And for the admins in any chat, groups too:
 
@@ -263,8 +265,10 @@ And for the admins in any chat, groups too:
 |---|---|
 | `/delete` | Delete the bot's latest message in the chat, for everyone; sent again, the one before, and so on |
 
-A command can have other names: aliases from the configuration, and the
-names in the bot's language (see [Languages](#languages)). With
+A command can have other names: a few it has had all along (`/test` for
+`/status`, `/time` for `/info`, `/safety` for `/contacts`), aliases from the
+configuration, and the names in the bot's language (see
+[Languages](#languages)). With
 `language = "sv"`, `/väder` is `/weather`, `/hjälp` is `/help`,
 `/dagensbild` is `/dailypost` and `/dagenscitat` is `/dailyquote`; `/help`
 shows every name a command has.
@@ -290,9 +294,9 @@ forget them, so the bot can't either.
 It marks each command as read, in groups as well as direct chats, and shows
 itself typing while it works on the slower ones. Both are best effort: if they
 fail, the answer still comes. Editing a message runs its command again, except
-for those that change things or post elsewhere: `/delete`, `/contacts add`,
-`/allow`, `/disallow`, `/timer`, `/special`, `/msg`, `/run` and the specials
-of your own.
+for those that change things or post elsewhere: `/delete` (but `/delete
+list`), `/contacts add`, `/allow`, `/disallow`, `/timer`, `/special`, `/msg`,
+`/run` and the specials of your own.
 
 The bot needs a number of its own, registered for it. If its number is also
 signed in on a phone, as when signal-cli is linked to that phone, a command
@@ -310,6 +314,14 @@ or when the delete failed (that message is kept, to try again). Signal only
 deletes messages for everyone within a day of sending them, so the bot
 remembers what it sent for a day, in memory: after a restart, `/delete` only
 reaches what was sent since.
+
+In a direct chat with the bot, `/delete list` shows its 20 latest messages,
+wherever it sent them, groups and people alike, newest first and numbered:
+when, where to, and how each starts, with 📷 for a photo. `/delete 3` then
+deletes the third of them for everyone, and says which. The numbers are
+those of the list you were shown last, whatever the bot sends meanwhile, until
+you ask for it again, or the bot restarts. In a group, `/delete` takes
+nothing after it, as the list shows what went to every chat.
 
 When something fails (the weather API, the exchange rate, the photo library),
 the bot posts the error as `Something went wrong: ...` instead of staying
@@ -338,8 +350,8 @@ signal-cli-rest-api restarts, writes nothing.
 
 ### Photos and the daily post
 
-`/dailypost` is the daily post: the weather, then the photo of the day,
-captioned "Photo of the day!" in bold. It's for timers: `/timer add 08:00 1,2
+`/dailypost` is the daily post: the weather, under its heading in bold, then
+the photo of the day, captioned "Photo of the day!" in bold. It's for timers: `/timer add 08:00 1,2
 /dailypost` posts it at 08:00 in the bot's `timezone`, whatever the server's
 own time zone, to chats 1 and 2 of `/chats`. It sends the same weather and the
 same photo to every chat. The photo is picked at random among those it hasn't
@@ -402,6 +414,24 @@ the bot is still in every group on the allowed list, OpenWeatherMap and the
 exchange rate API (if `exchange_rate` is set) answer, the photo library isn't
 empty, disk and memory use are under 90% of their limits, and NTP keeps the
 clock synchronized. A check that takes more than 20 seconds fails.
+
+### Incoming messages
+
+The bot keeps the 20 latest messages that anyone but the admins sends it in
+a direct chat, commands too, and strangers' as well, in memory only: a
+restart forgets them. A message its sender deletes for everyone goes from
+the bot too, as a disappearing message does once its time is up, and an edit
+replaces the message it edits.
+
+`/incoming`, for the admins in a direct chat, lists them, newest first and
+numbered: when, from whom, by their name in the account's contacts, else on
+their profile, else their number, and how each starts, with 📎 for
+attachments. `/incoming 4,9` forwards messages 4 and 9 of the list to you,
+each a message of its own, in full and with its formatting, to read whole,
+or forward on in Signal. Only their text, as the bot doesn't fetch
+attachments: it says how many there were. As with `/delete list`, the numbers are those of the list you
+were shown last. Timers and `/run` can't run `/incoming`, as they'd post
+what people wrote to others.
 
 ## Posting to other chats
 
@@ -529,8 +559,8 @@ A special posts several things in one go, always in the same order: text,
 and what other commands answer. Two come with the bot: `/dailypost`, the
 [daily post](#photos-and-the-daily-post), and `/dailyquote`, a proverb or
 quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in
-bold. The admins make their own in a direct chat with the bot, mostly for
-timers:
+bold, what explains a proverb in italics. The admins make their own in a
+direct chat with the bot, mostly for timers:
 
 ```
 /special add /morning Good morning! /weather; /dailyquote
@@ -621,7 +651,7 @@ like `pic`, it's taken from anyone allowed who writes just that word. The
 bot's own names for commands, in English or its language, all start with `/`.
 An alias can't be a command's own name, and the bot won't start with an
 alias for a command it doesn't have. The configuration's aliases win over the
-language's.
+language's, and over the bot's own: `/test`, `/time` and `/safety`.
 
 ## The bot's profile
 
@@ -1037,7 +1067,8 @@ nejomibot/
   account.py    the Signal account: contacts, safety numbers, groups, devices
   contacts.py   /contacts, /trust: everyone known, with safety numbers
   profile.py    /profile, /name, /about, /avatar, /username
-  delete.py     /delete: delete the bot's latest messages
+  delete.py     /delete: delete the bot's latest messages, here or anywhere
+  incoming.py   /incoming: the latest messages people sent the bot
   timers.py     /timers, /chats, /timer: commands on a schedule, the daily post
   timers_cli.py nejomibot-timers: the timers from a terminal
   relay.py      /msg, /run: post to other chats

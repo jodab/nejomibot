@@ -23,6 +23,7 @@ from .contacts import Contacts, Trust
 from .delete import Delete
 from .fortune import Fortune
 from .help import Help
+from .incoming import Incoming, inbox
 from .info import Info
 from .messages import describe, outbox
 from .photos import Photo
@@ -83,6 +84,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
             Timers(),
             Msg(),
             Run(),
+            Incoming(),
         )
     ]
     return [
@@ -94,9 +96,10 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
 
 
 def check_aliases() -> None:
-    """Every alias, the settings' and the language's, is another name for a
-    command the bot comes with, and not a command itself. Not for the admins'
-    own specials, which come and go as the bot runs. Raises ValueError."""
+    """Every alias, the bot's own, the language's and the settings', is
+    another name for a command the bot comes with, and not a command itself.
+    Not for the admins' own specials, which come and go as the bot runs.
+    Raises ValueError."""
     for alias, command in aliases().items():
         if not built_in(command):
             raise ValueError(f"aliases: {command} isn't a command (for {alias})")
@@ -291,6 +294,8 @@ def main() -> None:
     registrations = handlers(bot, settings)
     for handler, contacts, groups, check in registrations:
         bot.register(handler, contacts=contacts, groups=groups, f=check)
+    # What anyone writes in a direct chat, and deletes, for /incoming
+    bot.register(inbox, contacts=True, groups=False)
     # Timers run their commands through the same handlers, but for those
     # their commands say timers mayn't
     timekeeper.start(bot, [handler for handler, *_who in registrations])

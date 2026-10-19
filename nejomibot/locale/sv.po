@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 22:02+0300\n"
+"POT-Creation-Date: 2026-10-19 11:02+0300\n"
 "PO-Revision-Date: 2026-10-18 02:45+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -359,6 +359,59 @@ msgstr ""
 "Inget kvar att radera här från det senaste dygnet: Signal raderar bara "
 "meddelanden för alla inom ett dygn."
 
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "The bot has sent nothing since it started, at {time}."
+msgstr "Boten har inte skickat något sedan den startade, {time}."
+
+#: nejomibot/delete.py
+msgid ""
+"The bot has sent nothing in the last day, and Signal only deletes messages "
+"for everyone within a day."
+msgstr ""
+"Boten har inte skickat något det senaste dygnet, och Signal raderar bara "
+"meddelanden för alla inom ett dygn."
+
+#: nejomibot/delete.py
+msgid "The bot's latest messages, newest first:"
+msgstr "Botens senaste meddelanden, nyaste först:"
+
+#: nejomibot/delete.py
+msgid "/delete <n> deletes one, for everyone."
+msgstr "/radera <n> raderar ett, för alla."
+
+#: nejomibot/delete.py
+msgid "Which one? Send /delete list first, for their numbers."
+msgstr "Vilket? Skicka /radera list först, för deras nummer."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "There's no message {n}: /delete list numbers them."
+msgstr "Det finns inget meddelande {n}: /radera list numrerar dem."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "Message {n} is gone already: deleted, or too old for Signal to delete."
+msgstr ""
+"Meddelande {n} är redan borta: raderat, eller för gammalt för Signal att "
+"radera."
+
+#: nejomibot/delete.py
+msgid "Deleted"
+msgstr "Raderat"
+
+#: nejomibot/delete.py
+msgid "/delete: delete the bot's latest message here, for everyone"
+msgstr "/radera: radera botens senaste meddelande här, för alla"
+
+#: nejomibot/delete.py
+msgid "/delete list: its latest messages, wherever it sent them"
+msgstr "/radera list: botens senaste meddelanden, var den än skickade dem"
+
+#: nejomibot/delete.py
+msgid "/delete <n>: delete one of those, for everyone"
+msgstr "/radera <n>: radera ett av dem, för alla"
+
 #: nejomibot/fortune.py
 msgid "Fortune libraries:"
 msgstr "Spådomsbibliotek:"
@@ -651,6 +704,22 @@ msgid "post commands' answers to chats"
 msgstr "posta kommandons svar i chattar"
 
 #: nejomibot/help.py
+msgid "[<n>,…]"
+msgstr "[<n>,…]"
+
+#: nejomibot/help.py
+msgid "messages people sent it; forward some"
+msgstr "meddelanden folk skickat boten; vidarebefordra några"
+
+#: nejomibot/help.py
+msgid "its latest messages anywhere; delete one"
+msgstr "botens senaste meddelanden överallt; radera ett"
+
+#: nejomibot/help.py
+msgid "list · <n>"
+msgstr "list · <n>"
+
+#: nejomibot/help.py
 msgid "delete its latest message here"
 msgstr "radera botens senaste meddelande här"
 
@@ -662,8 +731,8 @@ msgstr ""
 "grupper"
 
 #: nejomibot/help.py
-msgid "<n> – a number from /allowed or /timers"
-msgstr "<n> – ett nummer från /tillåtna eller /timers"
+msgid "<n> – a number from /allowed, /timers, /delete list or /incoming"
+msgstr "<n> – ett nummer från /tillåtna, /timers, /radera list eller /inkorg"
 
 #: nejomibot/help.py
 #, python-brace-format
@@ -793,6 +862,56 @@ msgstr "December"
 #, python-brace-format
 msgid "{weekday} {day} {month} {time}"
 msgstr "{weekday} {day} {month} {time}"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "yesterday {time}"
+msgstr "igår {time}"
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "No messages kept since the bot started, at {time}."
+msgstr "Inga meddelanden sparade sedan boten startade, {time}."
+
+#: nejomibot/incoming.py
+msgid "Incoming messages, newest first:"
+msgstr "Inkomna meddelanden, nyaste först:"
+
+#: nejomibot/incoming.py
+msgid "/incoming <n> forwards one to you, in full; /incoming 4,9 several."
+msgstr ""
+"/inkorg <n> vidarebefordrar ett till dig, i sin helhet; /inkorg 4,9 flera."
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "📎 and an attachment, which the bot can't forward"
+msgid_plural "📎 and {count} attachments, which the bot can't forward"
+msgstr[0] "📎 och en bilaga, som boten inte kan vidarebefordra"
+msgstr[1] "📎 och {count} bilagor, som boten inte kan vidarebefordra"
+
+#: nejomibot/incoming.py
+msgid "Which ones? Send /incoming first, for their numbers."
+msgstr "Vilka? Skicka /inkorg först, för deras nummer."
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "There's no message {n}: /incoming numbers them."
+msgstr "Det finns inget meddelande {n}: /inkorg numrerar dem."
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "Message {n} is gone: its sender deleted it, or it disappeared."
+msgstr ""
+"Meddelande {n} är borta: avsändaren raderade det, eller så försvann det."
+
+#: nejomibot/incoming.py
+msgid "/incoming: the latest messages people sent the bot, numbered"
+msgstr "/inkorg: de senaste meddelandena folk skickat boten, numrerade"
+
+#: nejomibot/incoming.py
+msgid "/incoming <n>: forward one to you, in full; /incoming 4,9 several"
+msgstr ""
+"/inkorg <n>: vidarebefordra ett till dig, i sin helhet; /inkorg 4,9 flera"
 
 #: nejomibot/info.py
 msgid "Standard time"
@@ -1531,10 +1650,10 @@ msgstr "En timer på ett datum körs en gång: ge den en tid, och inga dagar."
 #: nejomibot/timers.py
 msgid ""
 "Timers, specials and /run can't manage timers, specials or who may use the "
-"bot, nor run /msg or /run."
+"bot, nor run /msg, /run or /incoming."
 msgstr ""
 "Timrar, specialkommandon och /run kan inte hantera timrar, specialkommandon "
-"eller vilka som får använda boten, och inte köra /msg eller /run."
+"eller vilka som får använda boten, och inte köra /msg, /run eller /inkorg."
 
 #: nejomibot/timers.py
 msgid "A timer's commands can't have a |: the timers file uses it."

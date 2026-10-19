@@ -19,7 +19,7 @@ import gettext
 import io
 import tomllib
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from functools import cache
 from pathlib import Path
 
@@ -141,6 +141,19 @@ def day_and_time(moment: datetime) -> str:
         month=month_name(moment),
         time=f"{moment:%H:%M}",
     )
+
+
+def when_text(at: datetime, now: datetime) -> str:
+    """When, in the bot's time zone, as short as now allows: '08:14',
+    'yesterday 08:14', or '2026-10-16 08:14'."""
+    tz = get_settings().tz
+    local, today = at.astimezone(tz), now.astimezone(tz).date()
+    time = f"{local:%H:%M}"
+    if local.date() == today:
+        return time
+    if local.date() == today - timedelta(days=1):
+        return _("yesterday {time}").format(time=time)
+    return f"{local:%Y-%m-%d} {time}"
 
 
 def format_file_size(size: float) -> str:

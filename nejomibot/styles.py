@@ -17,6 +17,8 @@ from .messages import escape
 # Signal's styles and their marks, but bold and italic, which take stars
 MARKS = {"STRIKETHROUGH": "~", "MONOSPACE": "`", "SPOILER": "||"}
 STARRED = frozenset({"BOLD", "ITALIC"})
+BOLD = frozenset({"BOLD"})
+ITALIC = frozenset({"ITALIC"})
 STYLES = STARRED | MARKS.keys()
 STYLES_OF = {
     "*": ("ITALIC",),
@@ -104,3 +106,9 @@ def marked(text: str, styles: Styles) -> str | None:
     result = "".join(out)
     plain, found = unmarked(result)
     return result if plain == text and styles_of(plain, found) == wanted else None
+
+
+def bold(text: str) -> str:
+    """The text in bold, in marks; as it is, if marks can't say that, as for
+    text that ends in a *."""
+    return marked(text, [BOLD] * len(text)) or escape(text)

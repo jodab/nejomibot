@@ -17,24 +17,14 @@ tests, ShellCheck, and actionlint on the workflows.
 These would change what people in Signal see, or how the bot is run, so they
 wait for the owner.
 
-- [ ] **Built-in hidden aliases:** `/test` for `/status`, `/time` for
-  `/info`, `/safety` for `/contacts`, and `/timer delete` for `remove`,
-  beside the configurable aliases. Keep them, or move them to
-  `locale/*.toml` or the config's aliases, so there is one mechanism.
-  They're now the `hidden` names of each `Command`, in one place. (The plain
-  words are gone: see Asked by the owner, 2026-10-18.)
 - [ ] **`/dailyquote` is an admin command, as `/dailypost` is** (2026-10-18):
   for timers, `/run` and the admins in a direct chat, like every special.
   Unlike `/dailypost`, it uses nothing up, so it could be an everyday
   command, for everyone allowed; they have `/fortune` already.
-- [ ] **More text styles in the posts?** (2026-10-18) The daily post's and
-  the daily quote's headings are in bold, and the specials of your own keep
-  Signal's formatting (see Done). Left to choose, as they change what people
-  see: "Weather in {city}" in bold, and a proverb's explanation, the
-  paragraph under it in `fortunes_svenska`, in italics. And `/special add`
-  still refuses a typed `|` ("the file of specials uses it"), though only
-  the first `|` of a line counts and the file now has spoilers' `||`:
-  the refusal could go, the `|` kept as `\|`.
+- [ ] **A typed `|` in `/special add`** (2026-10-18): it's refused ("the
+  file of specials uses it"), though only the first `|` of a line counts and
+  the file now has spoilers' `||`: the refusal could go, the `|` kept as
+  `\|`.
 
 ### For you to do
 
@@ -397,6 +387,37 @@ with people who have none.
   apart, and leaves only those that meet inside a word. `***` needs
   signal-cli-rest-api 0.101 or later, which the bot does. Aliases move the
   styles with the text (`commands.resolved()`).
+
+### Asked by the owner, 2026-10-19
+
+- [x] The names commands have had all along, `/test`, `/time` and
+  `/safety`, are aliases, in `commands.ALIASES`, with the language's and the
+  config's, one mechanism; `/help` shows them, and the config's, on each
+  command's first line. `/timer delete` stays a word `/timer` takes, as
+  `/help` shows `remove`.
+- [x] More text styles in the posts: "Weather in {city}" in bold, in
+  `/weather` and the daily post; what explains a proverb of
+  `fortunes_svenska` in italics, in `/fortune` and `/dailyquote`, its source
+  as it was. Italics, the convention for a gloss, rather than a spoiler,
+  which would hide it behind a tap. All 1000 of `fortunes_svenska` were
+  checked: the 299 explanations come out in italics, through
+  `styles.marked()`, and every fortune of every library reads back as it is.
+- [x] `/delete list` and `/delete <n>`: the bot's 20 latest messages,
+  wherever it sent them, and one deleted by its number. The numbers are
+  those of the list each admin was shown last, as anything the bot sends,
+  the list itself too, would move numbers counted from the newest. In
+  memory only, as before (the owner's choice); in direct chats only, as the
+  list shows what went to every chat.
+- [x] `/incoming` (`/inkorg`): the 20 latest messages anyone but the admins
+  sent the bot in a direct chat, commands too (the owner's choice), and
+  `/incoming 4,9` forwards those to the admin who asks, in full. Text only,
+  as attachments stay ignored. In memory only; a sender's delete for
+  everyone, and disappearing messages, are honoured; edits replace. Timers
+  and `/run` can't run it, as they'd post what people wrote to others.
+  Tried with signal-cli-rest-api's own envelopes through signalbot's parsing
+  and dispatch: a message, an edit, its sender's delete (someone else's
+  leaves it be), a group message, a new disappearing time and an admin's
+  message (neither kept).
 
 ### The day images go to ghcr.io (done, 2026-10-18)
 

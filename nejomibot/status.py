@@ -365,7 +365,7 @@ async def status_messages(bot: SignalBot, message_delay: float) -> list[str]:
 
 
 class Status(Handler):
-    commands = (Command("/status", hidden=("/test",)),)
+    commands = (Command("/status"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         delay = arrival_delay(context)  # before the read receipt

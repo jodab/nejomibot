@@ -13,6 +13,7 @@ from signalbot import (
 
 from nejomibot import commands
 from nejomibot.commands import (
+    ALIASES,
     Command,
     Handler,
     aliases,
@@ -53,9 +54,29 @@ def test_canonical(text: str, command: str) -> None:
     assert canonical(text) == command
 
 
-def test_no_aliases_but_the_languages() -> None:
-    assert aliases() == {}
-    assert canonical("/väder") == "/väder"
+def test_no_aliases_but_the_bots_own() -> None:
+    assert aliases() == {"/test": "/status", "/time": "/info", "/safety": "/contacts"}
+    assert canonical("/väder") == "/väder"  # Swedish, so not in English
+
+
+@pytest.mark.parametrize("language", ["en", "sv"])
+@pytest.mark.parametrize(
+    ("text", "command"),
+    [("/test", "/status"), ("/TIME", "/info"), ("/safety Alice", "/contacts Alice")],
+)
+def test_the_bots_own_aliases_in_every_language(
+    monkeypatch: pytest.MonkeyPatch, language: str, text: str, command: str
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_LANGUAGE", language)
+    get_settings.cache_clear()
+    assert canonical(text) == command
+
+
+def test_the_settings_win_over_the_bots_own(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/test"]}')
+    get_settings.cache_clear()
+    assert canonical("/test") == "/photo"
+    assert canonical("/time") == "/info"
 
 
 @pytest.mark.usefixtures("swedish")
@@ -69,7 +90,7 @@ def test_the_settings_win_over_the_language(monkeypatch: pytest.MonkeyPatch) -> 
 class Seen(Handler):
     """Remembers the texts it was given, and the commands they were."""
 
-    commands = (Command("/photo"), Command("/cache", hidden=("/stash",)))
+    commands = (Command("/photo"), Command("/cache"))
 
     def __init__(self) -> None:
         self.seen: list[tuple[str | None, str]] = []
@@ -110,10 +131,13 @@ async def test_a_command_is_the_whole_text() -> None:
     ]
 
 
-async def test_a_command_by_a_name_it_has_had_all_along() -> None:
+async def test_a_command_by_a_name_the_bot_comes_with(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(commands, "ALIASES", {"/cache": ["/stash"]})
     handler = Seen()
     await handler.handle_data_message(context_of("/STASH"))
-    assert handler.seen == [("/STASH", "/cache")]
+    assert handler.seen == [("/cache", "/cache")]
 
 
 @pytest.mark.usefixtures("pic")
@@ -151,8 +175,11 @@ def test_every_name_starts_with_a_slash() -> None:
     # Plain words are for the config's aliases alone
     for handler in commands.handlers():
         for command in handler.commands:
-            for name in (command.name, *command.hidden):
-                assert name.startswith("/"), name
+            assert command.name.startswith("/"), command.name
+    for command, names in ALIASES.items():
+        assert known(command), command
+        for name in names:
+            assert name.startswith("/") and not known(name), name
 
 
 def test_argument() -> None:

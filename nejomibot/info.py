@@ -108,7 +108,7 @@ async def info_message() -> str:
 
 
 class Info(Handler):
-    commands = (Command("/info", hidden=("/time",)),)
+    commands = (Command("/info"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         await answer(context, info_message, slow=True, styled=True)

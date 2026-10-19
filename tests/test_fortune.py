@@ -2,11 +2,11 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot
+from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot, TextMode
 
 from nejomibot import commands, fortune
 from nejomibot.config import get_settings
-from nejomibot.fortune import Fortune, read_fortunes
+from nejomibot.fortune import OWN, Fortune, read_fortunes, styled
 
 
 def context_of(text: str) -> DataMessageContext:
@@ -38,6 +38,7 @@ async def answer_to(command: str, monkeypatch: pytest.MonkeyPatch) -> list[str]:
 
     async def capture_reply(context: DataMessageContext, message: SendMessage) -> None:
         assert message.text is not None
+        assert message.text_mode == TextMode.STYLED
         replies.append(message.text)
 
     monkeypatch.setattr(commands, "mark_read", mark_read)
@@ -205,3 +206,40 @@ def test_all_gives_each_fortune_the_same_chance(
     monkeypatch.setattr(fortune.random, "choices", choices)
     assert fortune.fortune_answer("all") in ("A", "B", "C")
     assert chosen == [(["one", "three"], [1, 3])]
+
+
+@pytest.mark.parametrize(
+    ("text", "library", "shown"),
+    [
+        # What explains a proverb of the bot's own, in italics; its source not
+        (
+            "Känn dig själv.\n\nStod i Delfi.\n\t\t-- Grekiskt ordspråk",
+            OWN,
+            "Känn dig själv.\n\n*Stod i Delfi.*\n\t\t-- Grekiskt ordspråk",
+        ),
+        (
+            "All hjärna finns inte i ett huvud.\n\nFråga andra.",
+            OWN,
+            "All hjärna finns inte i ett huvud.\n\n*Fråga andra.*",
+        ),
+        ("Vad är svårt?\n\t\t-- Thales", OWN, "Vad är svårt?\n\t\t-- Thales"),
+        ("Alla goda ting är tre.", OWN, "Alla goda ting är tre."),
+        # Marks show as they are
+        ("A *star*.\n\nAnd ~more~.", OWN, "A \\*star\\*.\n\n*And \\~more\\~.*"),
+        # In other libraries, a paragraph is just that
+        ("A *star*.\n\nAnd ~more~.", "startrek", "A \\*star\\*.\n\nAnd \\~more\\~."),
+        # Italics that marks can't say: as it is
+        ("Saying.\n\nEnds in a star*", OWN, "Saying.\n\nEnds in a star\\*"),
+    ],
+)
+def test_styled(text: str, library: str, shown: str) -> None:
+    assert styled(text, library) == shown
+
+
+async def test_the_bots_own_in_italics(
+    library: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (library / OWN).write_text("Alla är vi barn i början.\n\nAlla har varit nybörjare.")
+    assert await answer_to("/fortune", monkeypatch) == [
+        "Alla är vi barn i början.\n\n*Alla har varit nybörjare.*"
+    ]

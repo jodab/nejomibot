@@ -24,7 +24,7 @@ from nejomibot.specials import (
     own_specials,
     parse_parts,
 )
-from nejomibot.styles import styles_of
+from nejomibot.styles import styles_of, unmarked
 from nejomibot.timers import Timekeeper, check_commands
 
 ADMIN = "+46700000009"
@@ -115,8 +115,8 @@ async def test_the_daily_quote(chat: Chat) -> None:
     assert chat.replies[0].text_mode == TextMode.STYLED
     heading, quote = text.split("\n\n", 1)
     assert heading == "**Dagens ordspråk/citat:**"
-    # It has no marks to escape
-    assert quote in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
+    # Styled as /fortune styles it
+    assert unmarked(quote)[0] in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
 
 
 async def test_the_daily_quote_keeps_its_library(
@@ -126,7 +126,7 @@ async def test_the_daily_quote_keeps_its_library(
     monkeypatch.setenv("NEJOMIBOT_FORTUNE_LIBRARY", "startrek")
     get_settings.cache_clear()
     [text] = await chat.send("/dailyquote")
-    quote = text.split("\n\n", 1)[1]
+    quote = unmarked(text.split("\n\n", 1)[1])[0]
     assert quote in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
 
 

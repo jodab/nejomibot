@@ -19,8 +19,8 @@ each, until it's sent or dropped, and all of them are as the bot stops: the
 bot sends them once it's started again. A short wait, as while
 signal-cli-rest-api restarts, writes nothing.
 
-Sent messages are remembered for as long as Signal can delete them, for
-/delete.
+Sent messages are remembered for as long as Signal can delete them, with
+how they start, for /delete.
 """
 
 import asyncio
@@ -34,11 +34,11 @@ from bisect import insort
 from collections import Counter, defaultdict, deque
 from collections.abc import Awaitable, Callable, Collection, Iterator
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, Self
 
 import aiohttp
 from pydantic import BaseModel, ValidationError
@@ -49,6 +49,7 @@ from signalbot import (
     SignalAPIError,
     SignalBot,
     SignalBotError,
+    TextMode,
 )
 
 from .config import get_settings
@@ -72,6 +73,8 @@ TOO_MANY_REQUESTS = 429
 KEEP_AFTER = timedelta(seconds=30)
 # Signal only deletes a message for everyone this soon after it was sent
 DELETABLE_FOR = timedelta(days=1)
+# Characters of a message's start that a list of messages shows, at most
+SHORT = 20
 
 
 def web_error(error: aiohttp.ClientError | TimeoutError) -> str:
@@ -130,6 +133,12 @@ def error_text(error: Exception | str) -> str:
 def escape(text: str) -> str:
     """Text that shows as is in a styled message."""
     return re.sub(r"([*`|~])", r"\\\1", text)
+
+
+def short(text: str) -> str:
+    """The text's first line, cut short, for a list of messages."""
+    line = text.strip().partition("\n")[0]
+    return line if len(line) <= SHORT else line[: SHORT - 1].rstrip() + "…"
 
 
 def unreadable_text(lines: list[str]) -> str:
@@ -207,10 +216,24 @@ async def post_message(bot: SignalBot, recipient: str, message: SendMessage) -> 
 
 @dataclass(frozen=True, order=True)
 class Sent:
-    """A message the bot sent, as Signal knows it."""
+    """A message the bot sent, as Signal knows it, and how it starts."""
 
     timestamp: int  # milliseconds since the epoch
     chat: str
+    start: str = field(default="", compare=False)  # its text's first line
+    styled: bool = field(default=False, compare=False)  # the start is in marks
+    photo: bool = field(default=False, compare=False)
+
+    @classmethod
+    def of(cls, timestamp: int, chat: str, message: SendMessage) -> Self:
+        text = (message.text or "").strip()
+        return cls(
+            timestamp,
+            chat,
+            text.partition("\n")[0],
+            message.text_mode == TextMode.STYLED,
+            bool(message.base64_attachments),
+        )
 
     @property
     def at(self) -> datetime:
@@ -237,6 +260,19 @@ class SentLog:
             if self._sent[i].chat in chats:
                 return self._sent.pop(i)
         return None
+
+    def latest(self, count: int) -> list[Sent]:
+        """The latest messages, to any chat, newest first."""
+        self._forget_old()
+        return self._sent[-count:][::-1]
+
+    def take(self, sent: Sent) -> bool:
+        """Take the message out of the log, if it's still there."""
+        self._forget_old()
+        if sent not in self._sent:
+            return False
+        self._sent.remove(sent)
+        return True
 
     def _forget_old(self) -> None:
         oldest = self._now() - DELETABLE_FOR
@@ -458,7 +494,7 @@ class Outbox:
             if self._wake is not None:
                 self._wake.set()
         if timestamp is not None:
-            self.sent.add(Sent(timestamp, recipient))
+            self.sent.add(Sent.of(timestamp, recipient, message))
         if dropped := self._dropped.pop(recipient, 0):
             notice = SendMessage(text=dropped_text(dropped))
             if await self._try(recipient, notice) is not Outcome.SENT:

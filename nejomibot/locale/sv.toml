@@ -25,6 +25,7 @@
 "/dailyquote" = ["/dagenscitat"]
 "/msg" = ["/skicka"]
 "/run" = ["/kör", "/kor"]
+"/incoming" = ["/inkorg"]
 
 # Words for when a timer runs (/timer add mån-fre 07:30 ...), each next to
 # the English one it means. The first is how /timers shows it.

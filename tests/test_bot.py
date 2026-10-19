@@ -62,6 +62,7 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Timers": admins,
         "Msg": admins,
         "Run": admins,
+        "Incoming": admins,
         # Any chat, but in groups it checks for an admin itself
         "Delete": ([ADMIN], True),
     }
@@ -193,7 +194,6 @@ def test_the_data_dir_check_leaves_nothing_behind() -> None:
     [
         ('{"/fotos": ["/pic"]}', "/fotos isn't a command"),
         ('{"/photo": ["/weather"]}', "/weather is a command already"),
-        ('{"/photo": ["/time"]}', "/time is a command already"),
         ('{"/photo": ["/msg"]}', "/msg is a command already"),
     ],
 )

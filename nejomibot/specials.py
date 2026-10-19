@@ -41,7 +41,7 @@ from signalbot import DataMessageContext, SendMessage, TextMode, TextStyle
 from .commands import Command, Handler, Reply, aliases, answer, built_in, canonical
 from .config import get_settings
 from .files import write_privately
-from .fortune import fortune_answer
+from .fortune import OWN, fortune_answer
 from .i18n import _, ngettext
 from .messages import escape, unreadable_text
 from .photos import photo_message
@@ -71,7 +71,7 @@ HEADER = (
 
 
 async def daily_post() -> list[Reply]:
-    """The weather, then the photo of the day."""
+    """The weather, then the photo of the day. Styled."""
     weather = await weather_message()
     return [weather, await photo_message(_("Photo of the day!"), track_sent=True)]
 
@@ -79,8 +79,8 @@ async def daily_post() -> list[Reply]:
 async def daily_quote() -> str:
     """A proverb or quote from fortunes_svenska, whatever fortune_library is,
     headed as the day's, in bold. Styled."""
-    quote = await asyncio.to_thread(fortune_answer, "fortunes_svenska")
-    return f"**{escape(_('Proverb or quote of the day:'))}**\n\n{escape(quote)}"
+    quote = await asyncio.to_thread(fortune_answer, OWN)
+    return f"**{escape(_('Proverb or quote of the day:'))}**\n\n{quote}"
 
 
 # The admins' own
@@ -407,7 +407,7 @@ class Specials(Handler):
         text = context.message.text or ""
         words = text.split()
         if command.name == "/dailypost":
-            await answer(context, daily_post, slow=True)
+            await answer(context, daily_post, slow=True, styled=True)
         elif command.name == "/dailyquote":
             await answer(context, daily_quote, styled=True)
         elif command.name in ("/specials", "/special"):

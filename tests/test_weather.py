@@ -29,8 +29,9 @@ def api_data(
 def test_format_weather() -> None:
     data = api_data(804, "mulet", 23.6, 24.4, 77)
     now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
+    # The heading in bold
     assert weather.format_weather(data, "Göteborg", now) == (
-        "Vädret i Göteborg\n"
+        "**Vädret i Göteborg**\n"
         "Söndag 11 Oktober 15:30\n"
         "☁️ Mulet\n"
         "☀️ Temperatur: 24°C\n"
@@ -60,7 +61,7 @@ def test_format_weather_unknown_condition() -> None:
     data = api_data(999, "vulkanisk aska", -3.2, -8, 20)
     now = datetime(2027, 1, 4, 8, 0, tzinfo=TZ)
     assert weather.format_weather(data, "Stockholm", now).splitlines() == [
-        "Vädret i Stockholm",
+        "**Vädret i Stockholm**",
         "Måndag 4 Januari 08:00",
         "🌡️ Vulkanisk aska",
         "🥶 Temperatur: -3°C",
@@ -81,6 +82,16 @@ def test_format_weather_in_fahrenheit() -> None:
     ]
 
 
+def test_format_weather_escapes() -> None:
+    # As it shows, the city as the config has it, the condition as given
+    data = api_data(999, "*sunny* ~ish", 20, 20, 50)
+    now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
+    assert weather.format_weather(data, "Sthlm`", now).splitlines()[0:3:2] == [
+        "**Vädret i Sthlm\\`**",
+        "🌡️ \\*sunny\\* \\~ish",
+    ]
+
+
 def test_format_weather_bad_data() -> None:
     with pytest.raises(weather.WeatherError, match="inte ut som väntat"):
         weather.format_weather({"main": {}}, "Göteborg", datetime.now(TZ))
@@ -92,7 +103,7 @@ def test_format_weather_in_english(monkeypatch: pytest.MonkeyPatch) -> None:
     data = api_data(804, "overcast clouds", 23.6, 24.4, 77)
     now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
     assert weather.format_weather(data, "London", now) == (
-        "Weather in London\n"
+        "**Weather in London**\n"
         "Sunday 11 October 15:30\n"
         "☁️ Overcast clouds\n"
         "☀️ Temperature: 24°C\n"
@@ -144,7 +155,7 @@ async def test_weather_message(api: dict[str, Any]) -> None:
         ' "main": {"temp": 9.5, "feels_like": 7, "humidity": 90}}'
     )
     lines = (await weather.weather_message()).splitlines()
-    assert lines[0] == "Vädret i Stockholm"
+    assert lines[0] == "**Vädret i Stockholm**"
     assert lines[2:] == [
         "🌧️ Måttligt regn",
         "🌡️ Temperatur: 10°C",
@@ -197,7 +208,7 @@ async def test_weather_message_names_the_city(
     api["body"] = json.dumps(
         {"weather": [{"id": 800}], "main": {"temp": 1, "feels_like": 1, "humidity": 1}}
     )
-    assert (await weather.weather_message()).startswith("Vädret i Sthlm\n")
+    assert (await weather.weather_message()).startswith("**Vädret i Sthlm**\n")
     assert api["asked"][0][1]["q"] == "Stockholm"
 
 

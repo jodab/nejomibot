@@ -1,13 +1,31 @@
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 
 import pytest
 from aiohttp import web
-from helpers import ALICE, BOB, GROUP, ME, FakeApi
-from signalbot import DataMessage, DataMessageContext, EditMessage, GroupInfo, SignalBot
+from helpers import ALICE, ALICE_ID, BOB, GROUP, ME, FakeApi
+from signalbot import (
+    DataMessage,
+    DataMessageContext,
+    EditMessage,
+    GroupInfo,
+    SendMessage,
+    SignalBot,
+    TextMode,
+)
 
-from nejomibot import delete
+from nejomibot import commands, delete
 from nejomibot.config import get_settings
-from nejomibot.delete import Delete, chats_of, delete_latest, nothing_text
+from nejomibot.delete import (
+    Delete,
+    chats_of,
+    delete_latest,
+    delete_listed,
+    list_sent,
+    nothing_sent_text,
+    nothing_text,
+    start_text,
+)
 from nejomibot.messages import Sent, SentLog
 
 NOW = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)
@@ -30,6 +48,14 @@ def log_of(*sent: Sent) -> SentLog:
     return log
 
 
+@pytest.fixture(autouse=True)
+def nothing_shown() -> Iterator[None]:
+    """No admin has been shown the list yet, as at a start."""
+    delete.shown.clear()
+    yield
+    delete.shown.clear()
+
+
 @pytest.fixture
 def deletes(signal_api: FakeApi) -> FakeApi:
     """The fake signal-cli-rest-api, failing to delete FAILS."""
@@ -50,6 +76,46 @@ def test_sent_log_pops_the_latest_in_the_chat() -> None:
     assert log.pop({GROUP}) == Sent(now - 2, GROUP)
     assert log.pop({GROUP}) is None
     assert log.pop({ALICE, "a-uuid"}) == Sent(now, ALICE)
+
+
+def test_sent_log_lists_the_latest_in_every_chat() -> None:
+    now = ms(NOW)
+    log = log_of(Sent(now - 2, GROUP), Sent(now, ALICE), Sent(now - 1, GROUP))
+    assert log.latest(2) == [Sent(now, ALICE), Sent(now - 1, GROUP)]
+    assert log.latest(20) == [
+        Sent(now, ALICE),
+        Sent(now - 1, GROUP),
+        Sent(now - 2, GROUP),
+    ]
+
+
+def test_sent_log_takes_a_message_out() -> None:
+    clock = [NOW]
+    log = SentLog(lambda: clock[0])
+    old, new = Sent(ms(NOW - timedelta(hours=2)), GROUP), Sent(ms(NOW), ALICE)
+    log.add(old)
+    log.add(new)
+    assert log.take(new)
+    assert not log.take(new)
+    clock[0] += timedelta(hours=23)  # too old for Signal to delete
+    assert not log.take(old)
+    assert log.latest(20) == []
+
+
+def test_sent_of_a_message() -> None:
+    caption = "**Photo of the day\\!**\n\n📅 2026-10-12 08:00"
+    photo = SendMessage(
+        text=caption, base64_attachments=["aGVq"], text_mode=TextMode.STYLED
+    )
+    assert Sent.of(1, GROUP, photo) == Sent(1, GROUP)
+    sent = Sent.of(1, GROUP, photo)
+    assert (sent.start, sent.styled, sent.photo) == (
+        "**Photo of the day\\!**",
+        True,
+        True,
+    )
+    sent = Sent.of(2, ALICE, SendMessage(text="\n pong!\nmore"))
+    assert (sent.start, sent.styled, sent.photo) == ("pong!", False, False)
 
 
 def test_sent_log_forgets_what_signal_cant_delete() -> None:
@@ -162,3 +228,211 @@ async def test_an_edit_deletes_nothing(
     await Delete().handle_data_message(DataMessageContext(bot, edit))
     assert deletes.bodies("DELETE", REMOTE_DELETE) == []
     assert delete.outbox.sent.pop({GROUP}) == Sent(ms(NOW), GROUP)
+
+
+# /delete list, and /delete <n>
+
+
+@pytest.mark.parametrize(
+    ("sent", "text"),
+    [
+        (Sent(1, GROUP, "pong!"), "pong!"),
+        # As it shows: marks read, as signal-cli-rest-api reads them
+        (Sent(1, GROUP, "**Photo** \\*1\\*", styled=True), "Photo *1*"),
+        (Sent(1, GROUP, "**Photo** \\*1\\*"), "**Photo** \\*1\\*"),
+        (Sent(1, GROUP, "Aldrig är dagen så lång att inte"), "Aldrig är dagen så…"),
+        (Sent(1, GROUP, "Dagens bild!", styled=True, photo=True), "📷 Dagens bild!"),
+        (Sent(1, GROUP, "", photo=True), "📷"),
+    ],
+)
+def test_start_text(sent: Sent, text: str) -> None:
+    assert start_text(sent) == text
+
+
+def test_nothing_sent() -> None:
+    started = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)
+    assert nothing_sent_text(started, started + timedelta(hours=1)) == (
+        "The bot has sent nothing since it started, at 2026-10-12 08:00."
+    )
+    assert nothing_sent_text(started, started + timedelta(days=2)) == (
+        "The bot has sent nothing in the last day, and Signal only deletes "
+        "messages for everyone within a day."
+    )
+
+
+def latest_of(*texts: str, chat: str = GROUP) -> SentLog:
+    """A log of messages that start with the texts, one a minute, the last
+    sent now."""
+    log = SentLog()
+    now = datetime.now(UTC)
+    for i, text in enumerate(reversed(texts)):
+        log.add(Sent(ms(now - timedelta(minutes=i)), chat, text))
+    return log
+
+
+async def test_list_sent(bot: SignalBot) -> None:
+    stranger = "+46700000005"
+    log = latest_of("first")
+    log.add(Sent(ms(datetime.now(UTC)) + 1, ALICE, "pong!"))
+    log.add(Sent(ms(datetime.now(UTC)) + 2, stranger, "Hi"))
+    lines = (await list_sent(bot, log, ALICE_ID)).splitlines()
+    assert lines[0] == "📤 **The bot's latest messages, newest first:**"
+    # Where to, by name; one the bot doesn't know by name, by number
+    assert [line.split(" · ", 1)[0] for line in lines[1:4]] == ["1", "2", "3"]
+    assert lines[1].endswith(f" · 👤 {stranger} · Hi")
+    assert lines[2].endswith(" · 👤 Alice · pong!")
+    assert lines[3].endswith(" · 👥 Familjen · first")
+    assert lines[4:] == ["", "/delete <n> deletes one, for everyone."]
+
+
+async def test_list_sent_shows_twenty(bot: SignalBot) -> None:
+    log = latest_of(*(f"m{n}" for n in range(25)))
+    lines = (await list_sent(bot, log, ALICE_ID)).splitlines()
+    assert lines[1].endswith(" · m24") and lines[20].endswith(" · m5")
+    assert lines[21:] == ["", "/delete <n> deletes one, for everyone."]
+
+
+async def test_list_sent_escapes(bot: SignalBot) -> None:
+    log = latest_of("*not bold*")
+    text = await list_sent(bot, log, ALICE_ID)
+    assert text.splitlines()[1].endswith(" · \\*not bold\\*")
+
+
+async def test_list_nothing(bot: SignalBot) -> None:
+    text = await list_sent(bot, SentLog(), ALICE_ID)
+    assert text.startswith("The bot has sent nothing since it started, at ")
+
+
+async def test_delete_listed(bot: SignalBot, deletes: FakeApi) -> None:
+    log = latest_of("first", "second", "third")
+    first, second, _third = log.latest(20)[::-1]
+    await list_sent(bot, log, ALICE_ID)
+    log.add(Sent(ms(datetime.now(UTC)) + 1, ALICE, "fourth"))  # numbers stay
+    text = await delete_listed(bot, log, ALICE_ID, 2)
+    assert text.startswith("🗑️ **Deleted**\n2 · ")
+    assert text.endswith(" · 👥 Familjen · second")
+    assert await delete_listed(bot, log, ALICE_ID, 3) == (
+        "🗑️ **Deleted**\n" + delete.shown[ALICE_ID][2][1]
+    )
+    assert deletes.bodies("DELETE", REMOTE_DELETE) == [
+        {"recipient": GROUP, "timestamp": second.timestamp},
+        {"recipient": GROUP, "timestamp": first.timestamp},
+    ]
+    assert [sent.start for sent in log.latest(20)] == ["fourth", "third"]
+
+
+async def test_delete_listed_twice(bot: SignalBot, deletes: FakeApi) -> None:
+    log = latest_of("first")
+    await list_sent(bot, log, ALICE_ID)
+    await delete_listed(bot, log, ALICE_ID, 1)
+    assert await delete_listed(bot, log, ALICE_ID, 1) == (
+        "Message 1 is gone already: deleted, or too old for Signal to delete."
+    )
+    assert len(deletes.bodies("DELETE", REMOTE_DELETE)) == 1
+
+
+async def test_delete_listed_by_a_number_not_listed(
+    bot: SignalBot, deletes: FakeApi
+) -> None:
+    log = latest_of("first")
+    assert await delete_listed(bot, log, ALICE_ID, 1) == (
+        "Which one? Send /delete list first, for their numbers."
+    )
+    await list_sent(bot, log, ALICE_ID)
+    # The numbers of the list each admin was shown
+    assert await delete_listed(bot, log, BOB, 1) == (
+        "Which one? Send /delete list first, for their numbers."
+    )
+    for number in (0, 2):
+        assert await delete_listed(bot, log, ALICE_ID, number) == (
+            f"There's no message {number}: /delete list numbers them."
+        )
+    assert deletes.bodies("DELETE", REMOTE_DELETE) == []
+
+
+async def test_delete_listed_keeps_what_it_couldnt_delete(
+    bot: SignalBot, deletes: FakeApi
+) -> None:
+    log = log_of(Sent(FAILS, GROUP, "first"))
+    await list_sent(bot, log, ALICE_ID)
+    # signalbot doesn't pass on signal-cli-rest-api's error, only its status
+    assert await delete_listed(bot, log, ALICE_ID, 1) == (
+        "Something went wrong: signal-cli-rest-api answered 400 Bad Request"
+    )
+    assert log.latest(20) == [Sent(FAILS, GROUP)]
+
+
+class Replies:
+    """What the bot answers in a chat: its texts and whether styled."""
+
+    def __init__(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        self.sent: list[SendMessage] = []
+        monkeypatch.setattr(commands, "reply", self.reply)
+
+    async def reply(self, context: DataMessageContext, message: SendMessage) -> None:
+        self.sent.append(message)
+
+
+@pytest.fixture
+def replies(monkeypatch: pytest.MonkeyPatch) -> Replies:
+    monkeypatch.setenv("NEJOMIBOT_ADMINS", f'["{ALICE}"]')
+    get_settings.cache_clear()
+    monkeypatch.setattr(delete.outbox, "sent", latest_of("first", "second"))
+    return Replies(monkeypatch)
+
+
+async def test_list_and_delete_in_a_direct_chat(
+    bot: SignalBot, deletes: FakeApi, replies: Replies
+) -> None:
+    await Delete().handle_data_message(
+        context_of(bot, "/delete LIST", ALICE, in_group=False)
+    )
+    [listed] = replies.sent
+    assert listed.text_mode == TextMode.STYLED
+    assert (listed.text or "").startswith("📤 **The bot's latest messages")
+    await Delete().handle_data_message(
+        context_of(bot, "/delete #2", ALICE, in_group=False)
+    )
+    assert (replies.sent[1].text or "").endswith(" · 👥 Familjen · first")
+    assert [sent.start for sent in delete.outbox.sent.latest(20)] == ["second"]
+
+
+@pytest.mark.parametrize("text", ["/delete list", "/delete 1", "/delete it"])
+async def test_only_the_latest_in_a_group(
+    bot: SignalBot, deletes: FakeApi, replies: Replies, text: str
+) -> None:
+    # The list shows what went to every chat, people's too
+    await Delete().handle_data_message(context_of(bot, text, ALICE, in_group=True))
+    assert replies.sent == []
+    assert delete.shown == {}
+    assert deletes.bodies("DELETE", REMOTE_DELETE) == []
+
+
+@pytest.mark.parametrize("text", ["/delete them all", "/delete 1 2", "/delete 12345"])
+async def test_usage(bot: SignalBot, replies: Replies, text: str) -> None:
+    await Delete().handle_data_message(context_of(bot, text, ALICE, in_group=False))
+    [usage] = replies.sent
+    assert (usage.text or "").splitlines() == [
+        "/delete: delete the bot's latest message here, for everyone",
+        "/delete list: its latest messages, wherever it sent them",
+        "/delete <n>: delete one of those, for everyone",
+    ]
+
+
+async def test_an_edit_deletes_nothing_by_number(
+    bot: SignalBot, deletes: FakeApi, replies: Replies
+) -> None:
+    log = delete.outbox.sent
+    await list_sent(bot, log, f"{ALICE}-uuid")
+    edit = EditMessage(
+        server_delivered_timestamp=0,
+        server_received_timestamp=0,
+        timestamp=ms(NOW),
+        source_number=ALICE,
+        source_uuid=f"{ALICE}-uuid",
+        text="/delete 1",
+        target_sent_timestamp=ms(NOW) - 1,
+    )
+    await Delete().handle_data_message(DataMessageContext(bot, edit))
+    assert replies.sent == []
+    assert deletes.bodies("DELETE", REMOTE_DELETE) == []

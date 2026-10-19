@@ -4,6 +4,34 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `/delete list`, for the admins in a direct chat: the bot's 20 latest
+  messages, wherever it sent them, numbered, with when, where to and how
+  each starts. `/delete <n>` deletes one of them for everyone, and says
+  which. The numbers are those of the list the admin was shown last.
+- `/incoming`, for the admins in a direct chat: the 20 latest messages
+  anyone but the admins sent the bot in a direct chat, commands too,
+  numbered, with when, from whom and how each starts; `/incoming 4,9`
+  forwards those two to the admin in full, their text, as the bot doesn't
+  fetch attachments. They're kept in memory only, and go when their sender
+  deletes them or they disappear. In Swedish, `/inkorg`. Timers and `/run`
+  can't run it.
+
+### Changed
+
+- `/help` shows the names some commands have had all along, `/test` for
+  `/status`, `/time` for `/info` and `/safety` for `/contacts`, after them,
+  as it does the configuration's aliases, which show on a command's first
+  line only. They're aliases now, so the configuration's aliases win over
+  them, as over the language's: a configuration with one of them as an alias
+  stopped the bot.
+- The weather's heading, "Weather in Stockholm", is in bold, in `/weather`
+  and the daily post; what explains a proverb of `fortunes_svenska`, the
+  paragraph under it, is in italics, in `/fortune` and `/dailyquote`.
+
 ## 0.96.0 - 2026-10-18
 
 ### Added

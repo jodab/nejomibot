@@ -3,6 +3,7 @@
 import ast
 import string
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import polib
@@ -11,7 +12,14 @@ import pytest
 from nejomibot import i18n, timers
 from nejomibot.commands import known
 from nejomibot.config import get_settings
-from nejomibot.i18n import LOCALE_DIR, _, language_words, languages, ngettext
+from nejomibot.i18n import (
+    LOCALE_DIR,
+    _,
+    language_words,
+    languages,
+    ngettext,
+    when_text,
+)
 
 PACKAGE = Path(i18n.__file__).parent
 
@@ -79,6 +87,15 @@ def test_english_is_as_written() -> None:
     assert language_words("mon") == ["mon"]
 
 
+def test_when_text() -> None:
+    now = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)  # 08:00 in Stockholm
+    assert when_text(now, now) == "08:00"
+    assert when_text(now - timedelta(hours=8), now) == "00:00"
+    assert when_text(now - timedelta(hours=8, minutes=1), now) == "yesterday 23:59"
+    assert when_text(now - timedelta(days=1, hours=8), now) == "yesterday 00:00"
+    assert when_text(now - timedelta(days=1, hours=9), now) == "2026-10-10 23:00"
+
+
 @pytest.mark.usefixtures("swedish")
 def test_swedish() -> None:
     assert _("Photo of the day!") == "Dagens bild!"
@@ -86,6 +103,8 @@ def test_swedish() -> None:
     assert ngettext("{n} day", "{n} days", 2) == "{n} dagar"
     assert ngettext("{n} day", "{n} days", 0) == "{n} dagar"
     assert language_words("mon") == ["mon", "mån"]
+    now = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)
+    assert when_text(now - timedelta(hours=9), now) == "igår 23:00"
 
 
 @pytest.mark.parametrize("language", languages())

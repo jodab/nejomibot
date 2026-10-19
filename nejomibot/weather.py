@@ -1,6 +1,7 @@
-"""Current weather from OpenWeatherMap, in weather_city. The bot asks
-OpenWeatherMap's geocoding where the city is once, and then the weather
-there, as OpenWeatherMap no longer develops its weather by city name."""
+"""Current weather from OpenWeatherMap, in weather_city, under a heading in
+bold. The bot asks OpenWeatherMap's geocoding where the city is once, and
+then the weather there, as OpenWeatherMap no longer develops its weather by
+city name."""
 
 import logging
 from datetime import datetime
@@ -13,7 +14,8 @@ from .client import client
 from .commands import Command, Handler, answer
 from .config import get_settings
 from .i18n import N_, _, day_and_time
-from .messages import ServiceError, error_text, log_failure, web_error
+from .messages import ServiceError, error_text, escape, log_failure, web_error
+from .styles import bold
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +131,7 @@ def humidity_icon(humidity: int) -> str:
 def format_weather(
     data: dict[str, Any], city: str, now: datetime, units: str = "metric"
 ) -> str:
+    """Styled."""
     try:
         condition = data["weather"][0]
         code = int(condition["id"])
@@ -143,8 +146,8 @@ def format_weather(
     description = (_(known) if known else given or _("unknown weather")).capitalize()
     unit = UNITS.get(units, "°")
     celsius = temp if units == "metric" else (temp - 32) * 5 / 9
+    heading = _("Weather in {city}").format(city=city)
     lines = [
-        _("Weather in {city}").format(city=city),
         day_and_time(now),
         f"{condition_icon(code)} {description}",
         _("{icon} Temperature: {temperature}").format(
@@ -155,7 +158,7 @@ def format_weather(
             icon=humidity_icon(humidity), humidity=f"{humidity}%"
         ),
     ]
-    return "\n".join(lines)
+    return f"{bold(heading)}\n" + escape("\n".join(lines))
 
 
 async def ask(url: str, **params: str) -> Any:
@@ -216,6 +219,7 @@ async def fetch_weather() -> dict[str, Any]:
 
 
 async def weather_message() -> str:
+    """The weather, or what went wrong. Styled."""
     settings = get_settings()
     try:
         data = await fetch_weather()
@@ -227,11 +231,11 @@ async def weather_message() -> str:
         )
     except Exception as e:
         log_failure(logger, "The weather", e)
-        return error_text(e)
+        return escape(error_text(e))
 
 
 class Weather(Handler):
     commands = (Command("/weather"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
-        await answer(context, weather_message, slow=True)
+        await answer(context, weather_message, slow=True, styled=True)
