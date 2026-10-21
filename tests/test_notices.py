@@ -190,7 +190,9 @@ async def test_served_once_ready(
     keeper = Notices()
     keeper.previous = Run(version="0.97.0", started=STARTED, stopped=STOPPED)
     keeper.run = Run(version="0.98.0", started=STOPPED)
-    keeper.looked = STOPPED
+    # Just now, as the fake API's safety numbers changed a day before the
+    # test runs, whenever that is
+    keeper.looked = datetime.now(UTC)
     await keeper.serve(bot)
     # The update, then the safety numbers changed since, of which there are none
     assert told == [(ADMIN, "🔄 Updated: nejomibot 0.97.0 → 0.98.0.")]
