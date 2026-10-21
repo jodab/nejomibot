@@ -182,6 +182,17 @@ keep the order each admin was shown last (`contacts.shown`, phone numbers
 and Signal IDs only, not for timers): a number in place of `<who>` in
 `/contacts`, `/trust`, `/contacts add`, `/allow` and `/admin add` is one
 of them (`contacts.find_one`); `/birthday add` takes numbers as chats.
+People show as `Alice (+46701234567)`: `access.names()` gives `Names`, by
+number, Signal ID and group ID, signal-cli's names before the lists' notes,
+with `numbers` by Signal ID, and `Names.of()` words one. Those who don't
+share their number are known to signal-cli by Signal ID alone, so a number
+on the lists matches neither their name nor their direct messages:
+`access.link()` looks such numbers up through signal-cli-rest-api's search
+(Signal's contact discovery, rate-limited: once each per run, `looked_up`),
+and signal-cli keeps each number found with its Signal ID; at a start
+(`link_lists`, which then writes known names after the lists' empty `#`)
+and as `/allow` adds a number. `fetch_account` leaves out the bot's own
+safety number.
 
 **Commands and aliases** (`commands.py`): every handler is a
 `commands.Handler` that lists its `Command`s: the English name, whether more
@@ -232,10 +243,16 @@ whole of a long one it receives, attachments ignored or not.
 every 30 seconds and before each change.
 A run passes each command through the real handlers as a made-up direct
 message from the first admin, or the bot's own account if there are none
-(`Timekeeper.answers_to`), then posts the collected answers to every chat of
-the timer. Commands that manage timers, specials or the allowed list (even
-`/chats` and `/allowed`, which only list), or post elsewhere (`/msg`,
-`/run`), can't run from timers.
+(`Timekeeper.answers_to`; `/run`'s from the admin who sent it, so its
+numbers are theirs), then posts the collected answers to every chat of the
+timer. Commands that change timers, specials, birthdays or who may use the
+bot, post elsewhere (`/msg`, `/run`), or answer for their own chat can't run
+from timers (`Command.timers`); what only lists can, wherever the admins
+post it (the owner's decision, 2026-10-21). `/timers` and `/specials` alone
+only list, while with more after them they change things, so each has a
+second `Command` of the same name with `timers=False`. A list shown under
+`collected` doesn't change the numbers an admin's `/incoming 4` or
+`/delete 3` take (their `shown`), as `contacts.remember()` does.
 
 **Specials** (`specials.py`): commands that post several things, in order.
 `/dailypost` (the weather, then the photo of the day from the round) and

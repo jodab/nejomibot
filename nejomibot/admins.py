@@ -166,13 +166,14 @@ async def admin_answer(context: DataMessageContext, action: str, who: str) -> st
     return await remove(context, who)
 
 
-# Who the admins are, so timers don't run them. An edit runs /admins again,
-# as it only lists; an edit of /admin add or remove takes the place of what
-# it edits, which is undone first.
+# Who the admins are. Timers may run /admins, which only lists, but not
+# /admin, which changes who they are. An edit runs /admins again; an edit of
+# /admin add or remove takes the place of what it edits, which is undone
+# first.
 
 
 class Admins(Handler):
-    commands = (Command("/admins", timers=False),)
+    commands = (Command("/admins"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         await answer(context, lambda: list_admins(context), styled=True)

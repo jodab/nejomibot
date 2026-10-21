@@ -288,15 +288,12 @@ def test_parse_add_refuses(text: str, why: str) -> None:
         (["/weather", "/frobnicate"], "/frobnicate isn't a command"),
         (["/väder"], "/väder isn't a command"),
         (["/timer add 08:00 /ping"], CANT.format("/timer")),
-        (["/chats"], CANT.format("/chats")),
-        (["/allowed"], CANT.format("/allowed")),
+        (["/timers run 1"], CANT.format("/timers")),
         (["/allow +46700000001"], CANT.format("/allow")),
         (["/disallow 1"], CANT.format("/disallow")),
         (["/msg 1 Hello"], CANT.format("/msg")),
         (["/run 1 /ping"], CANT.format("/run")),
-        (["/incoming"], CANT.format("/incoming")),
-        (["/incoming 1,2"], CANT.format("/incoming")),
-        (["/specials"], CANT.format("/specials")),
+        (["/specials add /x Hi"], CANT.format("/specials")),
         (["/special add /x Hi"], CANT.format("/special")),
         (["/remind 18:00 Hi"], CANT.format("/remind")),
         (["/list add milk"], CANT.format("/list")),
@@ -329,8 +326,8 @@ def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_what_timers_mayn_t_run() -> None:
     # What changes timers, specials, birthdays or who may use the bot, posts
-    # to chats of its own, shows what others wrote to the bot or what went to
-    # every chat, or is a chat's own, as reminders and lists are
+    # to chats of its own, or is a chat's own, as reminders and lists are:
+    # /timers and /specials with more after them, which change them too
     assert {
         command.name
         for handler in commands.handlers()
@@ -339,16 +336,11 @@ def test_what_timers_mayn_t_run() -> None:
     } == {
         "/timers",
         "/timer",
-        "/chats",
-        "/allowed",
         "/allow",
         "/disallow",
-        "/admins",
         "/admin",
         "/msg",
         "/run",
-        "/incoming",
-        "/delivery",
         "/specials",
         "/special",
         "/birthday",
@@ -357,8 +349,37 @@ def test_what_timers_mayn_t_run() -> None:
         "/namedays",
         "/remind",
         "/list",
-        "/dailypost preview",
     }
+
+
+def test_timers_may_run_what_only_lists() -> None:
+    assert (
+        check_commands(
+            [
+                "/chats",
+                "/allowed",
+                "/admins",
+                "/incoming",
+                "/incoming 4,9",
+                "/delivery",
+                "/timers",
+                "/specials",
+                "/dailypost preview tomorrow",
+            ]
+        )
+        is None
+    )
+    # Not what changes timers or specials, by either name
+    for command in (
+        "/timers run 1",
+        "/timers add 08:00 /ping",
+        "/timer list",
+        "/specials add /x Hej",
+    ):
+        name = command.split()[0]
+        assert check_commands([command]) == (
+            f"Timers, specials and /run can't run {name}."
+        )
 
 
 async def test_a_timer_doesn_t_run_what_it_mayn_t(keeper: Timekeeper) -> None:
@@ -694,9 +715,9 @@ async def test_chats_are_numbered(admin_chat: tuple[Timekeeper, list[str]]) -> N
         "🗨️ **Timers can post to:**",
         "1 👥 Familjen",
         "2 👥 Friends",
-        "3 👤 Alice",
+        f"3 👤 Alice ({ALICE})",
         f"4 👤 {BOB}",
-        "5 👤 Admin",
+        f"5 👤 Admin ({ADMIN})",
         "",
         "For /timer add, e.g. /timer add 08:00 1,2 /weather; /photo",
     ]
@@ -717,7 +738,7 @@ async def test_chats_numbered(admin_chat: tuple[Timekeeper, list[str]]) -> None:
     keeper, _replies = admin_chat
     assert keeper.bot is not None
     assert await chats_numbered(keeper.bot, [3, 1, 3]) == [
-        (ALICE, "Alice"),
+        (ALICE, f"Alice ({ALICE})"),
         (GROUP, "Familjen"),
     ]
     assert await chats_numbered(keeper.bot, [6]) == (
@@ -730,19 +751,21 @@ async def test_add_list_run_and_remove(
 ) -> None:
     keeper, replies = admin_chat
     # A card each: when, where, what, and when next, in short lines
-    first = "**#1** · weekdays 07:30\n💬 Friends, Alice\n▶️ /ping\n🔜 Next: "
+    first = f"**#1** · weekdays 07:30\n💬 Friends, Alice ({ALICE})\n▶️ /ping\n🔜 Next: "
     await command(keeper, "/timer add mon-fri 07:30 2,3 /ping")
     assert replies[-1].startswith(f"✅ **Added**\n{first}")
     await command(keeper, "/timer add every 2h /info")
     assert replies[-1].startswith(
-        "✅ **Added**\n**#2** · every 2h\n💬 Admin\n▶️ /info\n🔜 Next: "
+        f"✅ **Added**\n**#2** · every 2h\n💬 Admin ({ADMIN})\n▶️ /info\n🔜 Next: "
     )
 
     await command(keeper, "/timers")
     title, card_1, card_2 = replies[-1].split("\n\n")
     assert title == "**⏰ 2 timers**"
     assert card_1.startswith(first)
-    assert card_2.startswith("**#2** · every 2h\n💬 Admin\n▶️ /info\n🔜 Next: ")
+    assert card_2.startswith(
+        f"**#2** · every 2h\n💬 Admin ({ADMIN})\n▶️ /info\n🔜 Next: "
+    )
 
     await command(keeper, "/timer run 1")
     assert replies[-1] == "▶️ Ran timer #1"
@@ -755,7 +778,7 @@ async def test_add_list_run_and_remove(
 
     await command(keeper, "/timer remove 1")
     assert replies[-1] == (
-        "🗑️ **Removed**\n**#1** · weekdays 07:30\n💬 Friends, Alice\n▶️ /ping"
+        f"🗑️ **Removed**\n**#1** · weekdays 07:30\n💬 Friends, Alice ({ALICE})\n▶️ /ping"
     )
     assert set(keeper.timers) == {2}
 
@@ -856,7 +879,7 @@ async def test_the_file_keeps_the_english_names(
     # Subcommands too: /spådom alla as /fortune all
     await command(keeper, "/timer lägg till 08:00 /dagenspost; /spådom alla")
     assert replies[-1].startswith(
-        "✅ **Tillagd**\n**#1** · dagligen 08:00\n💬 Admin\n"
+        f"✅ **Tillagd**\n**#1** · dagligen 08:00\n💬 Admin ({ADMIN})\n"
         "▶️ /dailypost; /fortune all\n🔜 Nästa: "
     )
     assert keeper.timers[1].commands == ["/dailypost", "/fortune all"]

@@ -38,7 +38,7 @@ async def test_chats_are_numbered_as_in_signal(
 ) -> None:
     get_settings().allowed_file.write_text(f"{ALICE}\n")
     assert await list_chats(bot) == (
-        "Timers can post to:\n  1  group   Familjen\n  2  person  Alice"
+        f"Timers can post to:\n  1  group   Familjen\n  2  person  Alice ({ALICE})"
     )
 
 

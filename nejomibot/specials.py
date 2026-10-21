@@ -491,14 +491,16 @@ def specials_answer(
 class Specials(Handler):
     """Runs the specials: /dailypost and /dailyquote, and the admins' own,
     which an edit runs again, as their commands change nothing. /specials and
-    /special list and change the admins' own, which timers don't run; an edit
-    of a change takes its place. /dailypost preview shows what the daily
-    post will say, which timers don't run either, as it shows every group's."""
+    /special list and change the admins' own; an edit of a change takes its
+    place. Timers may run /specials alone, which only lists them, but not
+    what changes them, as /specials with more after it does. /dailypost
+    preview shows what the daily post will say, in every group."""
 
     commands = (
-        Command("/dailypost preview", more=True, timers=False),
+        Command("/dailypost preview", more=True),
         Command("/dailypost"),
         Command("/dailyquote"),
+        Command("/specials"),
         Command("/specials", more=True, timers=False, subcommands=("list",)),
         Command(
             "/special",

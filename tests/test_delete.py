@@ -26,7 +26,7 @@ from nejomibot.delete import (
     nothing_text,
     start_text,
 )
-from nejomibot.messages import Sent, SentLog, chats_of
+from nejomibot.messages import Sent, SentLog, chats_of, collected
 
 NOW = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)
 # As a group message names its group: by the ID signalbot calls internal
@@ -277,10 +277,10 @@ async def test_list_sent(bot: SignalBot) -> None:
     log.add(Sent(ms(datetime.now(UTC)) + 2, stranger, "Hi"))
     lines = (await list_sent(bot, log, ALICE_ID)).splitlines()
     assert lines[0] == "📤 **The bot's latest messages, newest first:**"
-    # Where to, by name; one the bot doesn't know by name, by number
+    # Where to, by name and number; one the bot doesn't know by name, by number
     assert [line.split(" · ", 1)[0] for line in lines[1:4]] == ["1", "2", "3"]
     assert lines[1].endswith(f" · 👤 {stranger} · Hi")
-    assert lines[2].endswith(" · 👤 Alice · pong!")
+    assert lines[2].endswith(f" · 👤 Alice ({ALICE}) · pong!")
     assert lines[3].endswith(" · 👥 Familjen · first")
     assert lines[4:] == [
         "",
@@ -498,3 +498,20 @@ async def test_an_edit_deletes_nothing_by_number(
         "it as a new message instead."
     ]
     assert deletes.bodies("DELETE", REMOTE_DELETE) == []
+
+
+async def test_a_list_posted_elsewhere_keeps_the_admins_numbers(
+    bot: SignalBot,
+) -> None:
+    log = log_of(Sent(ms(NOW), GROUP, "first"))
+    await list_sent(bot, log, ALICE)
+    numbers = delete.shown[ALICE]
+    log.add(Sent(ms(NOW) + 1, GROUP, "second"))
+    # As a timer, /run or a special lists them, for others to see: the
+    # admin's /delete 1 still deletes the first, which they saw as 1
+    token = collected.set([])
+    try:
+        await list_sent(bot, log, ALICE)
+    finally:
+        collected.reset(token)
+    assert delete.shown[ALICE] is numbers

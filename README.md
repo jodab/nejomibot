@@ -384,9 +384,9 @@ deletes the third of them for everyone, `/delete 2,5,11` those three, and
 the bot says which it deleted. It deletes them one after the other, and
 stops at one it can't, as when Signal can't be reached, saying which it
 didn't try. The numbers are those of the list you were shown last, whatever
-the bot sends meanwhile, until you ask for it again, or the bot restarts. In
-a group, `/delete` takes nothing after it, as the list shows what went to
-every chat.
+the bot sends meanwhile, until you ask for it again, or the bot restarts; a
+list a timer, `/run` or a special posts doesn't change them. In a group,
+`/delete` takes nothing after it, as the list shows what went to every chat.
 
 When something fails (the weather API, the exchange rate, the photo library),
 the bot posts the error as `Something went wrong: ...` instead of staying
@@ -728,14 +728,16 @@ attachments. `/incoming 4,9` forwards messages 4 and 9 of the list to you,
 each a message of its own, in full and with its formatting, to read whole,
 or forward on in Signal. Only their text, as the bot doesn't fetch
 attachments: it says how many there were. As with `/delete list`, the numbers are those of the list you
-were shown last. Timers and `/run` can't run `/incoming`, as they'd post
-what people wrote to others.
+were shown last; a list a timer, `/run` or a special posts doesn't change
+them. Timers and `/run` can run `/incoming` too: `/run 1 /incoming 4,9`
+forwards messages 4 and 9 of your list to chat 1.
 
 ### Contacts and safety numbers
 
 `/contacts` lists everyone the bot's Signal account knows, numbered: its
 contacts, then everyone else it knows, as those in its groups, then anyone
-it only has a safety number for, each by name. `/trust` lists the same
+it only has a safety number for, each by name; not the bot itself, whose
+own safety number is nobody's to compare, nor counted. `/trust` lists the same
 people by the same numbers, with their safety numbers, three rows of four
 groups of five digits, as the Signal apps show them, and whether each is
 verified. A number from the list you were shown last, by either, stands for
@@ -772,11 +774,12 @@ bot, to the chats numbered by `/chats`, given as one word, like `1,2`:
 ```
 
 `/msg` posts the text as the bot. `/run` runs each command as a timer does, as
-an admin would in a direct chat with the bot, and posts its answers to the
-chats, one command after the other; every chat gets the same photo. Like a
-timer, `/run` can't manage timers, specials, birthdays or who may use the
-bot, nor run `/msg` or `/run`, nor what's each chat's own: `/remind`,
-`/list`, `/birthdays` and `/namedays`. Mind what goes where: `/status` shows phone numbers and the
+you would in a direct chat with the bot, numbers in it by the lists you were
+shown, and posts its answers to the chats, one command after the other;
+every chat gets the same photo. Like a timer, `/run` can't change timers,
+specials, birthdays or who may use the bot, nor run `/msg` or `/run`, nor
+what's each chat's own: `/remind`, `/list`, `/birthdays` and `/namedays`.
+Mind what goes where: `/status` shows phone numbers and the
 server's addresses to everyone in the chat. Both answer with where they
 posted, and where it only waits to be sent (see
 [Who may use what](#who-may-use-what)) or may not have arrived; `/run`
@@ -815,6 +818,27 @@ What the commands won't do: allow the bot itself, allow someone twice, or
 disallow an admin, who keeps every command whatever the list says. `/disallow` on a group says which timers still post
 there, as timers post to their chats whoever may use the bot.
 
+### Names and phone numbers
+
+The bot shows people by the name signal-cli has for them, else by what the
+list has after their `#`, with their phone number where it's known:
+`Alice (+46701234567)`, in `/allowed`, `/admins`, `/chats`, `/timers`,
+`/delete list`, `/delivery`, `/incoming`, and what `/msg` and `/run` answer.
+
+Someone who doesn't share their number in Signal is known to signal-cli by
+their Signal ID alone, so a number on the list could neither name them nor
+match what they write to the bot directly, which comes without it. So the
+bot looks such numbers up, once each: at a start, for every number on its
+lists that signal-cli doesn't know yet, and as `/allow` adds one. Signal
+says whose each number is, unless its owner keeps it from being found by
+number, and signal-cli keeps the two together, so their name shows, and
+their direct messages match the list. Signal limits how many numbers an
+account looks up, so the bot never asks twice about a number in one run.
+Someone who can't be found by number can be allowed by their Signal ID,
+through `/allow` with their number in `/contacts`. Once the bot knows a
+name, it writes it after the `#` of the lists' lines that have none, so the
+files say who's who too.
+
 ## Timers
 
 A timer runs bot commands on a schedule, and posts what they answer to one or
@@ -843,12 +867,16 @@ own words: in Swedish `mån-fre`, `vardagar`, `helger`, `imorgon`, `varje 2h`.
 The commands, each with its `/`, are separated by `;`.
 
 A timer runs each command once, as an admin would in a direct chat with the
-bot, so it can run any command but those that manage timers, specials,
-birthdays or the allowed list, post to other chats themselves (`/msg`,
+bot, so it can run any command but those that change timers, specials,
+birthdays or who may use the bot, post to other chats themselves (`/msg`,
 `/run`), or are each chat's own (`/remind`, `/list`, `/birthdays`,
 `/namedays`), and posts its answers to all the timer's chats before the next
 command runs: every chat gets the same photo, and each group the birthdays
-of its own. It can run [specials](#specials) of your own too.
+of its own. What only shows something it can run, wherever it posts it:
+`/delivery` at 08:15 to your own chat, say, or `/chats`, `/allowed`,
+`/admins`, `/incoming`, `/dailypost preview`, and `/timers` and `/specials`
+alone, as with more after them they change things. It can run
+[specials](#specials) of your own too.
 
 Timers are kept in `data_dir/timers.txt`, a line each, its fields
 separated by `|`: the timer's number, when, its chats (group IDs and phone

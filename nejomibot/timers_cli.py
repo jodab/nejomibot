@@ -66,7 +66,7 @@ async def asking(work: Work) -> str:
         await client.close()
 
 
-async def names(bot: SignalBot) -> dict[str, str]:
+async def names(bot: SignalBot) -> access.Names:
     """The chats' names, as far as signal-cli-rest-api knows them."""
     try:
         await bot.groups.refresh()
@@ -75,9 +75,9 @@ async def names(bot: SignalBot) -> dict[str, str]:
     return await access.names(bot)
 
 
-def card(timer: Timer, known: dict[str, str]) -> str:
+def card(timer: Timer, known: access.Names) -> str:
     """E.g. '#1 daily 08:00 → Family, Alice: /dailypost (last 2026-10-13 08:00)'."""
-    chats = ", ".join(known.get(chat, chat) for chat in timer.chats)
+    chats = ", ".join(known.of(chat) for chat in timer.chats)
     commands = "; ".join(timer.commands)
     last = f"{timer.last.astimezone(get_settings().tz):%Y-%m-%d %H:%M}"
     return f"#{timer.id} {timer.when} → {chats}: {commands} (last {last})"

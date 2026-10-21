@@ -9,7 +9,7 @@ signalbot lacks. Once signalbot has it, the function can go.
 import base64
 import contextlib
 import json
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Collection, Mapping, Sequence
 from typing import Any
 from urllib.parse import quote
 
@@ -55,7 +55,7 @@ async def request(
     path: str,
     *,
     payload: Any = None,
-    params: dict[str, str] | None = None,
+    params: Mapping[str, str] | Sequence[tuple[str, str]] | None = None,
     slow: bool = False,
 ) -> bytes:
     """One request, sending the payload as JSON; the answer's body. A slow one
@@ -120,6 +120,17 @@ async def recipient(uuid: str) -> Any:
 async def identities() -> Any:
     """Everyone's safety numbers. Not in signalbot."""
     return await get_json(account_path("/v1/identities"))
+
+
+async def look_up(numbers: Collection[str]) -> Any:
+    """Whether each phone number is on Signal, from Signal's contact
+    discovery, which waits for Signal's servers. signal-cli keeps each number
+    found with its owner's Signal ID, so it knows who that is from then on;
+    the answer has just the number and whether it was found. Signal limits
+    how many numbers an account looks up. Not in signalbot."""
+    params = [("numbers", number) for number in numbers]
+    path = account_path("/v1/search")
+    return json.loads(await request("GET", path, params=params, slow=True))
 
 
 async def trust(recipient: str, safety_number: str) -> None:

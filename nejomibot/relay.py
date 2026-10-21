@@ -2,10 +2,12 @@
 bot. The chats are numbers from /chats, such as 1,2.
 
 /msg 1,2 Hello! posts the text to chats 1 and 2, as the bot. /run 1 /status
-runs the commands as a timer does, as an admin would in a direct chat with the
-bot, and posts their answers to the chats instead: /run 1,2 /weather; /photo.
-Like a timer, /run can't run what manages timers, specials, birthdays or who
-may use the bot, nor what answers for its own chat, as /remind does.
+runs the commands as a timer does, as the admin would in a direct chat with
+the bot, and posts their answers to the chats instead: /run 1,2 /weather;
+/photo. Its numbers are the admin's, as in /run 1 /incoming 4,9, which
+forwards messages 4 and 9 of their list to chat 1. Like a timer, /run can't
+run what changes timers, specials, birthdays or who may use the bot, posts
+to chats of its own, or answers for its own chat, as /remind does.
 
 Both answer where they posted, and where it only waits to be sent, as Signal
 can't be reached, or may not have arrived.
@@ -15,7 +17,7 @@ import logging
 import re
 from collections.abc import Callable
 
-from signalbot import DataMessageContext, SendMessage, SignalBot
+from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot
 
 from .commands import Command, Edits, Handler, answer
 from .config import get_settings
@@ -96,10 +98,11 @@ async def post_text(bot: SignalBot, text: str) -> str:
     return outcomes_text(_("✉️ Sent to {chats}."), outcomes)
 
 
-async def post_answers(bot: SignalBot, text: str, sender: str | None) -> str | None:
-    """Run /run's commands and post their answers to its chats, each command's
-    before the next runs. What to answer, if anything."""
-    if (parsed := parse(text)) is None:
+async def post_answers(bot: SignalBot, message: DataMessage) -> str | None:
+    """Run /run's commands, as the admin who sent it, and post their answers
+    to its chats, each command's before the next runs. What to answer, if
+    anything."""
+    if (parsed := parse(message.text or "")) is None:
         return run_usage()
     numbers, rest = parsed
     if isinstance(commands := split_commands(rest), str):
@@ -110,10 +113,11 @@ async def post_answers(bot: SignalBot, text: str, sender: str | None) -> str | N
         return chats
     outcomes: Outcomes = {chat: [] for chat in chats}
     for command in commands:
-        for message in await timekeeper.answers_to(command):
+        for answer_ in await timekeeper.answers_to(command, message):
             for chat in chats:
-                outcomes[chat].append(await send(bot, chat[0], message))
+                outcomes[chat].append(await send(bot, chat[0], answer_))
     # Posted here, they speak for themselves
+    sender = message.source_number or message.source_uuid
     if [chat_id for chat_id, _name in chats] == [sender]:
         return None
     return outcomes_text(_("▶️ Posted the answers to {chats}."), outcomes)
@@ -136,9 +140,6 @@ class Run(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         message = context.message
-        sender = message.source_number or message.source_uuid
         await answer(
-            context,
-            lambda: post_answers(context.bot, message.text or "", sender),
-            edits=Edits.NOT_RUN,
+            context, lambda: post_answers(context.bot, message), edits=Edits.NOT_RUN
         )

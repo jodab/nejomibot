@@ -235,13 +235,23 @@ async def fetch_account(bot: SignalBot) -> Account:
             rest.identities(),
             fetch_groups(bot),
         )
-    return Account(
+    account = Account(
         id=get_settings().account,
         contacts=CONTACTS.validate_python(contacts),
         recipients=CONTACTS.validate_python(recipients),
         identities=IDENTITIES.validate_python(identities),
         groups=groups,
     )
+    # The bot's own safety number is nobody's to compare: not listed, nor
+    # counted
+    theirs = [
+        identity
+        for identity in account.identities
+        if not any(
+            account.is_me(who) for who in (identity.number, identity.uuid) if who
+        )
+    ]
+    return replace(account, identities=theirs)
 
 
 async def fetch_devices() -> list[Device]:

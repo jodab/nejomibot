@@ -62,14 +62,14 @@ def name_of(entry: Entry, names: dict[str, str]) -> str:
     return names.get(entry.id) or entry.note or entry.id
 
 
-def entry_text(entry: Entry, names: dict[str, str], member_of: set[str]) -> str:
-    """E.g. '👥 Family', or '👤 Alice, +46701234567'."""
-    name = name_of(entry, names)
+def entry_text(entry: Entry, names: access.Names, member_of: set[str]) -> str:
+    """E.g. '👥 Family', or '👤 Alice (+46701234567)'."""
     if is_group(entry.id):
+        name = name_of(entry, names)
         if entry.id in member_of:
             return f"👥 {name}"
         return f"👥 {name} " + _("(the bot isn't in it)")
-    return f"👤 {name}" if name == entry.id else f"👤 {name}, {entry.id}"
+    return f"👤 {names.of(entry.id, entry.note)}"
 
 
 def groups_of(context: DataMessageContext) -> set[str]:
@@ -93,7 +93,7 @@ async def list_allowed(context: DataMessageContext) -> str:
         lines.append(
             "👑 "
             + _("The admins may use every command: {admins}").format(
-                admins=", ".join(names.get(admin, admin) for admin in admins)
+                admins=", ".join(names.of(admin) for admin in admins)
             )
         )
     lines.append(_("/allow <who> adds one, /disallow <n> removes one."))
@@ -116,6 +116,9 @@ async def find_new(context: DataMessageContext, who: str) -> Entry | str:
     or someone in /contacts, by their number there, name or the start of
     their ID. Else why not."""
     if chat_id := typed_chat_id(who):
+        # A phone number signal-cli can't put a Signal ID to, looked up first,
+        # so its name is known, and the list has it
+        await access.link([chat_id])
         names = await access.names(context.bot)
         return Entry(chat_id, names.get(chat_id, ""))
     if contacts.list_number(who) is not None:
@@ -250,13 +253,14 @@ async def disallow(context: DataMessageContext, who: str) -> str:
     return text + timers_posting_to(found.id)
 
 
-# How the admins manage who may use the bot, so timers don't run them. An
-# edit runs /allowed again, as it only lists; an edit of /allow or /disallow
-# takes the place of what it edits, which is undone first.
+# How the admins see and change who may use the bot. Timers may run /allowed,
+# which only lists, but not what changes it: run again and again, a number
+# would name whoever has it by then. An edit runs /allowed again; an edit of
+# /allow or /disallow takes the place of what it edits, which is undone first.
 
 
 class Allowed(Handler):
-    commands = (Command("/allowed", timers=False),)
+    commands = (Command("/allowed"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         await answer(context, lambda: list_allowed(context), styled=True)

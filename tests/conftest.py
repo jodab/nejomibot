@@ -76,6 +76,7 @@ def fresh_lists() -> None:
     for when it was taken, nor anyone shown a numbered list."""
     access.allowed_list.reset()
     access.admin_list.reset()
+    access.looked_up.clear()
     specials.own_specials.__init__()
     for kept in (reminders.kept, lists.kept, birthdays.kept):
         kept.reset()

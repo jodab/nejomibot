@@ -106,7 +106,7 @@ async def test_msg(chat: Chat, signal_api: FakeApi) -> None:
         ([GROUP], "Hello!\nFrom the bot"),
         ([ALICE], "Hello!\nFrom the bot"),
     ]
-    assert chat.replies == ["✉️ Sent to Familjen, Alice."]
+    assert chat.replies == [f"✉️ Sent to Familjen, Alice ({ALICE})."]
 
 
 @pytest.mark.parametrize(
@@ -137,7 +137,7 @@ async def test_run_posts_the_answers(chat: Chat, signal_api: FakeApi) -> None:
     [(to_alice, pong), (to_group, pong_again)] = posted(signal_api)
     assert (to_alice, to_group) == ([ALICE], [GROUP])
     assert pong.startswith("pong!") and pong == pong_again
-    assert chat.replies == ["▶️ Posted the answers to Alice, Familjen."]
+    assert chat.replies == [f"▶️ Posted the answers to Alice ({ALICE}), Familjen."]
     # A read receipt for /run, but none for the /ping it runs: nobody sent it
     assert len(signal_api.bodies("POST", f"/v1/receipts/{ME}")) == 1
 
@@ -185,7 +185,8 @@ async def test_msg_says_where_it_only_waits(chat: Chat, signal_api: FakeApi) -> 
     signal_api.route("POST", "/v2/send", failing_for(400, ALICE))
     await chat.send("/msg 1,2 Hello!")
     assert chat.replies == [
-        "✉️ Sent to Familjen.\n⏳ Not sent yet to Alice: tried again for 3 hours."
+        "✉️ Sent to Familjen.\n"
+        f"⏳ Not sent yet to Alice ({ALICE}): tried again for 3 hours."
     ]
 
 
@@ -202,5 +203,5 @@ async def test_run_says_where_it_may_not_have_arrived(
     signal_api.route("POST", "/v2/send", hang_up)
     await chat.send("/run 1,2 /ping")
     assert chat.replies == [
-        "▶️ Posted the answers to Alice.\n⚠️ May not have reached Familjen."
+        f"▶️ Posted the answers to Alice ({ALICE}).\n⚠️ May not have reached Familjen."
     ]

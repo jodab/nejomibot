@@ -17,17 +17,29 @@ number can change hands, a Signal ID can't.
 
 The config's admins are on neither list, so no command can take away what
 they may do.
+
+The bot names people by the name signal-cli has for them, else by what a
+list has after their #, with their phone number where it's known: Alice
+(+46701234567). Someone who doesn't share their number is known to
+signal-cli by their Signal ID alone, so a number on the lists can't name
+them, nor match their direct messages, which come without it. Such numbers
+the bot looks up, once each, at a start and as /allow adds one: Signal says
+whose each is, unless its owner keeps it from being found by number, and
+signal-cli keeps the two together. Then the bot writes the names it knows
+after the # of the lines that have none.
 """
 
 import logging
 import re
 import time
-from collections.abc import Callable, Collection, Sequence
+from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from pydantic import BaseModel, TypeAdapter
 from signalbot import DataMessage, SignalBot
 
+from . import rest
 from .account import fetch_recipients
 from .config import GROUP_ID, PHONE_NUMBER, SIGNAL_ID, get_settings
 from .files import write_privately
@@ -257,6 +269,25 @@ class AllowedList:
                 now.insert(min(index, len(now)), line)
         self.save(now)
 
+    def name(self, names: Mapping[str, str]) -> int:
+        """Write who that is after the # of each line with nothing there, by
+        the names given; how many got one. Raises OSError; then nothing
+        changes."""
+        self.reread()
+        lines: list[str] = []
+        for line in self.lines:
+            try:
+                entry = self.parse(line)
+            except ValueError:
+                entry = None
+            if entry and not entry.note and (name := names.get(entry.id)):
+                line = Entry(entry.id, name).line
+            lines.append(line)
+        count = sum(new != old for new, old in zip(lines, self.lines, strict=True))
+        if count:
+            self.save(lines)
+        return count
+
 
 allowed_list = AllowedList()
 # The admins the config's admins made admins
@@ -320,12 +351,39 @@ def recipients() -> list[str]:
     )
 
 
-async def names(bot: SignalBot) -> dict[str, str]:
-    """The names of the groups the bot is in, by ID, and of the people
-    signal-cli knows by name, by phone number and Signal ID."""
-    found: dict[str, str] = {}
+class Names(dict[str, str]):
+    """Names by phone number, Signal ID and group ID: of the groups the bot is
+    in, of the people signal-cli knows by name, else as the lists have them
+    after their #; and the phone numbers signal-cli knows people by, by their
+    Signal ID."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.numbers: dict[str, str] = {}
+
+    def of(self, who: str, name: str = "") -> str:
+        """Who that is, as the bot shows them: a group by its name; a person
+        by their name, else by the name given, with their phone number where
+        it's known, as 'Alice (+46701234567)'; by number alone, else by the
+        start of their Signal ID."""
+        if is_group(who):
+            return self.get(who, who)
+        number = who if re.match(PHONE_NUMBER, who) else self.numbers.get(who)
+        name = self.get(who) or (self.get(number) if number else None) or name
+        if name and number and name != number:
+            return f"{name} ({number})"
+        return name or number or f"{who[:8]}…"
+
+
+async def names(bot: SignalBot) -> Names:
+    """The names the bot knows, and the phone numbers it knows people by."""
+    found = Names()
+    for kept in (allowed_list, admin_list):
+        found.update({e.id: e.note for e in kept.current().entries if e.note})
     try:
         for recipient in await fetch_recipients():
+            if recipient.number and recipient.uuid:
+                found.numbers[recipient.uuid] = recipient.number
             if name := recipient.real_name:
                 found.update(
                     {who: name for who in (recipient.number, recipient.uuid) if who}
@@ -334,3 +392,71 @@ async def names(bot: SignalBot) -> dict[str, str]:
         logger.warning("Could not look up the names: %s", describe(e))
     found.update({group.id: group.name for group in bot.groups if group.name})
     return found
+
+
+# Linking the phone numbers on the lists to the people they're of
+
+
+class Found(BaseModel):
+    """A phone number in Signal's answer to a look-up."""
+
+    number: str = ""
+    registered: bool = False  # found: signal-cli knows whose it is now
+
+
+FOUND = TypeAdapter(list[Found])
+
+# The phone numbers looked up since the start: each once, as Signal limits
+# how many an account looks up
+looked_up: set[str] = set()
+
+
+async def link(numbers: Collection[str]) -> None:
+    """Look up those of the phone numbers that signal-cli can't put a Signal
+    ID to, and that weren't looked up since the start, so it knows whose
+    they are. Never raises."""
+    wanted = {n for n in numbers if re.match(PHONE_NUMBER, n)}
+    wanted -= looked_up | {get_settings().account}
+    if not wanted:
+        return
+    try:
+        known = {c.number for c in await fetch_recipients() if c.number and c.uuid}
+        if not (unknown := sorted(wanted - known)):
+            return
+        found = FOUND.validate_python(await rest.look_up(unknown))
+    except Exception as e:
+        logger.warning("Could not look up phone numbers: %s", describe(e))
+        return
+    looked_up.update(unknown)
+    linked = {each.number for each in found if each.registered}
+    logger.info(
+        "Looked up %d phone numbers: Signal found %d", len(unknown), len(linked)
+    )
+    if missing := [n for n in unknown if n not in linked]:
+        # Not on Signal, or kept from being found by number
+        logger.debug("Not found: %s", ", ".join(missing))
+
+
+async def link_lists(bot: SignalBot) -> None:
+    """Link the phone numbers on the lists, then write the names now known
+    after the # of their lines with none."""
+    await bot.wait_until_ready()
+    await link(recipients())
+    known = await names(bot)
+    for kept in (allowed_list, admin_list):
+        try:
+            if count := kept.name(known):
+                logger.info("Wrote %d names in %s", count, kept.path)
+        except OSError as e:
+            logger.error("Could not write the names in %s: %r", kept.path, e)
+
+
+def start(bot: SignalBot) -> None:
+    """Link the phone numbers on the lists once signalbot is ready."""
+    bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
+        link_lists,
+        args=[bot],
+        id="link-numbers",
+        misfire_grace_time=None,
+        replace_existing=True,
+    )

@@ -9,12 +9,14 @@ timer that posts to chats 1 and 2 (or, without numbers, to the admin);
 now.
 
 A timer runs each command once, as an admin would in a direct chat with the
-bot, so it can run any command but those that manage timers, specials,
-birthdays or the allowed list, post to chats of their own, or answer for the
-chat they're sent in, as /remind and /list do. Its answers are collected
-rather than sent, then posted to each of the timer's chats, so every group
-gets the same photo; one with a text for some chats, as the daily post's
-with birthdays, gets it there.
+bot, so it can run any command but those that change timers, specials,
+birthdays or who may use the bot, post to chats of their own, or answer for
+the chat they're sent in, as /remind and /list do. What only lists, as
+/chats, /allowed or /incoming, it can run, and a list it posts doesn't
+change the numbers an admin's commands take, as in /incoming 4. Its answers
+are collected rather than sent, then posted to each of the timer's chats, so
+every group gets the same photo; one with a text for some chats, as the
+daily post's with birthdays, gets it there.
 
 Timers are kept in data_dir/timers.txt, one per line, which
 nejomibot-timers edits too: the bot rereads the file when it changes. In debug
@@ -581,27 +583,34 @@ class Timekeeper:
                     del self.timers[timer_id]
                 self.write_quietly()
 
-    async def answers_to(self, command: str) -> list[SendMessage]:
-        """Run the command as an admin would in a direct chat with the bot, and
-        collect its answers; none for a command timers mayn't run, which
-        check_commands keeps out anyway, or one that's gone, as a special
-        taken out of its file by hand."""
+    async def answers_to(
+        self, command: str, admin: DataMessage | None = None
+    ) -> list[SendMessage]:
+        """Run the command as the admin who sent the message would in a direct
+        chat with the bot, with their numbers in lists, or else as the first
+        admin, and collect its answers; none for a command timers mayn't run,
+        which check_commands keeps out anyway, or one that's gone, as a
+        special taken out of its file by hand."""
         assert self.bot is not None
         if (found := known(canonical(command))) is None or not found.timers:
             logger.error(
                 "Not run, as timers mayn't, or it's gone: %s", command.split()[0]
             )
             return []
-        settings = get_settings()
-        sender = (settings.admins or [settings.account])[0]
-        by_id = bool(re.match(SIGNAL_ID, sender))
+        if admin is not None:
+            number, uuid = admin.source_number, admin.source_uuid
+        else:
+            settings = get_settings()
+            sender = (settings.admins or [settings.account])[0]
+            by_id = bool(re.match(SIGNAL_ID, sender))
+            number, uuid = (None, sender) if by_id else (sender, None)
         ms = int(datetime.now(UTC).timestamp() * 1000)
         message = DataMessage(
             server_delivered_timestamp=ms,
             server_received_timestamp=ms,
             timestamp=ms,
-            source_number=None if by_id else sender,
-            source_uuid=sender if by_id else None,
+            source_number=number,
+            source_uuid=uuid,
             text=command,
         )
         answers: list[SendMessage] = []
@@ -622,9 +631,9 @@ class Timekeeper:
 timekeeper = Timekeeper()
 
 
-# What a timer can run: any command but those that manage timers, specials,
+# What a timer can run: any command but those that change timers, specials,
 # birthdays or who may use the bot, post to chats of their own, or answer for
-# their own chat (Command.timers)
+# their own chat (Command.timers). What only lists, it can, wherever it posts.
 
 
 def check_commands(
@@ -702,7 +711,7 @@ async def chat_list(bot: SignalBot) -> list[Chat]:
     )
     names = await access.names(bot)
     return [(gid, name) for name, gid in groups] + [
-        (person, names.get(person, person)) for person in people()
+        (person, names.of(person)) for person in people()
     ]
 
 
@@ -723,10 +732,10 @@ def chats_text(chats: list[Chat]) -> str:
     )
 
 
-def card(timer: Timer, names: dict[str, str]) -> str:
+def card(timer: Timer, names: access.Names) -> str:
     """A timer in short lines: its number and when, its chats, its commands,
     and when it runs next. Styled."""
-    chats = ", ".join(names.get(chat, chat) for chat in timer.chats)
+    chats = ", ".join(names.of(chat) for chat in timer.chats)
     lines = [f"💬 {chats}", f"▶️ {'; '.join(timer.commands)}"]
     if (at := timekeeper.next_run(timer.id)) is not None:
         when = day_and_time(at.astimezone(get_settings().tz))
@@ -837,11 +846,14 @@ async def timer_answer(context: DataMessageContext, words: list[str]) -> str | N
     return f"🗑️ **{escape(_('Removed'))}**\n{card(timer, names)}"
 
 
-# They change timers, or say where timers post, so timers don't run them
+# They list and change the timers. Timers may run /timers alone, which only
+# lists them, but nothing else here: /timers with more after it works as
+# /timer, and a timer that ran /timer run could run itself.
 
 
 class Timers(Handler):
     commands = (
+        Command("/timers"),
         Command("/timers", more=True, timers=False, subcommands=("list",)),
         Command(
             "/timer",
@@ -871,7 +883,7 @@ def edits_of(action: str) -> Edits:
 
 
 class Chats(Handler):
-    commands = (Command("/chats", timers=False),)
+    commands = (Command("/chats"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         bot = context.bot

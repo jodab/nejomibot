@@ -197,7 +197,7 @@ async def test_delivery_shows_the_latest_and_how_many_got_them(bot: SignalBot) -
     pong.confirmed[ALICE_ID] = True
     lines = (await delivery_text(bot, log_of(weather, pong))).splitlines()
     assert lines[0] == "📬 **Whether the bot's latest messages arrived, newest first:**"
-    assert lines[1].endswith(" · 👤 Alice · pong! · 📬 1/1 · 👀 1")
+    assert lines[1].endswith(f" · 👤 Alice ({ALICE}) · pong! · 📬 1/1 · 👀 1")
     assert lines[2].endswith(" · 👥 Familjen · Weather in Stockholm · ⚠️ 0/2")
     assert lines[3:] == [
         "",

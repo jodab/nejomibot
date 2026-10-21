@@ -238,8 +238,7 @@ async def delivery_text(bot: SignalBot, log: SentLog) -> str:
 
 
 class Delivery(Handler):
-    # Not for timers: it shows what went to every chat
-    commands = (Command("/delivery", timers=False),)
+    commands = (Command("/delivery"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         bot = context.bot

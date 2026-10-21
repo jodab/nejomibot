@@ -2,11 +2,13 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
+from aiohttp import web
 from helpers import (
     ALICE,
     BOB,
     BOB_ID,
     CAROL_ID,
+    DAVE_ID,
     EDIT_FROM_BEFORE,
     GROUP,
     ME,
@@ -99,7 +101,7 @@ async def test_allowed(chat: Chat) -> None:
     await chat.send("/allowed")
     assert chat.replies[-1].splitlines() == [
         "📋 **Who may use the everyday commands (2):**",
-        f"1 👤 Alice, {ALICE}",
+        f"1 👤 Alice ({ALICE})",
         "2 👥 Gone (the bot isn't in it)",
         "",
         f"👑 The admins may use every command: {ADMIN}",
@@ -255,3 +257,21 @@ async def test_in_swedish(chat: Chat) -> None:
     assert chat.replies[2].startswith(
         "📋 **Vilka som får använda vardagskommandona (1):**\n"
     )
+
+
+async def test_allow_looks_up_a_number_signal_cli_doesnt_know(
+    chat: Chat, signal_api: FakeApi
+) -> None:
+    # Dave doesn't share his number: Signal's contact discovery says whose it
+    # is, and signal-cli knows from then on
+    dave = "+46700000004"
+
+    async def look_up(request: web.Request) -> web.Response:
+        everyone = signal_api.responses[f"/v1/contacts/{ME}?all"]
+        everyone.append({"number": dave, "uuid": DAVE_ID, "name": "Dave"})
+        return web.json_response([{"number": dave, "registered": True}])
+
+    signal_api.route("GET", f"/v1/search/{ME}", look_up)
+    await chat.send(f"/allow {dave}")
+    assert chat.replies == ["✅ Dave may use the everyday commands now."]
+    assert f"{dave}  # Dave" in get_settings().allowed_file.read_text().splitlines()

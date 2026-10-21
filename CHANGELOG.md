@@ -4,6 +4,47 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- The bot looks up the phone numbers on its lists that signal-cli can't put
+  a Signal ID to, once each: at a start, and as `/allow` adds one. Someone
+  who doesn't share their number in Signal is known to signal-cli by their
+  Signal ID alone, so their number on the allowed list could neither name
+  them nor match their direct messages, which come without it: the bot
+  ignored those. Signal now says whose each number is, unless its owner
+  keeps it from being found by number, and signal-cli keeps the two
+  together.
+- Once it knows a name, the bot writes it after the `#` of the lines of
+  `allowed.txt` and `admins.txt` that have none, so the files say who's who.
+
+### Changed
+
+- People show by name and phone number together where both are known, as
+  `Alice (+46701234567)`, in `/allowed`, `/admins`, `/chats`, `/timers`,
+  `/delete list`, `/delivery`, `/incoming`, and what `/msg` and `/run`
+  answer; by the name the allowed list has after their `#` where signal-cli
+  has none, `/chats` too.
+- Timers, `/run` and specials can run what only shows something, wherever
+  the admins post it: `/delivery`, `/chats`, `/allowed`, `/admins`,
+  `/incoming`, `/dailypost preview`, and `/timers` and `/specials` alone. A
+  timer at 08:15 can post `/delivery` to your own chat, say. What changes
+  timers, specials, birthdays or who may use the bot, posts to other chats,
+  or is each chat's own, they still can't.
+- `/run` runs its commands as the admin who sent it, rather than as the
+  first admin in the config, so numbers in it are theirs: `/run 1 /incoming
+  4,9` forwards messages 4 and 9 of their own `/incoming` list to chat 1.
+
+### Fixed
+
+- A `/delete list` that a timer, `/run` or a special posted replaced the
+  numbers of the list the first admin was shown last, so their next
+  `/delete 3` could delete another message than the one they saw as 3. Such
+  a list now leaves an admin's numbers as they were, for `/incoming` too.
+- `/contacts` listed the bot's own safety number, under Only a safety
+  number, and `/contacts`, `/trust` and `/status` counted it, verified.
+
 ## 0.99.6 - 2026-10-21
 
 ### Added

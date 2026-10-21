@@ -7,7 +7,8 @@ Sent again, it deletes the one before, and so on.
 wherever it sent them, numbered: when, where, and how each starts. /delete 3
 deletes one of them, /delete 2,5,11 several, one after the other, until one
 can't be. The numbers are those of the list the admin was shown last,
-whatever the bot sends meanwhile, until they ask for the list again.
+whatever the bot sends meanwhile, until they ask for the list again; a list
+a timer, /run or a special posts doesn't change them.
 
 Signal only deletes messages for everyone within a day of sending them, and
 the bot only knows what it has sent since it started.
@@ -28,6 +29,7 @@ from .messages import (
     Sent,
     SentLog,
     chats_of,
+    collected,
     error_text,
     escape,
     log_failure,
@@ -94,15 +96,15 @@ def start_text(sent: Sent) -> str:
     return f"📷 {text}".rstrip() if sent.photo else text
 
 
-def sent_text(sent: Sent, now: datetime, names: dict[str, str]) -> str:
-    """E.g. '07:42 · 👤 Alice · pong! Your ping took…'."""
+def sent_text(sent: Sent, now: datetime, names: access.Names) -> str:
+    """E.g. '07:42 · 👤 Alice (+46701234567) · pong! Your ping took…'."""
     icon = "👥" if access.is_group(sent.chat) else "👤"
-    where = f"{icon} {names.get(sent.chat, sent.chat)}"
+    where = f"{icon} {names.of(sent.chat)}"
     return f"{when_text(sent.at, now)} · {where} · {start_text(sent)}"
 
 
-def entry_text(number: int, sent: Sent, now: datetime, names: dict[str, str]) -> str:
-    """E.g. '3 · 07:42 · 👤 Alice · pong! Your ping took…'."""
+def entry_text(number: int, sent: Sent, now: datetime, names: access.Names) -> str:
+    """E.g. '3 · 07:42 · 👤 Alice (+46701234567) · pong! Your ping took…'."""
     return f"{number} · {sent_text(sent, now, names)}"
 
 
@@ -129,9 +131,12 @@ async def list_sent(bot: SignalBot, log: SentLog, who: str) -> str:
     numbered for who to delete one of them; or that there are none. Styled."""
     now = datetime.now(UTC)
     latest = log.latest(LISTED)
-    names = await access.names(bot) if latest else {}
+    names = await access.names(bot) if latest else access.Names()
     lines = [entry_text(n, sent, now, names) for n, sent in enumerate(latest, 1)]
-    shown[who] = list(zip(latest, lines, strict=True))
+    # Not for a timer, /run or a special, which show it to others: a number
+    # the admin deletes by is one they saw
+    if collected.get() is None:
+        shown[who] = list(zip(latest, lines, strict=True))
     if not lines:
         return escape(nothing_sent_text(log.since, now))
     title = _("The bot's latest messages, newest first:")

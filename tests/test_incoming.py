@@ -29,6 +29,8 @@ from nejomibot.incoming import (
     forwards,
     list_incoming,
 )
+from nejomibot.messages import collected
+from nejomibot.timers import Timekeeper
 
 ADMIN = "+46700000009"
 EVE = "+46700000005"  # a stranger, by the name her profile has
@@ -209,8 +211,8 @@ async def test_list_incoming(bot: SignalBot, clock: Clock) -> None:
     when = when_text(clock.now, datetime.now(UTC))
     assert lines[1:4] == [
         f"1 · {when} · 5e000000-0000-4000-8000-000000000006 · Hi",
-        f"2 · {when} · Eve · 📎 Hi, may I use the b…",
-        f"3 · {when} · Alice · Hej! Vem är det på…",
+        f"2 · {when} · Eve ({EVE}) · 📎 Hi, may I use the b…",
+        f"3 · {when} · Alice ({ALICE}) · Hej! Vem är det på…",
     ]
     assert lines[4:] == [
         "",
@@ -233,8 +235,8 @@ async def test_forwards(bot: SignalBot, clock: Clock) -> None:
     when = when_text(clock.now, datetime.now(UTC))
     # By the numbers of the list shown, whatever came in since
     assert forwards(ADMIN, [3, 2]) == [
-        f"↪️ **Alice** · {when}\nHej! Vem är det på bilden i morse?",
-        f"↪️ **Eve** · {when}\nHi, may I use the bot?\n"
+        f"↪️ **Alice ({ALICE})** · {when}\nHej! Vem är det på bilden i morse?",
+        f"↪️ **Eve ({EVE})** · {when}\nHi, may I use the bot?\n"
         "📎 and 2 attachments, which the bot can't forward",
     ]
     assert forwards(ADMIN, [4]) == "There's no message 4: /incoming numbers them."
@@ -293,10 +295,45 @@ async def test_the_command(
     assert listed.startswith("📥 **Incoming messages, newest first:**\n1 · ")
     forwarded = await replies.to(bot, "/incoming 3,2")
     assert [text.split("\n")[0].split(" · ")[0] for text in forwarded] == [
-        "↪️ **Alice**",
-        "↪️ **Eve**",
+        f"↪️ **Alice ({ALICE})**",
+        f"↪️ **Eve ({EVE})**",
     ]
     assert await replies.to(bot, "/incoming them all") == [
         "/incoming: the latest messages people sent the bot, numbered\n"
         "/incoming <n>: forward one to you, in full; /incoming 4,9 several"
     ]
+
+
+async def test_a_list_posted_elsewhere_keeps_the_admins_numbers(
+    bot: SignalBot, clock: Clock
+) -> None:
+    keep_three(clock)
+    await list_incoming(bot, ADMIN)
+    numbers = incoming.shown[ADMIN]
+    incoming.inbox.keep(message("Newer", at=clock.now + timedelta(minutes=1)))
+    # As a timer, /run or a special lists them, for others to see
+    token = collected.set([])
+    try:
+        await list_incoming(bot, ADMIN)
+    finally:
+        collected.reset(token)
+    assert incoming.shown[ADMIN] is numbers
+
+
+async def test_run_takes_the_numbers_of_the_admin_who_sent_it(
+    bot: SignalBot, clock: Clock, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    other, other_id = "+46700000008", "0a0a0a0a-0000-4000-8000-000000000008"
+    monkeypatch.setenv("NEJOMIBOT_ADMINS", f'["{ADMIN}", "{other}"]')
+    get_settings.cache_clear()
+    keep_three(clock)
+    # The second admin was shown the list, the first wasn't
+    await list_incoming(bot, other_id)
+    keeper = Timekeeper()
+    keeper.start(bot, [Incoming()])
+    sent = message("/run 1 /incoming 3", sender=other, sender_id=other_id)
+    [forwarded] = await keeper.answers_to("/incoming 3", sent)
+    assert (forwarded.text or "").startswith(f"↪️ **Alice ({ALICE})** · ")
+    # A timer runs it as the first admin, who has no numbers
+    [answer] = await keeper.answers_to("/incoming 3")
+    assert answer.text == "Which ones? Send /incoming first, for their numbers."

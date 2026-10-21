@@ -92,7 +92,8 @@ async def test_admins(chat: Chat) -> None:
     assert chat.replies[-1].splitlines() == [
         "👑 **Admins (2):**",
         f"👤 {ADMIN} · in the config",
-        f"1 👤 Bob Berg, {BOB_ID}",
+        # By the name signal-cli has for him, with the number it knows
+        f"1 👤 Bob Berg ({BOB})",
         "",
         "/admin add <who> adds one, /admin remove <n> removes one; only the "
         "admins in the config can.",

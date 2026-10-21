@@ -11,7 +11,9 @@ numbered: when, from whom, and how each starts, with 📎 for attachments.
 /incoming 4,9 forwards those two to the admin, each a message of its own, in
 full: their text, as the bot doesn't fetch attachments; it says how many
 there were. The numbers are those of the list the admin was shown last,
-whatever comes in meanwhile, until they ask for the list again.
+whatever comes in meanwhile, until they ask for the list again; a list a
+timer, /run or a special posts doesn't change them. Timers and /run can run
+it too, as /run 1 /incoming 4,9, which forwards those two to chat 1.
 """
 
 from collections.abc import Callable
@@ -34,7 +36,7 @@ from .access import is_admin
 from .commands import Command, Handler, answer, numbers_in
 from .config import get_settings
 from .i18n import _, ngettext, when_text
-from .messages import escape, short
+from .messages import collected, escape, short
 from .styles import bold, marked, styles_of, unmarked
 
 KEPT = 50  # messages the bot keeps, and /incoming lists
@@ -50,6 +52,7 @@ class Received:
     text: str  # in marks, for its formatting
     attachments: int  # a sticker too
     gone_at: datetime | None = None  # when it disappears, if it does
+    number: str | None = None  # theirs, if the message came with it
 
     @property
     def at(self) -> datetime:
@@ -110,6 +113,7 @@ class Inbox(DataMessageHandler, RemoteDeleteHandler):
             text_of(message),
             attachments,
             self._now() + timedelta(seconds=seconds) if seconds else None,
+            message.source_number,
         )
         for i, kept in enumerate(self._kept):
             if (kept.sender, kept.timestamp) == (sender, timestamp):
@@ -164,11 +168,14 @@ async def list_incoming(bot: SignalBot, who: str) -> str:
     """The messages kept, newest first, numbered for who to forward some of
     them; or that there are none. Styled."""
     latest = inbox.latest()
-    names = await access.names(bot) if latest else {}
+    names = await access.names(bot) if latest else access.Names()
     rows = [
-        (received, names.get(received.sender) or received.name) for received in latest
+        (received, names.of(received.number or received.sender, received.name))
+        for received in latest
     ]
-    shown[who] = rows
+    # Not for a timer, /run or a special, which show it to others
+    if collected.get() is None:
+        shown[who] = rows
     if not rows:
         since = inbox.since.astimezone(get_settings().tz)
         return escape(
@@ -232,10 +239,10 @@ def usage() -> str:
 
 
 class Incoming(Handler):
-    """For the admins only: it shows what others wrote. Timers and /run can't
-    run it, as they could post it to others."""
+    """For the admins only: it shows what others wrote, where they choose,
+    their timers and /run too."""
 
-    commands = (Command("/incoming", more=True, timers=False),)
+    commands = (Command("/incoming", more=True),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         message = context.message

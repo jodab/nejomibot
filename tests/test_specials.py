@@ -208,10 +208,8 @@ async def test_the_preview_command(
     assert await chat.send("/dagenspost förhandsvisa snart") == [
         "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
     ]
-    # Nor do timers run it, which would post every group's to their chats
-    assert check_commands(["/dagenspost förhandsvisa"]) == (
-        "Timrar, specialkommandon och /kör kan inte köra /dagenspost förhandsvisa."
-    )
+    # Timers run it too, if the admins want every group's posted somewhere
+    assert check_commands(["/dagenspost förhandsvisa"]) is None
 
 
 @pytest.mark.usefixtures("swedish")
@@ -284,7 +282,7 @@ def test_parts_keep_the_english_names() -> None:
         (" ; \n ", "What should it post?"),
         ("Hi /frobnicate", "/frobnicate isn't a command the bot knows."),
         ("/timer add 08:00 /ping", "Timers, specials and /run can't run /timer."),
-        ("/specials", "Timers, specials and /run can't run /specials."),
+        ("/specials add /x Hi", "Timers, specials and /run can't run /specials."),
         ("/msg 1 Hi", "Timers, specials and /run can't run /msg."),
         ("Hi | there /ping", "A special can't have a |"),
         ("Hi /Morning", "/Morning is a special of yours"),

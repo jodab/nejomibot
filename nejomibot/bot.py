@@ -327,6 +327,8 @@ def main() -> None:
         len(access.admin_list.entries),
         settings.admins_file,
     )
+    # Whose the phone numbers on the lists are, for their names, once ready
+    access.start(bot)
     registrations = handlers(bot, settings)
     for handler, contacts, groups, check in registrations:
         bot.register(handler, contacts=contacts, groups=groups, f=check)
