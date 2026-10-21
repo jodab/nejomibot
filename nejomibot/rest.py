@@ -1,13 +1,15 @@
 """Requests straight to signal-cli-rest-api, for what signalbot can't do.
 
-The bot talks to Signal through signalbot: sending, receipts, typing,
-deleting, groups and naming contacts. signalbot has nothing for the rest, so
-these functions ask signal-cli-rest-api themselves, each saying what signalbot
-lacks. Once signalbot has it, the function can go.
+The bot talks to Signal through signalbot: sending, receiving, receipts,
+typing, deleting, groups and naming contacts. signalbot has nothing for the
+rest, so these functions ask signal-cli-rest-api themselves, each saying what
+signalbot lacks. Once signalbot has it, the function can go.
 """
 
 import base64
+import contextlib
 import json
+from collections.abc import AsyncGenerator
 from typing import Any
 from urllib.parse import quote
 
@@ -168,3 +170,15 @@ async def attachment(attachment_id: str) -> bytes | None:
     fetches attachments if it fetches every one sent to the bot, in every
     chat."""
     return await get_file(f"/v1/attachments/{quote(attachment_id, safe='')}")
+
+
+@contextlib.asynccontextmanager
+async def received() -> AsyncGenerator[aiohttp.ClientWebSocketResponse]:
+    """A websocket of the bot's own, beside signalbot's, with everything
+    signal-cli-rest-api receives, each as its JSON: in json-rpc mode it sends
+    every message to every websocket. For the receipts for the bot's
+    messages, which signalbot drops: its parser knows none, as of 2.1.3.
+    Raises aiohttp.ClientError if it can't be opened."""
+    url = f"ws://{get_settings().signal_service}{account_path('/v1/receive')}"
+    async with client.session().ws_connect(url) as websocket:
+        yield websocket

@@ -21,6 +21,7 @@
 "/avatar" = ["/profilbild"]
 "/username" = ["/användarnamn", "/anvandarnamn"]
 "/delete" = ["/radera"]
+"/delivery" = ["/leverans"]
 "/dailypost" = ["/dagenspost", "/dagensbild"]  # its old name, still taken
 "/dailyquote" = ["/dagenscitat"]
 "/msg" = ["/skicka"]

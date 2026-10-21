@@ -139,6 +139,10 @@ class Settings(BaseSettings):
     # again for this long, then dropped
     send_retry_hours: PositiveFloat = 3
 
+    # /delivery shows this many of the bot's latest messages, of those it sent
+    # in the last day, and how many phones confirmed each (delivery.py)
+    delivery_messages: Annotated[int, Field(ge=1)] = 30
+
     # Every day at backups_at, in timezone, the bot backs up data_dir and its
     # config (backups.py) into backups_dir, data_dir/backups if not given,
     # and keeps the newest backups_kept

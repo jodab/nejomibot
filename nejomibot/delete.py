@@ -94,20 +94,31 @@ def start_text(sent: Sent) -> str:
     return f"📷 {text}".rstrip() if sent.photo else text
 
 
-def entry_text(number: int, sent: Sent, now: datetime, names: dict[str, str]) -> str:
-    """E.g. '3 · 07:42 · 👤 Alice · pong! Your ping took…'."""
+def sent_text(sent: Sent, now: datetime, names: dict[str, str]) -> str:
+    """E.g. '07:42 · 👤 Alice · pong! Your ping took…'."""
     icon = "👥" if access.is_group(sent.chat) else "👤"
     where = f"{icon} {names.get(sent.chat, sent.chat)}"
-    return f"{number} · {when_text(sent.at, now)} · {where} · {start_text(sent)}"
+    return f"{when_text(sent.at, now)} · {where} · {start_text(sent)}"
+
+
+def entry_text(number: int, sent: Sent, now: datetime, names: dict[str, str]) -> str:
+    """E.g. '3 · 07:42 · 👤 Alice · pong! Your ping took…'."""
+    return f"{number} · {sent_text(sent, now, names)}"
+
+
+def nothing_since_start(since: datetime, now: datetime) -> str | None:
+    """That the bot has sent nothing since it started, if it started within
+    the day the sent log keeps."""
+    if now - since >= DELETABLE_FOR:
+        return None
+    started = since.astimezone(get_settings().tz)
+    return _("The bot has sent nothing since it started, at {time}.").format(
+        time=f"{started:%Y-%m-%d %H:%M}"
+    )
 
 
 def nothing_sent_text(since: datetime, now: datetime) -> str:
-    if now - since < DELETABLE_FOR:
-        started = since.astimezone(get_settings().tz)
-        return _("The bot has sent nothing since it started, at {time}.").format(
-            time=f"{started:%Y-%m-%d %H:%M}"
-        )
-    return _(
+    return nothing_since_start(since, now) or _(
         "The bot has sent nothing in the last day, and Signal only deletes "
         "messages for everyone within a day."
     )

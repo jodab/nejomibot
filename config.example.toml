@@ -71,6 +71,11 @@ exchange_rate = ["EUR", "SEK"]
 # they outlast a restart.
 send_retry_hours = 3
 
+# /delivery, for the admins, shows this many of the bot's latest messages, of
+# those it sent in the last day, and how many phones confirmed each with a
+# delivery receipt, and read it
+# delivery_messages = 30
+
 # Every day at backups_at, in timezone, and at a start if the latest is a
 # day old, the bot backs up what it keeps in data_dir, its config and this
 # sample, as nejomibot-2026-10-19_0400.tar.zst, into backups_dir:

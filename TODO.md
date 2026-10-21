@@ -218,12 +218,26 @@ with people who have none.
 ### Upstream
 
 - [ ] **signal-cli-rest-api is pinned to a CI build.** [deploy/](deploy) uses
-  `1791633879-ci`, now by digest, as 0.101 is broken for the bot (#885, #892,
-  signal-cli#2119); 0.101 was still the latest release on 2026-10-17, and on
-  2026-10-18. Move to the next release once it's out, then revisit
-  `LAST_TOO_OLD` in [health.py](nejomibot/health.py).
+  `1792271041-ci` (2026-10-17, upstream's 4b0f6f35; before that
+  `1791633879-ci`), by digest, as 0.101 is broken for the bot (#885, #892,
+  signal-cli#2119); 0.101 was still the latest release on 2026-10-21. Move
+  to the next release once it's out, then revisit `LAST_TOO_OLD` in
+  [health.py](nejomibot/health.py).
 - [ ] **signal-cli-rest-api for accounts without a number** (#889, open):
   see Accounts without a phone number, above.
+- [ ] **signalbot drops receipts** (2.1.3, 2026-10-21): its parser knows no
+  receipt message (`UnknownMessageFormatError`, skipped), so
+  [delivery.py](nejomibot/delivery.py) hears them on a websocket of its own,
+  `rest.received()`. Once signalbot has a receipt message and a handler for
+  it, use those, and the second websocket goes.
+- [ ] **signal-cli-rest-api drops what a websocket can't take at once**: in
+  0.101 and builds before 2026-10-13, each websocket gets an unbuffered
+  channel, and a message is dropped while the one before is still being
+  written (`default:` in `JsonRpc2Client.ReceiveData`). Of a burst of
+  receipts some can be lost, so `/delivery`'s counts can come out low, and in
+  rare cases a message for signalbot too. Fixed on 2026-10-13 by 68ca0107 (a
+  channel of 64), which the pinned `1792271041-ci` has. Once a release has
+  it too, drop the note in delivery.py's docstring and the README.
 
 ## Done
 

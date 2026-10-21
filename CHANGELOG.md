@@ -4,6 +4,26 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `/delivery`, for the admins: whether the bot's latest messages arrived. It
+  shows the `delivery_messages` (30) latest of those it sent in the last
+  day, wherever they went, newest first, with how many in each chat got it
+  and read it, from the delivery and read receipts their phones send.
+- A warning in the log for a message nobody's phone confirmed in 10
+  minutes: Signal took it, but it may not have arrived. At DEBUG, the log
+  has how many each message reached by then.
+
+### Updating
+
+- The examples in `deploy/` pin a newer CI build of signal-cli-rest-api,
+  `1792271041-ci` from 2026-10-17, still with signal-cli 0.14.9. Unlike the
+  one before, it doesn't drop what reaches a websocket while it's busy with
+  the message before, so `/delivery`'s counts are whole: put its digest in
+  Quadlets or Compose files made from the examples.
+
 ## 0.99.5 - 2026-10-19
 
 ### Changed

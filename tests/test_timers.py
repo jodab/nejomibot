@@ -329,8 +329,8 @@ def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_what_timers_mayn_t_run() -> None:
     # What changes timers, specials, birthdays or who may use the bot, posts
-    # to chats of its own, shows what others wrote to the bot, or is a chat's
-    # own, as reminders and lists are
+    # to chats of its own, shows what others wrote to the bot or what went to
+    # every chat, or is a chat's own, as reminders and lists are
     assert {
         command.name
         for handler in commands.handlers()
@@ -348,6 +348,7 @@ def test_what_timers_mayn_t_run() -> None:
         "/msg",
         "/run",
         "/incoming",
+        "/delivery",
         "/specials",
         "/special",
         "/birthday",

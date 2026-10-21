@@ -274,6 +274,7 @@ For the admins, in a direct chat with the bot:
 | `/nameday add <date> [<chats>] <who>` | A name day, as `/birthday add` takes it |
 | `/birthday remove <n>`, `/nameday remove <n>` | Remove one, by its number in the list `/birthdays` or `/namedays` showed you last; `/birthday remove 2,5` several |
 | `/delete list`, `/delete <n>,<n>` | The bot's 50 latest messages, wherever it sent them, numbered: when, where to, and how each starts; `/delete 2,5,11` deletes those for everyone (see [Who may use what](#who-may-use-what)) |
+| `/delivery` | Whether the bot's latest messages arrived: the 30 latest (`delivery_messages`), wherever it sent them, newest first, with how many in the chat got each and read it (see [Delivery](#delivery)) |
 
 And for the admins in any chat, groups too:
 
@@ -411,6 +412,26 @@ in `data_dir/outbox`, a file each, until it's sent or dropped, and every one
 waiting is kept as the bot stops. Once it's started again, the bot sends them,
 still with the note that they're late. A short wait, as while
 signal-cli-rest-api restarts, writes nothing.
+
+### Delivery
+
+Signal's apps confirm each message they get with a delivery receipt, and each
+one read with a read receipt, unless read receipts are off in their settings.
+The bot keeps them for what it sent in the last day, in memory, so a restart
+forgets them. `/delivery`, for the admins in a direct chat, shows its
+`delivery_messages` (30) latest messages, wherever it sent them, newest first:
+when, where to, how each starts, and how many in the chat got it and read it,
+as `📬 3/4 · 👀 2`. A message nobody has confirmed yet shows ⏳, and once nobody
+has in 10 minutes, ⚠️; the log has that as a warning too, as Signal took the
+message, but it may not have arrived. At `log_level = "DEBUG"`, the log has how
+many each message reached in those 10 minutes.
+
+A message longer than 2,000 bytes goes as Signal's apps send one: signal-cli
+puts its start in the message and the whole text in a text attachment, which
+the apps show with Read more, so nothing is cut off or refused, and it stays
+one message. The admins' `/help` is one. A long message to the bot arrives
+whole too: signal-cli fetches its text even with
+`JSON_RPC_IGNORE_ATTACHMENTS=true`.
 
 ### The weather
 
@@ -1152,11 +1173,13 @@ Everything the bot does in Signal goes through signalbot where signalbot can
 do it: receiving, sending, read receipts, typing, deleting messages, groups,
 naming a contact, and signal-cli-rest-api's version. signalbot can't say
 which accounts signal-cli has, list contacts or linked devices, do anything
-with safety numbers or the bot's own profile and username, or fetch one
-attachment, so for those the bot asks signal-cli-rest-api itself:
-[rest.py](nejomibot/rest.py), each function saying what signalbot lacks. When
-signal-cli-rest-api or Signal change, a newer signalbot covers most of it, and
-rest.py is the one place to look at for the rest.
+with safety numbers or the bot's own profile and username, fetch one
+attachment, or hear the receipts for the bot's messages, so for those the bot
+asks signal-cli-rest-api itself: [rest.py](nejomibot/rest.py), each function
+saying what signalbot lacks. The receipts come on a websocket of the bot's
+own, beside signalbot's, as signal-cli-rest-api sends everything it receives
+to each. When signal-cli-rest-api or Signal change, a newer signalbot covers
+most of it, and rest.py is the one place to look at for the rest.
 
 signalbot doesn't pass on signal-cli-rest-api's error messages, only the HTTP
 status, so an error from a send or a delete is shown as that, such as
@@ -1174,10 +1197,13 @@ json-rpc-native mode its signal-cli 0.14.8 can't list the account's linked
 devices, which the health check does: the request never comes back
 ([signal-cli#2119](https://github.com/AsamK/signal-cli/issues/2119)). Until
 the next release, the examples in [deploy/](deploy) pin a CI build with the
-fixes, `1791633879-ci` from 2026-10-10, with signal-cli 0.14.9, by its digest,
+fixes, `1792271041-ci` from 2026-10-17, with signal-cli 0.14.9, by its digest,
 as CI builds' tags may not be kept; it says `unset` for its version, which
 signalbot takes as a build after a release.
-The signal-cli-rest-api health check fails on 0.101 or older.
+The signal-cli-rest-api health check fails on 0.101 or older. 0.101, and
+builds from before 2026-10-13, also drop what reaches a websocket while it's
+busy with the message before: of a burst of receipts some can be lost, so
+`/delivery`'s counts can come out low. The pinned build has that fixed.
 
 ## Configuration
 
@@ -1472,6 +1498,7 @@ nejomibot/
   contacts.py   /contacts, /trust: everyone known, numbered, with safety numbers
   profile.py    /profile, /name, /about, /avatar, /username
   delete.py     /delete: delete the bot's latest messages, here or anywhere
+  delivery.py   /delivery: whether they arrived, from the receipts phones send
   incoming.py   /incoming: the latest messages people sent the bot
   greeting.py   the greeting for the allowed list's messages that aren't commands
   notices.py    notices to the admins: an update, a crash, a rate limit, safety numbers

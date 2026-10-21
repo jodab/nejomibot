@@ -72,6 +72,7 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Run": admins,
         "Incoming": admins,
         "Birthday": admins,
+        "Delivery": admins,
         # The admins, in any chat
         "Delete": (True, True, "the admins"),
     }

@@ -93,6 +93,7 @@ ADMIN = [
         N_("its latest messages anywhere; delete some"),
         N_("list · <n>,…"),
     ),
+    Line("📬", "/delivery", N_("whether its latest messages arrived")),
 ]
 ANYWHERE = [
     Line("↩️", "/delete", N_("delete its latest message here")),

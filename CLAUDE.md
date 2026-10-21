@@ -33,7 +33,8 @@ From the owner of the project, in no order of priority:
    only what is strictly necessary goes in it.
 8. Use minimal resources to build the images, as well.
 9. Measure, test and verify any changes, for accuracy and future improvements.
-10. Uptime and availability is everything, if something is modified, changed, pushed, if an image is built, it must always work and be 100% stable and reliable. This rule trumps all others.
+10. Uptime and availability is everything, if something is modified, changed,  pushed, if an image is built, it must always work and be 100% stable and reliable. This rule trumps all others.
+11. Any workarounds added to our code to get around bugs or issues in signal-cli-rest-api, should be documented as such, and checked against in the future in case the bug or problem no longer exist, and we can remove our workarounds.
 
 User-facing means anything people in Signal see or can do: the commands and
 their names, the replies and their wording, who may use what, and what is
@@ -220,7 +221,11 @@ the `collected` ContextVar gathers its replies instead of sending them, and
 its own for some chats, as the daily post's for the groups of those with a
 birthday: `send()` gives each chat its own, so timers, `/run`, specials and
 replies all do. As Signal starts rate-limiting the bot, the outbox calls
-`on_rate_limited` (notices.py).
+`on_rate_limited` (notices.py), and with each message sent, `on_sent`
+(delivery.py). Long messages need nothing of the bot: signal-cli (0.11.5 on)
+sends a text over 2,000 UTF-8 bytes as Signal's apps do, its start as the
+body and the whole as a text attachment, and (0.14.0 on) hands the bot the
+whole of a long one it receives, attachments ignored or not.
 
 **Timers** (`timers.py`): kept in `data_dir/timers.txt`, which
 `nejomibot-timers` (`timers_cli.py`, reusing timers.py) edits too; reread
@@ -268,6 +273,16 @@ can't run them, nor the birthday lists, as they answer for their own chat.
 wasn't clean (`data_dir/run.json`, written at start and at shutdown), of
 Signal starting to rate-limit the bot (tried once, `Outbox.try_once`), and
 of changed safety numbers, looked at every `healthcheck_minutes`.
+
+**Delivery** (`delivery.py`): signalbot drops receipts (2.1.3), so
+`rest.received()` opens a websocket of the bot's own beside signalbot's, as
+signal-cli-rest-api sends every websocket everything in json-rpc mode;
+`receipt_in()` parses only what has `"receiptMessage"`. A receipt marks
+`Sent.confirmed` in the outbox's `SentLog` (by Signal ID, whether read), so
+receipts last as long as `/delete`'s day. `on_sent` checks each message 10
+minutes later, and logs a warning when nobody confirmed it, unless the
+websocket wasn't open all that time (`Receipts.since`). `/delivery` lists
+`delivery_messages` of the log, with delete.py's line for each.
 
 **Beyond signalbot**: `rest.py` (direct requests) and `account.py` (pydantic
 models for contacts, safety numbers, devices; `Account` looks people up

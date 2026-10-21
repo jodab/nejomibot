@@ -20,7 +20,7 @@ bot sends them once it's started again. A short wait, as while
 signal-cli-rest-api restarts, writes nothing.
 
 Sent messages are remembered for as long as Signal can delete them, with
-how they start, for /delete.
+how they start, for /delete, and whose phones confirmed them, for /delivery.
 """
 
 import asyncio
@@ -30,7 +30,7 @@ import itertools
 import logging
 import re
 import time
-from bisect import insort
+from bisect import bisect_left, insort
 from collections import Counter, defaultdict, deque
 from collections.abc import Awaitable, Callable, Collection, Iterator
 from contextvars import ContextVar
@@ -216,13 +216,17 @@ async def post_message(bot: SignalBot, recipient: str, message: SendMessage) -> 
 
 @dataclass(frozen=True, order=True)
 class Sent:
-    """A message the bot sent, as Signal knows it, and how it starts."""
+    """A message the bot sent, as Signal knows it, how it starts, and who has
+    confirmed it."""
 
     timestamp: int  # milliseconds since the epoch
     chat: str
     start: str = field(default="", compare=False)  # its text's first line
     styled: bool = field(default=False, compare=False)  # the start is in marks
     photo: bool = field(default=False, compare=False)
+    # Those whose phones confirmed it with a receipt, by Signal ID, and
+    # whether they read it (delivery.py)
+    confirmed: dict[str, bool] = field(default_factory=dict[str, bool], compare=False)
 
     @classmethod
     def of(cls, timestamp: int, chat: str, message: SendMessage) -> Self:
@@ -265,6 +269,13 @@ class SentLog:
         """The latest messages, to any chat, newest first."""
         self._forget_old()
         return self._sent[-count:][::-1]
+
+    def find(self, timestamp: int) -> Sent | None:
+        """The message sent at the timestamp, if it's in the log."""
+        i = bisect_left(self._sent, timestamp, key=lambda sent: sent.timestamp)
+        if i < len(self._sent) and self._sent[i].timestamp == timestamp:
+            return self._sent[i]
+        return None
 
     def take(self, sent: Sent) -> bool:
         """Take the message out of the log, if it's still there."""
@@ -355,6 +366,9 @@ class Outbox:
         self.sent = SentLog(now)
         # Called as Signal starts rate-limiting the bot (notices.py)
         self.on_rate_limited: Callable[[], None] | None = None
+        # Called with each message sent, once it's in the sent log
+        # (delivery.py)
+        self.on_sent: Callable[[Sent], None] | None = None
 
     def start(self, bot: SignalBot) -> None:
         """Send through the bot, from now on; first the messages kept from
@@ -509,7 +523,10 @@ class Outbox:
             if self._wake is not None:
                 self._wake.set()
         if timestamp is not None:
-            self.sent.add(Sent.of(timestamp, recipient, message))
+            sent = Sent.of(timestamp, recipient, message)
+            self.sent.add(sent)
+            if self.on_sent is not None:
+                self.on_sent(sent)
         if dropped := self._dropped.pop(recipient, 0):
             notice = SendMessage(text=dropped_text(dropped))
             if await self._try(recipient, notice) is not Outcome.SENT:

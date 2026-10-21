@@ -23,6 +23,7 @@ from .commands import Handler, aliases, built_in
 from .config import Settings, config_file, get_settings
 from .contacts import Contacts, Trust
 from .delete import Delete
+from .delivery import Delivery, receipts
 from .fortune import Fortune
 from .greeting import greeter
 from .help import Help
@@ -107,6 +108,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
             Run(),
             Incoming(),
             Birthday(),
+            Delivery(),
         )
     ]
     return [
@@ -307,6 +309,9 @@ def main() -> None:
     )
     logging.getLogger(LOGGER_NAME).handlers.clear()  # see set_up_logging
     outbox.start(bot)
+    # The receipts for what it sends, for /delivery, and a warning in the log
+    # for a message nobody's phone confirmed
+    receipts.start(bot)
     # The admins hear of an update or a stop that wasn't clean, and more
     notices.start(bot)
 

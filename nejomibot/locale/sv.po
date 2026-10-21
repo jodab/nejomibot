@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 18:07+0300\n"
+"POT-Creation-Date: 2026-10-21 16:41+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -737,6 +737,27 @@ msgstr "/radera lista: botens senaste meddelanden, var den än skickade dem"
 msgid "/delete <n>: delete one of those for everyone; /delete 2,5,11 several"
 msgstr "/radera <n>: radera ett av dem för alla; /radera 2,5,11 flera"
 
+#: nejomibot/delivery.py
+msgid "The bot has sent nothing in the last day."
+msgstr "Boten har inte skickat något det senaste dygnet."
+
+#: nejomibot/delivery.py
+#, python-brace-format
+msgid ""
+"📬 got it, of those in the chat · 👀 read it · ⏳ nobody yet · ⚠️ nobody in "
+"{minutes} minutes"
+msgstr ""
+"📬 fick det, av dem i chatten · 👀 läste det · ⏳ ingen ännu · ⚠️ ingen på "
+"{minutes} minuter"
+
+#: nejomibot/delivery.py
+msgid "⚠️ The bot isn't hearing receipts now: the counts may lag."
+msgstr "⚠️ Boten får inga kvitton just nu: siffrorna kan ligga efter."
+
+#: nejomibot/delivery.py
+msgid "Whether the bot's latest messages arrived, newest first:"
+msgstr "Om botens senaste meddelanden kom fram, nyaste först:"
+
 #: nejomibot/fortune.py
 msgid "Fortune libraries:"
 msgstr "Spådomsbibliotek:"
@@ -1142,6 +1163,10 @@ msgstr "botens senaste meddelanden överallt; radera några"
 #: nejomibot/help.py
 msgid "list · <n>,…"
 msgstr "lista · <n>,…"
+
+#: nejomibot/help.py
+msgid "whether its latest messages arrived"
+msgstr "om botens senaste meddelanden kom fram"
 
 #: nejomibot/help.py
 msgid "delete its latest message here"
