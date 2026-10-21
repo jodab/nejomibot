@@ -74,6 +74,20 @@ def test_how_people_show() -> None:
     assert names.of(DAVE_ID) == "da7e0000…"
 
 
+def test_a_username_where_no_number_is_known() -> None:
+    names = Names()
+    names.update({ALICE_ID: "Alice", CAROL_ID: "Carol", DAVE_ID: "dave.07"})
+    names.numbers[ALICE_ID] = ALICE
+    names.usernames.update(
+        {ALICE_ID: "alice.01", CAROL_ID: "carol.42", DAVE_ID: "dave.07"}
+    )
+    # The number before the username
+    assert names.of(ALICE_ID) == f"Alice ({ALICE})"
+    assert names.of(CAROL_ID) == "Carol (@carol.42)"
+    # A username that's all the name they have
+    assert names.of(DAVE_ID) == "@dave.07"
+
+
 async def test_names_take_the_lists_where_signal_cli_has_none(
     bot: SignalBot,
 ) -> None:
@@ -85,6 +99,8 @@ async def test_names_take_the_lists_where_signal_cli_has_none(
     assert names.of(DAVE) == f"Dave ({DAVE})"
     assert names.numbers[BOB_ID] == BOB
     assert CAROL_ID not in names.numbers
+    # The usernames signal-cli knows: here the bot's own alone
+    assert names.usernames == {ME_ID: "mybot.01"}
 
 
 # Linking the numbers on the lists

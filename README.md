@@ -736,8 +736,11 @@ forwards messages 4 and 9 of your list to chat 1.
 
 `/contacts` lists everyone the bot's Signal account knows, numbered: its
 contacts, then everyone else it knows, as those in its groups, then anyone
-it only has a safety number for, each by name; not the bot itself, whose
-own safety number is nobody's to compare, nor counted. `/trust` lists the same
+it only has a safety number for, each by name, with their phone number and
+their Signal username, such as `@alice.42`, where signal-cli knows them; not
+the bot itself, whose own safety number is nobody's to compare, nor counted.
+Signal doesn't share usernames: signal-cli knows only those of the people it
+found by theirs, so most show without one. `/trust` lists the same
 people by the same numbers, with their safety numbers, three rows of four
 groups of five digits, as the Signal apps show them, and whether each is
 verified. A number from the list you were shown last, by either, stands for
@@ -822,7 +825,7 @@ there, as timers post to their chats whoever may use the bot.
 
 The bot shows people by the name signal-cli has for them, else by what the
 list has after their `#`, with their phone number where it's known:
-`Alice (+46701234567)`, in `/allowed`, `/admins`, `/chats`, `/timers`,
+`Alice (+46701234567)`, else their Signal username, `Alice (@alice.42)`, in `/allowed`, `/admins`, `/chats`, `/timers`,
 `/delete list`, `/delivery`, `/incoming`, and what `/msg` and `/run` answer.
 
 Someone who doesn't share their number in Signal is known to signal-cli by

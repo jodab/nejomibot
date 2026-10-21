@@ -182,9 +182,11 @@ keep the order each admin was shown last (`contacts.shown`, phone numbers
 and Signal IDs only, not for timers): a number in place of `<who>` in
 `/contacts`, `/trust`, `/contacts add`, `/allow` and `/admin add` is one
 of them (`contacts.find_one`); `/birthday add` takes numbers as chats.
-People show as `Alice (+46701234567)`: `access.names()` gives `Names`, by
-number, Signal ID and group ID, signal-cli's names before the lists' notes,
-with `numbers` by Signal ID, and `Names.of()` words one. Those who don't
+People show as `Alice (+46701234567)`, else `Alice (@alice.42)`:
+`access.names()` gives `Names`, by number, Signal ID and group ID,
+signal-cli's names before the lists' notes, with `numbers` and `usernames`
+by Signal ID, and `Names.of()` words one. signal-cli knows a username only
+for someone it found by it (`u:name.42` as a recipient): Signal shares none. Those who don't
 share their number are known to signal-cli by Signal ID alone, so a number
 on the lists matches neither their name nor their direct messages:
 `access.link()` looks such numbers up through signal-cli-rest-api's search

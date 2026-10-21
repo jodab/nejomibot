@@ -354,25 +354,31 @@ def recipients() -> list[str]:
 class Names(dict[str, str]):
     """Names by phone number, Signal ID and group ID: of the groups the bot is
     in, of the people signal-cli knows by name, else as the lists have them
-    after their #; and the phone numbers signal-cli knows people by, by their
-    Signal ID."""
+    after their #; and the phone numbers and Signal usernames signal-cli
+    knows people by, by their Signal ID."""
 
     def __init__(self) -> None:
         super().__init__()
         self.numbers: dict[str, str] = {}
+        self.usernames: dict[str, str] = {}
 
     def of(self, who: str, name: str = "") -> str:
         """Who that is, as the bot shows them: a group by its name; a person
         by their name, else by the name given, with their phone number where
-        it's known, as 'Alice (+46701234567)'; by number alone, else by the
-        start of their Signal ID."""
+        it's known, as 'Alice (+46701234567)', else their username, as
+        'Alice (@alice.42)'; by those alone, else by the start of their
+        Signal ID."""
         if is_group(who):
             return self.get(who, who)
         number = who if re.match(PHONE_NUMBER, who) else self.numbers.get(who)
+        username = self.usernames.get(who)
         name = self.get(who) or (self.get(number) if number else None) or name
-        if name and number and name != number:
-            return f"{name} ({number})"
-        return name or number or f"{who[:8]}…"
+        if username and name == username:  # their username is all the name
+            name = f"@{username}"
+        handle = number or (f"@{username}" if username else None)
+        if name and handle and name != handle:
+            return f"{name} ({handle})"
+        return name or handle or f"{who[:8]}…"
 
 
 async def names(bot: SignalBot) -> Names:
@@ -384,6 +390,8 @@ async def names(bot: SignalBot) -> Names:
         for recipient in await fetch_recipients():
             if recipient.number and recipient.uuid:
                 found.numbers[recipient.uuid] = recipient.number
+            if recipient.username and recipient.uuid:
+                found.usernames[recipient.uuid] = recipient.username
             if name := recipient.real_name:
                 found.update(
                     {who: name for who in (recipient.number, recipient.uuid) if who}

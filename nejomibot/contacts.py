@@ -13,7 +13,9 @@ their phone number, ID, the start of it, or their name. /allow and /admin
 add take the numbers too.
 
 People who don't share their phone number on Signal are known only by their
-ID (a UUID), so that's all the bot can show for them.
+ID (a UUID), so that's all the bot can show for them, besides their name.
+Their Signal username shows too, if signal-cli knows it: Signal doesn't
+share usernames, so it knows only those of people it found by them.
 """
 
 import logging
@@ -158,13 +160,25 @@ def short_heading(account: Account, contact: Contact) -> str:
     return heading
 
 
+def username_of(contact: Contact) -> str | None:
+    """Their Signal username, if signal-cli knows it, as it does for those it
+    found by it, unless it's their name already."""
+    if contact.username and contact.username != contact.real_name:
+        return contact.username
+    return None
+
+
 def heading_line(account: Account, contact: Contact) -> str:
-    """Who, with their phone number, as the lists show them. Styled."""
+    """Who, with their phone number and username, as the lists show them.
+    Styled."""
     number = number_of(account, contact)
     line = f"👤 **{escape(short_heading(account, contact))}**"
+    ids: list[str] = []
     if contact.real_name or not number:
-        line += escape(" · " + (number or _("phone number not shared")))
-    return line
+        ids.append(number or _("phone number not shared"))
+    if username := username_of(contact):
+        ids.append(f"@{username}")
+    return line + escape("".join(f" · {each}" for each in ids))
 
 
 def person_summary(account: Account, contact: Contact) -> str:
@@ -210,8 +224,8 @@ def person_card(account: Account, contact: Contact, who: str | None = None) -> s
     number = number_of(account, contact)
     lines = [f"👤 **{escape(heading_of(account, contact))}**"]
     ids = [number or _("phone number not shared")]
-    if contact.username and contact.username != contact.real_name:
-        ids.append(f"@{contact.username}")
+    if username := username_of(contact):
+        ids.append(f"@{username}")
     lines.append(" · ".join(ids))
     if contact.uuid:
         lines.append(f"🆔 {contact.uuid}")

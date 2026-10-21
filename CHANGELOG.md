@@ -4,6 +4,16 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `/contacts` and `/trust` show each person's Signal username, as
+  `@alice.42`, where signal-cli knows it, as `/contacts <n>` did already;
+  elsewhere, a person without a known phone number shows by name and
+  username, as `Alice (@alice.42)`. Signal doesn't share usernames, so
+  signal-cli knows only those of people it found by them.
+
 ## 0.99.7 - 2026-10-21
 
 ### Added

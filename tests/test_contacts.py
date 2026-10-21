@@ -91,6 +91,17 @@ def test_a_long_id_shows_by_its_start(account: Account) -> None:
     assert "👤 **0b7c1d2e…** · phone number not shared" in contacts_message(account)
 
 
+def test_a_username_shows_where_signal_cli_knows_it(account: Account) -> None:
+    # As it does for someone it found by it
+    account.recipients.append(Contact(uuid=DAVE_ID, name="Dave", username="dave.07"))
+    # One that's all the name they have, once
+    eve_id = "e7e00000-0000-4000-8000-000000000005"
+    account.recipients.append(Contact(uuid=eve_id, username="eve.42"))
+    text = contacts_message(account)
+    assert "👤 **Dave** · phone number not shared · @dave.07\n" in text
+    assert "👤 **eve.42** · phone number not shared\n" in text
+
+
 def test_person_card(account: Account) -> None:
     alice = find_one(account, "alice")
     assert isinstance(alice, Contact)
