@@ -564,5 +564,7 @@ and the release attests each image (step 5). How it was set up:
 - Memory, measured 2026-10-17: about 74 MB RSS after imports and one picture
   opened, 71 MB with `photos_heif = false`; mostly signalbot, aiohttp and
   pydantic.
-- signalbot 2.1.0, still the latest on 2026-10-18, has nothing that would
-  replace a function in rest.py, nor mark sync messages.
+- signalbot 2.1.3, the latest on 2026-10-23, has nothing that would
+  replace a function in rest.py, nor mark sync messages: since 2.1.0 it
+  only fixed a few things the bot doesn't use (copying a message, the order
+  of a few fields' types, a storage setting it doesn't give).

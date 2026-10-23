@@ -22,6 +22,9 @@ what to do when updating. The format follows
   releases before it keep. The fortune libraries from fortune-mod keep their
   BSD license. The package, and so the image, carries both licenses' texts
   now, as they ask.
+- Dependencies: signalbot 2.1.3, python-dateutil 3.0.0, pydantic-settings
+  2.16.1, websockets 17.3 and tzlocal 5.4.5. The image is on Python 3.14.9,
+  and is built with uv 0.13.5.
 
 ## 0.99.14 - 2026-10-23
 

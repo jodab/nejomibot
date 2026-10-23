@@ -2,9 +2,9 @@
 # digests and versions current. uv is the building machine's own: it has no
 # image for 32-bit ARM, and being statically linked it runs in any stage,
 # natively, even where the rest is emulated.
-FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
+FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
 
-FROM docker.io/library/python:3.14-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170 AS base
+FROM docker.io/library/python:3.14-slim@sha256:0514bc76712d64f8bb48adcb95b1ab0d88c69fee95d62fe4c18ee948bee9b1e1 AS base
 
 # tzdata lets TZ give local log timestamps; curl, jq and qrencode are for
 # signal-account.sh. On 32-bit ARM, where Pillow and pillow-heif have no

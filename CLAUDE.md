@@ -507,4 +507,7 @@ it) another 0.8 MB, both reused after, not growing: zstd's buffers, which
 glibc keeps; a run peaks 1 to 3 MB higher. The window size changes
 neither. No
 dependency: tarfile and zstd are Python 3.14's, in the image on all three
-platforms (libzstd 1.5.7).
+platforms (libzstd 1.5.7). 2026-10-23, every dependency bumped (signalbot
+2.1.3, python-dateutil 3.0.0, Python 3.14.9): 78.5 MB peak RSS against 78.8
+before, the median of five runs each (77.5 to 79.3: noise), and a 235.6 MB
+image (amd64), as before.
