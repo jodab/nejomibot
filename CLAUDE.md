@@ -35,6 +35,7 @@ From the owner of the project, in no order of priority:
 9. Measure, test and verify any changes, for accuracy and future improvements.
 10. Uptime and availability is everything, if something is modified, changed,  pushed, if an image is built, it must always work and be 100% stable and reliable. This rule trumps all others.
 11. Any workarounds added to our code to get around bugs or issues in signal-cli-rest-api, should be documented as such, and checked against in the future in case the bug or problem no longer exist, and we can remove our workarounds.
+12. Always re-use code whenever possible, refactor whenever it will benefit us.
 
 User-facing means anything people in Signal see or can do: the commands and
 their names, the replies and their wording, who may use what, and what is
