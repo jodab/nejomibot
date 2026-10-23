@@ -223,15 +223,16 @@ Send the bot:
 
 ```
 /chats
-/timer add 08:00 1 /dailypost
+/timer add 08:00 1 /today; /photo new
 /timer run 1
 ```
 
 - `/chats` numbers the chats the bot can post to: its groups, then the people
   allowed, then you.
-- `/timer add 08:00 1 /dailypost` posts the weather and the photo of the day
-  at 08:00 every day, in your `timezone`, to chat 1. For more chats, give
-  them all: `1,2`. Days work too: `mon-fri 07:30`.
+- `/timer add 08:00 1 /today; /photo new` posts the weather, then a photo,
+  none twice until every one has been sent, at 08:00 every day, in your
+  `timezone`, to chat 1. For more chats, give them all: `1,2`. Days work
+  too: `mon-fri 07:30`.
 - `/timer run 1` posts it right away, so you see that it works. `/timers`
   lists the timers.
 
@@ -248,7 +249,7 @@ That's it: the bot is up and running. 🎉
 - **See how it's doing:** send it `/status`. `docker compose ps` shows the
   containers as `healthy` a minute after they start (with Podman,
   `podman ps` does).
-- **Birthdays, name days and holidays in the daily post:** `/birthday add
+- **Birthdays, name days and holidays atop the weather:** `/birthday add
   1990-03-14 Alice` for a contact, shown in the groups they're in, and
   `holidays = ["SE"]` in the settings for your country's days, by its code,
   such as `GB` or `US`: the European Union's, the Nordic countries' and most

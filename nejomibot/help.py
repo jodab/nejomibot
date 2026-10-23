@@ -31,8 +31,11 @@ class Line:
 
 EVERYDAY = [
     Line("📷", "/photo", N_("a random photo")),
+    Line("🆕", "/photo new", N_("a photo not sent yet")),
     Line("🎞️", "/onthisday", N_("a photo from this day, years ago")),
     Line("📂", "/cache", N_("how many photos, and how big")),
+    Line("🌅", "/today", N_("the day's holidays and birthdays, and the weather")),
+    Line("🗓️", "/day", N_("the day's holidays and birthdays")),
     Line("🌤️", "/weather", N_("the weather now"), N_("[<city>]")),
     Line("🌦️", "/forecast", N_("the weather today and tomorrow"), N_("[<city>]")),
     Line("🕰️", "/info", N_("the time, and an exchange rate")),
@@ -47,14 +50,12 @@ EVERYDAY = [
 ]
 ADMIN = [
     Line("🩺", "/status", N_("how the bot and the server are")),
-    Line("🌅", "/dailypost", N_("the daily post, here")),
     Line(
         "👁️",
-        "/dailypost preview",
-        N_("what it says atop the weather, in each chat"),
+        "/today preview",
+        N_("what /today says atop the weather, in each chat"),
         N_("[<date>]"),
     ),
-    Line("📜", "/dailyquote", N_("the daily quote, here")),
     Line("👥", "/contacts", N_("who the bot knows"), N_("[<who>]")),
     Line("📇", "/contacts", N_("add a contact, or rename"), N_("add <who> <name>")),
     Line("🔢", "/trust", N_("the safety numbers, or one's"), N_("[<who>]")),
@@ -102,8 +103,7 @@ ANYWHERE = [
 
 def shown_name(command: str) -> str:
     """The command by its first name in the language, if it has one; one of
-    two words, its subcommand too: /dailypost preview as /dagenspost
-    förhandsvisa."""
+    two words, its subcommand too: /today preview as /idag förhandsvisa."""
     first, space, second = command.partition(" ")
     name = next(iter(language().commands.get(first, [])), first)
     return name + space + next(iter(language().words.get(second, [])), second)
@@ -160,7 +160,7 @@ def notes() -> list[str]:
         ),
         _(
             "<parts> – text and commands, separated by ;, e.g. Good morning! "
-            "/weather; /dailyquote"
+            "/today; /photo new"
         ),
         _("remove – after /about, /avatar or /username, takes it away"),
     ]

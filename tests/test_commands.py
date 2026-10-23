@@ -58,7 +58,8 @@ def pic(monkeypatch: pytest.MonkeyPatch) -> None:
         ("/födelsedag lägg till 03-14 Alice", "/birthday add 03-14 Alice"),
         ("/kontakter lägg till Alice Ali", "/contacts add Alice Ali"),
         ("/om ta bort", "/about remove"),
-        ("/dagenspost förhandsvisa imorgon", "/dailypost preview imorgon"),
+        ("/idag förhandsvisa imorgon", "/today preview imorgon"),
+        ("/bild ny", "/photo new"),
         # The English ones too, in any language
         ("/list add milk", "/list add milk"),
         # Only a command's own subcommands, whole words, right after it

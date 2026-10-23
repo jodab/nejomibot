@@ -99,13 +99,13 @@ class Settings(BaseSettings):
     weather_city_name: str | None = None
     weather_units: Literal["metric", "imperial"] = "metric"
     # /weather <city>: the most calls to OpenWeatherMap in an hour for places
-    # named, finding them included. weather_city's weather, as in the daily
-    # post, is asked at most every 10 minutes, and isn't counted.
+    # named, finding them included. weather_city's weather, as in /today, is
+    # asked at most every 10 minutes, and isn't counted.
     weather_calls_per_hour: Annotated[int, Field(ge=1)] = 10
 
-    # The daily post names the special days of these countries atop the
-    # weather: holidays, flag days and traditions. By their ISO 3166 codes,
-    # such as SE for Sweden and GB for the United Kingdom (holidays.py).
+    # /today names the special days of these countries atop the weather:
+    # holidays, flag days and traditions. By their ISO 3166 codes, such as
+    # SE for Sweden and GB for the United Kingdom (holidays.py).
     holidays: list[Country] = []
 
     timezone: TimeZone = "Europe/Stockholm"

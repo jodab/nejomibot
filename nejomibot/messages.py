@@ -578,9 +578,9 @@ outbox = Outbox()
 
 
 class PerChat(SendMessage):
-    """A message some chats get with a text of their own, such as the daily
-    post, with the birthdays of those in a group: texts by chat, as the
-    outbox knows it, and for the rest, its text."""
+    """A message some chats get with a text of their own, such as /today's,
+    with the birthdays of those in a group: texts by chat, as the outbox
+    knows it, and for the rest, its text."""
 
     texts: dict[str, str] = Field(default_factory=dict[str, str])
 

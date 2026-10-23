@@ -26,7 +26,7 @@ def data(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     folder = get_settings().data_dir
     for name, text in {
         "allowed.txt": "+46700000001  # Alice\n",
-        "timers.txt": "1 | daily 08:00 | group.ZmFtaWx5 | /dailypost | -\n",
+        "timers.txt": "1 | daily 08:00 | group.ZmFtaWx5 | /today | -\n",
         "birthdays.txt": "birthday | 03-14 | * | Grandma\n",
         "sent-photos.txt": "2026/a.jpg\n",
         "run.json": "{}",
@@ -65,7 +65,7 @@ def test_a_backup_has_what_the_bot_keeps(data: Path) -> None:
         f"{NAME}/birthdays.txt": "birthday | 03-14 | * | Grandma\n",
         f"{NAME}/config.toml": "# the config\n",
         f"{NAME}/sent-photos.txt": "2026/a.jpg\n",
-        f"{NAME}/timers.txt": "1 | daily 08:00 | group.ZmFtaWx5 | /dailypost | -\n",
+        f"{NAME}/timers.txt": "1 | daily 08:00 | group.ZmFtaWx5 | /today | -\n",
         f"{NAME}/config.example.toml": "# every setting\n",
     }
 

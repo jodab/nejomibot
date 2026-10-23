@@ -1,8 +1,7 @@
-from datetime import date
 from typing import Any, cast
 
 import pytest
-from helpers import ALICE, ALICE_ID, GROUP, text_styles
+from helpers import ALICE, GROUP, text_styles
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -15,8 +14,7 @@ from signalbot import (
 from nejomibot import commands, specials
 from nejomibot.commands import known
 from nejomibot.config import get_settings
-from nejomibot.fortune import FORTUNES_DIR, read_fortunes
-from nejomibot.messages import for_chat
+from nejomibot.messages import PerChat, for_chat
 from nejomibot.specials import (
     HEADER,
     Part,
@@ -26,7 +24,7 @@ from nejomibot.specials import (
     own_specials,
     parse_parts,
 )
-from nejomibot.styles import styles_of, unmarked
+from nejomibot.styles import styles_of
 from nejomibot.timers import Timekeeper, check_commands
 
 ADMIN = "+46700000009"
@@ -39,7 +37,6 @@ class Chat:
     def __init__(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self.replies: list[SendMessage] = []
         self.ran: list[str] = []
-        self.bot: SignalBot | None = None  # what needs one, sets one
         self.keeper = Timekeeper()
         monkeypatch.setattr(commands, "reply", self.reply)
         monkeypatch.setattr(commands, "mark_read", self.nothing)
@@ -83,7 +80,7 @@ class Chat:
         )
         self.replies.clear()
         await Specials().handle_data_message(
-            DataMessageContext(cast(SignalBot, self.bot), message)
+            DataMessageContext(cast(SignalBot, None), message)
         )
         return [reply.text or "" for reply in self.replies]
 
@@ -91,149 +88,6 @@ class Chat:
 @pytest.fixture
 def chat(monkeypatch: pytest.MonkeyPatch) -> Chat:
     return Chat(monkeypatch)
-
-
-# The two the bot comes with
-
-
-@pytest.mark.usefixtures("swedish")
-async def test_the_daily_post(chat: Chat, monkeypatch: pytest.MonkeyPatch) -> None:
-    async def weather_message() -> str:
-        return "Vädret"
-
-    async def photo_message(
-        caption: str = "", *, track_sent: bool = False
-    ) -> SendMessage:
-        return SendMessage(text=f"{caption} (from the round: {track_sent})")
-
-    monkeypatch.setattr(specials, "weather_message", weather_message)
-    monkeypatch.setattr(specials, "photo_message", photo_message)
-    # By its Swedish name, as an admin sends it
-    assert await chat.send("/dagenspost") == [
-        "Vädret",
-        "Dagens bild! (from the round: True)",
-    ]
-
-
-async def test_the_daily_post_names_the_day(
-    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("NEJOMIBOT_HOLIDAYS", '["SE"]')
-    get_settings.cache_clear()
-
-    async def weather_message() -> str:
-        return "**Weather**"
-
-    async def photo_message(
-        caption: str = "", *, track_sent: bool = False
-    ) -> SendMessage:
-        return SendMessage(text=caption)
-
-    monkeypatch.setattr(specials, "weather_message", weather_message)
-    monkeypatch.setattr(specials, "photo_message", photo_message)
-    get_settings().data_file("birthdays.txt").write_text(
-        f"birthday | 1990-06-06 | {ALICE_ID} {ALICE} | Alice\n"
-    )
-    post, photo = await specials.daily_post(bot, date(2026, 6, 6))
-    assert isinstance(post, SendMessage)
-    assert photo == SendMessage(text="Photo of the day!")
-    holiday = "🇸🇪 National Day of Sweden · flag day"
-    # In the group Alice is in, her birthday too; elsewhere, the day alone
-    in_group = f"{holiday}\n🎂 Alice turns 36 today!\n\n**Weather**"
-    assert for_chat(post, GROUP).text == in_group
-    assert for_chat(post, ALICE).text == f"{holiday}\n\n**Weather**"
-    # A special's text heads it in every chat
-    post = headed("**Hi!**", post)
-    assert for_chat(post, GROUP).text == f"**Hi!**\n\n{in_group}"
-    assert for_chat(post, ALICE).text == f"**Hi!**\n\n{holiday}\n\n**Weather**"
-
-
-@pytest.mark.parametrize(
-    ("words", "day"),
-    [
-        ([], date(2026, 10, 19)),
-        (["tomorrow"], date(2026, 10, 20)),
-        (["10-25"], date(2026, 10, 25)),
-        (["10-18"], date(2027, 10, 18)),  # the next one
-        (["2026-12-24"], date(2026, 12, 24)),
-        (["02-29"], date(2028, 2, 29)),
-        (["soon"], None),
-        (["10-25", "x"], None),
-        (["10-32"], None),
-    ],
-)
-def test_the_day_previewed(words: list[str], day: date | None) -> None:
-    assert specials.preview_day(words, date(2026, 10, 19)) == day
-
-
-async def test_the_preview(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("NEJOMIBOT_HOLIDAYS", '["SE"]')
-    get_settings.cache_clear()
-    get_settings().data_file("birthdays.txt").write_text(
-        f"birthday | 1990-06-06 | {ALICE_ID} {ALICE} | Alice\n"
-        "nameday | 06-06 | * | Grandma\n"
-    )
-    # In each group the bot is in, and in a direct chat, which has no
-    # birthdays
-    text = await specials.preview(bot, ["06-06"], date(2026, 10, 19))
-    assert text == "\n".join(
-        [
-            "**👁️ The daily post on Sunday 6 June**",
-            "",
-            "👥 **Familjen**",
-            "🇸🇪 National Day of Sweden · flag day",
-            "🎂 Alice turns 37 today!",
-            "🌸 Happy name day, Grandma!",
-            "",
-            "👤 **In a direct chat**",
-            "🇸🇪 National Day of Sweden · flag day",
-        ]
-    )
-    assert (await specials.preview(bot, [], date(2026, 10, 19))).endswith(
-        "👥 **Familjen**\nNothing atop the weather.\n\n"
-        "👤 **In a direct chat**\nNothing atop the weather."
-    )
-
-
-@pytest.mark.usefixtures("swedish")
-async def test_the_preview_command(
-    chat: Chat, bot: SignalBot, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    chat.bot = bot
-    [text] = await chat.send("/dagenspost förhandsvisa imorgon")
-    assert text.startswith("**👁️ Dagens post på ")
-    # Its old name, and the English word, too
-    [text] = await chat.send("/dagensbild preview")
-    assert text.startswith("**👁️ Dagens post på ")
-    assert await chat.send("/dagenspost förhandsvisa snart") == [
-        "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
-    ]
-    # Timers run it too, if the admins want every group's posted somewhere
-    assert check_commands(["/dagenspost förhandsvisa"]) is None
-
-
-@pytest.mark.usefixtures("swedish")
-async def test_the_daily_quote(chat: Chat) -> None:
-    [text] = await chat.send("/dagenscitat")
-    assert chat.replies[0].text_mode == TextMode.STYLED
-    heading, quote = text.split("\n\n", 1)
-    assert heading == "**Dagens ordspråk/citat:**"
-    # Styled as /fortune styles it
-    assert unmarked(quote)[0] in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
-
-
-async def test_the_daily_quote_keeps_its_library(
-    chat: Chat, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """fortune_library is /fortune's alone."""
-    monkeypatch.setenv("NEJOMIBOT_FORTUNE_LIBRARY", "startrek")
-    get_settings.cache_clear()
-    [text] = await chat.send("/dailyquote")
-    quote = unmarked(text.split("\n\n", 1)[1])[0]
-    assert quote in read_fortunes(FORTUNES_DIR / "fortunes_svenska")
-
-
-# The admins' own
 
 
 @pytest.mark.parametrize(
@@ -249,11 +103,11 @@ async def test_the_daily_quote_keeps_its_library(
         ),
         # Line breaks separate parts too; a / inside a word is text
         (
-            "Read: https://example.com/a /info\n\n/dailypost ;/dailyquote",
+            "Read: https://example.com/a /info\n\n/today ;/photo new",
             [
                 Part("Read: https://example.com/a", "/info"),
-                Part("", "/dailypost"),
-                Part("", "/dailyquote"),
+                Part("", "/today"),
+                Part("", "/photo new"),
             ],
         ),
         # The file's texts are in marks, its spoilers' || too
@@ -306,7 +160,8 @@ def test_parts_refused(text: str, why: str) -> None:
         ("/a|b", "Give it a name"),
         ("/weather", "/weather is a command already."),
         ("/test", "/test is a command already."),  # what /status has been
-        ("/dailypost", "/dailypost is a command already."),
+        ("/today", "/today is a command already."),
+        ("/dailypost", None),  # a command the bot had once
         ("/special", "/special is a command already."),
         ("/pic", "/pic is a command already."),  # an alias
     ],
@@ -324,14 +179,14 @@ def test_names(monkeypatch: pytest.MonkeyPatch, name: str, why: str | None) -> N
 async def test_add_list_change_and_remove(chat: Chat) -> None:
     [empty] = await chat.send("/specials")
     assert empty.startswith("No specials of your own yet.")
-    assert await chat.send("/special add /morning Morning! /weather; /dailyquote") == [
-        "✅ **Added /morning**\nMorning! /weather; /dailyquote"
+    assert await chat.send("/special add /morning Morning! /weather; /fortune") == [
+        "✅ **Added /morning**\nMorning! /weather; /fortune"
     ]
     await chat.send("/special add /bins The bins go out tonight!")
     assert await chat.send("/specials") == [
         "**✨ 2 specials**\n"
         "**/bins** · The bins go out tonight!\n"
-        "**/morning** · Morning! /weather; /dailyquote"
+        "**/morning** · Morning! /weather; /fortune"
     ]
     # Changed, by its name in any case
     assert await chat.send("/special add /MORNING /weather") == [
@@ -412,6 +267,20 @@ def test_a_heading_is_in_marks() -> None:
     assert headed("*Hi*", plain) == SendMessage(
         text="*Hi*\n\n5 \\* 3", base64_attachments=["aGVq"], text_mode=TextMode.STYLED
     )
+
+
+def test_a_heading_heads_each_chat_s_own_text() -> None:
+    # As /today's, with birthdays in a group
+    post = PerChat(
+        text="**Weather**",
+        texts={GROUP: "🎂 Alice turns 36 today!\n\n**Weather**"},
+        text_mode=TextMode.STYLED,
+    )
+    post = headed("**Hi!**", post)
+    assert for_chat(post, GROUP).text == (
+        "**Hi!**\n\n🎂 Alice turns 36 today!\n\n**Weather**"
+    )
+    assert for_chat(post, ALICE).text == "**Hi!**\n\n**Weather**"
 
 
 async def test_formatting_given_in_signal_is_kept(chat: Chat) -> None:

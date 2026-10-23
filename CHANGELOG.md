@@ -6,6 +6,44 @@ what to do when updating. The format follows
 
 ## Unreleased
 
+### Updating
+
+- `/dailypost` and `/dailyquote` are gone: specials of your own post the
+  same, with their headings made bold in Signal: `/special add /dailypost
+  /today; Photo of the day! /photo new`, and `/special add /dailyquote
+  Proverb or quote of the day: /fortune fortunes_svenska`. Before updating,
+  remove the timers that run them, and add them again after; or name the
+  specials so, and restart the bot once you've added them. Until then the
+  bot can't read those timers, which post nothing, and `/timers` doesn't
+  list them.
+- A special of your own that runs `/dailypost` or `/dailyquote` can't be
+  read either, as specials can't run each other: give it their parts
+  instead, before updating.
+- An alias of `/dailypost` or `/dailyquote` in the configuration's
+  `[aliases]` stops the bot from starting: take it out before updating.
+
+### Added
+
+- `/today`, for everyone allowed: the weather, with the day's holidays atop
+  it, and in a group, the birthdays and name days of those in it, as the
+  daily post had them. `/day`: the same without the weather, or "Nothing
+  special today."
+- `/photo new`, for everyone allowed: a photo not sent yet in this round,
+  as the daily post's was, none twice until every photo has been sent.
+  `/photo` stays as it was, and doesn't count toward the round.
+- In Swedish, `/idag`, `/dagen` and `/bild ny`.
+
+### Changed
+
+- `/dailypost preview` is `/today preview`; in Swedish, `/idag
+  förhandsvisa`.
+
+### Removed
+
+- `/dailypost` and `/dailyquote`, which specials of your own do as well
+  (see Updating), and their Swedish names `/dagenspost`, `/dagensbild` and
+  `/dagenscitat`.
+
 ### Fixed
 
 - With a signal-cli-rest-api build from 2026-10-22 on, the bot waited for

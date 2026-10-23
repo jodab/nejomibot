@@ -184,7 +184,7 @@ async def test_disallow_says_which_timers_still_post_there(chat: Chat) -> None:
     access.allowed_list.reread().add(access.Entry(GROUP))
     last = datetime(2026, 10, 12, 8, 0, tzinfo=UTC)
     allowed.timekeeper.timers = {
-        1: Timer(1, "daily 08:00", [GROUP, ALICE], ["/dailypost"], last),
+        1: Timer(1, "daily 08:00", [GROUP, ALICE], ["/today"], last),
         2: Timer(2, "every 2h", [ADMIN], ["/ping"], last),
     }
     await chat.send("/disallow Familjen")

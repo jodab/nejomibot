@@ -41,6 +41,7 @@ from .reminders import Remind
 from .specials import Specials
 from .status import Status
 from .timers import Chats, Timers, timekeeper
+from .today import Today, TodayPreview
 from .weather import Forecast, Weather
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
             Ping(),
             Photo(),
             OnThisDay(),
+            Today(),
             Weather(),
             Forecast(),
             Info(),
@@ -89,6 +91,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
         (handler, True, False, access.from_admin)
         for handler in (
             Status(),
+            TodayPreview(),
             Specials(),
             Contacts(),
             Trust(),

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 09:04+0300\n"
+"POT-Creation-Date: 2026-10-23 10:05+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -904,12 +904,24 @@ msgid "a random photo"
 msgstr "en slumpvis vald bild"
 
 #: nejomibot/help.py
+msgid "a photo not sent yet"
+msgstr "en bild som inte skickats än"
+
+#: nejomibot/help.py
 msgid "a photo from this day, years ago"
 msgstr "en bild från den här dagen, för år sedan"
 
 #: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "hur många bilder, och hur stora"
+
+#: nejomibot/help.py
+msgid "the day's holidays and birthdays, and the weather"
+msgstr "dagens helgdagar och födelsedagar, och vädret"
+
+#: nejomibot/help.py
+msgid "the day's holidays and birthdays"
+msgstr "dagens helgdagar och födelsedagar"
 
 #: nejomibot/help.py
 msgid "[<city>]"
@@ -980,20 +992,12 @@ msgid "how the bot and the server are"
 msgstr "hur boten och servern mår"
 
 #: nejomibot/help.py
-msgid "the daily post, here"
-msgstr "dagens post, här"
-
-#: nejomibot/help.py
-msgid "what it says atop the weather, in each chat"
-msgstr "vad den säger ovanför vädret, i varje chatt"
+msgid "what /today says atop the weather, in each chat"
+msgstr "vad /idag säger ovanför vädret, i varje chatt"
 
 #: nejomibot/help.py
 msgid "[<date>]"
 msgstr "[<datum>]"
-
-#: nejomibot/help.py
-msgid "the daily quote, here"
-msgstr "dagens ordspråk eller citat, här"
 
 #: nejomibot/help.py
 msgid "[<who>]"
@@ -1228,11 +1232,11 @@ msgstr ""
 
 #: nejomibot/help.py
 msgid ""
-"<parts> – text and commands, separated by ;, e.g. Good morning! /weather; /"
-"dailyquote"
+"<parts> – text and commands, separated by ;, e.g. Good morning! /today; /"
+"photo new"
 msgstr ""
-"<delar> – text och kommandon, åtskilda med ;, t.ex. God morgon! /väder; /"
-"dagenscitat"
+"<delar> – text och kommandon, åtskilda med ;, t.ex. God morgon! /idag; /bild "
+"ny"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"
@@ -2130,31 +2134,6 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/specials.py
-msgid "Photo of the day!"
-msgstr "Dagens bild!"
-
-#: nejomibot/specials.py
-msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."
-msgstr "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
-
-#: nejomibot/specials.py
-msgid "Nothing atop the weather."
-msgstr "Inget ovanför vädret."
-
-#: nejomibot/specials.py
-#, python-brace-format
-msgid "👁️ The daily post on {day}"
-msgstr "👁️ Dagens post på {day}"
-
-#: nejomibot/specials.py
-msgid "In a direct chat"
-msgstr "I en direktchatt"
-
-#: nejomibot/specials.py
-msgid "Proverb or quote of the day:"
-msgstr "Dagens ordspråk/citat:"
-
-#: nejomibot/specials.py
 msgid "Give it a name: a word that starts with /, like /morning."
 msgstr "Ge det ett namn: ett ord som börjar med /, som /morgon."
 
@@ -2613,6 +2592,27 @@ msgstr "Ingen timer #{n}."
 #, python-brace-format
 msgid "▶️ Ran timer #{n}"
 msgstr "▶️ Körde timer #{n}"
+
+#: nejomibot/today.py
+msgid "Nothing special today."
+msgstr "Inget särskilt idag."
+
+#: nejomibot/today.py
+msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."
+msgstr "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
+
+#: nejomibot/today.py
+msgid "Nothing atop the weather."
+msgstr "Inget ovanför vädret."
+
+#: nejomibot/today.py
+#, python-brace-format
+msgid "👁️ {command} on {day}"
+msgstr "👁️ {command} på {day}"
+
+#: nejomibot/today.py
+msgid "In a direct chat"
+msgstr "I en direktchatt"
 
 #: nejomibot/weather.py
 msgid "thunderstorm with light rain"

@@ -81,7 +81,7 @@ def test_translations_have_the_same_fields(path: Path) -> None:
 
 
 def test_english_is_as_written() -> None:
-    assert _("Photo of the day!") == "Photo of the day!"
+    assert _("a random photo") == "a random photo"
     assert ngettext("{n} day", "{n} days", 1) == "{n} day"
     assert ngettext("{n} day", "{n} days", 2) == "{n} days"
     assert language_words("mon") == ["mon"]
@@ -98,7 +98,7 @@ def test_when_text() -> None:
 
 @pytest.mark.usefixtures("swedish")
 def test_swedish() -> None:
-    assert _("Photo of the day!") == "Dagens bild!"
+    assert _("a random photo") == "en slumpvis vald bild"
     assert ngettext("{n} day", "{n} days", 1) == "{n} dag"
     assert ngettext("{n} day", "{n} days", 2) == "{n} dagar"
     assert ngettext("{n} day", "{n} days", 0) == "{n} dagar"
@@ -152,9 +152,9 @@ def test_the_image_reads_them_compiled(
     finally:
         i18n.load.cache_clear()
     assert languages() == ["en", "sv"]
-    assert swedish.translations.gettext("Photo of the day!") == "Dagens bild!"
+    assert swedish.translations.gettext("a random photo") == "en slumpvis vald bild"
     assert swedish.translations.ngettext("{n} day", "{n} days", 2) == "{n} dagar"
-    assert swedish.commands["/dailypost"] == ["/dagenspost", "/dagensbild"]
+    assert swedish.commands["/photo"] == ["/bild", "/foto"]
 
 
 def test_a_broken_names_file_is_an_error(

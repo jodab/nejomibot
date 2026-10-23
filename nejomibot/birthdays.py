@@ -1,6 +1,5 @@
-"""Birthdays and name days, which the daily post names atop the weather on
-the day, in groups only: "🎂 Alice turns 36 today!", "🌸 Happy name day,
-Bob!".
+"""Birthdays and name days, which /today names atop the weather on the day,
+in groups only: "🎂 Alice turns 36 today!", "🌸 Happy name day, Bob!".
 
 The admins keep them, in a direct chat with the bot. Someone on Signal is
 given as /contacts takes them, by name, phone number or ID, and must be a
@@ -210,7 +209,7 @@ def greeting(occasion: Occasion, name: str, day: date) -> str:
 
 async def greetings(bot: SignalBot, day: date) -> dict[str, list[str]]:
     """The day's birthdays, then its name days, a line each, by the group
-    they show in, for the daily post."""
+    they show in, for /today."""
     found = [each for each in kept.current().entries if each.on(day.year) == day]
     if not found:
         return {}

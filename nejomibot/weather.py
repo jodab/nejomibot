@@ -23,8 +23,8 @@ It keeps each place's weather for 10 minutes, as OpenWeatherMap's changes
 every 10 minutes, and its forecast for 30, and answers with those when asked
 again sooner. About places named, it asks OpenWeatherMap at most
 weather_calls_per_hour times an hour, finding them included, and says when to
-try again past that. weather_city's weather and forecast, as in the daily
-post, aren't counted, so they're never refused.
+try again past that. weather_city's weather and forecast, as in /today,
+aren't counted, so they're never refused.
 """
 
 import logging

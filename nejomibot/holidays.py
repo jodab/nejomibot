@@ -1,4 +1,4 @@
-"""The calendar's special days, which the daily post names atop the weather:
+"""The calendar's special days, which /today names atop the weather:
 the holidays, flag days and traditions of the countries in the setting
 holidays, by their ISO codes, such as SE for Sweden and GR for Greece. Each
 comes after its country's flag, in the bot's language; a day two keep, such

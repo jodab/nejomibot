@@ -117,7 +117,7 @@ async def test_greets_what_isnt_a_command(greeted: Greeted, sent: DataMessage) -
         "/time",  # the bot's own alias, for /info
         "pic",  # the config's
         "/status",  # an admin command, which the bot doesn't answer her
-        "/dailypost",
+        "/today preview",  # one of two words
         "/bins",  # one of the admins' own specials
     ],
 )

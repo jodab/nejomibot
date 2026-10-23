@@ -21,10 +21,6 @@ wait for the owner.
   stays on 0.99.x, patch releases only. `tools/release.sh` stops on minor
   and major; take its guard out (after the usage check) when it's time.
 
-- [ ] **`/dailyquote` is an admin command, as `/dailypost` is** (2026-10-18):
-  for timers, `/run` and the admins in a direct chat, like every special.
-  Unlike `/dailypost`, it uses nothing up, so it could be an everyday
-  command, for everyone allowed; they have `/fortune` already.
 - [ ] **A typed `|` in `/special add`** (2026-10-18): it's refused ("the
   file of specials uses it"), though only the first `|` of a line counts and
   the file now has spoilers' `||`: the refusal could go, the `|` kept as
@@ -74,7 +70,7 @@ wait for the owner.
 
 ### For you to do
 
-- [ ] **Holidays in the daily post** (2026-10-19): set `holidays = ["SE",
+- [ ] **Holidays in `/today`** (2026-10-19): set `holidays = ["SE",
   "GR"]` in the server's config.toml, as it's none by default, then add the
   birthdays and name days with `/birthday add` and `/nameday add`.
 - [ ] **Perhaps say on 0.94.0's release page that its images are broken**

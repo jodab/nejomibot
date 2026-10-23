@@ -17,10 +17,11 @@ from signalbot import (
     EditMessage,
     SendMessage,
     SignalBot,
+    TextMode,
     text_triggered,
 )
 
-from nejomibot import access, commands, messages, specials, timers
+from nejomibot import access, commands, messages, photos, specials, timers, today
 from nejomibot.access import HEADER
 from nejomibot.account import Contact
 from nejomibot.bot import handlers
@@ -275,8 +276,8 @@ def test_parse_add_refuses(text: str, why: str) -> None:
         (
             [
                 "/weather",
-                "/dailypost",
-                "/dailyquote",
+                "/today",
+                "/photo new",
                 "/contacts",
                 "/name Mybot",
                 "/fortune",
@@ -314,9 +315,9 @@ def test_check_commands(commands: list[str], why: str | None) -> None:
 def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic"], "/timer": ["/t"]}')
     get_settings.cache_clear()
-    assert check_commands(["/väder", "/dagenspost", "/Pic", "/spådom startrek"]) is None
-    # /dagenspost's old name too
-    assert check_commands(["/dagensbild"]) is None
+    assert check_commands(["/väder", "/idag", "/Pic", "/spådom startrek"]) is None
+    # Their subcommands too
+    assert check_commands(["/bild ny", "/idag förhandsvisa imorgon"]) is None
     # Named as given
     for command in ("/t add 08:00 /ping", "/skicka 1 Hej", "/kör 1 /ping"):
         assert check_commands([command]) == (
@@ -364,7 +365,7 @@ def test_timers_may_run_what_only_lists() -> None:
                 "/delivery",
                 "/timers",
                 "/specials",
-                "/dailypost preview tomorrow",
+                "/today preview tomorrow",
             ]
         )
         is None
@@ -581,7 +582,7 @@ def test_the_example_date_is_still_to_come(today: date, example: str) -> None:
 
 
 @pytest.mark.usefixtures("swedish")
-async def test_the_daily_post_sends_everyone_the_same(
+async def test_a_daily_post_sends_everyone_the_same(
     sent: Sent, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     photos_picked: list[bool] = []
@@ -593,21 +594,26 @@ async def test_the_daily_post_sends_everyone_the_same(
         caption: str = "", *, track_sent: bool = False
     ) -> SendMessage:
         photos_picked.append(track_sent)
-        return SendMessage(text=f"{caption} 📷")
+        return SendMessage(text="📷", text_mode=TextMode.STYLED)
 
-    monkeypatch.setattr(specials, "weather_message", weather_message)
-    monkeypatch.setattr(specials, "photo_message", photo_message)
+    monkeypatch.setattr(today, "weather_message", weather_message)
+    monkeypatch.setattr(photos, "photo_message", photo_message)
+    # A special of the admins', as /special add keeps it: Dagens bild! in
+    # bold over the photo
+    get_settings().specials_file.write_text(
+        "/dailypost | /today; **Dagens bild!** /photo new\n"
+    )
     bot = cast(SignalBot, FakeBot())
     keeper = Timekeeper()
     keeper.start(bot, [h for h, *_ in handlers(bot, get_settings())])
-    # As an admin adds it in Swedish: /timer lägg till 08:00 1,2 /dagenspost
-    timer = add(keeper, "08:00", [GROUP, ALICE], "/dagenspost")
+    monkeypatch.setattr(specials, "timekeeper", keeper)
+    timer = add(keeper, "08:00", [GROUP, ALICE], "/dailypost")
     await keeper.run(timer.id)
     assert sent == [
         (GROUP, "Vädret"),
         (ALICE, "Vädret"),
-        (GROUP, "Dagens bild! 📷"),
-        (ALICE, "Dagens bild! 📷"),
+        (GROUP, "**Dagens bild!**\n\n📷"),
+        (ALICE, "**Dagens bild!**\n\n📷"),
     ]
     # One photo, from those not sent yet this round
     assert photos_picked == [True]
@@ -876,14 +882,15 @@ async def test_the_file_keeps_the_english_names(
     admin_chat: tuple[Timekeeper, list[str]],
 ) -> None:
     keeper, replies = admin_chat
-    # Subcommands too: /spådom alla as /fortune all
-    await command(keeper, "/timer lägg till 08:00 /dagenspost; /spådom alla")
+    # Subcommands too: /bild ny as /photo new, /spådom alla as /fortune all
+    await command(keeper, "/timer lägg till 08:00 /idag; /bild ny; /spådom alla")
     assert replies[-1].startswith(
         f"✅ **Tillagd**\n**#1** · dagligen 08:00\n💬 Admin ({ADMIN})\n"
-        "▶️ /dailypost; /fortune all\n🔜 Nästa: "
+        "▶️ /today; /photo new; /fortune all\n🔜 Nästa: "
     )
-    assert keeper.timers[1].commands == ["/dailypost", "/fortune all"]
-    assert "| /dailypost; /fortune all |" in (get_settings().timers_file).read_text()
+    assert keeper.timers[1].commands == ["/today", "/photo new", "/fortune all"]
+    file = (get_settings().timers_file).read_text()
+    assert "| /today; /photo new; /fortune all |" in file
     # A line by hand, with Swedish names, reads as English too
     assert parse_line(
         f"2 | 08:00 | {ALICE} | /väder; /Bild | 2026-10-12 08:00", NOW

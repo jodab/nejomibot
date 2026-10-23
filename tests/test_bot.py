@@ -43,6 +43,7 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Ping": EVERYONE_ALLOWED,
         "Photo": EVERYONE_ALLOWED,
         "OnThisDay": EVERYONE_ALLOWED,
+        "Today": EVERYONE_ALLOWED,
         "Weather": EVERYONE_ALLOWED,
         "Forecast": EVERYONE_ALLOWED,
         "Info": EVERYONE_ALLOWED,
@@ -53,6 +54,8 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Help": EVERYONE_ALLOWED,
         # The admins, in direct chats only
         "Status": admins,
+        # As it shows every group's birthdays
+        "TodayPreview": admins,
         "Specials": admins,
         "Contacts": admins,
         "Trust": admins,

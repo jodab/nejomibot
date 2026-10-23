@@ -1,5 +1,5 @@
 """Timers: the bot runs commands on a schedule and posts the answers to chats,
-such as the daily post: /timer add 08:00 1,2 /dailypost.
+such as a daily post: /timer add 08:00 1,2 /today; /photo new.
 
 The admins manage them in a direct chat with the bot. /chats numbers the
 chats a timer can post to: the groups the bot is in, then the people on the
@@ -15,8 +15,8 @@ the chat they're sent in, as /remind and /list do. What only lists, as
 /chats, /allowed or /incoming, it can run, and a list it posts doesn't
 change the numbers an admin's commands take, as in /incoming 4. Its answers
 are collected rather than sent, then posted to each of the timer's chats, so
-every group gets the same photo; one with a text for some chats, as the
-daily post's with birthdays, gets it there.
+every group gets the same photo; one with a text for some chats, as
+/today's with birthdays, gets it there.
 
 Timers are kept in data_dir/timers.txt, one per line, which
 nejomibot-timers edits too: the bot rereads the file when it changes. In debug
@@ -644,7 +644,7 @@ def check_commands(
     for command in commands:
         found = find(canonical(command))
         if found is not None and not found.timers:
-            # As typed: /dailypost preview's two words, or one
+            # As typed: /today preview's two words, or one
             typed = " ".join(command.split()[: len(found.name.split())])
             return _("Timers, specials and /run can't run {command}.").format(
                 command=typed

@@ -3,11 +3,12 @@ import base64
 import io
 from datetime import datetime
 from pathlib import Path
+from typing import cast
 
 import pytest
-from helpers import make_jpeg
+from helpers import ALICE, make_jpeg, message_from
 from PIL import Image
-from signalbot import TextMode, TextStyle
+from signalbot import DataMessageContext, SendMessage, SignalBot, TextMode, TextStyle
 
 from nejomibot import photos
 from nejomibot.config import get_settings
@@ -254,6 +255,28 @@ def test_commands_ignore_the_sent_photos(photos_dir: Path) -> None:
     photos.get_settings().sent_photos_file.write_text("a.jpg\n")
     assert photos.random_photo_message() is not None
     assert sent_names() == ["a.jpg"]
+
+
+async def test_photo_new_is_from_the_round(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    for name in ["a.jpg", "b.jpg"]:
+        make_jpeg(photos_dir / name)
+    get_settings().sent_photos_file.write_text("a.jpg\n")
+
+    async def send(text: str) -> None:
+        context = DataMessageContext(cast(SignalBot, None), message_from(ALICE, text))
+        await photos.Photo().handle_data_message(context)
+
+    await send("/photo new")
+    assert [answer.text for answer in answers] == [
+        "⚠️ Date unknown (see the file name)\n🖼️ b.jpg"
+    ]
+    assert sent_names() == ["a.jpg", "b.jpg"]
+    # /photo picks from all of them, and doesn't count
+    await send("/photo")
+    assert len(answers) == 2
+    assert sent_names() == ["a.jpg", "b.jpg"]
 
 
 def test_heif_is_sent_as_jpeg(photos_dir: Path) -> None:

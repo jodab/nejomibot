@@ -22,11 +22,11 @@ weather_city = "Stockholm"
 weather_units = "metric"  # or "imperial"
 # /weather Helsinki is the weather in Helsinki: the bot asks OpenWeatherMap
 # about such places at most this many times an hour, finding them included.
-# weather_city, as in the daily post, isn't counted. Each place's weather is
-# kept for 10 minutes.
+# weather_city, as in /today, isn't counted. Each place's weather is kept for
+# 10 minutes.
 # weather_calls_per_hour = 10
 
-# The daily post names the day's holidays, flag days and traditions of these
+# /today names the day's holidays, flag days and traditions of these
 # countries atop the weather, by their codes, such as "SE" Sweden, "GR"
 # Greece, "GB" the United Kingdom or "US" the United States: the 27 of the
 # European Union, Norway, Iceland, Switzerland, the United Kingdom, the
@@ -63,7 +63,6 @@ exchange_rate = ["EUR", "SEK"]
 
 # The fortune library /fortune picks from when none is named: one that
 # /fortune list names, such as "wisdom", or "all" for every one of them.
-# /dailyquote's stays fortunes_svenska.
 # fortune_library = "fortunes_svenska"
 
 # Messages that couldn't be sent (signal-cli-rest-api down, no internet) are
@@ -90,16 +89,16 @@ send_retry_hours = 3
 
 # The admins, by phone number, or by Signal ID for those who don't share
 # their number. They may use every command: the everyday ones anywhere
-# they're allowed, and the admin commands (/status, the specials such as
-# /dailypost, /contacts, /trust, /allowed, /allow, /disallow, /admins,
-# /admin, the profile commands, the timers, /msg, /run, /birthday and
-# /nameday) only in a direct chat with the bot; /delete in any chat. They
-# hear from the bot of an update, a crash, a rate limit and a changed safety
-# number. They may make others admins with /admin add, who may then use
-# every command but /admin add and remove, but no command can take away what
-# those here may do. Everyone else is let in with /allow. The bot's greeting, for those
-# on the allowed list who write to it but send no command, names the first
-# to contact.
+# they're allowed, and the admin commands (/status, /today preview, the
+# specials, /contacts, /trust, /allowed, /allow, /disallow, /admins, /admin,
+# the profile commands, the timers, /msg, /run, /birthday and /nameday) only
+# in a direct chat with the bot; /delete in any chat. They hear from the bot
+# of an update, a crash, a rate limit and a changed safety number. They may
+# make others admins with /admin add, who may then use every command but
+# /admin add and remove, but no command can take away what those here may
+# do. Everyone else is let in with /allow. The bot's greeting, for those on
+# the allowed list who write to it but send no command, names the first to
+# contact.
 admins = [
     "+46700000001",  # you
 ]

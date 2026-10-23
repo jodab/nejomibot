@@ -76,7 +76,7 @@ async def names(bot: SignalBot) -> access.Names:
 
 
 def card(timer: Timer, known: access.Names) -> str:
-    """E.g. '#1 daily 08:00 → Family, Alice: /dailypost (last 2026-10-13 08:00)'."""
+    """E.g. '#1 daily 08:00 → Family, Alice: /today (last 2026-10-13 08:00)'."""
     chats = ", ".join(known.of(chat) for chat in timer.chats)
     commands = "; ".join(timer.commands)
     last = f"{timer.last.astimezone(get_settings().tz):%Y-%m-%d %H:%M}"

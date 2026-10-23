@@ -238,7 +238,7 @@ shutdown, and they're loaded at start. `send()` returns the `Outcome`, which
 `/msg` and `/run` report. While a timer, `/run` or a special runs a command,
 the `collected` ContextVar gathers its replies instead of sending them, and
 `mark_read` and `show_typing` do nothing. A `PerChat` message has a text of
-its own for some chats, as the daily post's for the groups of those with a
+its own for some chats, as `/today`'s for the groups of those with a
 birthday: `send()` gives each chat its own, so timers, `/run`, specials and
 replies all do. As Signal starts rate-limiting the bot, the outbox calls
 `on_rate_limited` (notices.py), and with each message sent, `on_sent`
@@ -263,21 +263,25 @@ second `Command` of the same name with `timers=False`. A list shown under
 `collected` doesn't change the numbers an admin's `/incoming 4` or
 `/delete 3` take (their `shown`), as `contacts.remember()` does.
 
-**Specials** (`specials.py`): commands that post several things, in order.
-`/dailypost` (the weather, then the photo of the day from the round) and
-`/dailyquote` are code; the admins' own are data in `data_dir/specials.txt`
-(`/special add|remove`, `/specials`): parts of text and a command, each run
-through `Timekeeper.answers_to` as a timer's, its text heading the first
-answer. Their parts can't be the admins' own specials, nor what timers can't
-run; one a timer runs can't be removed. `OwnSpecials.current()` stats the
+**Specials** (`specials.py`): the admins' own commands that post several
+things, in order, data in `data_dir/specials.txt` (`/special add|remove`,
+`/specials`): parts of text and a command, each run through
+`Timekeeper.answers_to` as a timer's, its text heading the first answer.
+None are code: `/dailypost` and `/dailyquote` went, as specials post the
+same (the owner's decision, 2026-10-23), the daily post through `/today`
+and `/photo new` (the round of photos not sent yet, `sent-photos.txt`,
+which `/photo` and `/onthisday` don't count toward). Their parts can't be
+the admins' own specials, nor what timers can't run; one a timer runs
+can't be removed. `OwnSpecials.current()` stats the
 file at each lookup and rereads it when it changed. Their texts keep the
 formatting given in Signal (`DataMessage.text_styles`), which
 `styles.marked()` writes as signal-cli-rest-api's marks and checks by
 reading them back as its parser does (`styles.unmarked()`).
 
-**Birthdays and holidays** (`birthdays.py`, `holidays.py`): the daily post
-names the day atop the weather: its holidays, in every chat, from rules in
-`holidays.py` (Easter from dateutil), for 35 countries by their ISO codes
+**Birthdays and holidays** (`birthdays.py`, `holidays.py`): `/today`
+(`today.py`) names the day atop the weather, `/day` alone, and `/today
+preview` shows the admins each group's: its holidays, in every chat, from
+rules in `holidays.py` (Easter from dateutil), for 35 countries by their ISO codes
 (`config.Country`, which a test keeps equal to `holidays.COUNTRIES`); and in
 a group only, never a direct chat (the owner's decision, 2026-10-19), the
 birthdays and name days of those it's for. Only Sweden's and Greece's names

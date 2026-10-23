@@ -1,7 +1,7 @@
 """/onthisday: a photo taken on this day in an earlier year, captioned as
 /photo captions it, under "3 years ago today" in bold; without one, a photo
 taken within three days of it, under "3 years ago, around this day". Like
-/photo, it doesn't count toward the daily post's round.
+/photo, it doesn't count toward the round of /photo new.
 
 When each photo was taken comes from its EXIF, as its caption has it, in the
 bot's timezone. The bot reads it once for each photo, only the file's header,

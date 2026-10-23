@@ -1,5 +1,10 @@
 """Random photo from the local library, with its date, age and location.
 
+/photo new picks among the photos not sent yet in this round, and counts
+toward it: none twice until every photo has been sent, then a new round
+starts. /photo picks from all of them, and doesn't count. A timer that runs
+/photo new every day posts each photo once, round after round.
+
 HEIC and HEIF photos are sent as JPEG, with photos_heif; without it they're
 left out, which saves the memory of pillow-heif, which opens them.
 """
@@ -42,8 +47,8 @@ MAX_ZONE_SHIFT = timedelta(hours=14)  # the farthest any time zone is from UTC
 OSM_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 OSM_ZOOM = 16
 
-# The daily post's pick and its marking as sent, one post at a time, so two
-# at once don't pick the same photo
+# /photo new's pick and its marking as sent, one at a time, so two at once
+# don't pick the same photo
 picking = threading.Lock()
 
 
@@ -293,8 +298,8 @@ def random_photo_message(
 ) -> SendMessage | None:
     """Pick a random valid photo and build its message. Blocking.
 
-    With track_sent (the daily post), only photos not sent yet in this round
-    are picked, and the pick is added to the sent ones.
+    With track_sent (/photo new), only photos not sent yet in this round are
+    picked, and the pick is added to the sent ones.
     """
     photos = scan_photos()
     if not photos:
@@ -383,10 +388,11 @@ async def cache_message() -> str:
 
 
 class Photo(Handler):
-    commands = (Command("/photo"), Command("/cache"))
+    commands = (Command("/photo new"), Command("/photo"), Command("/cache"))
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         if command.name == "/cache":
             await answer(context, cache_message)
         else:
-            await answer(context, photo_message, slow=True)
+            new = command.name == "/photo new"
+            await answer(context, lambda: photo_message(track_sent=new), slow=True)

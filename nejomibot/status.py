@@ -163,7 +163,7 @@ def system_checks() -> list[Check]:
 
 
 def next_timer_run(bot: SignalBot) -> datetime | None:
-    """When a timer runs next, the daily post's among them."""
+    """When a timer runs next."""
     jobs: list[Any] = bot.scheduler.get_jobs()  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
     # Jobs only get next_run_time once the scheduler has started
     times = (
