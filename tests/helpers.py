@@ -171,7 +171,8 @@ RESPONSES: dict[str, Any] = {
         "version": "unset",
         "capabilities": {"v2/send": ["quotes", "mentions"]},
     },
-    "/v1/accounts": [ME],
+    # As since its numberless support; before, [ME]
+    "/v1/accounts": [{"number": ME, "aci": ME_ID}],
     f"/v1/contacts/{ME}": [
         {"number": ALICE, "uuid": ALICE_ID, "name": "Alice", "blocked": False},
     ],

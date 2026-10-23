@@ -146,10 +146,12 @@ bots on one account compete for incoming messages.
 `NEJOMIBOT_CONFIG` or `./config.toml`, overridden by `NEJOMIBOT_*`
 environment variables; `extra="forbid"`, so a renamed or removed setting in
 the file stops the bot with a message, while pydantic-settings ignores an
-unknown variable) → `wait_for_account()` polls
-signal-cli-rest-api until it has the account, answering the container health
-check meanwhile → `SignalBot` → outbox (with the messages kept from before),
-allowed list, handlers, timers, health → `bot.start()` runs signalbot's event
+unknown variable) → `wait_for_account()` polls signal-cli-rest-api until it
+has the account, answering the container health check meanwhile
+(`rest.accounts()` reads `/v1/accounts` either way upstream lists them: by
+number before its 787d204e of 2026-10-22, as `{"number", "aci"}` since) →
+`SignalBot` → outbox (with the messages kept from before), allowed list,
+handlers, timers, health → `bot.start()` runs signalbot's event
 loop and its APScheduler, and signalbot takes over SIGTERM. Once it returns,
 `bot.shutdown()` cancels the bot's own tasks, keeps the waiting messages,
 closes the HTTP session and the loop. Scheduled jobs that must not be skipped

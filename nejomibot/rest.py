@@ -14,7 +14,7 @@ from typing import Any
 from urllib.parse import quote
 
 import aiohttp
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from .client import client
 from .config import get_settings
@@ -90,10 +90,29 @@ async def get_file(path: str) -> bytes | None:
 # The account
 
 
-async def accounts() -> Any:
-    """The accounts registered in signal-cli. signalbot assumes its account is
+class ListedAccount(BaseModel):
+    """An account as signal-cli-rest-api lists it since its numberless
+    support (787d204e, 2026-10-22): its phone number, empty for an account
+    without one, and its Signal ID. Before, it listed the number alone."""
+
+    number: str | None = None
+    aci: str | None = None
+
+
+LISTED_ACCOUNTS = TypeAdapter(list[str | ListedAccount])
+
+
+async def accounts() -> set[str]:
+    """The accounts registered in signal-cli, by phone number and Signal ID,
+    as either way of listing them has them. signalbot assumes its account is
     there, and has no way to ask."""
-    return await get_json("/v1/accounts")
+    found: set[str] = set()
+    for account in LISTED_ACCOUNTS.validate_python(await get_json("/v1/accounts")):
+        if isinstance(account, str):
+            found.add(account)
+        else:
+            found.update(each for each in (account.number, account.aci) if each)
+    return found
 
 
 async def devices() -> Any:

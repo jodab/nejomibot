@@ -3,14 +3,14 @@ import os
 import re
 import signal
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import pytest
 from aiohttp import web
-from helpers import ME, FakeApi
+from helpers import ME, ME_ID, FakeApi
 from signalbot import SendMessage, SignalBot
 
-from nejomibot import access, bot, commands
+from nejomibot import access, bot, commands, rest
 from nejomibot.bot import check_aliases, handlers, load_settings, wait_for_account
 from nejomibot.client import client
 from nejomibot.config import get_settings
@@ -241,6 +241,33 @@ async def test_waits_for_the_account(
 
     signal_api.responses["/v1/accounts"] = [ME]
     await asyncio.wait_for(waiting, 1)
+
+
+NUMBERLESS = "11111111-1111-4111-8111-111111111111"
+
+
+@pytest.mark.parametrize(
+    ("listed", "accounts"),
+    [
+        # By number alone, as signal-cli-rest-api listed them before 787d204e
+        ([ME], {ME}),
+        # Since then with their Signal IDs, one without a number by that alone
+        (
+            [
+                {"number": "", "aci": NUMBERLESS},
+                {"number": ME, "aci": ME_ID},
+                {"number": "", "aci": None},
+            ],
+            {NUMBERLESS, ME, ME_ID},
+        ),
+    ],
+)
+async def test_finds_the_account_either_way_it_is_listed(
+    signal_api: FakeApi, listed: list[Any], accounts: set[str]
+) -> None:
+    signal_api.responses["/v1/accounts"] = listed
+    assert await rest.accounts() == accounts
+    await asyncio.wait_for(wait_for_account(), 1)
 
 
 async def test_the_wait_leaves_no_http_session_behind(signal_api: FakeApi) -> None:

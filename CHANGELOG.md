@@ -4,6 +4,16 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Fixed
+
+- With a signal-cli-rest-api build from 2026-10-22 on, the bot waited for
+  its account forever at start ("has no account … yet"), and
+  `signal-account.sh` took the account for unregistered: those builds list
+  the accounts with their Signal IDs, as `{"number": …, "aci": …}`, rather
+  than by number alone. Both read either now.
+
 ## 0.99.9 - 2026-10-23
 
 ### Added

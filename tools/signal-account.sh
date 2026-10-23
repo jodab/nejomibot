@@ -403,9 +403,13 @@ read_about() {
   api_mode=$(jq -r '.mode // "?"' "$reply")
 }
 
+# Each by its phone number, or its Signal ID if it has none. Since its
+# numberless support (787d204e, 2026-10-22) signal-cli-rest-api lists them
+# as {"number": ..., "aci": ...}; before, by number alone.
 list_accounts() {
   request GET /v1/accounts || fail "Can't list the accounts"
-  mapfile -t accounts < <(jq -r '.[]' "$reply")
+  mapfile -t accounts < <(jq -r '.[] | if type == "string" then .
+    elif (.number // "") != "" then .number else .aci // empty end' "$reply")
 }
 
 # is_registered NUMBER: true if signal-cli has the account.
