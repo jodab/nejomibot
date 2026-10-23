@@ -4,6 +4,15 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Fixed
+
+- Registering with `signal-account.sh` could get stuck at the code, as
+  Signal's first SMS sometimes never comes, and the tool had no way to ask
+  for another. Where it asks for the code, Enter now has Signal send it
+  again, or call with it.
+
 ## 0.99.11 - 2026-10-23
 
 ### Added

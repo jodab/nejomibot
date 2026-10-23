@@ -15,7 +15,8 @@
 #   register [--voice] [--captcha LINK]
 #                              have Signal send a verification code by SMS, or
 #                              call with it (--voice); walks through a captcha
-#                              if Signal wants one, then asks for the code
+#                              if Signal wants one, then asks for the code,
+#                              and has it sent again if none comes
 #   verify CODE [--pin]        finish registering with the code; --pin asks for
 #                              the PIN of a number with a registration lock
 #   link [NAME]                make signal-cli a linked device of a phone,
@@ -760,6 +761,20 @@ verify() {
   info "$account is registered."
 }
 
+# get_code: have the code Signal sent typed in, into $answer. Enter, when none
+# came, has Signal send it again, or call with it, as its apps offer: its
+# first SMS doesn't always come (on 2026-10-23 the one sent right after a
+# captcha never did, twice, while the next one came at once).
+get_code() {
+  local voice
+  while ask "The code Signal sent (Enter if none came):" && [[ -z $answer ]]; do
+    ask "Have Signal send it again by SMS (s), or call with it (c)?" s
+    voice=0
+    if [[ ${answer,,} == c* ]]; then voice=1; fi
+    (register "$voice" "") || true
+  done
+}
+
 # link_device NAME: make signal-cli a linked device of a phone, called NAME
 # there: show the QR code to scan, then wait for the new account to show up.
 link_device() {
@@ -855,7 +870,7 @@ cmd_setup() {
       r*)
         number_to_register
         register 0 ""
-        ask "The code Signal sent:"
+        get_code
         verify "$answer" 0
         ;;
       l*) link_device "$DEFAULT_DEVICE" ;;
@@ -945,7 +960,7 @@ cmd_register() {
   number_to_register
   register "$voice" "$code_captcha"
   if interactive; then
-    ask "The code Signal sent:"
+    get_code
     verify "$answer" 0
     info "Next, its name: ${0##*/} profile --name NAME"
   else

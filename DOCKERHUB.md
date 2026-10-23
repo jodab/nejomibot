@@ -169,7 +169,9 @@ docker compose exec nejomibot signal-account.sh setup
    phone, press and hold it) and copy the link. Paste it into the tool: it
    starts with `signalcaptcha://`, and works for a minute or so only.
 3. **The code.** Signal texts a 6-digit code to the bot's number: type it in.
-   If Signal can't send a text, the tool offers a call instead.
+   If none comes within a minute, press Enter: the tool has Signal send it
+   again, or call with it. If Signal can't send a text, the tool offers a
+   call instead.
 4. **Profile, username, PIN and privacy.** Enter skips any of them. Do give
    the bot a **name**, or Signal shows its number instead; and set a **PIN**
    (answer `y`), which stops anyone else from registering the number. Keep
@@ -326,9 +328,10 @@ settings is the one on your API keys page.
 **The captcha didn't work.** It's only good for a minute or so: solve a new
 one, and paste the link right away.
 
-**No code comes.** When Signal can't send a text, the tool offers a call
-instead. Signal limits how often a number can ask for a code: if it keeps
-saying no, wait a while before trying again.
+**No code comes.** Press Enter where the tool asks for it, and it has Signal
+send the code again, or call with it. Signal's first text sometimes never
+comes, while the next one does at once. Signal limits how often a number can
+ask for a code: if it keeps saying no, wait a while before trying again.
 
 **On Fedora, RHEL and other systems with SELinux**, the containers may be
 refused their folders. In `compose.yaml`, add `:Z` to the data and signal
