@@ -30,6 +30,7 @@ from nejomibot.account import (
 from nejomibot.contacts import (
     Contacts,
     Trust,
+    add,
     contacts_answer,
     contacts_message,
     find,
@@ -108,13 +109,64 @@ def test_person_card(account: Account) -> None:
     assert person_card(account, alice) == "\n".join(
         [
             "👤 **Alice**",
-            ALICE,
+            f"📞 Number: {ALICE}",
             f"🆔 {ALICE_ID}",
             "👥 In Familjen",
             "✅ Verified, key from 1970-01-01",
             *format_safety_number(SAFETY_NUMBER),
         ]
     )
+
+
+def test_the_profile_name_and_username_show_beside_the_contacts_name(
+    account: Account,
+) -> None:
+    # Named Dave in the contacts, otherwise by himself, and found by his
+    # username; his number he doesn't share
+    dave = Contact(
+        uuid=DAVE_ID,
+        name="Dave",
+        username="dave.07",
+        profile=Profile(given_name="DaveTheBrave⚘"),
+    )
+    account.recipients.append(dave)
+    assert person_card(account, dave) == "\n".join(
+        [
+            "👤 **Dave**",
+            "🪪 Profile name: DaveTheBrave⚘",
+            "🔗 Username: @dave.07",
+            "📞 phone number not shared",
+            f"🆔 {DAVE_ID}",
+            "No safety number yet",
+        ]
+    )
+    assert (
+        "👤 **Dave** · phone number not shared · 🪪 DaveTheBrave⚘ · @dave.07\n"
+    ) in contacts_message(account)
+
+
+@pytest.mark.parametrize("who", ["u:dave.07", "@dave.07"])
+async def test_add_someone_by_username(
+    bot: SignalBot, account: Account, signal_api: FakeApi, who: str
+) -> None:
+    text = await add(bot, account, who, "Dave")
+    assert text == "📇 Added @dave.07 to the contacts, as Dave."
+    # As signal-cli takes a username, which it finds Dave by
+    assert signal_api.bodies("PUT", f"/v1/contacts/{ME}") == [
+        {"recipient": "u:dave.07", "name": "Dave"}
+    ]
+
+
+async def test_add_by_a_username_signal_cli_knows_renames(
+    bot: SignalBot, account: Account, signal_api: FakeApi
+) -> None:
+    account.recipients.append(Contact(uuid=DAVE_ID, username="dave.07"))
+    text = await add(bot, account, "@Dave.07", "Dave")
+    assert text == "📇 Added dave.07 to the contacts, as Dave."
+    [sent] = signal_api.bodies("PUT", f"/v1/contacts/{ME}")
+    assert sent["recipient"] == DAVE_ID
+    # Not a username: as before
+    assert await add(bot, account, "u:x", "X") == "Nobody called u:x in /contacts."
 
 
 def test_person_card_says_how_to_verify(account: Account) -> None:

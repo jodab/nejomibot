@@ -4,6 +4,24 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `/contacts add` takes a Signal username, as `u:alice.42` or `@alice.42`,
+  for someone the bot doesn't know yet: signal-cli finds them by it, and
+  knows their username from then on, so it shows. Signal shares usernames
+  with nobody, so this is how the bot learns one.
+- `/contacts` and `/trust` show the name someone gave themselves in Signal,
+  their profile name, as `🪪 Alice Berg`, beside the one in the contacts
+  where they differ: naming someone in the contacts hid it.
+
+### Changed
+
+- `/contacts <n>` shows the profile name, username and number a line each,
+  as `/profile` shows the bot's: `🪪 Profile name: …`, `🔗 Username: @…`,
+  `📞 Number: …`.
+
 ## 0.99.8 - 2026-10-21
 
 ### Added

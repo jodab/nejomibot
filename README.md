@@ -247,7 +247,7 @@ For the admins, in a direct chat with the bot:
 | `/dailypost preview [<date>]` | What the daily post will say atop the weather on the day, such as `10-25`, `2026-10-25` or `tomorrow`, today without one: in each group the bot is in, and in a direct chat. It posts nothing else, nor uses up a photo |
 | `/dailyquote` | The daily quote, as a timer posts it: a proverb or quote from `fortunes_svenska`, headed "Proverb or quote of the day:" in bold, what explains a proverb in italics |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, two short lines each, and whether they're verified; with `<who>`, one in full, with their safety number. `<who>` is their number in the list you were shown last, by `/contacts` or `/trust`, their phone number, ID or the start of it, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
-| `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` as for `/contacts`, a name the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number |
+| `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` as for `/contacts`, a name the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number, or by Signal username, as `u:alice.42` or `@alice.42` |
 | `/trust`, `/trust <who>` | Everyone's safety numbers, numbered as `/contacts` numbers them, as the Signal apps show them, and whether each is verified; with `<who>`, one's |
 | `/trust <who> <safety number>` | Mark a safety number as verified, after comparing it with the one on their phone |
 | `/allowed` | Who may use the everyday commands, numbered |
@@ -736,11 +736,14 @@ forwards messages 4 and 9 of your list to chat 1.
 
 `/contacts` lists everyone the bot's Signal account knows, numbered: its
 contacts, then everyone else it knows, as those in its groups, then anyone
-it only has a safety number for, each by name, with their phone number and
-their Signal username, such as `@alice.42`, where signal-cli knows them; not
-the bot itself, whose own safety number is nobody's to compare, nor counted.
-Signal doesn't share usernames: signal-cli knows only those of the people it
-found by theirs, so most show without one. `/trust` lists the same
+it only has a safety number for, each by name, with their phone number, the
+name they gave themselves in Signal (🪪) where it isn't the one in the
+contacts, and their Signal username, such as `@alice.42`, where signal-cli
+knows it; not the bot itself, whose own safety number is nobody's to
+compare, nor counted. `/contacts <n>` shows them as `/profile` shows the
+bot: profile name, username and number a line each. Signal doesn't share
+usernames: signal-cli knows only those of the people it found by theirs, as
+`/contacts add u:alice.42 Alice` does, so most show without one. `/trust` lists the same
 people by the same numbers, with their safety numbers, three rows of four
 groups of five digits, as the Signal apps show them, and whether each is
 verified. A number from the list you were shown last, by either, stands for
@@ -751,6 +754,7 @@ that person wherever a command takes `<who>`:
 /trust 3                     their safety number
 /trust 3 12345 67890 ...     marks it verified, once compared with their phone's
 /contacts add 3 Bobby        a contact, by that name
+/contacts add u:bob.42 Bob   someone new, by Signal username
 /allow 3                     on the allowed list
 /admin add 3                 an admin
 ```

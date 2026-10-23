@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 16:41+0300\n"
+"POT-Creation-Date: 2026-10-23 09:04+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -512,11 +512,11 @@ msgstr ""
 
 #: nejomibot/contacts.py
 msgid ""
-"Send: /contacts add <number in /contacts, phone number, ID or name> <their "
-"name>"
+"Send: /contacts add <number in /contacts, phone number, u:username, ID or "
+"name> <their name>"
 msgstr ""
-"Skicka: /kontakter lägg till <nummer i /kontakter, telefonnummer, ID eller "
-"namn> <deras namn>"
+"Skicka: /kontakter lägg till <nummer i /kontakter, telefonnummer, "
+"u:användarnamn, ID eller namn> <deras namn>"
 
 #: nejomibot/contacts.py
 #, python-brace-format
@@ -568,6 +568,21 @@ msgstr "telefonnumret delas inte"
 #: nejomibot/contacts.py
 msgid "🚫 blocked"
 msgstr "🚫 blockerad"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "Profile name: {name}"
+msgstr "Profilnamn: {name}"
+
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "Username: {username}"
+msgstr "Användarnamn: {username}"
+
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "Number: {number}"
+msgstr "Nummer: {number}"
 
 #: nejomibot/contacts.py
 #, python-brace-format
@@ -658,13 +673,13 @@ msgstr "✅ {name} verifierad."
 
 #: nejomibot/contacts.py
 #, python-brace-format
-msgid "✏️ Renamed {was} to {name} in the contacts."
-msgstr "✏️ {was} heter nu {name} i kontakterna."
+msgid "📇 Added {was} to the contacts, as {name}."
+msgstr "📇 La till {was} i kontakterna, som {name}."
 
 #: nejomibot/contacts.py
 #, python-brace-format
-msgid "📇 Added {was} to the contacts, as {name}."
-msgstr "📇 La till {was} i kontakterna, som {name}."
+msgid "✏️ Renamed {was} to {name} in the contacts."
+msgstr "✏️ {was} heter nu {name} i kontakterna."
 
 #: nejomibot/delete.py
 #, python-brace-format
@@ -1942,11 +1957,6 @@ msgstr[0] "Det är {count} bild: skicka bara en med /avatar."
 msgstr[1] "Det är {count} bilder: skicka bara en med /avatar."
 
 #: nejomibot/profile.py
-#, python-brace-format
-msgid "Username: {username}"
-msgstr "Användarnamn: {username}"
-
-#: nejomibot/profile.py
 msgid "No username"
 msgstr "Inget användarnamn"
 
@@ -1980,11 +1990,6 @@ msgstr "Profilbild: ja"
 #: nejomibot/profile.py
 msgid "No avatar"
 msgstr "Ingen profilbild"
-
-#: nejomibot/profile.py
-#, python-brace-format
-msgid "Number: {number}"
-msgstr "Nummer: {number}"
 
 #: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."

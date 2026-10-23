@@ -14,8 +14,11 @@ add take the numbers too.
 
 People who don't share their phone number on Signal are known only by their
 ID (a UUID), so that's all the bot can show for them, besides their name.
-Their Signal username shows too, if signal-cli knows it: Signal doesn't
-share usernames, so it knows only those of people it found by them.
+The name they gave themselves in Signal, their profile name, shows beside
+the one in the contacts where they differ. Their Signal username shows too,
+if signal-cli knows it: Signal doesn't share usernames, so it knows only
+those of people it found by them, as /contacts add u:alice.42 Alice does
+for someone the bot doesn't know yet.
 """
 
 import logging
@@ -31,6 +34,7 @@ from .account import (
     Account,
     Contact,
     Identity,
+    Profile,
     fetch_account,
     find_by_ids,
     full_name,
@@ -58,9 +62,20 @@ shown: dict[str, Listed] = {}
 
 def add_usage() -> str:
     return _(
-        "Send: /contacts add <number in /contacts, phone number, ID or name> "
-        "<their name>"
+        "Send: /contacts add <number in /contacts, phone number, u:username, "
+        "ID or name> <their name>"
     )
+
+
+# A Signal username, as signal-cli takes it after u:, or as the bot shows it
+# after @: 3 to 32 letters, digits or _, not first a digit, a dot, digits
+USERNAME = re.compile(r"^(?:u:|@)([A-Za-z_][A-Za-z0-9_]{2,31}\.\d{2,9})$")
+
+
+def username_in(who: str) -> str | None:
+    """The Signal username who is, given as u:alice.42 or @alice.42."""
+    found = USERNAME.match(who.strip())
+    return found[1] if found else None
 
 
 def trust_usage() -> str:
@@ -168,14 +183,24 @@ def username_of(contact: Contact) -> str | None:
     return None
 
 
+def profile_name_of(contact: Contact) -> str | None:
+    """The name they gave themselves in Signal, unless it's the name they
+    show by already, as when they're not named in the contacts."""
+    profile = contact.profile or Profile()
+    own = full_name(profile.given_name, profile.lastname)
+    return own if own and own != contact.real_name else None
+
+
 def heading_line(account: Account, contact: Contact) -> str:
-    """Who, with their phone number and username, as the lists show them.
-    Styled."""
+    """Who, with their phone number, profile name and username, as the lists
+    show them. Styled."""
     number = number_of(account, contact)
     line = f"👤 **{escape(short_heading(account, contact))}**"
     ids: list[str] = []
     if contact.real_name or not number:
         ids.append(number or _("phone number not shared"))
+    if own := profile_name_of(contact):
+        ids.append(f"🪪 {own}")
     if username := username_of(contact):
         ids.append(f"@{username}")
     return line + escape("".join(f" · {each}" for each in ids))
@@ -223,10 +248,19 @@ def person_card(account: Account, contact: Contact, who: str | None = None) -> s
     identity = account.identity_of(contact)
     number = number_of(account, contact)
     lines = [f"👤 **{escape(heading_of(account, contact))}**"]
-    ids = [number or _("phone number not shared")]
-    if username := username_of(contact):
-        ids.append(f"@{username}")
-    lines.append(" · ".join(ids))
+    if own := profile_name_of(contact):
+        lines.append("🪪 " + _("Profile name: {name}").format(name=own))
+    if contact.username:
+        username = f"@{contact.username}"
+        lines.append("🔗 " + _("Username: {username}").format(username=username))
+    lines.append(
+        "📞 "
+        + (
+            _("Number: {number}").format(number=number)
+            if number
+            else _("phone number not shared")
+        )
+    )
     if contact.uuid:
         lines.append(f"🆔 {contact.uuid}")
     if contact.profile and (about := full_name(contact.profile.about)):
@@ -371,7 +405,10 @@ def find(account: Account, who: str) -> list[Contact]:
     who = who.strip().casefold()
 
     def by_number_or_id(c: Contact) -> bool:
-        return who in {number_of(account, c), (c.uuid or "").casefold()}
+        ids = {number_of(account, c), (c.uuid or "").casefold()}
+        if c.username:  # as u:alice.42, or @alice.42
+            ids |= {f"u:{c.username.casefold()}", f"@{c.username.casefold()}"}
+        return who in ids
 
     def by_start_of_id(c: Contact) -> bool:
         return len(who) >= 4 and (c.uuid or "").casefold().startswith(who)
@@ -477,8 +514,13 @@ async def add(
     listed: Listed | None = None,
 ) -> str:
     """Make them a contact by this name, or rename them. Someone not known
-    yet is added by their phone number."""
+    yet is added by their phone number, or their Signal username."""
     if isinstance(contact := find_one(account, who, listed), str):
+        if username := username_in(who):
+            await rest.name_contact(f"u:{username}", name)
+            return _("📇 Added {was} to the contacts, as {name}.").format(
+                was=f"@{username}", name=name
+            )
         if not re.match(PHONE_NUMBER, who.strip()):
             return contact
         contact = Contact(number=who.strip())

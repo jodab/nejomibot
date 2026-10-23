@@ -186,7 +186,11 @@ People show as `Alice (+46701234567)`, else `Alice (@alice.42)`:
 `access.names()` gives `Names`, by number, Signal ID and group ID,
 signal-cli's names before the lists' notes, with `numbers` and `usernames`
 by Signal ID, and `Names.of()` words one. signal-cli knows a username only
-for someone it found by it (`u:name.42` as a recipient): Signal shares none. Those who don't
+for someone it found by it (`u:name.42` as a recipient): Signal shares none.
+`/contacts add u:name.42 <name>` (or `@name.42`) is how the bot learns one,
+through `rest.name_contact`, as signalbot hands signal-cli a bare username,
+which it reads as a phone number. A profile name (`Profile.given_name`,
+`lastname`) is what people call their Signal name, not a username. Those who don't
 share their number are known to signal-cli by Signal ID alone, so a number
 on the lists matches neither their name nor their direct messages:
 `access.link()` looks such numbers up through signal-cli-rest-api's search

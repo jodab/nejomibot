@@ -122,6 +122,15 @@ async def identities() -> Any:
     return await get_json(account_path("/v1/identities"))
 
 
+async def name_contact(recipient: str, name: str) -> None:
+    """Make someone a contact by this name: here, someone by Signal
+    username, as u:alice.42, whom signal-cli finds by it on Signal's servers,
+    and keeps it with. signalbot's contacts.update takes a bare username,
+    which signal-cli reads as a phone number."""
+    payload = {"recipient": recipient, "name": name}
+    await request("PUT", account_path("/v1/contacts"), payload=payload, slow=True)
+
+
 async def look_up(numbers: Collection[str]) -> Any:
     """Whether each phone number is on Signal, from Signal's contact
     discovery, which waits for Signal's servers. signal-cli keeps each number
