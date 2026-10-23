@@ -57,16 +57,20 @@ def test_a_line_per_command() -> None:
     # Short lines, as Signal's bubbles are narrow: icon, command, what it does
     lines = help_message(admin=False).splitlines()
     assert lines[0] == "**Commands**"
-    assert lines[1] == "📷 `/photo` – a random photo"
-    assert lines[2] == "🆕 `/photo new` – a photo not sent yet"
-    assert lines[11] == "🔮 `/fortune [<library>|all|list]` – a fortune"
-    assert lines[12] == "🔔 `/remind <when> <text>` – a reminder, here"
+    assert lines[1] == "📷 `/photo [<album>]` – a random photo"
+    assert lines[2] == (
+        "📅 `/photo [<album>] <date> [<time>]` – the one taken nearest then"
+    )
+    assert lines[3] == "🆕 `/uniquephoto [<album>]` – a photo not sent yet"
+    assert lines[13] == "🔮 `/fortune [<library>|all|list]` – a fortune"
+    assert lines[14] == "🔔 `/remind <when> <text>` – a reminder, here"
 
 
 def test_aliases_are_listed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic", "pic"]}')
     get_settings.cache_clear()
-    assert "📷 `/photo` – a random photo (/pic, pic)" in help_message(admin=False)
+    text = help_message(admin=False)
+    assert "📷 `/photo [<album>]` – a random photo (/pic, pic)" in text
 
 
 def test_the_bots_own_aliases_are_listed() -> None:
@@ -85,7 +89,7 @@ def test_an_alias_is_listed_by_the_command_it_is(
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/test"], "/status": ["/s"]}')
     get_settings.cache_clear()
     text = help_message(admin=True)
-    assert "📷 `/photo` – a random photo (/test)" in text
+    assert "📷 `/photo [<album>]` – a random photo (/test)" in text
     assert "🩺 `/status` – how the bot and the server are (/s)" in text
 
 

@@ -228,7 +228,7 @@ async def test_posted_when_due(
     )
     await post_due(bot)
     assert sent == [
-        (GROUP, "⏰ Late\n\n⏳ Late: it should have been sent at 15:30"),
+        (GROUP, "⏰ Late\n\n⏳ Delayed: this message was due at 15:30"),
         (ALICE, "⏰ Now"),
     ]
     assert "Dropped a reminder to a group, due 2 d 1 h ago" in caplog.text
@@ -281,3 +281,24 @@ async def test_served_every_minute(
     job = cast(Any, bot.scheduler.get_job("reminders"))  # pyright: ignore[reportUnknownMemberType]
     assert job is not None
     assert str(job.trigger) == "cron[second='0']"
+
+
+async def test_posted_in_the_chats_language(
+    bot: SignalBot, clock: list[datetime], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sent: list[tuple[str, str]] = []
+
+    async def send(bot: SignalBot, chat: str, message: SendMessage) -> None:
+        sent.append((chat, message.text or ""))
+
+    monkeypatch.setattr(reminders, "send", send)
+    get_settings().data_file("languages.txt").write_text(f"{GROUP} | sv\n")
+    get_settings().data_file("reminders.txt").write_text(
+        f"1 | 2026-10-19 15:30:00+02:00 | {GROUP} | Sent\n"
+        f"1 | 2026-10-19 15:30:00+02:00 | {ALICE} | Late\n"
+    )
+    await post_due(bot)
+    assert sent == [
+        (GROUP, "⏰ Sent\n\n⏳ Försenat: meddelandet skulle ha skickats kl. 15:30"),
+        (ALICE, "⏰ Late\n\n⏳ Delayed: this message was due at 15:30"),
+    ]

@@ -4,7 +4,7 @@ from typing import cast
 import pytest
 from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot, TextMode
 
-from nejomibot import commands, fortune
+from nejomibot import commands, fortune, messages
 from nejomibot.config import get_settings
 from nejomibot.fortune import OWN, Fortune, read_fortunes, styled
 
@@ -97,8 +97,8 @@ async def test_default_library(
     def last_library(names: list[str], weights: list[int]) -> list[str]:
         return [names[-1]]
 
-    monkeypatch.setattr(fortune.random, "choice", last)
-    monkeypatch.setattr(fortune.random, "choices", last_library)
+    monkeypatch.setattr(messages.anywhere, "choice", last)
+    monkeypatch.setattr(messages.anywhere, "choices", last_library)
     assert await answer_to(command, monkeypatch) == [expected]
 
 
@@ -129,7 +129,7 @@ async def test_fortune_library_all(
         chosen.append(names)
         return ["startrek"]
 
-    monkeypatch.setattr(fortune.random, "choices", choices)
+    monkeypatch.setattr(messages.anywhere, "choices", choices)
     assert await answer_to("/fortune", monkeypatch) == ["A test fortune."]
     assert chosen == [["fortunes_svenska", "startrek"]]
 
@@ -203,7 +203,7 @@ def test_all_gives_each_fortune_the_same_chance(
         chosen.append((names, weights))
         return ["three"]
 
-    monkeypatch.setattr(fortune.random, "choices", choices)
+    monkeypatch.setattr(messages.anywhere, "choices", choices)
     assert fortune.fortune_answer("all") in ("A", "B", "C")
     assert chosen == [(["one", "three"], [1, 3])]
 

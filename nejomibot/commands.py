@@ -1,12 +1,12 @@
 """Commands: how the bot takes them, by any of their names, and answers them.
 
 A command has the name its handler gives it, in English, and aliases: other
-names the bot comes with (ALIASES), and from the language (see i18n) and the
-setting aliases. A message that starts with an alias is handled as if it
+names the bot comes with (ALIASES), and from every language (see i18n) and
+the setting aliases. A message that starts with an alias is handled as if it
 started with its command: /pic as /photo, /spådom startrek as /fortune
-startrek. So are the language's words for what follows a command, its
+startrek. So are every language's words for what follows a command, its
 subcommands: /lista lägg till mjölk as /list add mjölk, /spådom alla as
-/fortune all.
+/fortune all. The bot answers in the chat's language (i18n.speaking()).
 
 Each handler is a Handler that lists its commands, saying of each whether
 more may follow its name and whether timers and /run may run it. answer()
@@ -41,8 +41,8 @@ from signalbot import (
 )
 
 from .config import get_settings
-from .i18n import _, language
-from .messages import collected, error_text, escape, log_failure, reply
+from .i18n import _, every_language, speaking, speaking_now
+from .messages import collected, error_text, escape, language_here, log_failure, reply
 from .receipts import mark_read, show_typing
 from .styles import utf16_length
 
@@ -55,12 +55,12 @@ ALIASES = {"/status": ["/test"], "/info": ["/time"], "/contacts": ["/safety"]}
 
 
 def aliases() -> dict[str, str]:
-    """Each alias, in lower case, and its command: the bot's own, the
+    """Each alias, in lower case, and its command: the bot's own, every
     language's, then the settings', which win."""
     table: dict[str, str] = {}
     for command, names in [
         *ALIASES.items(),
-        *language().commands.items(),
+        *(item for lang in every_language() for item in lang.commands.items()),
         *get_settings().aliases.items(),
     ]:
         for name in names:
@@ -79,8 +79,8 @@ def canonical(text: str) -> str:
 
 
 def in_english(text: str) -> str:
-    """The text, the language's words for a subcommand right after its
-    command replaced by the English, as the command takes it."""
+    """The text, a language's words for a subcommand right after its command
+    replaced by the English, as the command takes it."""
     if not (head := COMMAND_AND_SPACE.match(text)):
         return text
     rest = text[head.end() :]
@@ -92,9 +92,12 @@ def in_english(text: str) -> str:
 
 
 def subcommand_words(command: str) -> list[tuple[str, str]]:
-    """The language's words for the command's subcommands, the longest
+    """Every language's words for the command's subcommands, the longest
     first, each with the English it means."""
-    words = language().words
+    words: dict[str, list[str]] = {}
+    for lang in every_language():
+        for word, phrases in lang.words.items():
+            words.setdefault(word, []).extend(phrases)
     if not words:
         return []
     english: set[str] = set()
@@ -170,7 +173,10 @@ class Handler(DataMessageHandler):
     async def handle_data_message(self, context: DataMessageContext) -> None:
         context = resolved(context)
         if command := self.takes(context.message.text or ""):
-            await self.handle(context, command)
+            # In the chat's language, but for a timer's or /run's, which
+            # speaks that of the chats it posts to
+            with speaking(speaking_now.get() or language_here(context)):
+                await self.handle(context, command)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         raise NotImplementedError

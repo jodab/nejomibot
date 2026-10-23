@@ -217,7 +217,7 @@ async def delivery_text(bot: SignalBot, log: SentLog) -> str:
     if not (latest := log.latest(get_settings().delivery_messages)):
         return escape(
             nothing_since_start(log.since, now)
-            or _("The bot has sent nothing in the last day.")
+            or _("No messages sent in the last 24 hours.")
         )
     names = await access.names(bot)
     lines = [
@@ -227,13 +227,19 @@ async def delivery_text(bot: SignalBot, log: SentLog) -> str:
     ]
     notes = [
         _(
-            "📬 got it, of those in the chat · 👀 read it · ⏳ nobody yet · "
-            "⚠️ nobody in {minutes} minutes"
+            "📬 delivered, of those in the chat · 👀 read · ⏳ none yet · "
+            "⚠️ none within {minutes} minutes"
         ).format(minutes=MINUTES)
     ]
     if receipts.since is None:
-        notes.insert(0, _("⚠️ The bot isn't hearing receipts now: the counts may lag."))
-    title = _("Whether the bot's latest messages arrived, newest first:")
+        notes.insert(
+            0,
+            _(
+                "⚠️ Delivery receipts are not being received at the moment: the "
+                "counts may be behind."
+            ),
+        )
+    title = _("Delivery of the bot's latest messages, newest first:")
     return f"📬 **{escape(title)}**\n" + escape("\n".join([*lines, "", *notes]))
 
 

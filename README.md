@@ -5,8 +5,8 @@ This project was created as a playground for teaching myself how to better use C
 
 A Signal bot for a family or a group of friends. Every morning it can post
 the weather and a photo from your photo library to a few Signal groups, and
-it answers a handful of commands. It speaks English or Swedish, and other
-languages once they're translated.
+it answers a handful of commands. It speaks English, Swedish or Greek, in each
+chat the one chosen there, and other languages once they're translated.
 
 It talks to Signal through
 [signalbot](https://pypi.org/project/signalbot/), and so through
@@ -75,7 +75,7 @@ Fill in at least these, keeping the quotes:
 | `openweather_api_key` | Your OpenWeatherMap key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
 | `timezone` | Your time zone, for the timers | `"Europe/Stockholm"` |
-| `language` | `"en"` for English, `"sv"` for Swedish | `"en"` |
+| `language` | `"en"` for English, `"sv"` for Swedish, `"el"` for Greek | `"en"` |
 
 Phone numbers go in international format: `+`, the country code, then the
 number without its first 0, and no spaces. Leave `signal_service` as it is:
@@ -170,12 +170,12 @@ Send the bot:
 
 ```
 /chats
-/timer add 08:00 1 /today; /photo new
+/timer add 08:00 1 /today; /uniquephoto
 /timer run 1
 ```
 
 `/chats` numbers the chats the bot can post to: its groups, then the people
-allowed, then you. `/timer add 08:00 1 /today; /photo new` posts the
+allowed, then you. `/timer add 08:00 1 /today; /uniquephoto` posts the
 weather, then a photo, none twice until every one has been sent, at 08:00
 every day, in your `timezone`, to chat 1; for more chats, `1,2`, and days
 work too, as in `mon-fri 07:30` ([more](#timers)). `/timer run 1` posts it
@@ -231,10 +231,12 @@ The everyday commands, for everyone the bot may talk to:
 
 | Command | Reply |
 |---|---|
-| `/photo` | A random photo with the date it was taken, an age if set, and a map link |
-| `/photo new` | A photo not sent yet in this round, captioned as `/photo` captions it: none twice until every photo has been sent, then a new round starts (see [Photos and the daily post](#photos-and-the-daily-post)) |
-| `/onthisday` | A photo taken on this day in an earlier year, or else within three days of it, captioned as `/photo` captions it, under how many years ago (see [Photos and the daily post](#photos-and-the-daily-post)) |
-| `/cache` | Number and size of photos in the library |
+| `/photo`, `/photo <album>` | A random photo, from every album or the one named, with the date it was taken, an age if set, and a map link (see [Photos and the daily post](#photos-and-the-daily-post)) |
+| `/photo [<album>] <date> [<time>]` | The photo taken nearest that moment, such as `/photo 2024-06-01 15:00`, under how far off it is; with a date alone, one taken that day, or else on the nearest day that has some |
+| `/uniquephoto`, `/uniquephoto <album>` | A photo not sent yet in this round, captioned as `/photo` captions it: none twice until every photo has been sent, then a new round starts; each album has a round of its own (see [Photos and the daily post](#photos-and-the-daily-post)) |
+| `/albums` | The albums, the folders of the photo library: how many photos each has, the years they were taken in, and the birth date its captions count an age from |
+| `/onthisday`, `/onthisday <album>` | A photo taken on this day in an earlier year, or else within three days of it, from every album or the one named, captioned as `/photo` captions it, under how many years ago (see [Photos and the daily post](#photos-and-the-daily-post)) |
+| `/cache`, `/cache <album>` | Number and size of photos in the library, by type, and how many albums it has; with an album, its photos' |
 | `/today` | The weather in `weather_city`, as `/weather` has it, with the day's holidays atop it, and in a group, the birthdays and name days of those in it (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/day` | The same day's holidays, birthdays and name days, without the weather; "Nothing special today." on a day without any |
 | `/weather`, `/weather <city>` | Current weather in `weather_city`, or in the city named, such as `/weather Helsinki`, under its heading in bold, with the day's sunrise and sunset (see [The weather](#the-weather)) |
@@ -246,6 +248,7 @@ The everyday commands, for everyone the bot may talk to:
 | `/list`, `/list add <things>`, `/list remove <n>,<n>`, `/list clear` | The chat's list, such as for shopping: `/list add milk, eggs` puts things on it, `/list remove 2,5` takes them off (see [Reminders and lists](#reminders-and-lists)) |
 | `/birthdays` | In a group, the birthdays of those it's for, the coming ones first; for the admins, in a direct chat, all of them, numbered (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/namedays` | The name days, as `/birthdays` lists the birthdays |
+| `/language`, `/language <language>`, `/language default` | The languages the bot speaks, and the one it speaks here; with a language, by its code or its own name, such as `sv` or `Svenska`, it speaks that here, and `default` goes back to `language` in the configuration. In a direct chat it's the sender's own; a group's is an admin's to change (see [Languages](#languages)) |
 | `/help` | The commands the asker may use, a line each |
 
 For the admins, in a direct chat with the bot:
@@ -253,6 +256,7 @@ For the admins, in a direct chat with the bot:
 | Command | Reply |
 |---|---|
 | `/status`, `/test` | Health check, in two messages: the checks, failed ones first, then the details: the bot and its versions, Signal, public IPs and ASN, container, host |
+| `/album <album>`, `/album <album> <date>`, `/album <album> -` | An album: how many photos, the years, and the birth date its captions count an age from; with a date, such as `2019-06-15`, that birth date; `-` takes it away, so `photos_birth_date` counts again (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/today preview [<date>]` | What `/today` will say atop the weather on the day, such as `10-25`, `2026-10-25` or `tomorrow`, today without one: in each group the bot is in, and in a direct chat |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, two short lines each, and whether they're verified; with `<who>`, one in full, with their safety number. `<who>` is their number in the list you were shown last, by `/contacts` or `/trust`, their phone number, ID or the start of it, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
 | `/contacts add <who> <name>` | Make someone a contact by that name, or rename them; `<who>` as for `/contacts`, a name the longest start of the message that names someone. Someone the bot doesn't know yet can be added by phone number, or by Signal username, as `u:alice.42` or `@alice.42` |
@@ -270,10 +274,11 @@ For the admins, in a direct chat with the bot:
 | `/username <name>`, `/username remove` | Its username, and a link that starts a chat with it |
 | `/timers` | The timers: commands the bot runs on a schedule, such as the daily post |
 | `/chats` | Where timers, `/msg` and `/run` can post, numbered |
-| `/timer add <when> [<chats>] <commands>` | A new timer, e.g. `/timer add mon-fri 07:30 1,2 /today; /photo new` |
+| `/language <chats> <language>` | Give those chats of `/chats` a language, such as `/language 3,1 sv`, people or groups; `default` for the configuration's (see [Languages](#languages)) |
+| `/timer add <when> [<chats>] <commands>` | A new timer, e.g. `/timer add mon-fri 07:30 1,2 /today; /uniquephoto` |
 | `/timer remove <n>`, `/timer run <n>` | Remove a timer, or run it now |
 | `/specials` | The [specials](#specials) of your own: commands that post text and what other commands answer |
-| `/special add <name> <parts>` | A new special, or a change to one, e.g. `/special add /morning Good morning! /today; /photo new` |
+| `/special add <name> <parts>` | A new special, or a change to one, e.g. `/special add /morning Good morning! /today; /uniquephoto` |
 | `/special remove <name>` | Remove a special, unless a timer runs it |
 | `/msg <chats> <text>` | Post the text to other chats, e.g. `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Run commands and post their answers to other chats, e.g. `/run 1 /status` |
@@ -292,16 +297,17 @@ And for the admins in any chat, groups too:
 
 A command can have other names: a few it has had all along (`/test` for
 `/status`, `/time` for `/info`, `/safety` for `/contacts`), aliases from the
-configuration, and the names in the bot's language (see
-[Languages](#languages)). With `language = "sv"`, `/väder` is `/weather`,
-`/hjälp` is `/help`, `/påminn` is `/remind`, `/lista` is `/list`, `/idag`
-is `/today` and `/dagen` is `/day`; `/help` shows every name a command has.
+configuration, and the names in each of the bot's languages, which it
+takes from anyone, whatever the chat's language (see
+[Languages](#languages)): `/väder` is `/weather`, `/hjälp` is `/help`,
+`/påminn` is `/remind`, `/lista` is `/list`, `/idag` is `/today` and
+`/dagen` is `/day`; `/help` shows the names of the language spoken in the
+chat, and the aliases.
 So do the words that follow a command to say what it does, its
 subcommands: in Swedish, `lägg till` is `add`, `ta bort` or `radera`
-`remove`, `lista` `list`, `töm` `clear`, `kör` `run`, `alla` `all`,
-`förhandsvisa` `preview` and `ny` `new`, as in `/lista lägg till mjölk`,
-`/bild ny` or `/timer ta bort 3`. The English ones work too, in any
-language.
+`remove`, `lista` `list`, `töm` `clear`, `kör` `run`, `alla` `all` and
+`förhandsvisa` `preview`, as in `/lista lägg till mjölk` or
+`/timer ta bort 3`. The English ones work too, in any language.
 
 ### Who may use what
 
@@ -491,7 +497,7 @@ Tomorrow: ☁️ Overcast clouds
 
 ### Photos and the daily post
 
-The daily post is a timer: `/timer add 08:00 1,2 /today; /photo new` posts
+The daily post is a timer: `/timer add 08:00 1,2 /today; /uniquephoto` posts
 at 08:00 in the bot's `timezone`, whatever the server's own time zone, to
 chats 1 and 2 of `/chats`, the weather, under its heading in bold, with the
 day's holidays atop it, and in a group, the birthdays and name days of those
@@ -502,17 +508,39 @@ heading over the photo, make the post a [special](#specials), with "Photo of
 the day!" made bold in Signal:
 
 ```
-/special add /dailypost /today; Photo of the day! /photo new
+/special add /dailypost /today; Photo of the day! /uniquephoto
 /timer add 08:00 1,2 /dailypost
 ```
 
-`/photo new` picks a photo at random among those not sent yet in this
+Each folder right in `photos_dir` is an album, named as the folder, its
+subfolders part of it; photos right in `photos_dir` are in no album, but
+among all photos. `/albums` lists them. A command names an album in any
+case, as the longest start of what follows it, so names may have spaces:
+`/photo Alice and Bob`.
+
+`/uniquephoto` picks a photo at random among those not sent yet in this
 round, and counts it; once every photo has been sent, a new round starts.
-Anyone allowed may send it, and each one uses up a photo of the round.
-`/photo` picks from all photos, and neither it nor `/onthisday` counts
-toward the round.
-The sent photos are listed in `data_dir/sent-photos.txt` (a temp file in
-debug mode), so rounds survive restarts; deleting the file starts over.
+Each album has a round of its own: `/uniquephoto Alice` picks among Alice's
+photos not sent yet, and once all of hers have been, her round starts over,
+the others' as they were. Anyone allowed may send it, and each one uses up a
+photo of the round. `/photo` picks from all photos, or the album's, and
+neither it nor `/onthisday` counts toward the round. The sent photos are
+listed in `data_dir/sent-photos.txt` (a temp file in debug mode), by their
+paths in the library, so rounds survive restarts; deleting the file starts
+them all over.
+
+`/photo 2024-06-01 15:00` is the photo taken nearest that moment, in the
+bot's `timezone`, under how far off it is, such as "Nearest to 2024-06-01
+15:00: 8 min before"; `/photo 2024-06-01`, a photo taken that day, at
+random, or else on the nearest day that has some. With an album first, as
+`/photo Alice 2019-03-14`, from that album alone. A photo that doesn't say
+when it was taken is never the nearest, but still comes at random. When each
+photo was taken is as its caption has it: the bot reads it once for each
+photo, from the file's header, and keeps it in memory, about 400 bytes a
+photo, reading a photo again only when it changes. So the first `/photo`
+with a date, `/albums` or `/onthisday` after a start takes longer: about
+2.5 s for 7,600 photos on a desktop whose disk cache has them.
+
 JPEG and the other formats are sent as they are; HEIC/HEIF photos are
 converted to JPEG on the fly with a warning in the log, since not every Signal
 client shows them. Better convert them for good with
@@ -529,6 +557,11 @@ offset they give: a CreateDate a time zone away tells, as in tidy-photos.sh.
 (tidy-photos.sh names the files after the local time, so a caption can be an
 hour or two off the file name.) With `photos_birth_date`, the caption also
 gives the age of who's in the photos on the day, after `photos_age_emoji`.
+An album can have a birth date of its own, for whoever it's about:
+`/album Alice 2019-06-15` sets it, `/album Alice -` takes it away again,
+and `/album Alice` shows the album. They're kept in `data_dir/albums.txt`,
+a line each, which can be changed by hand: the bot reads it again when it
+changes. An album without one takes `photos_birth_date`.
 A photo with a GPS position links to where it was taken: on Google Maps, or
 with `photos_map = "openstreetmap"`, OpenStreetMap's short link, such as
 `https://osm.org/go/0bC2KJ9q?m=`, which shows a marker there.
@@ -536,12 +569,8 @@ with `photos_map = "openstreetmap"`, OpenStreetMap's short link, such as
 `/onthisday` is a photo taken on this day in an earlier year, captioned as
 `/photo` captions it, under "3 years ago today" in bold; without one, a photo
 taken within three days of the day, the nearest first, under "3 years ago,
-around this day". Like `/photo`, it doesn't count toward the round. When
-each photo was taken is as its caption has it, in the bot's `timezone`: the
-bot reads it once for each photo, from the file's header, and keeps it in
-memory, about 300 bytes a photo, reading a photo again only when it changes.
-So the first `/onthisday` after a start takes longer: 0.2 s for 1150 photos
-on a desktop whose disk cache has them.
+around this day". `/onthisday Alice` picks from that album alone. Like
+`/photo`, it doesn't count toward the round.
 
 ### Reminders and lists
 
@@ -798,7 +827,7 @@ bot, to the chats numbered by `/chats`, given as one word, like `1,2`:
 you would in a direct chat with the bot, numbers in it by the lists you were
 shown, and posts its answers to the chats, one command after the other;
 every chat gets the same photo. Like a timer, `/run` can't change timers,
-specials, birthdays or who may use the bot, nor run `/msg` or `/run`, nor
+specials, birthdays, albums or who may use the bot, nor run `/msg` or `/run`, nor
 what's each chat's own: `/remind`, `/list`, `/birthdays` and `/namedays`.
 Mind what goes where: `/status` shows phone numbers and the
 server's addresses to everyone in the chat. Both answer with where they
@@ -868,7 +897,7 @@ with the bot:
 
 ```
 /chats                                     where timers can post, numbered
-/timer add 08:00 1,2 /today; /photo new    a daily post, to chats 1 and 2
+/timer add 08:00 1,2 /today; /uniquephoto    a daily post, to chats 1 and 2
 /timer add mon-fri 07:30 1 /weather; /info to chat 1
 /timer add tomorrow 18:00 1 /photo         once
 /timer add every 2h /status                without chats, to you
@@ -888,7 +917,7 @@ The commands, each with its `/`, are separated by `;`.
 
 A timer runs each command once, as an admin would in a direct chat with the
 bot, so it can run any command but those that change timers, specials,
-birthdays or who may use the bot, post to other chats themselves (`/msg`,
+birthdays, albums or who may use the bot, post to other chats themselves (`/msg`,
 `/run`), or are each chat's own (`/remind`, `/list`, `/birthdays`,
 `/namedays`), and posts its answers to all the timer's chats before the next
 command runs: every chat gets the same photo, and each group the birthdays
@@ -904,7 +933,7 @@ numbers, so only the bot's user may read the file), its commands by their
 English names, and when it last ran, or was added:
 
 ```
-1 | daily 08:00 | group.abcd… group.efgh… | /today; /photo new | 2026-10-13 08:00:01+02:00
+1 | daily 08:00 | group.abcd… group.efgh… | /today; /uniquephoto | 2026-10-13 08:00:01+02:00
 ```
 
 The bot rereads the file within half a minute of a change, so it can be
@@ -916,7 +945,7 @@ does. It's in the bot's image:
 ```sh
 podman exec nejomibot nejomibot-timers                     # the timers
 podman exec nejomibot nejomibot-timers chats
-podman exec nejomibot nejomibot-timers add "08:00" 1,2 "/today; /photo new"
+podman exec nejomibot nejomibot-timers add "08:00" 1,2 "/today; /uniquephoto"
 podman exec nejomibot nejomibot-timers --dry-run remove 3
 ```
 
@@ -937,7 +966,7 @@ and what other commands answer. The admins make them in a direct chat with
 the bot, mostly for timers:
 
 ```
-/special add /morning Good morning! /today; /photo new
+/special add /morning Good morning! /today; /uniquephoto
 /special add /bins The bins go out tonight!
 /specials                                  the specials of your own
 /timer add tue 18:00 1 /bins               a reminder, every Tuesday
@@ -965,7 +994,7 @@ library, under "Proverb or quote of the day:", what explains a proverb in
 italics, as `/fortune` has it:
 
 ```
-/special add /dailypost /today; Photo of the day! /photo new
+/special add /dailypost /today; Photo of the day! /uniquephoto
 /special add /dailyquote Proverb or quote of the day: /fortune fortunes_svenska
 ```
 
@@ -985,7 +1014,7 @@ texts in signal-cli-rest-api's marks for the formatting: `**bold**`,
 is:
 
 ```
-/morning | **Good morning!** /today; /photo new
+/morning | **Good morning!** /today; /uniquephoto
 ```
 
 The bot reads the file again when it changes, so it can be changed by hand
@@ -995,15 +1024,34 @@ lists those.
 ## Languages
 
 The bot's messages are written in English. `language` in the configuration
-picks a translation from [nejomibot/locale](nejomibot/locale):
+picks a translation from [nejomibot/locale](nejomibot/locale), which it
+speaks wherever nobody chose another.
 
-- `sv.po` translates the messages, in gettext's format, which translation
-  tools such as Poedit read. Untranslated messages show in English.
-- `sv.toml` has the language's names for commands, like the aliases in the
-  configuration, its words for days and times in `/timer add`, and for
-  subcommands, such as `lägg till` for `add`. A command lists the
-  subcommands it takes, so only those are read in the language, right after
-  it; the timers and specials files keep them in English.
+Each chat can have a language of its own. `/language sv` (in Swedish
+`/språk`) makes the bot speak Swedish in a direct chat with whoever sends
+it, and in a group, sent by an admin, for everyone in it;
+`/language default` goes back to the configuration's. An admin, in a
+direct chat, can set others', by their numbers in `/chats`:
+`/language 3,1 sv`. `/language` alone lists the languages, and for an
+admin the chats that have one of their own. The bot answers in the chat's language, and posts to it in it:
+the timers' posts, `/run`'s, reminders, the greeting and the notices to each
+admin. A timer that posts to chats of two languages runs its commands once
+in each, so every chat gets the same photo, each captioned in its language,
+and the round uses up one. Each chat's language is kept in
+`data_dir/languages.txt`, a line each, which can be changed by hand. A
+special's texts stay as the admins wrote them, and the weather's names of
+places come in each chat's language, when OpenWeatherMap has them.
+
+- `sv.po` translates the messages into Swedish, and `el.po` into Greek, in
+  gettext's format, which translation tools such as Poedit read.
+  Untranslated messages show in English.
+- `sv.toml` has the language's own name, `Svenska`, its names for commands,
+  like the aliases in the configuration, its words for days and times in
+  `/timer add`, and for subcommands, such as `lägg till` for `add`. A
+  command lists the subcommands it takes, so only those are read, right
+  after it; the timers and specials files keep them in English. The bot
+  takes every language's names and words, from anyone, whatever the chat's
+  language; `/help` shows those of the language spoken there.
 
 Day and month names come from the translations too, so the bot needs no
 locales installed. The fortune libraries aren't translated: each is in its own
@@ -1036,7 +1084,7 @@ A message that starts with an alias is taken as if it started with its
 command: `pic` sends a photo, `/f startrek` with `"/fortune" = ["/f"]` a
 Star Trek fortune. An alias is one word, with or without `/`; without one,
 like `pic`, it's taken from anyone allowed who writes just that word. The
-bot's own names for commands, in English or its language, all start with `/`.
+bot's own names for commands, in English or its languages, all start with `/`.
 An alias can't be a command's own name, and the bot won't start with an
 alias for a command it doesn't have. The configuration's aliases win over the
 language's, and over the bot's own: `/test`, `/time` and `/safety`.
@@ -1561,8 +1609,9 @@ nejomibot/
   admins.py     /admins, /admin: admins besides those in the config
   commands.py   commands: each handler's, by any name, and how they're answered
   i18n.py       translations
-  locale/       the translations: sv.po, the messages; sv.toml, the names
-  photos.py     /photo, /photo new, /cache: random photo with EXIF date, age, location
+  locale/       the translations: sv.po and el.po, the messages; sv.toml and el.toml, the names
+  photos.py     /photo, /uniquephoto, /cache: photos with EXIF date, age, location; albums
+  albums.py     /albums, /album: the albums, and their birth dates
   onthisday.py  /onthisday: a photo from this day in an earlier year
   today.py      /today, /day, /today preview: the day's holidays and birthdays
   specials.py   /specials, /special: several posts in one

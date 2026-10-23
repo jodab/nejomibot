@@ -103,11 +103,11 @@ def chat(monkeypatch: pytest.MonkeyPatch) -> Chat:
         ),
         # Line breaks separate parts too; a / inside a word is text
         (
-            "Read: https://example.com/a /info\n\n/today ;/photo new",
+            "Read: https://example.com/a /info\n\n/today ;/uniquephoto",
             [
                 Part("Read: https://example.com/a", "/info"),
                 Part("", "/today"),
-                Part("", "/photo new"),
+                Part("", "/uniquephoto"),
             ],
         ),
         # The file's texts are in marks, its spoilers' || too
@@ -377,8 +377,8 @@ async def test_lines_it_can_t_read_are_left_as_they_are(
     assert await chat.send("/specials") == [
         "**✨ 1 special**\n"
         "**/bins** · The bins!\n"
-        "⚠️ The file has 4 lines the bot can't read, and leaves as they are: "
-        "/weather \\| /ping / /loop \\| /bins / no bar / /bins \\| Again!"
+        "⚠️ The file has 4 unreadable lines, which are ignored and left "
+        "unchanged: /weather \\| /ping / /loop \\| /bins / no bar / /bins \\| Again!"
     ]
     # By number: what a line says is the admins' text
     assert "Specials line 3 left alone" in caplog.text

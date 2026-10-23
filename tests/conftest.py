@@ -24,8 +24,9 @@ from nejomibot import (
     commands,
     contacts,
     healthcheck,
+    i18n,
     lists,
-    onthisday,
+    photos,
     reminders,
     specials,
     system,
@@ -71,14 +72,21 @@ def settings_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[No
 @pytest.fixture(autouse=True)
 def fresh_lists() -> None:
     """The allowed list, the admins added, the admins' specials, the
-    reminders, lists and birthdays as the bot has them at a start: it keeps
-    them for good. Nor has OpenWeatherMap been asked yet, nor a photo read
-    for when it was taken, nor anyone shown a numbered list."""
+    reminders, lists, birthdays, albums' birth dates and chats' languages as
+    the bot has them at a start: it keeps them for good. Nor has
+    OpenWeatherMap been asked yet, nor a photo read for when it was taken,
+    nor anyone shown a numbered list."""
     access.allowed_list.reset()
     access.admin_list.reset()
     access.looked_up.clear()
     specials.own_specials.__init__()
-    for kept in (reminders.kept, lists.kept, birthdays.kept):
+    for kept in (
+        reminders.kept,
+        lists.kept,
+        birthdays.kept,
+        photos.birth_dates,
+        i18n.chat_languages,
+    ):
         kept.reset()
     birthdays.shown.clear()
     contacts.shown.clear()
@@ -90,7 +98,7 @@ def fresh_lists() -> None:
     weather.latest.clear()
     weather.forecasts.clear()
     weather.calls.clear()
-    onthisday.taken.clear()
+    photos.taken.clear()
 
 
 @pytest.fixture(autouse=True)

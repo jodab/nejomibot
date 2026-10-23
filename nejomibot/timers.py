@@ -1,5 +1,5 @@
 """Timers: the bot runs commands on a schedule and posts the answers to chats,
-such as a daily post: /timer add 08:00 1,2 /today; /photo new.
+such as a daily post: /timer add 08:00 1,2 /today; /uniquephoto.
 
 The admins manage them in a direct chat with the bot. /chats numbers the
 chats a timer can post to: the groups the bot is in, then the people on the
@@ -10,7 +10,7 @@ now.
 
 A timer runs each command once, as an admin would in a direct chat with the
 bot, so it can run any command but those that change timers, specials,
-birthdays or who may use the bot, post to chats of their own, or answer for
+birthdays, albums or who may use the bot, post to chats of their own, or answer for
 the chat they're sent in, as /remind and /list do. What only lists, as
 /chats, /allowed or /incoming, it can run, and a list it posts doesn't
 change the numbers an admin's commands take, as in /incoming 4. Its answers
@@ -44,8 +44,16 @@ from . import access
 from .commands import Command, Edits, Handler, answer, canonical, known, undo_with
 from .config import SIGNAL_ID, get_settings
 from .files import write_privately
-from .i18n import _, day_and_time, language_words, ngettext
-from .messages import collected, escape, send
+from .i18n import (
+    _,
+    by_language,
+    day_and_time,
+    every_word,
+    ngettext,
+    shown_word,
+    speaking,
+)
+from .messages import Draw, Outcome, collected, drawn, escape, send
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +74,7 @@ HEADER = (
 )
 
 # The words of <when>, as the timers file keeps them. The language may have
-# more for each (i18n.language_words).
+# more for each (i18n.every_word).
 DAY_NAMES = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 FULL_DAY_NAMES = (
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
@@ -88,11 +96,11 @@ DURATION = re.compile(r"^(?:(\d+)h)?(?:(\d+)m(?:in)?)?$")
 
 
 def in_language[T](table: dict[str, T]) -> dict[str, T]:
-    """The table, with the language's words for each of its words."""
+    """The table, with every language's words for each of its words."""
     return {
         name.casefold(): value
         for word, value in table.items()
-        for name in language_words(word)
+        for name in every_word(word)
     }
 
 
@@ -108,14 +116,9 @@ def day_words() -> dict[str, int]:
 
 
 def shown(when: str) -> str:
-    """A schedule's text in the language: its words as the language has them
+    """A schedule's text in the language spoken: its words as that has them
     first, e.g. 'weekdays 07:30' as 'vardagar 07:30' in Swedish."""
-
-    def word(text: str) -> str:
-        names = language_words(text)
-        return names[1] if len(names) > 1 else text
-
-    return " ".join(",".join(map(word, part.split(","))) for part in when.split())
+    return " ".join(",".join(map(shown_word, part.split(","))) for part in when.split())
 
 
 def example_date(today: date) -> str:
@@ -572,10 +575,7 @@ class Timekeeper:
             logger.warning(
                 "Timer %d: the bot isn't in %d of its groups", timer.id, len(left)
             )
-        for command in timer.commands:
-            for message in await self.answers_to(command):
-                for chat in chats:
-                    await send(self.bot, chat, message)
+        await self.post(timer.commands, chats)
         if on_schedule:
             self.reread()
             if (timer := self.timers.get(timer_id)) is not None:
@@ -583,6 +583,32 @@ class Timekeeper:
                 if self.schedule_of(timer).once:
                     del self.timers[timer_id]
                 self.write_quietly()
+
+    async def post(
+        self, commands: list[str], chats: list[str], admin: DataMessage | None = None
+    ) -> dict[str, list[Outcome]]:
+        """Run each command, as answers_to() does, and post its answers to
+        every chat before the next runs: once for each language the chats
+        speak, its random picks the same in each (Draw), so that every chat
+        gets the same photo, captioned in its language, and the round uses
+        up one. What became of what each chat was sent."""
+        assert self.bot is not None
+        outcomes: dict[str, list[Outcome]] = {chat: [] for chat in chats}
+        languages = by_language(chats)
+        for command in commands:
+            draw = Draw()
+            token = drawn.set(draw)
+            try:
+                for code, its_chats in languages.items():
+                    draw.again()
+                    with speaking(code):
+                        answers = await self.answers_to(command, admin)
+                    for message in answers:
+                        for chat in its_chats:
+                            outcomes[chat].append(await send(self.bot, chat, message))
+            finally:
+                drawn.reset(token)
+        return outcomes
 
     async def answers_to(
         self, command: str, admin: DataMessage | None = None
@@ -633,7 +659,7 @@ timekeeper = Timekeeper()
 
 
 # What a timer can run: any command but those that change timers, specials,
-# birthdays or who may use the bot, post to chats of their own, or answer for
+# birthdays, albums or who may use the bot, post to chats of their own, or answer for
 # their own chat (Command.timers). What only lists, it can, wherever it posts.
 
 

@@ -11,7 +11,8 @@ signal_service = "127.0.0.1:8080"
 # link it with signal-account.sh once the bot runs; it waits till then.
 account = "+46700000000"
 
-# The language the bot answers in: en, or sv for Swedish. The translations
+# The language the bot answers in: en, sv for Swedish or el for Greek,
+# where a chat hasn't chosen one of its own with /language. The translations
 # are in nejomibot/locale, with each language's own names for the commands.
 language = "en"
 
@@ -46,7 +47,9 @@ data_dir = "/data"
 # Where photos that don't say their time zone were taken, if not in timezone
 # photos_timezone = "Europe/Helsinki"
 # With a birth date, a photo's caption shows the age of who's in the photos
-# that day, after the emoji
+# that day, after the emoji. An album (a folder right in photos_dir) can have
+# one of its own, which /album sets: this is for the albums that don't, and
+# the photos in none.
 # photos_birth_date = 2020-01-31
 # photos_age_emoji = "🎂"
 # A photo's caption links to where it was taken: "google" (Google Maps) or

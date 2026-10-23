@@ -22,17 +22,19 @@ find out late:
 """
 
 import asyncio
+import inspect
 import logging
 import os
-from collections.abc import Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from datetime import UTC, datetime, timedelta
+from functools import partial
 from importlib.metadata import version
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
 from signalbot import About, SendMessage, SignalBot, TextMode
 
-from . import access, birthdays, lists, reminders, rest, system
+from . import access, birthdays, lists, photos, reminders, rest, system
 from .account import IDENTITIES, UNTRUSTED
 from .config import get_settings
 from .files import write_privately
@@ -44,7 +46,17 @@ from .health import (
     run_check,
     version_lines,
 )
-from .i18n import _, day_and_time, format_duration, ngettext, when_text
+from .i18n import (
+    _,
+    by_language,
+    chat_language,
+    chat_languages,
+    day_and_time,
+    format_duration,
+    ngettext,
+    speaking,
+    when_text,
+)
 from .messages import describe, escape, outbox, send
 from .specials import own_specials
 from .status import backups_check, check_photos, clock_check
@@ -112,9 +124,9 @@ def previous_lines(previous: Run | None, run: Run, now: datetime) -> list[str]:
     if previous.stopped is None:
         lines.append(
             _(
-                "⚠️ The run before, since {time}, didn't stop cleanly, as after a "
-                "crash, a kill or a power cut: messages that had waited less than "
-                "half a minute to be sent may be lost."
+                "⚠️ The previous run, started {time}, did not shut down cleanly, "
+                "as after a crash, a forced stop or a power failure. Messages "
+                "queued for less than 30 seconds may have been lost."
             ).format(time=when_text(previous.started, now))
         )
     return lines
@@ -132,12 +144,18 @@ def unreadable_lines() -> list[str]:
         settings.allowed_file.name: len(access.allowed_list.current().broken),
         settings.admins_file.name: len(access.admin_list.current().broken),
     }
-    for kept in (birthdays.kept, reminders.kept, lists.kept):
+    for kept in (
+        birthdays.kept,
+        reminders.kept,
+        lists.kept,
+        photos.birth_dates,
+        chat_languages,
+    ):
         counts[kept.name] = len(kept.current().broken)
     return [
         ngettext(
-            "⚠️ {file}: {count} line the bot can't read, left as it is",
-            "⚠️ {file}: {count} lines the bot can't read, left as they are",
+            "⚠️ {file}: {count} unreadable line, ignored and left unchanged",
+            "⚠️ {file}: {count} unreadable lines, ignored and left unchanged",
             count,
         ).format(file=file, count=count)
         for file, count in counts.items()
@@ -150,8 +168,8 @@ def waiting_lines() -> list[str]:
     if not (waiting := len(outbox)):
         return []
     text = ngettext(
-        "{count} message waiting to be sent again",
-        "{count} messages waiting to be sent again",
+        "{count} message queued for retry",
+        "{count} messages queued for retry",
         waiting,
     ).format(count=waiting)
     return [f"📤 {text}"]
@@ -166,8 +184,8 @@ def timers_line() -> str:
             count=count
         )
     return ngettext(
-        "⏰ {count} timer, the next {when}",
-        "⏰ {count} timers, the next {when}",
+        "⏰ {count} timer, next run {when}",
+        "⏰ {count} timers, next run {when}",
         count,
     ).format(count=count, when=day_and_time(at.astimezone(get_settings().tz)))
 
@@ -179,7 +197,9 @@ def chats_line(bot: SignalBot) -> str:
     allowed = len(access.allowed_list.current().entries)
     admins = len(access.admins())
     parts = [
-        ngettext("In {count} group", "In {count} groups", groups).format(count=groups),
+        ngettext("Member of {count} group", "Member of {count} groups", groups).format(
+            count=groups
+        ),
         ngettext("{count} chat allowed", "{count} chats allowed", allowed).format(
             count=allowed
         ),
@@ -233,7 +253,9 @@ async def start_text(
     )
     checks = [("📷", photos), *checks]
     _nejomibot, runtime, api = version_lines(about)
-    debug = _("Debug mode: only talking to {group}").format(group=settings.debug_group)
+    debug = _("Debug mode: communicating with {group} only").format(
+        group=settings.debug_group
+    )
     attention = [
         *([f"🐞 {debug}"] if settings.debug else []),
         *previous_lines(previous, run, datetime.now(UTC)),
@@ -257,17 +279,19 @@ async def start_text(
 
 def rate_limited_text() -> str:
     return _(
-        "⚠️ Signal rate-limits the bot, so messages wait, and are tried every half "
-        "hour. To lift the limit, run signal-account.sh rate-limit --to <your "
-        "number> on the server, and solve the captcha."
+        "⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and "
+        "retried every 30 minutes. To lift the limit, run signal-account.sh "
+        "rate-limit --to <your number> on the server and solve the captcha."
     )
 
 
 def changed_text(name: str) -> str:
     return _(
-        "🔐 The safety number of {name} has changed: they may have a new phone, "
-        "or it may not be them. The bot can't send to them until it's trusted: "
-        "compare it with theirs with /contacts {name}, then /trust."
+        "🔐 The safety number for {name} has changed. This usually means a new "
+        "phone or a reinstall, but it may also mean that someone else is using "
+        "the account. Messages to {name} cannot be sent until the new safety "
+        "number is trusted: compare it with the one on their phone using "
+        "/contacts {name}, then confirm it with /trust."
     ).format(name=name)
 
 
@@ -348,13 +372,14 @@ class Notices:
             await asyncio.sleep(wait.total_seconds())
         if (run := self.run) is None:
             return
+        previous = self.previous
         try:
-            text = await start_text(bot, self.previous, run, ready)
+            texts = await worded(lambda: start_text(bot, previous, run, ready))
         except Exception:
             logger.exception("Could not say how the start went")
             return
         logger.info("Telling the admins of the start")
-        await tell(bot, text, styled=True)
+        await tell(bot, texts, styled=True)
         self.run = run.model_copy(update={"told": datetime.now(UTC)})
         save_run(self.run)
 
@@ -366,7 +391,9 @@ class Notices:
             return
         self.rate_limited_at = now
         for admin in get_settings().admins:
-            await outbox.try_once(admin, SendMessage(text=rate_limited_text()))
+            with speaking(chat_language(admin)):
+                text = rate_limited_text()
+            await outbox.try_once(admin, SendMessage(text=text))
 
     async def look_at_safety_numbers(self, bot: SignalBot) -> None:
         """Tell the admins whose safety numbers have changed since the last
@@ -397,14 +424,27 @@ class Notices:
                 or "?"
             )
             logger.info("Telling the admins of a changed safety number")
-            await tell(bot, changed_text(name))
+            await tell(bot, await worded(partial(changed_text, name)))
 
 
-async def tell(bot: SignalBot, text: str, *, styled: bool = False) -> None:
-    """Send the text to each admin, waiting to be sent if need be."""
+async def worded(words: Callable[[], str | Awaitable[str]]) -> dict[str, str]:
+    """What words() says in each language the admins speak, by its code:
+    worded once for each, mostly one."""
+    texts: dict[str, str] = {}
+    for code in by_language(get_settings().admins):
+        with speaking(code):
+            text = words()
+            texts[code] = await text if inspect.isawaitable(text) else text
+    return texts
+
+
+async def tell(bot: SignalBot, texts: dict[str, str], *, styled: bool = False) -> None:
+    """Send each admin the text in their language, of texts by code, waiting
+    to be sent if need be."""
     mode = TextMode.STYLED if styled else None
-    for admin in get_settings().admins:
-        await send(bot, admin, SendMessage(text=text, text_mode=mode))
+    for code, admins in by_language(get_settings().admins).items():
+        for admin in admins:
+            await send(bot, admin, SendMessage(text=texts[code], text_mode=mode))
 
 
 notices = Notices()

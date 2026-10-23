@@ -59,7 +59,6 @@ def pic(monkeypatch: pytest.MonkeyPatch) -> None:
         ("/kontakter lägg till Alice Ali", "/contacts add Alice Ali"),
         ("/om ta bort", "/about remove"),
         ("/idag förhandsvisa imorgon", "/today preview imorgon"),
-        ("/bild ny", "/photo new"),
         # The English ones too, in any language
         ("/list add milk", "/list add milk"),
         # Only a command's own subcommands, whole words, right after it
@@ -73,8 +72,11 @@ def test_subcommands_in_the_language(text: str, english: str) -> None:
     assert canonical(text) == english
 
 
-def test_subcommands_in_english_only_in_english() -> None:
-    assert canonical("/list lägg till milk") == "/list lägg till milk"
+def test_every_languages_names_in_any_language() -> None:
+    # The bot speaks English, and takes Swedish names and words all the same,
+    # from anyone, whatever their chat's language
+    assert canonical("/list lägg till milk") == "/list add milk"
+    assert canonical("/väder Helsinki") == "/weather Helsinki"
 
 
 @pytest.mark.usefixtures("pic")
@@ -97,9 +99,16 @@ def test_canonical(text: str, command: str) -> None:
     assert canonical(text) == command
 
 
-def test_no_aliases_but_the_bots_own() -> None:
-    assert aliases() == {"/test": "/status", "/time": "/info", "/safety": "/contacts"}
-    assert canonical("/väder") == "/väder"  # Swedish, so not in English
+def test_the_bots_own_aliases_and_every_languages() -> None:
+    table = aliases()
+    for alias, command in [
+        ("/test", "/status"),
+        ("/time", "/info"),
+        ("/väder", "/weather"),
+    ]:
+        assert table[alias] == command
+    # Swedish, and taken in English too
+    assert canonical("/väder") == "/weather"
 
 
 @pytest.mark.parametrize("language", ["en", "sv"])

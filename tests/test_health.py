@@ -104,8 +104,7 @@ async def test_bot_check(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Non
     assert bot_check(bot, NOW) == Check(
         "Bot",
         ok=False,
-        detail="still starting: signalbot waits for signal-cli-rest-api and the "
-        "account",
+        detail="starting: waiting for signal-cli-rest-api and the account",
     )
     await started(bot)
     assert bot_check(bot, NOW) == Check("Bot", ok=True, detail="running")
@@ -115,7 +114,7 @@ async def test_bot_check(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Non
     assert bot_check(bot, NOW).ok
     monkeypatch.setattr(health, "outbox", Waiting(NOW - timedelta(minutes=20), 2))
     assert bot_check(bot, NOW) == Check(
-        "Bot", ok=False, detail="2 messages waiting to be sent, the first for 20 min"
+        "Bot", ok=False, detail="2 messages queued, the oldest for 20 min"
     )
     # Saying why, when it's Signal's limit, and what lifts it
     waiting = Waiting(NOW - timedelta(minutes=40), 1, rate_limited=True)
@@ -123,8 +122,8 @@ async def test_bot_check(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Non
     assert bot_check(bot, NOW) == Check(
         "Bot",
         ok=False,
-        detail="1 message waiting to be sent, the first for 40 min. Signal "
-        "rate-limits the bot: signal-account.sh rate-limit lifts it",
+        detail="1 message queued, the oldest for 40 min. rate-limited by Signal: "
+        "run signal-account.sh rate-limit to lift the limit",
     )
 
 
@@ -186,7 +185,9 @@ def test_is_too_old(version: str, too_old: bool) -> None:
 async def test_signal_cli_rest_api_too_old(bot: SignalBot, signal_api: FakeApi) -> None:
     signal_api.responses["/v1/about"]["version"] = "0.101"
     [failed] = (await check_health(await started(bot))).failed
-    assert failed.detail == "version 0.101 is too old: the bot needs a later one"
+    assert failed.detail == (
+        "version 0.101 is not supported: a later version is required"
+    )
 
 
 def test_version_lines() -> None:
@@ -270,8 +271,8 @@ async def test_pings_what_failed(
     await Rounds().run(bot)  # signalbot hasn't started
     [(path, text)] = healthchecks
     assert path == "/uuid/fail"
-    assert "FAILED Bot: still starting" in text
-    assert "Health check failed: FAILED Bot: still starting" in caplog.text
+    assert "FAILED Bot: starting" in text
+    assert "Health check failed: FAILED Bot: starting" in caplog.text
 
 
 async def test_a_failed_ping_doesnt_raise(
@@ -339,8 +340,7 @@ async def test_what_a_check_finds_doesnt_fail_the_bot(
     assert rounds.answer(rounds.latest[0]).splitlines() == [
         "OK: the bot runs; its latest health check, 0 s ago:",
         "OK signal-cli-rest-api: version unset",
-        "FAILED Bot: still starting: signalbot waits for signal-cli-rest-api and "
-        "the account",
+        "FAILED Bot: starting: waiting for signal-cli-rest-api and the account",
         f"FAILED Signal: User {ME} is not registered.",
     ]
 

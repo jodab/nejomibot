@@ -1,7 +1,7 @@
 import asyncio
 import base64
 import io
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import cast
 
@@ -15,13 +15,13 @@ from nejomibot.config import get_settings
 from nejomibot.styles import unmarked
 
 # Made up, as is everyone in the tests
-BORN = "2019-06-15"
+BORN = date(2019, 6, 15)
 
 
 @pytest.fixture
 def born(monkeypatch: pytest.MonkeyPatch) -> None:
     """Captions show the age of who's in the photos, born on BORN."""
-    monkeypatch.setenv("NEJOMIBOT_PHOTOS_BIRTH_DATE", BORN)
+    monkeypatch.setenv("NEJOMIBOT_PHOTOS_BIRTH_DATE", f"{BORN}")
     get_settings.cache_clear()
 
 
@@ -39,28 +39,34 @@ def test_scan_finds_each_photo_once(photos_dir: Path) -> None:
     assert found == ["B.JPG", "a.jpg", "c.jpeg", "sub/d.heic"]
 
 
-@pytest.mark.usefixtures("born")
 def test_format_age() -> None:
-    assert photos.format_age(datetime(2019, 1, 1)) == ""
-    assert photos.format_age(datetime(2019, 6, 15)) == ""
-    assert photos.format_age(datetime(2019, 6, 16, 23, 59)) == "🎂 1 day"
-    assert photos.format_age(datetime(2019, 7, 2)) == "🎂 17 days"
-    assert photos.format_age(datetime(2028, 9, 18)) == "🎂 9 years, 3 months and 3 days"
-    assert photos.format_age(datetime(2020, 7, 16)) == "🎂 1 year, 1 month and 1 day"
+    def age(year: int, month: int, day: int, hour: int = 0, minute: int = 0) -> str:
+        return photos.format_age(datetime(year, month, day, hour, minute), BORN)
+
+    assert age(2019, 1, 1) == ""
+    assert age(2019, 6, 15) == ""
+    assert age(2019, 6, 16, 23, 59) == "🎂 1 day"
+    assert age(2019, 7, 2) == "🎂 17 days"
+    assert age(2028, 9, 18) == "🎂 9 years, 3 months and 3 days"
+    assert age(2020, 7, 16) == "🎂 1 year, 1 month and 1 day"
 
 
-@pytest.mark.usefixtures("born", "swedish")
+@pytest.mark.usefixtures("swedish")
 def test_format_age_in_swedish(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NEJOMIBOT_PHOTOS_AGE_EMOJI", "👧")
     get_settings.cache_clear()
-    assert photos.format_age(datetime(2019, 6, 16, 23, 59)) == "👧 1 dag"
-    assert photos.format_age(datetime(2019, 7, 2)) == "👧 17 dagar"
-    assert photos.format_age(datetime(2028, 9, 18)) == "👧 9 år, 3 mån och 3 dagar"
-    assert photos.format_age(datetime(2020, 7, 16)) == "👧 1 år, 1 mån och 1 dag"
+
+    def age(year: int, month: int, day: int, hour: int = 0, minute: int = 0) -> str:
+        return photos.format_age(datetime(year, month, day, hour, minute), BORN)
+
+    assert age(2019, 6, 16, 23, 59) == "👧 1 dag"
+    assert age(2019, 7, 2) == "👧 17 dagar"
+    assert age(2028, 9, 18) == "👧 9 år, 3 mån och 3 dagar"
+    assert age(2020, 7, 16) == "👧 1 år, 1 mån och 1 dag"
 
 
 def test_no_age_without_a_birth_date() -> None:
-    assert photos.format_age(datetime(2028, 9, 18)) == ""
+    assert photos.format_age(datetime(2028, 9, 18), None) == ""
 
 
 @pytest.mark.usefixtures("born")
@@ -210,7 +216,7 @@ def test_photo_stats(photos_dir: Path) -> None:
 
 
 async def test_cache_message_reports_errors(monkeypatch: pytest.MonkeyPatch) -> None:
-    def photo_stats() -> str:
+    def photo_stats(album: str | None = None) -> str:
         raise FileNotFoundError("a.jpg")
 
     monkeypatch.setattr(photos, "photo_stats", photo_stats)
@@ -257,18 +263,19 @@ def test_commands_ignore_the_sent_photos(photos_dir: Path) -> None:
     assert sent_names() == ["a.jpg"]
 
 
-async def test_photo_new_is_from_the_round(
+async def send(text: str) -> None:
+    context = DataMessageContext(cast(SignalBot, None), message_from(ALICE, text))
+    await photos.Photo().handle_data_message(context)
+
+
+async def test_uniquephoto_is_from_the_round(
     photos_dir: Path, answers: list[SendMessage]
 ) -> None:
     for name in ["a.jpg", "b.jpg"]:
         make_jpeg(photos_dir / name)
     get_settings().sent_photos_file.write_text("a.jpg\n")
 
-    async def send(text: str) -> None:
-        context = DataMessageContext(cast(SignalBot, None), message_from(ALICE, text))
-        await photos.Photo().handle_data_message(context)
-
-    await send("/photo new")
+    await send("/uniquephoto")
     assert [answer.text for answer in answers] == [
         "⚠️ Date unknown (see the file name)\n🖼️ b.jpg"
     ]
@@ -296,7 +303,7 @@ def test_jpeg_is_sent_unchanged(photos_dir: Path) -> None:
 
 async def test_photo_message_without_photos(photos_dir: Path) -> None:
     message = await photos.photo_message()
-    assert message.text == "Something went wrong: found no photo that could be sent"
+    assert message == "Something went wrong: found no photo that could be sent"
 
 
 def test_heif_can_be_left_out(
@@ -331,3 +338,180 @@ def test_the_sent_photos_are_listed_privately(photos_dir: Path) -> None:
     sent_file = get_settings().sent_photos_file
     assert sent_file.read_text(encoding="utf-8") == "Åre.jpg\n"
     assert sent_file.stat().st_mode & 0o777 == 0o600
+
+
+def make_photos(photos_dir: Path, *names: str, taken: str | None = None) -> None:
+    """Photos at these paths in the library, taken then, in Swedish time."""
+    for name in names:
+        path = photos_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        make_jpeg(path, taken, "+02:00" if taken else None)
+
+
+def test_library_names(photos_dir: Path) -> None:
+    path = photos_dir / "Alice" / "2019" / "a.jpg"
+    assert photos.library_name(path) == "Alice/2019/a.jpg"
+    assert photos.album_of(path) == "Alice"
+    assert photos.album_of(photos_dir / "a.jpg") is None
+
+
+def test_albums_are_the_folders_right_in_the_library(photos_dir: Path) -> None:
+    make_photos(
+        photos_dir, "a.jpg", "Alice/b.jpg", "Alice/2019/c.jpg", "Alice and Bob/d.jpg"
+    )
+    found = {
+        album: sorted(map(photos.library_name, group))
+        for album, group in photos.by_album(photos.scan_photos()).items()
+    }
+    assert found == {
+        None: ["a.jpg"],
+        "Alice": ["Alice/2019/c.jpg", "Alice/b.jpg"],
+        "Alice and Bob": ["Alice and Bob/d.jpg"],
+    }
+
+
+def test_an_album_is_named_by_the_longest_start() -> None:
+    names = ["Alice", "Alice and Bob", None]
+    found = photos.album_named("alice  AND bob 2024-06-01", names)
+    assert found == ("Alice and Bob", "2024-06-01")
+    assert photos.album_named("Alice 2024-06-01", names) == ("Alice", "2024-06-01")
+    assert photos.album_named("Alice", names) == ("Alice", "")
+    assert photos.album_named("Alicea", names) is None
+    assert photos.album_named("2024-06-01", names) is None
+
+
+def test_each_album_has_a_round_of_its_own(photos_dir: Path) -> None:
+    make_photos(photos_dir, "Alice/a.jpg", "Alice/b.jpg", "Bob/c.jpg", "d.jpg")
+    get_settings().sent_photos_file.write_text("Bob/c.jpg\ngone/e.jpg\n")
+    for _ in range(2):
+        assert photos.random_photo_message(track_sent=True, album="Alice")
+    assert sorted(sent_names()) == [
+        "Alice/a.jpg",
+        "Alice/b.jpg",
+        "Bob/c.jpg",
+        "gone/e.jpg",
+    ]
+    # All of Alice's sent: her round starts over, Bob's as it was, and a
+    # photo no longer in the library is forgotten
+    assert photos.random_photo_message(track_sent=True, album="Alice")
+    [bob, alice] = sent_names()
+    assert bob == "Bob/c.jpg"
+    assert alice in ("Alice/a.jpg", "Alice/b.jpg")
+
+
+def test_the_librarys_round_counts_every_albums(photos_dir: Path) -> None:
+    make_photos(photos_dir, "a.jpg", "Alice/b.jpg")
+    get_settings().sent_photos_file.write_text("Alice/b.jpg\n")
+    message = photos.random_photo_message(track_sent=True)
+    assert message is not None
+    assert message.text == "⚠️ Date unknown (see the file name)\n🖼️ a.jpg"
+
+
+async def test_photos_from_an_album(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "Alice/a.jpg", "Bob/b.jpg")
+    await send("/photo alice")
+    await send("/uniquephoto ALICE")
+    assert [answer.text for answer in answers] == [
+        "⚠️ Date unknown (see the file name)\n🖼️ a.jpg"
+    ] * 2
+    assert sent_names() == ["Alice/a.jpg"]
+
+
+async def test_an_album_that_isnt_one(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "Alice/a.jpg")
+    for text in ("/photo Carol", "/photo new", "/uniquephoto Carol", "/photo Alice x"):
+        await send(text)
+    assert [answer.text for answer in answers] == [
+        "There's no album Carol: /albums lists them.",
+        "/photo new is /uniquephoto now.",
+        "There's no album Carol: /albums lists them.",
+        photos.photo_usage(),
+    ]
+
+
+async def test_the_photo_taken_nearest_a_moment(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "a.jpg", taken="2024:06:01 14:52:00")
+    make_photos(photos_dir, "b.jpg", taken="2024:06:01 15:30:00")
+    make_photos(photos_dir, "c.jpg")  # when, unknown
+    for moment in ("15:00", "15:30", "16:45"):
+        await send(f"/photo 2024-06-01 {moment}")
+    assert [answer.text for answer in answers] == [
+        "**Nearest to 2024-06-01 15:00: 8 min before**\n\n📅 2024-06-01 14:52",
+        # That minute: no heading
+        "📅 2024-06-01 15:30",
+        "**Nearest to 2024-06-01 16:45: 1 h 15 min before**\n\n📅 2024-06-01 15:30",
+    ]
+
+
+async def test_a_photo_taken_on_a_day(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "a.jpg", taken="2024:06:01 08:00:00")
+    make_photos(photos_dir, "b.jpg", taken="2024:06:04 08:00:00")
+    for day in ("2024-06-01", "2024-06-03", "2024-05-01"):
+        await send(f"/photo {day}")
+    assert [answer.text for answer in answers] == [
+        "📅 2024-06-01 08:00",
+        # Else on the nearest day that has some
+        "**Nearest to 2024-06-03: 1 day after**\n\n📅 2024-06-04 08:00",
+        "**Nearest to 2024-05-01: 31 days after**\n\n📅 2024-06-01 08:00",
+    ]
+
+
+async def test_a_photo_by_date_from_an_album(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "Alice/a.jpg", taken="2024:06:01 08:00:00")
+    make_photos(photos_dir, "Bob/b.jpg", taken="2024:06:01 08:05:00")
+    await send("/photo Alice 2024-06-01 08:05")
+    assert [answer.text for answer in answers] == [
+        "**Nearest to 2024-06-01 08:05: 5 min before**\n\n📅 2024-06-01 08:00"
+    ]
+
+
+async def test_no_photo_says_when_it_was_taken(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "a.jpg")
+    await send("/photo 2024-06-01")
+    await send("/photo 2024-02-30")
+    assert [answer.text for answer in answers] == [
+        "No photo there says when it was taken.",
+        photos.photo_usage(),
+    ]
+
+
+@pytest.mark.usefixtures("born")
+def test_an_albums_own_birth_date(photos_dir: Path) -> None:
+    make_photos(photos_dir, "Alice/a.jpg", "b.jpg", taken="2020:06:15 12:00:00")
+    # By its name in any case
+    photos.birth_dates.add(photos.BirthDate("alice", date(2020, 6, 14)))
+    assert caption(photos_dir / "Alice/a.jpg") == "📅 2020-06-15 12:00\n🎂 1 day"
+    # The others, photos_birth_date
+    assert caption(photos_dir / "b.jpg") == "📅 2020-06-15 12:00\n🎂 1 year"
+
+
+def test_photo_stats_count_the_albums(photos_dir: Path) -> None:
+    make_photos(photos_dir, "Alice/a.jpg", "b.jpg")
+    assert photos.photo_stats().splitlines()[-1] == "📚 In 1 album"
+
+
+async def test_the_cache_of_an_album(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "Alice/a.jpg", "Alice/2021/b.jpg", "c.jpg")
+    for text in ("/cache alice", "/cache Bob", "/cache"):
+        await send(text)
+    alice, bob, library = [answer.text or "" for answer in answers]
+    assert alice.startswith("📂 Alice has 2 photos (")
+    assert alice.splitlines()[1].startswith("JPG: 2 files (")
+    assert "📚" not in alice
+    assert bob == "There's no album Bob: /albums lists them."
+    assert library.startswith("📂 Photo cache contains 3 photos (")
+    assert library.endswith("📚 In 1 album")

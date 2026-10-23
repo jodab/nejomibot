@@ -49,7 +49,9 @@ def test_account_checks_find_problems(account: Account) -> None:
     allow(ALICE, BOB)
     assert status.account_checks(account) == [
         Check(
-            "Safety numbers", ok=False, detail="not trusted, so not sent to: Bob Berg"
+            "Safety numbers",
+            ok=False,
+            detail="untrusted, so messages are not sent: Bob Berg",
         ),
         Check("Recipients", ok=False, detail="blocked: Bob Berg"),
     ]

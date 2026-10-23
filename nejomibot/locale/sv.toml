@@ -2,10 +2,14 @@
 # commands, next to the English ones; sv.po translates its messages. See
 # nejomibot/i18n.py.
 
+# The language's own name, as /språk lists it
+name = "Svenska"
+
 # Other names for each command, as aliases in the config: one word each,
 # starting with /. The bot answers the English names too.
 [commands]
 "/photo" = ["/bild", "/foto"]
+"/uniquephoto" = ["/unikbild"]
 "/weather" = ["/väder", "/vader"]
 "/info" = ["/tid"]
 "/fortune" = ["/spådom", "/spadom"]
@@ -35,6 +39,7 @@
 "/namedays" = ["/namnsdagar"]
 "/birthday" = ["/födelsedag", "/fodelsedag"]
 "/nameday" = ["/namnsdag"]
+"/language" = ["/språk", "/sprak"]
 
 # Words for when a timer runs (/timer lägg till mån-fre 07:30 ...) or a
 # reminder is due (/påminn om 30m ...), each next to the English one it
@@ -72,4 +77,4 @@ clear = ["töm"]
 run = ["kör"]
 all = ["alla"]
 preview = ["förhandsvisa"]
-new = ["ny"]
+default = ["standard"]

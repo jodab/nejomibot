@@ -106,7 +106,8 @@ async def test_allowed(chat: Chat) -> None:
         "",
         f"👑 The admins may use every command: {ADMIN}",
         "/allow <who> adds one, /disallow <n> removes one.",
-        "⚠️ The file has a line the bot can't read, and leaves as it is: not anyone",
+        "⚠️ The file has 1 unreadable line, which is ignored and left unchanged: "
+        "not anyone",
     ]
 
 

@@ -178,3 +178,9 @@ async def test_in_swedish(greeted: Greeted) -> None:
         "Hej, jag är Mybot, en bot. Prova /hjälp för en lista med kommandon. "
         "Kontakta Bob Berg för mer information."
     ]
+
+
+async def test_greets_in_their_language(greeted: Greeted) -> None:
+    get_settings().data_file("languages.txt").write_text(f"{ALICE} | sv\n")
+    [greeting_] = await greeted.by(message("Hej!"))
+    assert "Prova /hjälp för en lista med kommandon." in greeting_

@@ -16,6 +16,7 @@ from signalbot import LOGGER_NAME, Config, ConnectionMode, InMemoryConfig, Signa
 
 from . import access, backups, health, reminders, rest
 from .admins import Admin, Admins
+from .albums import Album, Albums
 from .allowed import Allow, Allowed, Disallow
 from .birthdays import Birthday, Birthdays
 from .client import client
@@ -29,6 +30,7 @@ from .greeting import greeter
 from .help import Help
 from .incoming import Incoming, inbox
 from .info import Info
+from .languages import Language
 from .lists import Lists
 from .messages import describe, outbox
 from .notices import notices
@@ -72,6 +74,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
         for handler in (
             Ping(),
             Photo(),
+            Albums(),
             OnThisDay(),
             Today(),
             Weather(),
@@ -81,6 +84,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
             Remind(),
             Lists(),
             Birthdays(),
+            Language(),
             Help(),
         )
     ]
@@ -92,6 +96,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
         for handler in (
             Status(),
             TodayPreview(),
+            Album(),
             Specials(),
             Contacts(),
             Trust(),
@@ -208,7 +213,7 @@ def load_settings() -> Settings:
     if not settings.debug:  # which keeps its files in a temp folder
         check_data_dir(settings.data_dir)
     if settings.debug:
-        logger.warning("DEBUG mode: only talking to %s", settings.debug_group)
+        logger.warning("DEBUG mode: communicating with %s only", settings.debug_group)
     if not settings.photos_dir.is_dir():
         logger.warning("Photos directory does not exist: %s", settings.photos_dir)
     return settings

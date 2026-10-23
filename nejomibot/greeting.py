@@ -27,9 +27,9 @@ from . import access
 from .commands import canonical, known
 from .config import get_settings
 from .help import shown_name
-from .i18n import _
+from .i18n import _, speaking
 from .incoming import attachments_of, sender_of
-from .messages import reply
+from .messages import language_here, reply
 from .receipts import mark_read
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,9 @@ class Greeter(DataMessageHandler):
         logger.info("Greeted someone in a direct chat")
         logger.debug("Greeted %s", sender_of(message))
         await mark_read(context)
-        await reply(context, SendMessage(text=await greeting(context.bot)))
+        with speaking(language_here(context)):
+            text = await greeting(context.bot)
+        await reply(context, SendMessage(text=text))
 
     def greets(self, bot: SignalBot, message: DataMessage) -> bool:
         """Whether to greet the sender, who then isn't for a day: someone on

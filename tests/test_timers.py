@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import AsyncIterator
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
 from zoneinfo import ZoneInfo
@@ -9,7 +10,7 @@ import pytest
 from apscheduler.schedulers.asyncio import (  # pyright: ignore[reportMissingTypeStubs]
     AsyncIOScheduler,
 )
-from helpers import ALICE, BOB, EDIT_FROM_BEFORE, GROUP, ME, FakeApi
+from helpers import ALICE, BOB, EDIT_FROM_BEFORE, GROUP, ME, FakeApi, make_jpeg
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -108,8 +109,11 @@ def test_parse_when_in_swedish(text: str, kept: str, shown: str) -> None:
     assert timers.shown(schedule.text) == shown
 
 
-def test_swedish_words_only_in_swedish() -> None:
-    assert parse_when("vardagar 06:45", NOW) == f"vardagar? {timers.when_help()}."
+def test_swedish_words_in_english_too() -> None:
+    # Every language's words are read, wherever, and shown in the chat's
+    schedule = parse_when("vardagar 06:45", NOW)
+    assert isinstance(schedule, Schedule)
+    assert schedule.text == "weekdays 06:45"
 
 
 def test_parse_when_in_detail() -> None:
@@ -277,7 +281,7 @@ def test_parse_add_refuses(text: str, why: str) -> None:
             [
                 "/weather",
                 "/today",
-                "/photo new",
+                "/uniquephoto",
                 "/contacts",
                 "/name Mybot",
                 "/fortune",
@@ -287,7 +291,7 @@ def test_parse_add_refuses(text: str, why: str) -> None:
             None,
         ),
         (["/weather", "/frobnicate"], "/frobnicate isn't a command"),
-        (["/väder"], "/väder isn't a command"),
+        (["/vädret"], "/vädret isn't a command"),
         (["/timer add 08:00 /ping"], CANT.format("/timer")),
         (["/timers run 1"], CANT.format("/timers")),
         (["/allow +46700000001"], CANT.format("/allow")),
@@ -317,7 +321,7 @@ def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) ->
     get_settings.cache_clear()
     assert check_commands(["/väder", "/idag", "/Pic", "/spådom startrek"]) is None
     # Their subcommands too
-    assert check_commands(["/bild ny", "/idag förhandsvisa imorgon"]) is None
+    assert check_commands(["/unikbild", "/idag förhandsvisa imorgon"]) is None
     # Named as given
     for command in ("/t add 08:00 /ping", "/skicka 1 Hej", "/kör 1 /ping"):
         assert check_commands([command]) == (
@@ -326,7 +330,8 @@ def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_what_timers_mayn_t_run() -> None:
-    # What changes timers, specials, birthdays or who may use the bot, posts
+    # What changes timers, specials, birthdays, albums or who may use the bot,
+    # posts
     # to chats of its own, or is a chat's own, as reminders and lists are:
     # /timers and /specials with more after them, which change them too
     assert {
@@ -348,6 +353,8 @@ def test_what_timers_mayn_t_run() -> None:
         "/nameday",
         "/birthdays",
         "/namedays",
+        "/album",
+        "/language",
         "/remind",
         "/list",
     }
@@ -590,10 +597,8 @@ async def test_a_daily_post_sends_everyone_the_same(
     async def weather_message() -> str:
         return "Vädret"
 
-    async def photo_message(
-        caption: str = "", *, track_sent: bool = False
-    ) -> SendMessage:
-        photos_picked.append(track_sent)
+    async def photo_message(text: str = "", *, unique: bool = False) -> SendMessage:
+        photos_picked.append(unique)
         return SendMessage(text="📷", text_mode=TextMode.STYLED)
 
     monkeypatch.setattr(today, "weather_message", weather_message)
@@ -601,7 +606,7 @@ async def test_a_daily_post_sends_everyone_the_same(
     # A special of the admins', as /special add keeps it: Dagens bild! in
     # bold over the photo
     get_settings().specials_file.write_text(
-        "/dailypost | /today; **Dagens bild!** /photo new\n"
+        "/dailypost | /today; **Dagens bild!** /uniquephoto\n"
     )
     bot = cast(SignalBot, FakeBot())
     keeper = Timekeeper()
@@ -882,18 +887,39 @@ async def test_the_file_keeps_the_english_names(
     admin_chat: tuple[Timekeeper, list[str]],
 ) -> None:
     keeper, replies = admin_chat
-    # Subcommands too: /bild ny as /photo new, /spådom alla as /fortune all
-    await command(keeper, "/timer lägg till 08:00 /idag; /bild ny; /spådom alla")
+    # Subcommands too: /spådom alla as /fortune all
+    await command(keeper, "/timer lägg till 08:00 /idag; /unikbild; /spådom alla")
     assert replies[-1].startswith(
         f"✅ **Tillagd**\n**#1** · dagligen 08:00\n💬 Admin ({ADMIN})\n"
-        "▶️ /today; /photo new; /fortune all\n🔜 Nästa: "
+        "▶️ /today; /uniquephoto; /fortune all\n🔜 Nästa: "
     )
-    assert keeper.timers[1].commands == ["/today", "/photo new", "/fortune all"]
+    assert keeper.timers[1].commands == ["/today", "/uniquephoto", "/fortune all"]
     file = (get_settings().timers_file).read_text()
-    assert "| /today; /photo new; /fortune all |" in file
+    assert "| /today; /uniquephoto; /fortune all |" in file
     # A line by hand, with Swedish names, reads as English too
     assert parse_line(
         f"2 | 08:00 | {ALICE} | /väder; /Bild | 2026-10-12 08:00", NOW
     ) == (
         Timer(2, "daily 08:00", [ALICE], ["/weather", "/photo"], at("2026-10-12 08:00"))
     )
+
+
+async def test_a_timer_speaks_each_chats_language(sent: Sent, photos_dir: Path) -> None:
+    for name in ["a.jpg", "b.jpg"]:
+        make_jpeg(photos_dir / name)
+    get_settings().data_file("languages.txt").write_text(f"{GROUP} | sv\n")
+    bot = cast(SignalBot, FakeBot())
+    keeper = Timekeeper()
+    keeper.start(bot, [h for h, *_ in handlers(bot, get_settings())])
+    timer = add(keeper, "08:00", [GROUP, ALICE], "/uniquephoto")
+    for run in range(2):
+        sent.clear()
+        await keeper.run(timer.id)
+        picked = get_settings().sent_photos_file.read_text().splitlines()
+        # The round used up one photo a run, and both chats got it, each
+        # captioned in its language
+        assert len(picked) == run + 1
+        assert sent == [
+            (GROUP, f"⚠️ Datum okänt (se filnamn)\n🖼️ {picked[-1]}"),
+            (ALICE, f"⚠️ Date unknown (see the file name)\n🖼️ {picked[-1]}"),
+        ]

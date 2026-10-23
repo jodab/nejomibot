@@ -31,9 +31,9 @@ STARTED = datetime(2026, 10, 19, 6, 0, tzinfo=UTC)  # 08:00 in Stockholm
 STOPPED = datetime(2026, 10, 19, 9, 0, tzinfo=UTC)
 NOW = datetime(2026, 10, 19, 10, 0, tzinfo=UTC)
 UNCLEAN = (
-    "⚠️ The run before, since {time}, didn't stop cleanly, as after a crash, a "
-    "kill or a power cut: messages that had waited less than half a minute to be "
-    "sent may be lost."
+    "⚠️ The previous run, started {time}, did not shut down cleanly, as after a "
+    "crash, a forced stop or a power failure. Messages queued for less than 30 "
+    "seconds may have been lost."
 )
 
 
@@ -134,11 +134,11 @@ async def test_a_start_s_notice(
             "",
             "🔄 Updated from 0.98.0",
             UNCLEAN.format(time="2026-01-02 08:00"),
-            "⚠️ timers.txt: 1 line the bot can't read, left as it is",
+            "⚠️ timers.txt: 1 unreadable line, ignored and left unchanged",
             "⚠️ Clock: not synchronized",
             "",
             "⏰ 1 timer",
-            "👥 In 1 group · 0 chats allowed · 1 admin",
+            "👥 Member of 1 group · 0 chats allowed · 1 admin",
             "📷 Photo library: 1 photo",
             "💾 Backups: none yet",
             "🧠 Bot memory: 70.0 MB",
@@ -163,7 +163,7 @@ async def test_a_start_s_notice_in_debug_mode(
         "🟢 **nejomibot 0.99.0 startad**",
         "Måndag 19 Oktober 08:00 · redo efter 0 s",
         "",
-        f"🐞 Felsökningsläge: pratar bara med {GROUP}",
+        f"🐞 Felsökningsläge: kommunicerar endast med {GROUP}",
     ]
 
 
@@ -260,9 +260,11 @@ async def test_changed_safety_numbers(
     assert told == [
         (
             ADMIN,
-            "🔐 The safety number of Bob Berg has changed: they may have a new "
-            "phone, or it may not be them. The bot can't send to them until it's "
-            "trusted: compare it with theirs with /contacts Bob Berg, then /trust.",
+            "🔐 The safety number for Bob Berg has changed. This usually means a "
+            "new phone or a reinstall, but it may also mean that someone else is "
+            "using the account. Messages to Bob Berg cannot be sent until the new "
+            "safety number is trusted: compare it with the one on their phone "
+            "using /contacts Bob Berg, then confirm it with /trust.",
         )
     ]
     assert "Telling the admins of a changed safety number" in caplog.text
@@ -294,9 +296,9 @@ async def test_rate_limited(bot: SignalBot, outbox: Outbox) -> None:
     assert outbox.tried == [
         (
             ADMIN,
-            "⚠️ Signal rate-limits the bot, so messages wait, and are tried every "
-            "half hour. To lift the limit, run signal-account.sh rate-limit --to "
-            "<your number> on the server, and solve the captcha.",
+            "⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and "
+            "retried every 30 minutes. To lift the limit, run signal-account.sh "
+            "rate-limit --to <your number> on the server and solve the captcha.",
         )
     ]
     await keeper.rate_limited(bot)

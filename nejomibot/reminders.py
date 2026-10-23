@@ -29,7 +29,7 @@ from .access import chat_id_of, is_group
 from .commands import Command, Edits, Handler, answer, numbers_in, undo_with
 from .config import get_settings
 from .files import KeptLines
-from .i18n import _, day_and_time, format_duration, ngettext
+from .i18n import _, chat_language, day_and_time, format_duration, ngettext, speaking
 from .messages import chat_id, chats_of, delayed, escape, send, to_whom
 from .timers import (
     CLOCK,
@@ -279,9 +279,10 @@ async def post_due(bot: SignalBot) -> None:
         if is_group(reminder.chat) and reminder.chat not in member_of:
             logger.warning("Dropped a reminder to a group the bot isn't in")
             continue
-        message = SendMessage(text=_("⏰ {text}").format(text=reminder.text))
-        if late > LATE:
-            message = delayed(message, reminder.due)
+        with speaking(chat_language(reminder.chat)):
+            message = SendMessage(text=_("⏰ {text}").format(text=reminder.text))
+            if late > LATE:
+                message = delayed(message, reminder.due)
         logger.info("Reminding %s", to_whom(reminder.chat))
         await send(bot, reminder.chat, message)
 

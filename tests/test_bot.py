@@ -42,6 +42,7 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         # The admins, and the allowed list, checked for every message
         "Ping": EVERYONE_ALLOWED,
         "Photo": EVERYONE_ALLOWED,
+        "Albums": EVERYONE_ALLOWED,
         "OnThisDay": EVERYONE_ALLOWED,
         "Today": EVERYONE_ALLOWED,
         "Weather": EVERYONE_ALLOWED,
@@ -51,11 +52,13 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Remind": EVERYONE_ALLOWED,
         "Lists": EVERYONE_ALLOWED,
         "Birthdays": EVERYONE_ALLOWED,
+        "Language": EVERYONE_ALLOWED,
         "Help": EVERYONE_ALLOWED,
         # The admins, in direct chats only
         "Status": admins,
         # As it shows every group's birthdays
         "TodayPreview": admins,
+        "Album": admins,
         "Specials": admins,
         "Contacts": admins,
         "Trust": admins,
@@ -109,7 +112,7 @@ def test_an_outdated_config_says_what_to_change(
     assert str(stopped.value).splitlines()[:4] == [
         f"Invalid configuration (config file: {path}):",
         "  account: missing",
-        "  language: Value error, unknown language 'xx', not one of ['en', 'sv']",
+        "  language: Value error, unknown language 'xx', not one of ['en', 'el', 'sv']",
         "  phone_number: no such setting: renamed or removed?",
     ]
     assert "/app/config.example.toml" in str(stopped.value)

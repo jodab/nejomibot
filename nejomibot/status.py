@@ -39,7 +39,7 @@ from .health import (
 from .i18n import _, format_duration, format_file_size, ngettext
 from .info import fetch_rate
 from .messages import arrival_delay, describe, escape, outbox
-from .photos import scan_photos
+from .photos import by_album, scan_photos
 from .timers import timekeeper
 from .weather import UNITS, fetch_weather
 
@@ -86,9 +86,14 @@ async def check_photos() -> str:
     photos = await asyncio.to_thread(scan_photos)
     if not photos:
         raise CheckFailed(_("no photos in {dir}").format(dir=get_settings().photos_dir))
-    return ngettext("{count} photo", "{count} photos", len(photos)).format(
+    text = ngettext("{count} photo", "{count} photos", len(photos)).format(
         count=len(photos)
     )
+    if albums := len(by_album(photos).keys() - {None}):
+        text += " " + ngettext("in {count} album", "in {count} albums", albums).format(
+            count=albums
+        )
+    return text
 
 
 def disk_check(path: Path) -> Check:
@@ -99,7 +104,7 @@ def disk_check(path: Path) -> Check:
         return Check(name, ok=False, detail=str(e))
     if not usage.total:
         return Check(
-            name, ok=False, detail=_("no size given for {path}").format(path=path)
+            name, ok=False, detail=_("no size reported for {path}").format(path=path)
         )
     detail = _("{free} free of {total}").format(
         free=format_file_size(usage.free), total=format_file_size(usage.total)
@@ -136,7 +141,7 @@ def account_checks(account: Account | Exception) -> list[Check]:
         Check(
             names[0],
             ok=not untrusted,
-            detail=_("not trusted, so not sent to: {who}").format(
+            detail=_("untrusted, so messages are not sent: {who}").format(
                 who=", ".join(untrusted)
             )
             if untrusted
@@ -185,14 +190,16 @@ def bot_lines(about: About | None, message_delay: float) -> list[str]:
     waiting = len(outbox)
     lines.append(
         ngettext(
-            "{count} message waiting to be sent again",
-            "{count} messages waiting to be sent again",
+            "{count} message queued for retry",
+            "{count} messages queued for retry",
             waiting,
         ).format(count=waiting)
     )
     if settings.debug:
         lines.append(
-            _("Debug mode: only talking to {group}").format(group=settings.debug_group)
+            _("Debug mode: communicating with {group} only").format(
+                group=settings.debug_group
+            )
         )
     lines.append(
         _("Your message took {seconds} s to arrive").format(

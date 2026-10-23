@@ -211,123 +211,6 @@ with people who have none.
   registered with, or a Signal Login account, recovered into signal-cli;
   and with no number, a username.
 
-### Photo albums, and photos by date
-
-A plan, asked for by the owner on 2026-10-23; nothing of it is done.
-
-**What's asked:**
-
-- Every folder in the photo library (`photos_dir`) is an album of its own,
-  and everything that picks, sends or counts photos takes albums into
-  account.
-- `/albums` lists the albums.
-- `/photo 2024-06-01 15:00` sends the photo taken at that moment, or as
-  near it as the library has one; `/photo Alice 2019-03-14 16:30` the same
-  from the album Alice. Without a date, a random photo, as now: from every
-  album, or from the one named, as `/photo Alice`.
-- The round of photos not sent yet (`/photo new`, which the daily post
-  uses) works with albums too, perhaps as a command of its own.
-
-**How, proposed:**
-
-- *Albums.* An album is a folder right in `photos_dir`, named as the
-  folder, its subfolders part of it. Photos right in `photos_dir`, in no
-  folder, are in no album, but among all photos as now. A name is matched
-  in any case, as the longest start of what follows the command that names
-  an album, so names may have spaces, as `/contacts add` reads names.
-- *`/albums`* (in Swedish `/album`), for everyone allowed, as `/photo` is:
-  the albums by name, each with how many photos it has and the years they
-  span, and how many photos are in no album.
-- *`/photo [<album>] [<date> [<time>]]`.* With a date and a time, the photo
-  taken nearest that moment, in the bot's `timezone`, as captions have it;
-  with a date alone, a random one taken that day, or else on the nearest
-  day that has some. The caption says what was asked for and how far off
-  the photo is, such as `Nearest to 2024-06-01 15:00: 8 min before`. Dates
-  as `/birthday add` takes them, times as `/timer add` does. Photos
-  without a known time are never nearest anything, but still come at
-  random. What can't be read answers with how `/photo` is used; an album
-  that isn't one says so, and to see `/albums`.
-- *When each photo was taken.* `/onthisday` keeps it, as a date
-  (`onthisday.taken`, about 300 bytes a photo, read once from each photo's
-  header). Keep the moment instead, in one index in photos.py for all
-  three, and measure the memory (Resource budget in CLAUDE.md).
-- *The round, by album.* `/photo new Alice`: a photo of Alice's not sent
-  yet; once all of hers have been, her round starts over (her photos taken
-  out of `sent-photos.txt`), the others' untouched. Without an album, the
-  whole library's, as now. The file lists paths, album folders included, so
-  it can hold every album's round.
-- *A command of its own for the round.* With albums, `/photo new` can't
-  tell the round from an album called `new` (or `ny` in Swedish). So the
-  round gets a command of its own, such as `/newphoto [<album>]` (in
-  Swedish `/nybild`), and `/photo` is for albums and dates alone. Specials
-  and timers that run `/photo new`, as the daily post's does, have to move
-  to it: the update could rewrite them at start (both files keep commands
-  by their English names), or the changelog says how, as for `/dailypost`.
-- *Elsewhere.* `/onthisday [<album>]`; `/status`'s photo check and the
-  start notice say how many photos are in how many albums; `/cache` the
-  same, or its counts by album.
-
-**Yours to decide:**
-
-- Albums: only the folders right in `photos_dir`, as above, or every
-  folder, subfolders too.
-- The round's command, its name, and whether `/photo new` keeps working for
-  a while.
-- `photos_birth_date` gives one age for every photo. With albums, perhaps
-  one per album, for whoever the album is about, as a table in the config:
-  `photos_birth_dates = { "Alice" = 2019-06-15 }`.
-- Perhaps albums that only some chats may see. Not asked for.
-
-**Then:** help lines, the README (Commands, Photos and the daily post),
-`sv.toml` and `sv.po`, the changelog, and tests with made-up albums.
-
-### A language for each person
-
-A plan, asked for by the owner on 2026-10-23; nothing of it is done.
-
-**What's asked:** anyone allowed, admins too, can tell the bot which
-language to use with them. `language` in the config stays the default.
-
-**How, proposed:**
-
-- *Choosing.* `/language` (in Swedish `/språk`), for everyone allowed:
-  alone, the languages the bot has, by their own names (English, Svenska),
-  and the one in use; `/language sv` or `/language svenska` sets it for
-  whoever sends it, and `/language default` goes back to the config's.
-  Kept by Signal ID in `data_dir/languages.txt`, a line each, as the bot's
-  other lists are (`files.KeptLines`), so the backups have it too. A
-  language's own name goes in its `.toml`.
-- *Each answer in its chat's language.* `i18n.language()` reads a
-  ContextVar that `answer()` sets from the chat, so every `_()` a handler
-  calls follows it: the handlers translate as they answer, and need no
-  change.
-- *What the bot sends on its own* speaks each chat's language too: timers,
-  reminders, the greeting, the notices to each admin, what `/run` posts,
-  the outbox's note that a message is late. A timer runs its commands once
-  for each language among its chats. So that every chat still gets the same
-  photo, and the round uses up one, a run keeps what it picked for the next
-  language, which only captions it anew.
-- *Command names.* The bot takes every language's names for commands, and
-  their words for subcommands and times (`/väder`, `mån-fre`), from anyone,
-  while no two languages give one name to different commands, which a test
-  checks; `/help` shows the asker's.
-- *What holds a language now.* OpenWeatherMap's descriptions and place
-  names, asked for in `language` and kept by place: kept by place and
-  language, or asked for in English and translated by the bot, whose own
-  table has most conditions. A special's texts stay as the admins wrote
-  them; the fortune libraries aren't translated.
-
-**Yours to decide:**
-
-- Groups: always the config's language, or one an admin sets with
-  `/language` in the group.
-- Whether an admin may set someone else's, as `/language <who> sv`.
-- The command's names.
-
-**Then:** the help line, the README (Languages, Commands), `sv.toml` and
-`sv.po`, the changelog, and tests in both languages at once: a timer that
-posts to a Swedish chat and an English one.
-
 ### Upstream
 
 - [ ] **signal-cli-rest-api is pinned to a CI build.** [deploy/](deploy) uses
@@ -597,6 +480,36 @@ posts to a Swedish chat and an English one.
   and dispatch: a message, an edit, its sender's delete (someone else's
   leaves it be), a group message, a new disappearing time and an admin's
   message (neither kept).
+
+### Asked by the owner, 2026-10-23
+
+- [x] Photo albums, and photos by date, as planned: each folder right in
+  `photos_dir` is an album (the owner's choice: not its subfolders, which
+  are part of it), `/albums` lists them, and `/photo [<album>] [<date>
+  [<time>]]`, `/onthisday [<album>]` and `/cache [<album>]` take one;
+  without it, every photo (the owner's choice). The round goes by album,
+  as `/uniquephoto [<album>]` (in Swedish `/unikbild`), which replaced
+  `/photo new`; timers and specials that ran that are changed by hand, as
+  the changelog says (the owner's choice, over rewriting them at start).
+  Each album's birth date, which `/album <album> <date>` sets and
+  `/album <album> -` takes away, is in `data_dir/albums.txt`, with
+  `photos_birth_date` for those without (the owner's choice, over the bot
+  writing config.toml). Albums only some chats may see weren't asked for.
+  Measured: Resource budget in CLAUDE.md.
+
+- [x] A language for each person, and each group, as planned: `/language`
+  (in Swedish `/språk`), kept in `data_dir/languages.txt`; in a direct chat
+  for whoever sends it, everyone allowed; a group's, there, an admin's to
+  change (the owner's choice); and an admin's for others, by their numbers
+  in `/chats`, `/language 3,1 sv` (the owner's choice). Everything the bot
+  says in a chat, and posts to it, is in its language, the timers' and
+  `/run`'s posts, reminders, the greeting, the notices and the outbox's
+  notes too; a timer runs its commands once per language, with one draw,
+  so every chat gets the same photo and the round uses up one. Every
+  language's command names and words are taken from anyone; `/help` shows
+  the chat's. The weather's descriptions were the bot's own already, so
+  only places' names went by language. Measured: Resource budget in
+  CLAUDE.md.
 
 ### The day images go to ghcr.io (done, 2026-10-18)
 

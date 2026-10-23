@@ -235,9 +235,9 @@ def state(now: datetime) -> tuple[bool, str]:
             oldest=format_duration(now - times[0]),
         )
     if unchanged_at:
-        detail += "; " + _("the last skipped: nothing changed")
+        detail += "; " + _("last skipped: no changes")
     if last_failure:
-        failed = _("the last failed: {error}").format(error=last_failure)
+        failed = _("last failed: {error}").format(error=last_failure)
         return False, f"{failed}; {detail}"
     since = current_since(times)
     return since is None or now - since < STALE, detail

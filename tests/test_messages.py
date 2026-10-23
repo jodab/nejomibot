@@ -251,7 +251,9 @@ async def test_not_sent_is_retried_with_delay_note(new_outbox: NewOutbox) -> Non
     assert len(outbox) == 1
     await outbox.flush()
     assert len(outbox) == 0
-    assert post.texts() == ["hej\n\n⏳ Försenat, skulle ha skickats kl. 08:00"]
+    assert post.texts() == [
+        "hej\n\n⏳ Försenat: meddelandet skulle ha skickats kl. 08:00"
+    ]
 
 
 async def test_give_up_is_not_retried(new_outbox: NewOutbox) -> None:
@@ -288,7 +290,7 @@ async def test_a_new_message_sends_the_waiting_ones_first(
     await outbox.send(GROUP, text("help"))  # and back: no wait for the next round
     assert len(outbox) == 0
     assert post.texts() == [
-        "status\n\n⏳ Försenat, skulle ha skickats kl. 08:00",
+        "status\n\n⏳ Försenat: meddelandet skulle ha skickats kl. 08:00",
         "help",
     ]
 
@@ -306,7 +308,8 @@ async def test_old_messages_are_dropped_and_reported(new_outbox: NewOutbox) -> N
     assert len(outbox) == 0
     assert post.texts() == [
         "three",
-        "Något gick fel: 2 meddelanden kunde inte skickas på 3 timmar och har slängts",
+        "Något gick fel: 2 meddelanden kunde inte levereras inom 3 timmar och har "
+        "kasserats",
     ]
 
 
@@ -414,8 +417,8 @@ async def test_waiting_messages_outlast_a_restart(new_outbox: NewOutbox) -> None
     assert after.oldest() == clock.now
     await after.flush()
     assert post.texts() == [
-        "one\n\n⏳ Försenat, skulle ha skickats kl. 08:00",
-        "two\n\n⏳ Försenat, skulle ha skickats kl. 08:00",
+        "one\n\n⏳ Försenat: meddelandet skulle ha skickats kl. 08:00",
+        "two\n\n⏳ Försenat: meddelandet skulle ha skickats kl. 08:00",
     ]
     # What can't be read is left alone
     assert [path.name for path in kept_files()] == ["broken.json"]
@@ -484,3 +487,16 @@ async def test_says_when_signal_starts_rate_limiting(new_outbox: NewOutbox) -> N
     assert outbox.rate_limited
     await outbox.flush()
     assert not outbox.rate_limited
+
+
+async def test_the_delay_note_is_in_the_chats_language(new_outbox: NewOutbox) -> None:
+    get_settings().data_file("languages.txt").write_text(f"{GROUP} | sv\n")
+    post = FakePost(Outcome.NOT_SENT, Outcome.NOT_SENT)
+    outbox = new_outbox(post, Clock())
+    await outbox.send(GROUP, text("hej"))
+    await outbox.send(ALICE, text("hi"))
+    await outbox.flush()
+    assert post.texts() == [
+        "hej\n\n⏳ Försenat: meddelandet skulle ha skickats kl. 08:00",
+        "hi\n\n⏳ Delayed: this message was due at 08:00",
+    ]

@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import cast
 
@@ -7,7 +7,7 @@ import pytest
 from helpers import ALICE, make_jpeg, message_from
 from signalbot import DataMessageContext, SendMessage, SignalBot, TextMode
 
-from nejomibot import onthisday
+from nejomibot import photos
 from nejomibot.onthisday import AROUND, OnThisDay, nearest, photo_on
 
 TODAY = date(2026, 10, 19)
@@ -54,13 +54,13 @@ def test_each_photo_is_read_once(
 ) -> None:
     path = make_jpeg(photos_dir / "a.jpg", "2023:10:19 12:00:00", "+02:00")
     read: list[str] = []
-    day_taken = onthisday.day_taken
+    moment_taken = photos.moment_taken
 
-    def reading(path: Path) -> date | None:
+    def reading(path: Path) -> datetime | None:
         read.append(path.name)
-        return day_taken(path)
+        return moment_taken(path)
 
-    monkeypatch.setattr(onthisday, "day_taken", reading)
+    monkeypatch.setattr(photos, "moment_taken", reading)
     photo_on(TODAY)
     photo_on(TODAY)
     assert read == ["a.jpg"]
@@ -89,4 +89,26 @@ async def test_the_command(answers: list[SendMessage]) -> None:
     )
     assert [answer.text for answer in answers] == [
         "No photos from this day, or the days around it, in earlier years."
+    ]
+
+
+async def test_from_an_album(photos_dir: Path, answers: list[SendMessage]) -> None:
+    (photos_dir / "Alice").mkdir()
+    make_jpeg(photos_dir / "Alice/a.jpg", "2024:10:19 12:00:00", "+02:00")
+    make_jpeg(photos_dir / "b.jpg", "2023:10:19 12:00:00", "+02:00")
+    message = photo_on(TODAY, "Alice")
+    assert message is not None
+    assert message.text == "**2 years ago today**\n\n📅 2024-10-19 12:00"
+    # Without one, from every album, and the photos in none
+    (photos_dir / "b.jpg").unlink()
+    message = photo_on(TODAY)
+    assert message is not None
+    assert message.text == "**2 years ago today**\n\n📅 2024-10-19 12:00"
+    for text in ("/onthisday Bob", "/onthisday alice 2"):
+        await OnThisDay().handle_data_message(
+            DataMessageContext(cast(SignalBot, None), message_from(ALICE, text))
+        )
+    assert [answer.text for answer in answers] == [
+        "There's no album Bob: /albums lists them.",
+        "There's no album alice 2: /albums lists them.",
     ]

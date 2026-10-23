@@ -196,13 +196,13 @@ async def test_delivery_shows_the_latest_and_how_many_got_them(bot: SignalBot) -
     pong = Sent(NOW_MS, ALICE, "pong!")
     pong.confirmed[ALICE_ID] = True
     lines = (await delivery_text(bot, log_of(weather, pong))).splitlines()
-    assert lines[0] == "📬 **Whether the bot's latest messages arrived, newest first:**"
+    assert lines[0] == "📬 **Delivery of the bot's latest messages, newest first:**"
     assert lines[1].endswith(f" · 👤 Alice ({ALICE}) · pong! · 📬 1/1 · 👀 1")
     assert lines[2].endswith(" · 👥 Familjen · Weather in Stockholm · ⚠️ 0/2")
     assert lines[3:] == [
         "",
-        "📬 got it, of those in the chat · 👀 read it · ⏳ nobody yet · "
-        "⚠️ nobody in 10 minutes",
+        "📬 delivered, of those in the chat · 👀 read · ⏳ none yet · "
+        "⚠️ none within 10 minutes",
     ]
 
 
@@ -220,7 +220,10 @@ async def test_delivery_shows_delivery_messages(
 
 async def test_delivery_says_when_receipts_arent_heard(bot: SignalBot) -> None:
     lines = (await delivery_text(bot, log_of(Sent(NOW_MS, ALICE)))).splitlines()
-    assert lines[-2] == "⚠️ The bot isn't hearing receipts now: the counts may lag."
+    assert lines[-2] == (
+        "⚠️ Delivery receipts are not being received at the moment: the counts may "
+        "be behind."
+    )
 
 
 async def test_delivery_when_the_bot_has_sent_nothing(bot: SignalBot) -> None:
@@ -228,12 +231,12 @@ async def test_delivery_when_the_bot_has_sent_nothing(bot: SignalBot) -> None:
     text = await delivery_text(bot, SentLog(lambda: started))
     tz = get_settings().tz
     assert text == (
-        "The bot has sent nothing since it started, at "
+        "No messages sent since the bot started, at "
         f"{started.astimezone(tz):%Y-%m-%d %H:%M}."
     )
     long_ago = datetime.now(UTC) - timedelta(days=2)
     text = await delivery_text(bot, SentLog(lambda: long_ago))
-    assert text == "The bot has sent nothing in the last day."
+    assert text == "No messages sent in the last 24 hours."
 
 
 @pytest.mark.usefixtures("swedish", "listening", "answers")
@@ -250,11 +253,11 @@ async def test_delivery_in_swedish(
     [reply] = answers
     assert reply.text_mode == TextMode.STYLED
     lines = (reply.text or "").splitlines()
-    assert lines[0] == "📬 **Om botens senaste meddelanden kom fram, nyaste först:**"
+    assert lines[0] == "📬 **Leverans av botens senaste meddelanden, nyaste först:**"
     assert lines[1].endswith(" · 👥 Familjen · Hej · ⏳ 0/2")
     assert lines[-1] == (
-        "📬 fick det, av dem i chatten · 👀 läste det · ⏳ ingen ännu · "
-        "⚠️ ingen på 10 minuter"
+        "📬 levererat, av dem i chatten · 👀 läst · ⏳ ingen ännu · "
+        "⚠️ ingen inom 10 minuter"
     )
 
 

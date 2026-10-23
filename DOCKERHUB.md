@@ -10,8 +10,9 @@ and it answers a handful of commands. It speaks English and Swedish.
 
 - 🌤️ **A daily post:** the weather, then the photo of the day, at the time you choose,
   with the day's holidays, and in each group the birthdays and name days of those in it
-- 📷 **`/photo`:** a random photo, with when it was taken and a map link; `/onthisday`,
-  one from this day in an earlier year
+- 📷 **`/photo`:** a random photo, with when it was taken and a map link, from every
+  album or one, or the one taken nearest a moment; `/onthisday`, one from this day
+  in an earlier year
 - 🔔 **`/remind` and `/list`:** reminders, and a list such as for shopping, for each chat
 - ⏰ **Timers:** any of its commands on a schedule, posted to the chats you choose
 - 🔐 **Only the people and groups you allow** may use it; you manage it from Signal
@@ -99,7 +100,7 @@ Fill in at least these, keeping the quotes:
 | `openweather_api_key` | Your OpenWeatherMap key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
 | `timezone` | Your time zone, for the timers | `"Europe/Stockholm"` |
-| `language` | `"en"` for English, `"sv"` for Swedish | `"en"` |
+| `language` | `"en"` for English, `"sv"` for Swedish, `"el"` for Greek; a chat can choose its own with `/language` | `"en"` |
 
 Phone numbers go in international format: `+`, the country code, then the
 number without its first 0, and no spaces. In Sweden, 070-000 00 00 is
@@ -225,13 +226,13 @@ Send the bot:
 
 ```
 /chats
-/timer add 08:00 1 /today; /photo new
+/timer add 08:00 1 /today; /uniquephoto
 /timer run 1
 ```
 
 - `/chats` numbers the chats the bot can post to: its groups, then the people
   allowed, then you.
-- `/timer add 08:00 1 /today; /photo new` posts the weather, then a photo,
+- `/timer add 08:00 1 /today; /uniquephoto` posts the weather, then a photo,
   none twice until every one has been sent, at 08:00 every day, in your
   `timezone`, to chat 1. For more chats, give them all: `1,2`. Days work
   too: `mon-fri 07:30`.

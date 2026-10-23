@@ -1,0 +1,81 @@
+# Greek names for the bot's commands, and the Greek words it reads in
+# commands, next to the English ones; el.po translates its messages. See
+# nejomibot/i18n.py.
+
+# The language's own name, as /γλώσσα lists it
+name = "Ελληνικά"
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /, with and without accents. The bot answers the English
+# names too.
+[commands]
+"/photo" = ["/φωτογραφία", "/φωτογραφια", "/φωτο"]
+"/uniquephoto" = ["/νέαφωτο", "/νεαφωτο"]
+"/albums" = ["/άλμπουμ", "/αλμπουμ"]
+"/weather" = ["/καιρός", "/καιρος"]
+"/info" = ["/ώρα", "/ωρα"]
+"/fortune" = ["/γνωμικό", "/γνωμικο"]
+"/help" = ["/βοήθεια", "/βοηθεια"]
+"/contacts" = ["/επαφές", "/επαφες"]
+"/trust" = ["/επαλήθευση", "/επαληθευση"]
+"/allowed" = ["/επιτρεπόμενοι", "/επιτρεπομενοι"]
+"/allow" = ["/επίτρεψε", "/επιτρεψε"]
+"/disallow" = ["/απαγόρευσε", "/απαγορευσε"]
+"/profile" = ["/προφίλ", "/προφιλ"]
+"/name" = ["/όνομα", "/ονομα"]
+"/about" = ["/σχετικά", "/σχετικα"]
+"/avatar" = ["/εικόνα", "/εικονα"]
+"/username" = ["/όνομαχρήστη", "/ονομαχρηστη"]
+"/delete" = ["/διαγραφή", "/διαγραφη"]
+"/delivery" = ["/παράδοση", "/παραδοση"]
+"/today" = ["/σήμερα", "/σημερα"]
+"/day" = ["/ημέρα", "/ημερα"]
+"/msg" = ["/μήνυμα", "/μηνυμα"]
+"/run" = ["/εκτέλεση", "/εκτελεση"]
+"/incoming" = ["/εισερχόμενα", "/εισερχομενα"]
+"/onthisday" = ["/σανσήμερα", "/σανσημερα"]
+"/forecast" = ["/πρόγνωση", "/προγνωση"]
+"/remind" = ["/υπενθύμιση", "/υπενθυμιση"]
+"/list" = ["/λίστα", "/λιστα"]
+"/birthdays" = ["/γενέθλια", "/γενεθλια"]
+"/namedays" = ["/γιορτές", "/γιορτες"]
+"/nameday" = ["/γιορτή", "/γιορτη"]
+"/language" = ["/γλώσσα", "/γλωσσα"]
+
+# Words for when a timer runs (/timer πρόσθεσε δευ-παρ 07:30 ...) or a
+# reminder is due (/υπενθύμιση σε 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
+[words]
+mon = ["δευ"]
+tue = ["τρι"]
+wed = ["τετ"]
+thu = ["πεμ"]
+fri = ["παρ"]
+sat = ["σαβ"]
+sun = ["κυρ"]
+monday = ["δευτέρα", "δευτερα"]
+tuesday = ["τρίτη", "τριτη"]
+wednesday = ["τετάρτη", "τεταρτη"]
+thursday = ["πέμπτη", "πεμπτη"]
+friday = ["παρασκευή", "παρασκευη"]
+saturday = ["σάββατο", "σαββατο"]
+sunday = ["κυριακή", "κυριακη"]
+daily = ["καθημερινά", "καθημερινα"]
+weekdays = ["εργάσιμες", "εργασιμες"]
+weekends = ["σαββατοκύριακα", "σαββατοκυριακα", "σαββατοκύριακο", "σαββατοκυριακο"]
+today = ["σήμερα", "σημερα"]
+tomorrow = ["αύριο", "αυριο"]
+every = ["κάθε", "καθε"]
+in = ["σε"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/λίστα πρόσθεσε γάλα), each next to the English one it means. The first
+# is how /βοήθεια shows it.
+add = ["πρόσθεσε", "προσθεσε"]
+remove = ["αφαίρεσε", "αφαιρεσε", "διέγραψε", "διεγραψε"]
+list = ["λίστα", "λιστα"]
+clear = ["καθάρισε", "καθαρισε"]
+run = ["εκτέλεσε", "εκτελεσε"]
+all = ["όλα", "ολα"]
+preview = ["προεπισκόπηση", "προεπισκοπηση"]
+default = ["προεπιλογή", "προεπιλογη"]

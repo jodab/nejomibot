@@ -30,7 +30,7 @@ aren't counted, so they're never refused.
 import logging
 from collections import deque
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from math import ceil
 from time import monotonic
@@ -42,7 +42,16 @@ from signalbot import DataMessageContext
 from .client import client
 from .commands import Command, Handler, answer, argument
 from .config import get_settings
-from .i18n import N_, _, day_and_time, format_duration, ngettext, weekday_name
+from .i18n import (
+    N_,
+    _,
+    day_and_time,
+    format_duration,
+    languages,
+    ngettext,
+    spoken,
+    weekday_name,
+)
 from .messages import ServiceError, error_text, escape, log_failure, web_error
 from .styles import bold
 
@@ -294,7 +303,7 @@ async def ask(url: str, *, counted: bool = False, **params: str) -> Any:
             return data
     except (aiohttp.ClientError, TimeoutError) as e:
         raise WeatherError(
-            _("OpenWeatherMap can't be reached: {error}").format(error=web_error(e))
+            _("OpenWeatherMap is unreachable: {error}").format(error=web_error(e))
         ) from e
 
 
@@ -304,7 +313,16 @@ class Place:
 
     lat: str
     lon: str
-    name: str  # e.g. 'Springfield, Illinois, US'
+    given: str  # its name, as geocoding gives it first
+    region: tuple[str, ...]  # its state and country, if known
+    # Its names in the languages the bot speaks, as geocoding has them
+    names: dict[str, str] = field(default_factory=dict[str, str])
+
+    @property
+    def name(self) -> str:
+        """E.g. 'Springfield, Illinois, US', in the language spoken, if it
+        has a name there."""
+        return ", ".join([self.names.get(spoken()) or self.given, *self.region])
 
 
 # Where places are, by the name asked, in lower case
@@ -314,24 +332,27 @@ places: dict[str, Place] = {}
 async def place(city: str, *, counted: bool = False) -> Place:
     """Where the city is, from OpenWeatherMap's geocoding, which takes the
     name as its weather by name did: Stockholm, or Stockholm,SE. Its first
-    place of the name, named in the bot's language if it has that, with its
-    state and country. Raises WeatherError."""
+    place of the name, with its names in the bot's languages, and its state
+    and country. Raises WeatherError."""
     key = city.casefold()
     if key not in places:
         found = await ask(GEOCODING_URL, counted=counted, q=city, limit="1")
         try:
             first = found[0]
             lat, lon = str(float(first["lat"])), str(float(first["lon"]))
-            names: Any = first.get("local_names") or {}
-            name = names.get(get_settings().language) or first.get("name") or city
-            parts = [name, first.get("state"), first.get("country")]
+            local: Any = first.get("local_names") or {}
+            names = {code: str(local[code]) for code in languages() if local.get(code)}
+            given = str(first.get("name") or city)
+            region = tuple(
+                str(p) for p in (first.get("state"), first.get("country")) if p
+            )
         except (IndexError, KeyError, TypeError, ValueError, AttributeError) as e:
             raise NoPlace(
                 _("OpenWeatherMap knows no place called {city}").format(city=city)
             ) from e
         if len(places) >= MAX_PLACES:
             del places[next(iter(places))]
-        places[key] = Place(lat, lon, ", ".join(str(part) for part in parts if part))
+        places[key] = Place(lat, lon, given, region, names)
     return places[key]
 
 

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 10:46+0300\n"
+"POT-Creation-Date: 2026-10-23 19:12+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -180,6 +180,83 @@ msgstr "🗑️ {name} är inte längre admin."
 msgid "They're on /allowed, so may still use the everyday commands."
 msgstr "Hen står i /tillåtna och får fortfarande använda vardagskommandona."
 
+#: nejomibot/albums.py nejomibot/status.py
+#, python-brace-format
+msgid "{count} photo"
+msgid_plural "{count} photos"
+msgstr[0] "{count} bild"
+msgstr[1] "{count} bilder"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "📚 {count} album"
+msgid_plural "📚 {count} albums"
+msgstr[0] "📚 {count} album"
+msgstr[1] "📚 {count} album"
+
+#: nejomibot/albums.py
+msgid "📚 No albums: each folder in the photo library is one."
+msgstr "📚 Inga album: varje mapp i bildarkivet är ett."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "📷 {count} photo in no album"
+msgid_plural "📷 {count} photos in no album"
+msgstr[0] "📷 {count} bild utan album"
+msgstr[1] "📷 {count} bilder utan album"
+
+#: nejomibot/albums.py
+msgid ""
+"/album <album>: the album. /album <album> 2019-06-15: the birth date its "
+"captions count an age from; /album <album> -: none of its own. /albums lists "
+"the albums."
+msgstr ""
+"/album <album>: albumet. /album <album> 2019-06-15: födelsedatumet som "
+"bildtexterna räknar en ålder från; /album <album> -: inget eget. /albums "
+"visar albumen."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "Born {day}"
+msgstr "Född {day}"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "Born {day}, as photos_birth_date has it"
+msgstr "Född {day}, enligt photos_birth_date"
+
+#: nejomibot/albums.py
+msgid "No birth date, so its captions show no age"
+msgstr "Inget födelsedatum, så bildtexterna visar ingen ålder"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ {album}: born {day}, so its captions show the age."
+msgstr "✅ {album}: född {day}, så bildtexterna visar åldern."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{album} has no birth date of its own."
+msgstr "{album} har inget eget födelsedatum."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid ""
+"✅ {album}: no birth date of its own, so photos_birth_date's, {day}, counts."
+msgstr ""
+"✅ {album}: inget eget födelsedatum, så det i photos_birth_date, {day}, "
+"gäller."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ {album}: no birth date, so its captions show no age."
+msgstr "✅ {album}: inget födelsedatum, så bildtexterna visar ingen ålder."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{text} isn't a date, as 2019-06-15."
+msgstr "{text} är inget datum: ange det som 2019-06-15."
+
 #: nejomibot/allowed.py
 msgid ""
 "Send /allow and who: a phone number, Signal ID or group ID, the name of a "
@@ -306,13 +383,13 @@ msgstr[0] "{count}, {newest} gammal"
 msgstr[1] "{count}, den nyaste {newest} gammal, den äldsta {oldest} gammal"
 
 #: nejomibot/backups.py
-msgid "the last skipped: nothing changed"
-msgstr "den senaste hoppades över: inget hade ändrats"
+msgid "last skipped: no changes"
+msgstr "senaste hoppades över: inga ändringar"
 
 #: nejomibot/backups.py
 #, python-brace-format
-msgid "the last failed: {error}"
-msgstr "den senaste misslyckades: {error}"
+msgid "last failed: {error}"
+msgstr "senaste misslyckades: {error}"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
@@ -696,16 +773,16 @@ msgstr ""
 
 #: nejomibot/delete.py
 #, python-brace-format
-msgid "The bot has sent nothing since it started, at {time}."
-msgstr "Boten har inte skickat något sedan den startade, {time}."
+msgid "No messages sent since the bot started, at {time}."
+msgstr "Inga meddelanden skickade sedan boten startade, {time}."
 
 #: nejomibot/delete.py
 msgid ""
-"The bot has sent nothing in the last day, and Signal only deletes messages "
-"for everyone within a day."
+"The bot has sent no messages in the last 24 hours, and Signal only deletes "
+"messages for everyone within 24 hours."
 msgstr ""
-"Boten har inte skickat något det senaste dygnet, och Signal raderar bara "
-"meddelanden för alla inom ett dygn."
+"Boten har inte skickat några meddelanden de senaste 24 timmarna, och Signal "
+"raderar bara meddelanden för alla inom 24 timmar."
 
 #: nejomibot/delete.py
 msgid "The bot's latest messages, newest first:"
@@ -753,25 +830,27 @@ msgid "/delete <n>: delete one of those for everyone; /delete 2,5,11 several"
 msgstr "/radera <n>: radera ett av dem för alla; /radera 2,5,11 flera"
 
 #: nejomibot/delivery.py
-msgid "The bot has sent nothing in the last day."
-msgstr "Boten har inte skickat något det senaste dygnet."
+msgid "No messages sent in the last 24 hours."
+msgstr "Inga meddelanden skickade de senaste 24 timmarna."
 
 #: nejomibot/delivery.py
 #, python-brace-format
 msgid ""
-"📬 got it, of those in the chat · 👀 read it · ⏳ nobody yet · ⚠️ nobody in "
+"📬 delivered, of those in the chat · 👀 read · ⏳ none yet · ⚠️ none within "
 "{minutes} minutes"
 msgstr ""
-"📬 fick det, av dem i chatten · 👀 läste det · ⏳ ingen ännu · ⚠️ ingen på "
+"📬 levererat, av dem i chatten · 👀 läst · ⏳ ingen ännu · ⚠️ ingen inom "
 "{minutes} minuter"
 
 #: nejomibot/delivery.py
-msgid "⚠️ The bot isn't hearing receipts now: the counts may lag."
-msgstr "⚠️ Boten får inga kvitton just nu: siffrorna kan ligga efter."
+msgid ""
+"⚠️ Delivery receipts are not being received at the moment: the counts may be "
+"behind."
+msgstr "⚠️ Leveranskvitton tas inte emot just nu: siffrorna kan ligga efter."
 
 #: nejomibot/delivery.py
-msgid "Whether the bot's latest messages arrived, newest first:"
-msgstr "Om botens senaste meddelanden kom fram, nyaste först:"
+msgid "Delivery of the bot's latest messages, newest first:"
+msgstr "Leverans av botens senaste meddelanden, nyaste först:"
 
 #: nejomibot/fortune.py
 msgid "Fortune libraries:"
@@ -822,20 +901,22 @@ msgid "Bot"
 msgstr "Bot"
 
 #: nejomibot/health.py
-msgid "still starting: signalbot waits for signal-cli-rest-api and the account"
-msgstr ""
-"startar fortfarande: signalbot väntar på signal-cli-rest-api och kontot"
+msgid "starting: waiting for signal-cli-rest-api and the account"
+msgstr "startar: väntar på signal-cli-rest-api och kontot"
 
 #: nejomibot/health.py
 #, python-brace-format
-msgid "{count} message waiting to be sent, the first for {duration}"
-msgid_plural "{count} messages waiting to be sent, the first for {duration}"
-msgstr[0] "{count} meddelande har väntat på att skickas i {duration}"
-msgstr[1] "{count} meddelanden väntar på att skickas, det första i {duration}"
+msgid "{count} message queued, the oldest for {duration}"
+msgid_plural "{count} messages queued, the oldest for {duration}"
+msgstr[0] "{count} meddelande har legat i kö i {duration}"
+msgstr[1] "{count} meddelanden i kö, det äldsta i {duration}"
 
 #: nejomibot/health.py
-msgid "Signal rate-limits the bot: signal-account.sh rate-limit lifts it"
-msgstr "Signal begränsar boten: signal-account.sh rate-limit häver det"
+msgid ""
+"rate-limited by Signal: run signal-account.sh rate-limit to lift the limit"
+msgstr ""
+"begränsad av Signal: kör signal-account.sh rate-limit för att häva "
+"begränsningen"
 
 #: nejomibot/health.py
 msgid "running"
@@ -848,8 +929,8 @@ msgstr "version {version} i läget {mode}, inte json-rpc"
 
 #: nejomibot/health.py
 #, python-brace-format
-msgid "version {version} is too old: the bot needs a later one"
-msgstr "version {version} är för gammal: boten behöver en senare"
+msgid "version {version} is not supported: a later version is required"
+msgstr "version {version} stöds inte: en senare version krävs"
 
 #: nejomibot/health.py
 #, python-brace-format
@@ -900,12 +981,28 @@ msgid "Backups"
 msgstr "Säkerhetskopior"
 
 #: nejomibot/help.py
+msgid "[<album>]"
+msgstr "[<album>]"
+
+#: nejomibot/help.py
 msgid "a random photo"
 msgstr "en slumpvis vald bild"
 
 #: nejomibot/help.py
+msgid "the one taken nearest then"
+msgstr "den som togs närmast då"
+
+#: nejomibot/help.py
+msgid "[<album>] <date> [<time>]"
+msgstr "[<album>] <datum> [<tid>]"
+
+#: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr "en bild som inte skickats än"
+
+#: nejomibot/help.py
+msgid "the albums"
+msgstr "albumen"
 
 #: nejomibot/help.py
 msgid "a photo from this day, years ago"
@@ -984,6 +1081,14 @@ msgid "the name days, the coming ones first"
 msgstr "namnsdagarna, de närmaste först"
 
 #: nejomibot/help.py
+msgid "[<language>]"
+msgstr "[<språk>]"
+
+#: nejomibot/help.py
+msgid "the bot's languages; one for here"
+msgstr "botens språk; vilket den talar här"
+
+#: nejomibot/help.py
 msgid "these commands"
 msgstr "de här kommandona"
 
@@ -998,6 +1103,14 @@ msgstr "vad /idag säger ovanför vädret, i varje chatt"
 #: nejomibot/help.py
 msgid "[<date>]"
 msgstr "[<datum>]"
+
+#: nejomibot/help.py
+msgid "an album, and the birth date for its ages"
+msgstr "ett album, och födelsedatumet för åldern"
+
+#: nejomibot/help.py
+msgid "<album> [<date>|-]"
+msgstr "<album> [<datum>|-]"
 
 #: nejomibot/help.py
 msgid "[<who>]"
@@ -1233,14 +1346,30 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<parts> – text and commands, separated by ;, e.g. Good morning! /today; /"
-"photo new"
+"uniquephoto"
 msgstr ""
-"<delar> – text och kommandon, åtskilda med ;, t.ex. God morgon! /idag; /bild "
-"ny"
+"<delar> – text och kommandon, åtskilda med ;, t.ex. God morgon! /idag; /"
+"unikbild"
+
+#: nejomibot/help.py
+msgid ""
+"<album> – one of /albums, by name; /album takes a <date> with its year, or - "
+"for none of its own"
+msgstr ""
+"<album> – ett av /albums, med namn; /album tar ett <datum> med år, eller - "
+"för inget eget"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"
 msgstr "ta bort – efter /om, /profilbild eller /användarnamn tar bort det"
+
+#: nejomibot/help.py
+msgid ""
+"<language> – sv, or Svenska, its own name; /language <chats> <language> "
+"gives those chats of /chats it, and a group's is an admin's to change"
+msgstr ""
+"<språk> – sv, eller Svenska, dess eget namn; /språk <chattar> <språk> ger de "
+"chattarna i /chats det, och en grupps ändras av en admin"
 
 #: nejomibot/help.py
 #, python-brace-format
@@ -1638,6 +1767,64 @@ msgstr "valutakurstjänsten svarade med ett fel ({error})"
 msgid "the exchange rate API has no rate for {currency}"
 msgstr "valutakurstjänsten har ingen kurs för {currency}"
 
+#: nejomibot/languages.py
+#, python-brace-format
+msgid ""
+"/language <language>: the bot speaks it here, as /language {code}; /language "
+"default: its own again."
+msgstr ""
+"/språk <språk>: boten talar det här, som /språk {code}; /språk standard: "
+"sitt eget igen."
+
+#: nejomibot/languages.py
+msgid "Languages"
+msgstr "Språk"
+
+#: nejomibot/languages.py
+msgid "here"
+msgstr "här"
+
+#: nejomibot/languages.py
+msgid "Chats with a language of their own:"
+msgstr "Chattar med ett eget språk:"
+
+#: nejomibot/languages.py
+msgid "/language <chats> <language>: for those chats of /chats."
+msgstr "/språk <chattar> <språk>: för de chattarna i /chats."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "The bot doesn't speak {text}: it speaks {languages}."
+msgstr "Boten talar inte {text}: den talar {languages}."
+
+#: nejomibot/languages.py
+msgid "Only the admins, in a direct chat, give chats of /chats a language."
+msgstr "Bara admins, i en direktchatt, ger chattar i /chats ett språk."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ The bot's own language for {chats} again: {language}."
+msgstr "✅ Botens eget språk för {chats} igen: {language}."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ {language} for {chats}."
+msgstr "✅ {language} för {chats}."
+
+#: nejomibot/languages.py
+msgid "Only an admin can change the language of a group."
+msgstr "Bara en admin kan ändra språket i en grupp."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ The bot's own language here again: {language}."
+msgstr "✅ Botens eget språk här igen: {language}."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ {language} here from now on."
+msgstr "✅ {language} här från och med nu."
+
 #: nejomibot/lists.py
 msgid "/list add <things>: put things on the list, e.g. /list add milk, eggs"
 msgstr ""
@@ -1693,11 +1880,11 @@ msgstr "🗑️ Listan är tom nu."
 
 #: nejomibot/messages.py
 #, python-brace-format
-msgid "signal-cli-rest-api answered {status} {reason}"
+msgid "signal-cli-rest-api returned {status} {reason}"
 msgstr "signal-cli-rest-api svarade {status} {reason}"
 
 #: nejomibot/messages.py
-msgid "signal-cli-rest-api can't be reached"
+msgid "signal-cli-rest-api is unreachable"
 msgstr "signal-cli-rest-api går inte att nå"
 
 #: nejomibot/messages.py
@@ -1707,30 +1894,35 @@ msgstr "Något gick fel: {error}"
 
 #: nejomibot/messages.py
 #, python-brace-format
-msgid "⚠️ The file has a line the bot can't read, and leaves as it is: {lines}"
-msgid_plural ""
-"⚠️ The file has {count} lines the bot can't read, and leaves as they are: "
+msgid ""
+"⚠️ The file has {count} unreadable line, which is ignored and left unchanged: "
 "{lines}"
+msgid_plural ""
+"⚠️ The file has {count} unreadable lines, which are ignored and left "
+"unchanged: {lines}"
 msgstr[0] ""
-"⚠️ Filen har en rad som boten inte kan läsa, och lämnar som den är: {lines}"
+"⚠️ Filen har {count} oläsbar rad, som ignoreras och lämnas oförändrad: {lines}"
 msgstr[1] ""
-"⚠️ Filen har {count} rader som boten inte kan läsa, och lämnar som de är: "
+"⚠️ Filen har {count} oläsbara rader, som ignoreras och lämnas oförändrade: "
 "{lines}"
 
 #: nejomibot/messages.py
 #, python-brace-format
-msgid "⏳ Late: it should have been sent at {time}"
-msgstr "⏳ Försenat, skulle ha skickats kl. {time}"
+msgid "⏳ Delayed: this message was due at {time}"
+msgstr "⏳ Försenat: meddelandet skulle ha skickats kl. {time}"
 
 #: nejomibot/messages.py
 #, python-brace-format
-msgid "{count} message couldn't be sent in {hours} hours, and was dropped"
+msgid ""
+"{count} message could not be delivered within {hours} hours and was discarded"
 msgid_plural ""
-"{count} messages couldn't be sent in {hours} hours, and were dropped"
+"{count} messages could not be delivered within {hours} hours and were "
+"discarded"
 msgstr[0] ""
-"{count} meddelande kunde inte skickas på {hours} timmar och har slängts"
+"{count} meddelande kunde inte levereras inom {hours} timmar och har kasserats"
 msgstr[1] ""
-"{count} meddelanden kunde inte skickas på {hours} timmar och har slängts"
+"{count} meddelanden kunde inte levereras inom {hours} timmar och har "
+"kasserats"
 
 #: nejomibot/notices.py
 #, python-brace-format
@@ -1750,27 +1942,27 @@ msgstr "🔄 Uppdaterad från {version}"
 #: nejomibot/notices.py
 #, python-brace-format
 msgid ""
-"⚠️ The run before, since {time}, didn't stop cleanly, as after a crash, a "
-"kill or a power cut: messages that had waited less than half a minute to be "
-"sent may be lost."
+"⚠️ The previous run, started {time}, did not shut down cleanly, as after a "
+"crash, a forced stop or a power failure. Messages queued for less than 30 "
+"seconds may have been lost."
 msgstr ""
-"⚠️ Förra körningen, sedan {time}, stoppades inte som den skulle, som efter en "
-"krasch, en tvångsavslutning eller ett strömavbrott: meddelanden som hade "
-"väntat mindre än en halv minut på att skickas kan ha gått förlorade."
+"⚠️ Den förra körningen, startad {time}, avslutades inte korrekt, som efter en "
+"krasch, ett tvingat stopp eller ett strömavbrott. Meddelanden som legat i kö "
+"kortare än 30 sekunder kan ha gått förlorade."
 
 #: nejomibot/notices.py
 #, python-brace-format
-msgid "⚠️ {file}: {count} line the bot can't read, left as it is"
-msgid_plural "⚠️ {file}: {count} lines the bot can't read, left as they are"
-msgstr[0] "⚠️ {file}: {count} rad som boten inte kan läsa, lämnad som den är"
-msgstr[1] "⚠️ {file}: {count} rader som boten inte kan läsa, lämnade som de är"
+msgid "⚠️ {file}: {count} unreadable line, ignored and left unchanged"
+msgid_plural "⚠️ {file}: {count} unreadable lines, ignored and left unchanged"
+msgstr[0] "⚠️ {file}: {count} oläsbar rad, ignoreras och lämnas oförändrad"
+msgstr[1] "⚠️ {file}: {count} oläsbara rader, ignoreras och lämnas oförändrade"
 
 #: nejomibot/notices.py nejomibot/status.py
 #, python-brace-format
-msgid "{count} message waiting to be sent again"
-msgid_plural "{count} messages waiting to be sent again"
-msgstr[0] "{count} meddelande väntar på att skickas igen"
-msgstr[1] "{count} meddelanden väntar på att skickas igen"
+msgid "{count} message queued for retry"
+msgid_plural "{count} messages queued for retry"
+msgstr[0] "{count} meddelande i kö för nytt försök"
+msgstr[1] "{count} meddelanden i kö för nytt försök"
 
 #: nejomibot/notices.py
 msgid "⏰ No timers"
@@ -1785,17 +1977,17 @@ msgstr[1] "⏰ {count} timrar"
 
 #: nejomibot/notices.py
 #, python-brace-format
-msgid "⏰ {count} timer, the next {when}"
-msgid_plural "⏰ {count} timers, the next {when}"
-msgstr[0] "⏰ {count} timer, nästa {when}"
-msgstr[1] "⏰ {count} timrar, nästa {when}"
+msgid "⏰ {count} timer, next run {when}"
+msgid_plural "⏰ {count} timers, next run {when}"
+msgstr[0] "⏰ {count} timer, nästa körning {when}"
+msgstr[1] "⏰ {count} timrar, nästa körning {when}"
 
 #: nejomibot/notices.py
 #, python-brace-format
-msgid "In {count} group"
-msgid_plural "In {count} groups"
-msgstr[0] "I {count} grupp"
-msgstr[1] "I {count} grupper"
+msgid "Member of {count} group"
+msgid_plural "Member of {count} groups"
+msgstr[0] "Medlem i {count} grupp"
+msgstr[1] "Medlem i {count} grupper"
 
 #: nejomibot/notices.py
 #, python-brace-format
@@ -1822,29 +2014,33 @@ msgstr "Bildarkiv"
 
 #: nejomibot/notices.py nejomibot/status.py
 #, python-brace-format
-msgid "Debug mode: only talking to {group}"
-msgstr "Felsökningsläge: pratar bara med {group}"
+msgid "Debug mode: communicating with {group} only"
+msgstr "Felsökningsläge: kommunicerar endast med {group}"
 
 #: nejomibot/notices.py
 msgid ""
-"⚠️ Signal rate-limits the bot, so messages wait, and are tried every half "
-"hour. To lift the limit, run signal-account.sh rate-limit --to <your number> "
-"on the server, and solve the captcha."
+"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
+"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
+"<your number> on the server and solve the captcha."
 msgstr ""
-"⚠️ Signal begränsar boten, så meddelanden väntar och provas igen varje "
-"halvtimme. Häv begränsningen med signal-account.sh rate-limit --to <ditt "
-"nummer> på servern, och lös captchan."
+"⚠️ Signal begränsar botens sändningar. Utgående meddelanden köas och skickas "
+"på nytt var 30:e minut. För att häva begränsningen, kör signal-account.sh "
+"rate-limit --to <ditt nummer> på servern och lös captcha-uppgiften."
 
 #: nejomibot/notices.py
 #, python-brace-format
 msgid ""
-"🔐 The safety number of {name} has changed: they may have a new phone, or it "
-"may not be them. The bot can't send to them until it's trusted: compare it "
-"with theirs with /contacts {name}, then /trust."
+"🔐 The safety number for {name} has changed. This usually means a new phone "
+"or a reinstall, but it may also mean that someone else is using the account. "
+"Messages to {name} cannot be sent until the new safety number is trusted: "
+"compare it with the one on their phone using /contacts {name}, then confirm "
+"it with /trust."
 msgstr ""
-"🔐 Säkerhetsnumret för {name} har ändrats: personen kan ha en ny telefon, "
-"eller så är det inte hen. Boten kan inte skicka till hen förrän numret är "
-"betrott: jämför det med hens, med /kontakter {name}, sedan /verifiera."
+"🔐 Säkerhetsnumret för {name} har ändrats. Det betyder oftast en ny telefon "
+"eller en ominstallation, men det kan också betyda att någon annan använder "
+"kontot. Meddelanden till {name} kan inte skickas förrän det nya "
+"säkerhetsnumret är betrott: jämför det med det på deras telefon med /"
+"kontakter {name}, och bekräfta det sedan med /verifiera."
 
 #: nejomibot/onthisday.py
 #, python-brace-format
@@ -1864,6 +2060,11 @@ msgstr[1] "För {count} år sedan, runt den här dagen"
 msgid "No photos from this day, or the days around it, in earlier years."
 msgstr ""
 "Inga bilder från den här dagen, eller dagarna runt den, från tidigare år."
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "There's no album {name}: /albums lists them."
+msgstr "Det finns inget album {name}: /albums visar dem."
 
 #: nejomibot/photos.py
 #, python-brace-format
@@ -1896,6 +2097,48 @@ msgid "⚠️ Date unknown (see the file name)"
 msgstr "⚠️ Datum okänt (se filnamn)"
 
 #: nejomibot/photos.py
+#, python-brace-format
+msgid "Nearest to {moment}: {off} after"
+msgstr "Närmast {moment}: {off} efter"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "Nearest to {moment}: {off} before"
+msgstr "Närmast {moment}: {off} före"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "Nearest to {day}: {count} day after"
+msgid_plural "Nearest to {day}: {count} days after"
+msgstr[0] "Närmast {day}: {count} dag efter"
+msgstr[1] "Närmast {day}: {count} dagar efter"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "Nearest to {day}: {count} day before"
+msgid_plural "Nearest to {day}: {count} days before"
+msgstr[0] "Närmast {day}: {count} dag före"
+msgstr[1] "Närmast {day}: {count} dagar före"
+
+#: nejomibot/photos.py
+msgid ""
+"/photo [<album>] [<date> [<time>]]: a random photo, from every album or the "
+"one named, or the one taken nearest a moment, e.g. /photo 2024-06-01 15:00. /"
+"albums lists the albums."
+msgstr ""
+"/bild [<album>] [<datum> [<tid>]]: en slumpvis vald bild, från alla album "
+"eller det som nämns, eller den som togs närmast en tidpunkt, t.ex. /bild "
+"2024-06-01 15:00. /albums visar albumen."
+
+#: nejomibot/photos.py
+msgid "/photo new is /uniquephoto now."
+msgstr "/bild ny heter /unikbild nu."
+
+#: nejomibot/photos.py
+msgid "No photo there says when it was taken."
+msgstr "Ingen bild där säger när den togs."
+
+#: nejomibot/photos.py
 msgid "found no photo that could be sent"
 msgstr "hittade ingen bild som gick att skicka"
 
@@ -1908,10 +2151,24 @@ msgstr[1] "📂 Bildarkivet har {count} bilder ({size}):"
 
 #: nejomibot/photos.py
 #, python-brace-format
+msgid "📂 {album} has {count} photo ({size}):"
+msgid_plural "📂 {album} has {count} photos ({size}):"
+msgstr[0] "📂 {album} har {count} bild ({size}):"
+msgstr[1] "📂 {album} har {count} bilder ({size}):"
+
+#: nejomibot/photos.py
+#, python-brace-format
 msgid "{type}: {count} file ({size})"
 msgid_plural "{type}: {count} files ({size})"
 msgstr[0] "{type}: {count} fil ({size})"
 msgstr[1] "{type}: {count} filer ({size})"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "📚 In {count} album"
+msgid_plural "📚 In {count} albums"
+msgstr[0] "📚 I {count} album"
+msgstr[1] "📚 I {count} album"
 
 #: nejomibot/ping.py
 #, python-brace-format
@@ -2348,10 +2605,10 @@ msgstr "inga bilder i {dir}"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "{count} photo"
-msgid_plural "{count} photos"
-msgstr[0] "{count} bild"
-msgstr[1] "{count} bilder"
+msgid "in {count} album"
+msgid_plural "in {count} albums"
+msgstr[0] "i {count} album"
+msgstr[1] "i {count} album"
 
 #: nejomibot/status.py
 msgid "Photo disk"
@@ -2359,8 +2616,8 @@ msgstr "Bilddisk"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "no size given for {path}"
-msgstr "ingen storlek angiven för {path}"
+msgid "no size reported for {path}"
+msgstr "ingen storlek rapporterad för {path}"
 
 #: nejomibot/status.py
 #, python-brace-format
@@ -2390,8 +2647,8 @@ msgstr "Mottagare"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "not trusted, so not sent to: {who}"
-msgstr "ej betrodda, så inget skickas till: {who}"
+msgid "untrusted, so messages are not sent: {who}"
+msgstr "ej betrodda, så meddelanden skickas inte: {who}"
 
 #: nejomibot/status.py
 msgid "all trusted"
@@ -2949,7 +3206,7 @@ msgstr "OpenWeatherMap svarade med ett fel ({error})"
 
 #: nejomibot/weather.py
 #, python-brace-format
-msgid "OpenWeatherMap can't be reached: {error}"
+msgid "OpenWeatherMap is unreachable: {error}"
 msgstr "OpenWeatherMap går inte att nå: {error}"
 
 #: nejomibot/weather.py

@@ -112,21 +112,19 @@ def bot_check(bot: SignalBot, now: datetime) -> Check:
         return Check(
             name,
             ok=False,
-            detail=_(
-                "still starting: signalbot waits for signal-cli-rest-api and the "
-                "account"
-            ),
+            detail=_("starting: waiting for signal-cli-rest-api and the account"),
         )
     if (oldest := outbox.oldest()) and now - oldest > WAITING_TOO_LONG:
         waiting = len(outbox)
         detail = ngettext(
-            "{count} message waiting to be sent, the first for {duration}",
-            "{count} messages waiting to be sent, the first for {duration}",
+            "{count} message queued, the oldest for {duration}",
+            "{count} messages queued, the oldest for {duration}",
             waiting,
         ).format(count=waiting, duration=format_duration(now - oldest))
         if outbox.rate_limited:
             detail += ". " + _(
-                "Signal rate-limits the bot: signal-account.sh rate-limit lifts it"
+                "rate-limited by Signal: run signal-account.sh rate-limit to lift "
+                "the limit"
             )
         return Check(name, ok=False, detail=detail)
     return Check(name, ok=True, detail=_("running"))
@@ -158,9 +156,9 @@ async def check_health(bot: SignalBot) -> Health:
             )
         if is_too_old(about.version):
             raise CheckFailed(
-                _("version {version} is too old: the bot needs a later one").format(
-                    version=about.version
-                )
+                _(
+                    "version {version} is not supported: a later version is required"
+                ).format(version=about.version)
             )
         return _("version {version}").format(version=about.version)
 

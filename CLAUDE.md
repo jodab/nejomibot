@@ -254,7 +254,7 @@ A run passes each command through the real handlers as a made-up direct
 message from the first admin, or the bot's own account if there are none
 (`Timekeeper.answers_to`; `/run`'s from the admin who sent it, so its
 numbers are theirs), then posts the collected answers to every chat of the
-timer. Commands that change timers, specials, birthdays or who may use the
+timer. Commands that change timers, specials, birthdays, albums or who may use the
 bot, post elsewhere (`/msg`, `/run`), or answer for their own chat can't run
 from timers (`Command.timers`); what only lists can, wherever the admins
 post it (the owner's decision, 2026-10-21). `/timers` and `/specials` alone
@@ -269,14 +269,29 @@ things, in order, data in `data_dir/specials.txt` (`/special add|remove`,
 `Timekeeper.answers_to` as a timer's, its text heading the first answer.
 None are code: `/dailypost` and `/dailyquote` went, as specials post the
 same (the owner's decision, 2026-10-23), the daily post through `/today`
-and `/photo new` (the round of photos not sent yet, `sent-photos.txt`,
-which `/photo` and `/onthisday` don't count toward). Their parts can't be
+and `/uniquephoto` (the round of photos not sent yet, see Photos). Their parts can't be
 the admins' own specials, nor what timers can't run; one a timer runs
 can't be removed. `OwnSpecials.current()` stats the
 file at each lookup and rereads it when it changed. Their texts keep the
 formatting given in Signal (`DataMessage.text_styles`), which
 `styles.marked()` writes as signal-cli-rest-api's marks and checks by
 reading them back as its parser does (`styles.unmarked()`).
+
+**Photos** (`photos.py`, `albums.py`): each folder right in `photos_dir`
+is an album (the owner's decision, 2026-10-23: not its subfolders, which
+are part of it), named in any case as the longest start of what follows a
+command (`album_named`). `/uniquephoto [<album>]` is the round, which
+replaced `/photo new` (the owner's decision, 2026-10-23; timers and
+specials that ran it are the owner's to change, as the changelog says):
+`sent-photos.txt` lists the photos sent by their paths in the library, and
+an album's round starts over by taking its lines out. `library_name()` and
+`album_of()` take the start off as text, as pathlib's `relative_to()` made
+a pick take 53 ms more for 7,641 photos. `moments()` is the one index of
+when each photo was taken, for `/photo <date> [<time>]`, `/albums` and
+`/onthisday`. Every photo command takes an album, and without one, every
+photo, in an album or not (the owner's decision, 2026-10-23). Each album's birth date is in `albums.txt`
+(`photos.birth_dates`), set with the admins' `/album`; `photos_birth_date`
+is for those without one.
 
 **Birthdays and holidays** (`birthdays.py`, `holidays.py`): `/today`
 (`today.py`) names the day atop the weather, `/day` alone, and `/today
@@ -347,7 +362,9 @@ waits for the account.
 
 **Files the bot keeps**: `allowed.txt`, `admins.txt`, `timers.txt`,
 `specials.txt`, `reminders.txt`, `lists.txt`, `birthdays.txt`,
-`sent-photos.txt`, `run.json` and `outbox/` in `data_dir`, written through
+`albums.txt`, `languages.txt`, `sent-photos.txt`, `run.json` and `outbox/` in
+`data_dir`,
+written through
 `files.write_privately` (mode 0600, a `mkstemp` temp file, fsync, replace,
 fsync of the folder; `replace_privately` for any writer) or
 `files.append_privately`. In the line files, hand edits, comments and
@@ -372,13 +389,34 @@ two days) and the health ping's line. None in debug mode, nor with `backups = fa
 **Translations** (`i18n.py`): messages are English, marked with `_()`,
 `ngettext()`, or `N_()` in tables made ahead of use, and formatted after
 translating: `_("Weather in {city}").format(city=...)`. The Dockerfile's
-`translations` stage compiles `locale/sv.po` to `sv.mo` with polib (the
+`translations` stage compiles each `locale/*.po` (Swedish, Greek) to a `.mo` with polib (the
 `translations` dependency group), and the image gets the `.mo` alone, which
 the bot reads with gettext (`i18n.catalog`); from a checkout, without a
 `.mo`, it compiles the `.po` with polib, there through the dev group. `.mo`
 files stay out of git. `tests/test_i18n.py` fails on an untranslated,
 fuzzy or obsolete message, or on differing `{fields}`: after changing
-messages, run `tools/translations.sh` and translate `sv.po`.
+messages, run `tools/translations.sh` and translate `sv.po` and `el.po`
+(Greek since 2026-10-23: serious, not silly or chatty, as the owner asked).
+Each chat may have a language of its own (`languages.py`, `/language`,
+kept in `languages.txt` by `i18n.chat_languages`; a group's an admin's to
+set, others' by `/chats` numbers, the owner's decisions of 2026-10-23):
+`language()` reads the `speaking_now` ContextVar, which
+`commands.Handler.handle_data_message` sets from the chat
+(`messages.language_here`), so `_()` follows it and handlers need no
+change. What the bot sends on its own sets it for each chat:
+`Timekeeper.post` (timers and `/run`), reminders, the greeting, the
+notices (`notices.worded`, once per language among the admins) and the
+outbox's notes. `Timekeeper.post` runs each command once per language
+among its chats, every run drawing from one `messages.Draw`, whose
+`chance()` all random picks use, and whose `used` keeps a photo marked
+sent unsent for the other languages' runs: every chat gets the same photo
+and the round uses up one. The bot takes every language's command names
+and words from anyone (`every_language()`, `names_of()`, the `.toml`
+alone, so a language's catalog loads only once the bot speaks it: 189 KB
+for Swedish); a test checks no two give one name to different things.
+Weather descriptions come from the bot's own table, translated, so the
+cached weather serves every language; a place keeps its names in the
+bot's languages (`weather.Place.names`).
 
 ## Conventions
 
@@ -429,6 +467,16 @@ image (amd64; arm64 250 MB, arm/v7 202 MB), with phonenumberslite in place of si
 dependency. 2026-10-19: reminders, lists, birthdays, holidays, notices,
 `/forecast` and `/onthisday` added 0.6 MB (73.9 to 74.5 MB, measured alike),
 and no dependency; `/onthisday` keeps about 300 bytes a photo once used.
+2026-10-23, albums: the one index of when photos were taken
+(`photos.moments`, for `/photo <date>`, `/albums` and `/onthisday`) keeps
+401 bytes a photo, 3.06 MB for 7,641 photos (tracemalloc, once the
+command's library is let go; a datetime is 16 bytes more than the date
+it replaced), and peaks 11 MB while first read, 2.4 to 2.8 s on a desktop.
+A `/uniquephoto` pick's bookkeeping takes 32 ms for 7,641 photos, listing
+included, since `library_name()` stopped using pathlib's `relative_to()`
+(53 ms of it before). Languages: an English bot reads Swedish's names
+alone, 146 KB with the first TOML read, and loads its catalog, 189 KB kept
+(368 KB at its peak, from the .mo), only once a chat speaks it.
 Later that day, admins added, numbered contacts, the safety numbers, the
 backups and 35 countries' holidays: 0.5 MB more of Python's allocations
 after imports and the Swedish translations (tracemalloc, 33.6 to 34.1 MB;

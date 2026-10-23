@@ -4,6 +4,75 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- `/photo new` is `/uniquephoto` now (in Swedish `/unikbild`, which was
+  `/bild ny`). Before updating, change it in your timers and specials, such
+  as the daily post's: remove the timer or special and add it again with
+  `/uniquephoto`, or edit `timers.txt` and `specials.txt` in `data_dir` by
+  hand, while the bot is stopped. One left with `/photo new` asks `/photo`
+  for an album called "new", and posts that there's none, not a photo.
+
+### Added
+
+- Albums: each folder right in the photo library (`photos_dir`) is one,
+  named as the folder, its subfolders part of it. `/albums` lists them, with
+  how many photos each has, the years they were taken in, and its birth
+  date. `/photo Alice` picks from the album Alice, `/onthisday Alice` too,
+  and `/cache Alice` counts its photos; without an album, each takes every
+  photo, in an album or not, as before. A name is matched in any case, and
+  may have spaces.
+- `/uniquephoto`, the round of photos not sent yet, as `/photo new` was; and
+  each album has a round of its own: `/uniquephoto Alice` posts each of
+  Alice's photos once, round after round, whatever the other rounds do.
+- `/photo 2024-06-01 15:00`: the photo taken nearest that moment, under how
+  far off it is; `/photo 2024-06-01`, one taken that day, or else on the
+  nearest day that has some; `/photo Alice 2024-06-01`, from that album.
+- `/album <album> <date>`, for the admins: a birth date of the album's own,
+  which its captions count an age from, kept in `data_dir/albums.txt`.
+  `/album <album> -` takes it away, so `photos_birth_date` counts for it, as
+  for every album without one; `/album <album>` shows the album.
+- A language for each chat. `/language` (in Swedish `/språk`) lists the
+  languages the bot speaks, and the one it speaks there; `/language sv`, or
+  `/language svenska`, makes it speak Swedish in a direct chat with
+  whoever sends it, and in a group, from an admin, for everyone in it;
+  `/language default` goes back to `language` in the config. In a direct
+  chat, an admin gives chats of `/chats` theirs: `/language 3,1 sv`. Kept in
+  `data_dir/languages.txt`.
+- The bot answers in each chat's language, and posts to it in it: the
+  timers' posts, `/run`'s, reminders, the greeting, the notices to each
+  admin, and the note on a late message. A timer that posts to chats of two
+  languages runs its commands once in each, with the same picks, so every
+  chat still gets the same photo, captioned in its language, and the round
+  uses up one.
+
+- Greek: `language = "el"`, or `/language el` for a chat, with Greek names
+  for the commands, such as `/καιρός` and `/φωτογραφία`, and words for days
+  and subcommands, such as `δευ-παρ` and `πρόσθεσε`.
+
+### Changed
+
+- The bot takes every language's names for commands, and its words for
+  days, times and subcommands, from anyone, whatever the chat's language:
+  `/väder` works in an English bot too. `/help` shows the names of the
+  language spoken in the chat.
+- The weather names a place in each chat's language, when OpenWeatherMap
+  has a name for it there.
+- `/status`, the start message and `/cache` say how many albums there are.
+- The bot's notices and reports are worded more plainly and formally: the
+  start message, `/status`'s and the health checks' details, `/delivery`,
+  the notes on late and dropped messages, and the warnings of rate limits,
+  changed safety numbers and lines of its files it can't read, in English
+  and Swedish.
+- A `/uniquephoto` pick does its bookkeeping in a third of the time, 32 ms
+  for 7,641 photos on a desktop.
+
+### Removed
+
+- `/photo new` (see Updating).
+
 ## 0.99.12 - 2026-10-23
 
 ### Fixed

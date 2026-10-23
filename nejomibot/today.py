@@ -3,8 +3,8 @@ holidays atop it, in the countries of the setting holidays (holidays.py),
 and in a group, the birthdays and name days of those it's for
 (birthdays.py). /day: the same, without the weather, or that there's
 nothing special. For everyone allowed. A timer posts them to every chat at
-once, each group with its own birthdays; /today with /photo new after it is
-a daily post: /timer add 08:00 1,2 /today; /photo new.
+once, each group with its own birthdays; /today with /uniquephoto after it is
+a daily post: /timer add 08:00 1,2 /today; /uniquephoto.
 
 /today preview, or /today preview 10-25, 2026-10-25 or tomorrow, shows an
 admin what /today will say atop the weather on that day, today if none is

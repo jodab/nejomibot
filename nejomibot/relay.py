@@ -6,8 +6,9 @@ runs the commands as a timer does, as the admin would in a direct chat with
 the bot, and posts their answers to the chats instead: /run 1,2 /weather;
 /photo. Its numbers are the admin's, as in /run 1 /incoming 4,9, which
 forwards messages 4 and 9 of their list to chat 1. Like a timer, /run can't
-run what changes timers, specials, birthdays or who may use the bot, posts
-to chats of its own, or answers for its own chat, as /remind does.
+run what changes timers, specials, birthdays, albums or who may use the bot,
+posts to chats of its own, or answers for its own chat, as /remind does. Each
+chat gets its answers in its language, and all of them the same photo.
 
 Both answer where they posted, and where it only waits to be sent, as Signal
 can't be reached, or may not have arrived.
@@ -111,11 +112,11 @@ async def post_answers(bot: SignalBot, message: DataMessage) -> str | None:
         return why_not
     if isinstance(chats := await chats_numbered(bot, numbers), str):
         return chats
-    outcomes: Outcomes = {chat: [] for chat in chats}
-    for command in commands:
-        for answer_ in await timekeeper.answers_to(command, message):
-            for chat in chats:
-                outcomes[chat].append(await send(bot, chat[0], answer_))
+    # As a timer posts them: in each chat's language, the same photo in all
+    posted = await timekeeper.post(
+        commands, [chat_id for chat_id, _name in chats], message
+    )
+    outcomes: Outcomes = {chat: posted[chat[0]] for chat in chats}
     # Posted here, they speak for themselves
     sender = message.source_number or message.source_uuid
     if [chat_id for chat_id, _name in chats] == [sender]:

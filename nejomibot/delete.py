@@ -114,15 +114,15 @@ def nothing_since_start(since: datetime, now: datetime) -> str | None:
     if now - since >= DELETABLE_FOR:
         return None
     started = since.astimezone(get_settings().tz)
-    return _("The bot has sent nothing since it started, at {time}.").format(
+    return _("No messages sent since the bot started, at {time}.").format(
         time=f"{started:%Y-%m-%d %H:%M}"
     )
 
 
 def nothing_sent_text(since: datetime, now: datetime) -> str:
     return nothing_since_start(since, now) or _(
-        "The bot has sent nothing in the last day, and Signal only deletes "
-        "messages for everyone within a day."
+        "The bot has sent no messages in the last 24 hours, and Signal only "
+        "deletes messages for everyone within 24 hours."
     )
 
 

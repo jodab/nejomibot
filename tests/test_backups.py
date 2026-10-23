@@ -226,7 +226,7 @@ async def test_a_failure_shows_till_a_backup_works(
     await daily()
     assert state(NOW) == (
         False,
-        "the last failed: [Errno 28] No space left on device; none yet",
+        "last failed: [Errno 28] No space left on device; none yet",
     )
     disk_full = False
     await daily()
@@ -342,7 +342,7 @@ async def test_unchanged_counts_as_current(
     ok, detail = state(datetime.now(STOCKHOLM))
     assert ok
     assert detail.startswith("1, 3 d ")
-    assert detail.endswith("; the last skipped: nothing changed")
+    assert detail.endswith("; last skipped: no changes")
     assert not due(datetime.now(STOCKHOLM))
     # Till a backup is made
     (data / "timers.txt").write_text("")

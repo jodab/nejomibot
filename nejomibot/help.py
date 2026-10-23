@@ -14,7 +14,7 @@ from signalbot import DataMessageContext
 from . import access
 from .commands import ALIASES, Command, Handler, aliases, answer
 from .config import get_settings
-from .i18n import N_, SOURCE_LANGUAGE, _, language
+from .i18n import N_, SOURCE_LANGUAGE, _, language, spoken
 from .messages import escape
 from .timers import example_date
 
@@ -30,10 +30,17 @@ class Line:
 
 
 EVERYDAY = [
-    Line("📷", "/photo", N_("a random photo")),
-    Line("🆕", "/photo new", N_("a photo not sent yet")),
-    Line("🎞️", "/onthisday", N_("a photo from this day, years ago")),
-    Line("📂", "/cache", N_("how many photos, and how big")),
+    Line("📷", "/photo", N_("a random photo"), N_("[<album>]")),
+    Line(
+        "📅",
+        "/photo",
+        N_("the one taken nearest then"),
+        N_("[<album>] <date> [<time>]"),
+    ),
+    Line("🆕", "/uniquephoto", N_("a photo not sent yet"), N_("[<album>]")),
+    Line("📚", "/albums", N_("the albums")),
+    Line("🎞️", "/onthisday", N_("a photo from this day, years ago"), N_("[<album>]")),
+    Line("📂", "/cache", N_("how many photos, and how big"), N_("[<album>]")),
     Line("🌅", "/today", N_("the day's holidays and birthdays, and the weather")),
     Line("🗓️", "/day", N_("the day's holidays and birthdays")),
     Line("🌤️", "/weather", N_("the weather now"), N_("[<city>]")),
@@ -46,6 +53,7 @@ EVERYDAY = [
     Line("📝", "/list", N_("this chat's list"), N_("[add <things> · remove <n>,…]")),
     Line("🎂", "/birthdays", N_("the birthdays, the coming ones first")),
     Line("🌸", "/namedays", N_("the name days, the coming ones first")),
+    Line("🗣️", "/language", N_("the bot's languages; one for here"), N_("[<language>]")),
     Line("❓", "/help", N_("these commands")),
 ]
 ADMIN = [
@@ -55,6 +63,12 @@ ADMIN = [
         "/today preview",
         N_("what /today says atop the weather, in each chat"),
         N_("[<date>]"),
+    ),
+    Line(
+        "📖",
+        "/album",
+        N_("an album, and the birth date for its ages"),
+        N_("<album> [<date>|-]"),
     ),
     Line("👥", "/contacts", N_("who the bot knows"), N_("[<who>]")),
     Line("📇", "/contacts", N_("add a contact, or rename"), N_("add <who> <name>")),
@@ -160,9 +174,18 @@ def notes() -> list[str]:
         ),
         _(
             "<parts> – text and commands, separated by ;, e.g. Good morning! "
-            "/today; /photo new"
+            "/today; /uniquephoto"
+        ),
+        _(
+            "<album> – one of /albums, by name; /album takes a <date> with its "
+            "year, or - for none of its own"
         ),
         _("remove – after /about, /avatar or /username, takes it away"),
+        _(
+            "<language> – sv, or Svenska, its own name; /language <chats> "
+            "<language> gives those chats of /chats it, and a group's is an "
+            "admin's to change"
+        ),
     ]
 
 
@@ -181,7 +204,7 @@ def help_message(admin: bool) -> str:
         ]
     else:
         parts = [section(_("Commands"), EVERYDAY)]
-    if get_settings().language != SOURCE_LANGUAGE:
+    if spoken() != SOURCE_LANGUAGE:
         parts.append(escape(_("Every command takes its English name too.")))
     return "\n\n".join(parts)
 

@@ -3,7 +3,7 @@
 import ast
 import string
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import polib
@@ -15,9 +15,11 @@ from nejomibot.config import get_settings
 from nejomibot.i18n import (
     LOCALE_DIR,
     _,
-    language_words,
+    every_word,
     languages,
     ngettext,
+    shown_word,
+    weekday_and_day,
     when_text,
 )
 
@@ -84,7 +86,9 @@ def test_english_is_as_written() -> None:
     assert _("a random photo") == "a random photo"
     assert ngettext("{n} day", "{n} days", 1) == "{n} day"
     assert ngettext("{n} day", "{n} days", 2) == "{n} days"
-    assert language_words("mon") == ["mon"]
+    # Every language's words are read, its own shown
+    assert every_word("mon") == ["mon", "δευ", "mån"]
+    assert shown_word("mon") == "mon"
 
 
 def test_when_text() -> None:
@@ -102,7 +106,8 @@ def test_swedish() -> None:
     assert ngettext("{n} day", "{n} days", 1) == "{n} dag"
     assert ngettext("{n} day", "{n} days", 2) == "{n} dagar"
     assert ngettext("{n} day", "{n} days", 0) == "{n} dagar"
-    assert language_words("mon") == ["mon", "mån"]
+    assert every_word("mon") == ["mon", "δευ", "mån"]
+    assert shown_word("mon") == "mån"
     now = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)
     assert when_text(now - timedelta(hours=9), now) == "igår 23:00"
 
@@ -147,11 +152,15 @@ def test_the_image_reads_them_compiled(
     monkeypatch.setattr(i18n, "LOCALE_DIR", tmp_path)
     monkeypatch.setitem(sys.modules, "polib", None)
     i18n.load.cache_clear()
+    i18n.names_of.cache_clear()
+    languages.cache_clear()
     try:
         swedish = i18n.load("sv")
+        assert languages() == ["en", "sv"]
     finally:
         i18n.load.cache_clear()
-    assert languages() == ["en", "sv"]
+        i18n.names_of.cache_clear()
+        languages.cache_clear()
     assert swedish.translations.gettext("a random photo") == "en slumpvis vald bild"
     assert swedish.translations.ngettext("{n} day", "{n} days", 2) == "{n} dagar"
     assert swedish.commands["/photo"] == ["/bild", "/foto"]
@@ -165,8 +174,26 @@ def test_a_broken_names_file_is_an_error(
     (tmp_path / "sv.toml").write_text('[comands]\n"/photo" = ["/bild"]\n')
     monkeypatch.setattr(i18n, "LOCALE_DIR", tmp_path)
     i18n.load.cache_clear()
+    i18n.names_of.cache_clear()
     try:
         with pytest.raises(ValueError, match="comands"):
             i18n.load("sv")
     finally:
         i18n.load.cache_clear()
+        i18n.names_of.cache_clear()
+
+
+def test_greek(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NEJOMIBOT_LANGUAGE", "el")
+    get_settings.cache_clear()
+    assert _("a random photo") == "μια τυχαία φωτογραφία"
+    assert ngettext("{n} day", "{n} days", 2) == "{n} μέρες"
+    # The month in the genitive, as a date has it
+    assert weekday_and_day(date(2026, 10, 25)) == "Κυριακή 25 Οκτωβρίου"
+    # Its names for commands and words, with accents or without
+    assert commands.canonical("/καιρός Αθήνα") == "/weather Αθήνα"
+    assert commands.canonical("/λιστα πρόσθεσε γάλα") == "/list add γάλα"
+    schedule = timers.parse_when("δευ-παρ 07:30", datetime.now(UTC))
+    assert isinstance(schedule, timers.Schedule)
+    assert schedule.days == frozenset(range(5))
+    assert timers.shown(schedule.text) == "εργάσιμες 07:30"

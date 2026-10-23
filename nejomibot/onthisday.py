@@ -1,74 +1,39 @@
 """/onthisday: a photo taken on this day in an earlier year, captioned as
 /photo captions it, under "3 years ago today" in bold; without one, a photo
-taken within three days of it, under "3 years ago, around this day". Like
-/photo, it doesn't count toward the round of /photo new.
+taken within three days of it, under "3 years ago, around this day".
+/onthisday Alice picks from the album Alice alone. Like /photo, it doesn't
+count toward the round of /uniquephoto.
 
 When each photo was taken comes from its EXIF, as its caption has it, in the
-bot's timezone. The bot reads it once for each photo, only the file's header,
-and keeps it while it runs, about 300 bytes a photo, so the first
+bot's timezone, read once for each photo (photos.moments()), so the first
 /onthisday after a start takes longer: 0.2 s for 1150 photos on a desktop
-whose disk cache has them. A photo that changes is read again.
+whose disk cache has them.
 """
 
 import asyncio
 import logging
-import random
-import threading
 from datetime import date, datetime
 from pathlib import Path
 
 from signalbot import DataMessageContext, SendMessage
 
-from .commands import Command, Handler, answer
+from .commands import Command, Handler, answer, argument
 from .config import get_settings
 from .i18n import _, ngettext
-from .messages import error_text, log_failure
-from .photos import MAX_ATTEMPTS, exif_datetime, exif_of, open_image, pick, scan_photos
+from .messages import chance, error_text, log_failure
+from .photos import (
+    MAX_ATTEMPTS,
+    album_alone,
+    by_album,
+    moments,
+    no_album,
+    pick,
+    scan_photos,
+)
 
 logger = logging.getLogger(__name__)
 
 AROUND = 3  # days either side of the day, when no photo was taken on it
-
-# When each photo was taken, by its path, with its mtime and size when read
-taken: dict[str, tuple[int, int, date | None]] = {}
-reading = threading.Lock()  # one look through the library at a time
-
-
-def day_taken(path: Path) -> date | None:
-    """The day the photo was taken, as its caption has it; None if that's
-    not known, or it's no image Pillow can read. Only its header is read."""
-    try:
-        with open_image(path) as img:
-            exif = exif_of(img)
-    except Exception as e:
-        logger.warning("Could not read when %s was taken: %s", path, e)
-        return None
-    moment = exif_datetime(exif)
-    return moment.date() if moment else None
-
-
-def days_taken() -> dict[Path, date]:
-    """When each photo in the library was taken, if known. Photos read
-    before and unchanged since aren't read again. Blocking."""
-    found: dict[Path, date] = {}
-    with reading:
-        seen: dict[str, tuple[int, int, date | None]] = {}
-        for path in scan_photos():
-            try:
-                stat = path.stat()
-            except OSError:
-                continue
-            known = taken.get(name := str(path))
-            if known and known[:2] == (stat.st_mtime_ns, stat.st_size):
-                day = known[2]
-            else:
-                day = day_taken(path)
-            seen[name] = (stat.st_mtime_ns, stat.st_size, day)
-            if day:
-                found[path] = day
-        taken.clear()
-        taken.update(seen)
-    return found
 
 
 def in_year(day: date, year: int) -> date:
@@ -104,39 +69,52 @@ def heading(days: int, years: int) -> str:
     return text.format(count=years)
 
 
-def photo_on(today: date) -> SendMessage | None:
+def photo_on(today: date, album: str | None = None) -> SendMessage | None:
     """A photo taken on this day in an earlier year, or else the nearest
-    days around it, captioned; None if there's none. Blocking."""
+    days around it, of the album's if one is named, captioned; None if
+    there's none. Blocking."""
+    library = scan_photos()
+    found = moments(library)
+    if album is not None:
+        found = {p: found[p] for p in by_album(library).get(album, []) if p in found}
     by_days: dict[int, list[tuple[Path, int]]] = {}
-    for path, day in days_taken().items():
-        if (found := nearest(day, today)) and found[0] <= AROUND:
-            days, years = found
+    for path, moment in found.items():
+        if (near := nearest(moment.date(), today)) and near[0] <= AROUND:
+            days, years = near
             by_days.setdefault(days, []).append((path, years))
     if not by_days:
         return None
     days = min(by_days)
     candidates = by_days[days]
-    for path, years in random.sample(candidates, min(MAX_ATTEMPTS, len(candidates))):
+    for path, years in chance().sample(candidates, min(MAX_ATTEMPTS, len(candidates))):
         if message := pick([path], heading(days, years)):
             return message
     return None
 
 
-async def on_this_day() -> SendMessage | str:
-    """The photo, or what to say instead."""
+def on_this_day_for(text: str) -> SendMessage | str:
+    """What /onthisday answers what follows it with. Blocking."""
+    album = None
+    if text and (album := album_alone(text)) is None:
+        return no_album(text)
     today = datetime.now(get_settings().tz).date()
-    try:
-        message = await asyncio.to_thread(photo_on, today)
-    except Exception as e:
-        log_failure(logger, "A photo from this day", e)
-        return error_text(e)
-    return message or _(
+    return photo_on(today, album) or _(
         "No photos from this day, or the days around it, in earlier years."
     )
 
 
+async def on_this_day(text: str = "") -> SendMessage | str:
+    """The photo, or what to say instead."""
+    try:
+        return await asyncio.to_thread(on_this_day_for, text)
+    except Exception as e:
+        log_failure(logger, "A photo from this day", e)
+        return error_text(e)
+
+
 class OnThisDay(Handler):
-    commands = (Command("/onthisday"),)
+    commands = (Command("/onthisday", more=True),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
-        await answer(context, on_this_day, slow=True)
+        text = argument(context.message.text)
+        await answer(context, lambda: on_this_day(text), slow=True)

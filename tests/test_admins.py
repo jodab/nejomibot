@@ -97,8 +97,8 @@ async def test_admins(chat: Chat) -> None:
         "",
         "/admin add <who> adds one, /admin remove <n> removes one; only the "
         "admins in the config can.",
-        "⚠️ The file has 2 lines the bot can't read, and leaves as they are: "
-        f"{GROUP} / {CAROL}",
+        "⚠️ The file has 2 unreadable lines, which are ignored and left "
+        f"unchanged: {GROUP} / {CAROL}",
     ]
 
 

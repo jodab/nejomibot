@@ -146,7 +146,7 @@ async def test_delete_latest_keeps_what_it_couldnt_delete(
     log = log_of(Sent(FAILS, GROUP))
     # signalbot doesn't pass on signal-cli-rest-api's error, only its status
     assert await delete_latest(bot, log, {GROUP}) == (
-        "Something went wrong: signal-cli-rest-api answered 400 Bad Request"
+        "Something went wrong: signal-cli-rest-api returned 400 Bad Request"
     )
     assert log.pop({GROUP}) == Sent(FAILS, GROUP)
 
@@ -252,11 +252,11 @@ def test_start_text(sent: Sent, text: str) -> None:
 def test_nothing_sent() -> None:
     started = datetime(2026, 10, 12, 6, 0, tzinfo=UTC)
     assert nothing_sent_text(started, started + timedelta(hours=1)) == (
-        "The bot has sent nothing since it started, at 2026-10-12 08:00."
+        "No messages sent since the bot started, at 2026-10-12 08:00."
     )
     assert nothing_sent_text(started, started + timedelta(days=2)) == (
-        "The bot has sent nothing in the last day, and Signal only deletes "
-        "messages for everyone within a day."
+        "The bot has sent no messages in the last 24 hours, and Signal only "
+        "deletes messages for everyone within 24 hours."
     )
 
 
@@ -307,7 +307,7 @@ async def test_list_sent_escapes(bot: SignalBot) -> None:
 
 async def test_list_nothing(bot: SignalBot) -> None:
     text = await list_sent(bot, SentLog(), ALICE_ID)
-    assert text.startswith("The bot has sent nothing since it started, at ")
+    assert text.startswith("No messages sent since the bot started, at ")
 
 
 async def test_delete_listed(bot: SignalBot, deletes: FakeApi) -> None:
@@ -365,7 +365,7 @@ async def test_delete_listed_keeps_what_it_couldnt_delete(
     await list_sent(bot, log, ALICE_ID)
     # signalbot doesn't pass on signal-cli-rest-api's error, only its status
     assert await delete_listed(bot, log, ALICE_ID, [1]) == (
-        "Something went wrong: signal-cli-rest-api answered 400 Bad Request"
+        "Something went wrong: signal-cli-rest-api returned 400 Bad Request"
     )
     assert log.latest(20) == [Sent(FAILS, GROUP)]
 
@@ -400,7 +400,7 @@ async def test_delete_several_stops_where_one_fails(
     await list_sent(bot, log, ALICE_ID)
     text = await delete_listed(bot, log, ALICE_ID, [1, 2, 3])
     assert text.split("\n\n")[1:] == [
-        "Something went wrong: signal-cli-rest-api answered 400 Bad Request\n"
+        "Something went wrong: signal-cli-rest-api returned 400 Bad Request\n"
         "Not tried after that: 3"
     ]
     assert text.startswith("🗑️ **Deleted**\n1 · ")

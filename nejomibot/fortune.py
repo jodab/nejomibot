@@ -8,7 +8,6 @@ under them that explains them, which shows in italics, and their source last.
 
 import asyncio
 import logging
-import random
 import re
 from functools import cache
 from pathlib import Path
@@ -18,7 +17,7 @@ from signalbot import DataMessageContext
 from .commands import Command, Handler, answer, argument
 from .config import get_settings
 from .i18n import _
-from .messages import escape
+from .messages import chance, escape
 from .styles import ITALIC, Styles, marked
 
 logger = logging.getLogger(__name__)
@@ -101,14 +100,14 @@ def pick(library: str) -> tuple[str, str]:
         if not any(found.values()):
             return _("No fortunes found."), ""
         # A library by its share of all the fortunes, so each is as likely
-        name = random.choices(list(found), weights=list(found.values()))[0]
+        name = chance().choices(list(found), weights=list(found.values()))[0]
     elif not (
         name := next((n for n in found if n.casefold() == library.casefold()), "")
     ):
         return _("Unknown fortune library. Use /fortune list to see the names."), ""
     if not (fortunes := read_fortunes(FORTUNES_DIR / name)):
         return _("No fortunes found."), ""
-    return random.choice(fortunes), name
+    return chance().choice(fortunes), name
 
 
 def styled(text: str, library: str) -> str:

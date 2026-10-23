@@ -28,6 +28,7 @@ import contextlib
 import functools
 import itertools
 import logging
+import random
 import re
 import time
 from bisect import bisect_left, insort
@@ -54,7 +55,7 @@ from signalbot import (
 
 from .config import get_settings
 from .files import write_privately
-from .i18n import _, ngettext
+from .i18n import _, chat_language, ngettext, speaking
 from .rest import RestError
 
 logger = logging.getLogger(__name__)
@@ -96,11 +97,11 @@ def describe(error: Exception) -> str:
     cause = error.__cause__ if isinstance(error, SignalAPIError) else error
     if isinstance(error, SignalAPIError):
         if isinstance(cause, aiohttp.ClientResponseError):
-            return _("signal-cli-rest-api answered {status} {reason}").format(
+            return _("signal-cli-rest-api returned {status} {reason}").format(
                 status=cause.status, reason=cause.message
             )
         if isinstance(cause, aiohttp.ClientConnectorError):
-            return _("signal-cli-rest-api can't be reached")
+            return _("signal-cli-rest-api is unreachable")
     if isinstance(cause, aiohttp.ClientError | TimeoutError):
         return web_error(cause)
     return str(error) or type(error).__name__
@@ -145,9 +146,10 @@ def unreadable_text(lines: list[str]) -> str:
     """The lines of a file the bot can't read, as the commands that list the
     rest of the file show them."""
     return ngettext(
-        "⚠️ The file has a line the bot can't read, and leaves as it is: {lines}",
-        "⚠️ The file has {count} lines the bot can't read, and leaves as they "
-        "are: {lines}",
+        "⚠️ The file has {count} unreadable line, which is ignored and left "
+        "unchanged: {lines}",
+        "⚠️ The file has {count} unreadable lines, which are ignored and left "
+        "unchanged: {lines}",
         len(lines),
     ).format(count=len(lines), lines=" / ".join(lines))
 
@@ -508,7 +510,8 @@ class Outbox:
         if self._post is None:
             raise RuntimeError("The outbox isn't started")
         if queued_at is not None:
-            message = delayed(message, queued_at)
+            with speaking(chat_language(recipient)):
+                message = delayed(message, queued_at)
         outcome, timestamp = await self._post(recipient, message)
         if outcome is Outcome.RATE_LIMITED:
             if not self._rate_limited and self.on_rate_limited is not None:
@@ -528,7 +531,8 @@ class Outbox:
             if self.on_sent is not None:
                 self.on_sent(sent)
         if dropped := self._dropped.pop(recipient, 0):
-            notice = SendMessage(text=dropped_text(dropped))
+            with speaking(chat_language(recipient)):
+                notice = SendMessage(text=dropped_text(dropped))
             if await self._try(recipient, notice) is not Outcome.SENT:
                 self._dropped[recipient] += dropped
         return outcome
@@ -558,7 +562,7 @@ def delayed(message: SendMessage, queued_at: datetime) -> SendMessage:
     """The message with a note that it's late. Added last, so that mention
     positions in the text still hold."""
     at = queued_at.astimezone(get_settings().tz)
-    note = _("⏳ Late: it should have been sent at {time}").format(time=f"{at:%H:%M}")
+    note = _("⏳ Delayed: this message was due at {time}").format(time=f"{at:%H:%M}")
     text = f"{message.text}\n\n{note}" if message.text else note
     return message.model_copy(update={"text": text})
 
@@ -567,8 +571,10 @@ def dropped_text(count: int) -> str:
     hours = get_settings().send_retry_hours
     return error_text(
         ngettext(
-            "{count} message couldn't be sent in {hours} hours, and was dropped",
-            "{count} messages couldn't be sent in {hours} hours, and were dropped",
+            "{count} message could not be delivered within {hours} hours and was "
+            "discarded",
+            "{count} messages could not be delivered within {hours} hours and were "
+            "discarded",
             count,
         ).format(count=count, hours=f"{hours:g}")
     )
@@ -608,6 +614,15 @@ def chats_of(context: DataMessageContext) -> set[str]:
     return {who for who in (message.source_uuid, message.source_number) if who}
 
 
+def language_here(context: DataMessageContext) -> str:
+    """The code of the language the bot speaks in the chat the message came
+    from: a group's own, a person's own, or else the setting's."""
+    message = context.message
+    if message.is_group():
+        return chat_language(chat_of(context.bot, message.source_or_group_id()))
+    return chat_language(message.source_number, message.source_uuid)
+
+
 def chat_id(context: DataMessageContext) -> str:
     """The chat the command came from, as the bot keeps it, as timers do: a
     group by its group.… ID, a person by phone number, else by ID."""
@@ -633,6 +648,35 @@ def arrival_delay(context: DataMessageContext) -> float:
 # While a timer, /run or a special runs a command, its answers are collected
 # here, for it to post, rather than sent to whoever "sent" the command
 collected: ContextVar[list[SendMessage] | None] = ContextVar("collected", default=None)
+
+
+@dataclass
+class Draw:
+    """What a timer's or /run's command picks at random, the same in each
+    language it runs in, for the chats that speak it: each run draws from
+    one seed, and what one marks used, such as a photo of the round, stays
+    unused for the next, which then picks the same."""
+
+    seed: int = field(default_factory=lambda: random.getrandbits(64))
+    used: set[str] = field(default_factory=set[str])
+    chance: random.Random = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.again()
+
+    def again(self) -> None:
+        """Draw anew from the seed, for the run in the next language."""
+        self.chance = random.Random(self.seed)
+
+
+drawn: ContextVar[Draw | None] = ContextVar("drawn", default=None)
+anywhere = random.Random()
+
+
+def chance() -> random.Random:
+    """What random picks come from: while a command runs in a language of
+    several, its draw's; else anywhere."""
+    return draw.chance if (draw := drawn.get()) else anywhere
 
 
 async def reply(context: DataMessageContext, message: SendMessage) -> None:
