@@ -22,7 +22,7 @@ and it answers a handful of commands. It speaks English and Swedish.
 **Tags:** `latest`, and each release by its version ·
 **Platforms:** linux/amd64, linux/arm64, linux/arm/v7 ·
 **Source and docs:** [github.com/jodab/nejomibot](https://github.com/jodab/nejomibot) ·
-**License:** GPL-3.0-or-later
+**License:** MIT
 
 ## How it fits together
 

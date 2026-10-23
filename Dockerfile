@@ -37,7 +37,8 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_NO_CACHE=1 \
     UV_PYTHON_DOWNLOADS=never
-COPY pyproject.toml uv.lock .python-version README.md ./
+COPY pyproject.toml uv.lock .python-version README.md LICENSE ./
+COPY LICENSES/ LICENSES/
 
 # The translations, compiled once, here, rather than at every start: a .mo
 # for each .po, by polib, from the lock; nothing else needs it
@@ -84,7 +85,7 @@ FROM base
 ARG VERSION=unknown
 LABEL org.opencontainers.image.title=nejomibot \
       org.opencontainers.image.description="Signal bot that posts the weather and a photo of the day" \
-      org.opencontainers.image.licenses=GPL-3.0-or-later \
+      org.opencontainers.image.licenses=MIT \
       org.opencontainers.image.version=$VERSION
 # Owned by root: the bot can read its code, not change it
 COPY --from=build /app/.venv .venv

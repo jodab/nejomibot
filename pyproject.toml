@@ -3,7 +3,8 @@ name = "nejomibot"
 version = "0.99.14"
 description = "Signal bot that posts the weather and a photo of the day"
 readme = "README.md"
-license = "GPL-3.0-or-later"
+license = "MIT"
+license-files = ["LICENSE", "LICENSES/*"]
 requires-python = ">=3.14"
 dependencies = [
     "signalbot==2.1.0",

@@ -3,6 +3,8 @@
 !uv.lock
 !.python-version
 !README.md
+!LICENSE
+!LICENSES/
 !config.example.toml
 !nejomibot/
 !tests/

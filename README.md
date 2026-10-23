@@ -1674,9 +1674,9 @@ tools/          build-image.sh: test and build the image, for x86 and ARM;
 
 ## License
 
-nejomibot is free software: you can redistribute and change it under the
-terms of the GNU General Public License, version 3 or (at your option) any
-later version. See [LICENSE](LICENSE).
+nejomibot is under the MIT License: see [LICENSE](LICENSE). Up to 0.99.14
+it was under the GNU General Public License, version 3 or later, which those
+releases keep.
 
 The fortune libraries in `nejomibot/fortunes`, but `fortunes_svenska`, come
 from [fortune-mod](https://github.com/shlomif/fortune-mod), as Debian ships

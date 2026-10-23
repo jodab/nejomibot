@@ -4,6 +4,16 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- nejomibot is under the MIT License from this release on, in place of the
+  GNU General Public License, version 3 or later, which 0.99.14 and the
+  releases before it keep. The fortune libraries from fortune-mod keep their
+  BSD license. The package, and so the image, carries both licenses' texts
+  now, as they ask.
+
 ## 0.99.14 - 2026-10-23
 
 ### Updating
