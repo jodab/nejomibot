@@ -2,7 +2,7 @@
 each after the one before: texts, and what other commands answer. The
 admins make them in a direct chat with the bot:
 
-  /special add /morning Good morning! /today; /uniquephoto
+  /special add /morning Good morning! /today; /weather; /uniquephoto
   /special add /bins The bins go out tonight!
   /specials                    the admins' own
   /special remove /bins

@@ -34,15 +34,14 @@ EVERYDAY = [
     Line(
         "📅",
         "/photo",
-        N_("the one taken nearest then"),
-        N_("[<album>] <date> [<time>]"),
+        N_("one from then: 2017, 2017-05 or 2017-05-14 15:30"),
+        N_("[<album>] <date>"),
     ),
     Line("🆕", "/uniquephoto", N_("a photo not sent yet"), N_("[<album>]")),
     Line("📚", "/albums", N_("the albums")),
     Line("🎞️", "/onthisday", N_("a photo from this day, years ago"), N_("[<album>]")),
     Line("📂", "/cache", N_("how many photos, and how big"), N_("[<album>]")),
-    Line("🌅", "/today", N_("the day's holidays and birthdays, and the weather")),
-    Line("🗓️", "/day", N_("the day's holidays and birthdays")),
+    Line("🌅", "/today", N_("the day's holidays and birthdays")),
     Line("🌤️", "/weather", N_("the weather now"), N_("[<city>]")),
     Line("🌦️", "/forecast", N_("the weather today and tomorrow"), N_("[<city>]")),
     Line("🕰️", "/info", N_("the time, and an exchange rate")),
@@ -61,7 +60,7 @@ ADMIN = [
     Line(
         "👁️",
         "/today preview",
-        N_("what /today says atop the weather, in each chat"),
+        N_("what /today says, in each chat"),
         N_("[<date>]"),
     ),
     Line(
@@ -69,6 +68,12 @@ ADMIN = [
         "/album",
         N_("an album, and the birth date for its ages"),
         N_("<album> [<date>|-]"),
+    ),
+    Line(
+        "🏷️",
+        "/album",
+        N_("other names for /photo <album>"),
+        N_("<album> shortcuts <names>|-"),
     ),
     Line("👥", "/contacts", N_("who the bot knows"), N_("[<who>]")),
     Line("📇", "/contacts", N_("add a contact, or rename"), N_("add <who> <name>")),
@@ -174,11 +179,12 @@ def notes() -> list[str]:
         ),
         _(
             "<parts> – text and commands, separated by ;, e.g. Good morning! "
-            "/today; /uniquephoto"
+            "/today; /weather; /uniquephoto"
         ),
         _(
             "<album> – one of /albums, by name; /album takes a <date> with its "
-            "year, or - for none of its own"
+            "year, or - for none of its own, and shortcuts as /alice alice, or - "
+            "for none"
         ),
         _("remove – after /about, /avatar or /username, takes it away"),
         _(

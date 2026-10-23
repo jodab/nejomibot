@@ -207,10 +207,12 @@ safety number.
 `commands.Handler` that lists its `Command`s: the English name, whether more
 may follow it, and whether timers and `/run` may run it. Every name the bot
 comes with, the language's too, starts with `/` (tests check); only the
-config's aliases may be plain words. The base class replaces an alias (the
-bot's own, `commands.ALIASES`: `/test`, `/time`, `/safety`; the language's
-names in `locale/<language>.toml`; the config's `aliases`, which win) by the
-English command and calls `handle()`, which mostly calls `answer()`: log, read receipt, typing
+config's aliases and the albums' shortcuts may be plain words. The base
+class replaces an alias (the albums' shortcuts, through
+`Handler.shortcuts()`, see Photos; the bot's own, `commands.ALIASES`:
+`/test`, `/time`, `/safety`, `/day`; the language's names in
+`locale/<language>.toml`; the config's `aliases`; each winning over those
+before) by the English command and calls `handle()`, which mostly calls `answer()`: log, read receipt, typing
 for slow ones, reply plain or styled, failures as `error_text()`, and edits
 ignored where running again would do it twice (see Conventions).
 `commands.known()` finds any command, the admins' own specials too (through
@@ -268,8 +270,8 @@ things, in order, data in `data_dir/specials.txt` (`/special add|remove`,
 `/specials`): parts of text and a command, each run through
 `Timekeeper.answers_to` as a timer's, its text heading the first answer.
 None are code: `/dailypost` and `/dailyquote` went, as specials post the
-same (the owner's decision, 2026-10-23), the daily post through `/today`
-and `/uniquephoto` (the round of photos not sent yet, see Photos). Their parts can't be
+same (the owner's decision, 2026-10-23), the daily post through `/today`,
+`/weather` and `/uniquephoto` (the round of photos not sent yet, see Photos). Their parts can't be
 the admins' own specials, nor what timers can't run; one a timer runs
 can't be removed. `OwnSpecials.current()` stats the
 file at each lookup and rereads it when it changed. Their texts keep the
@@ -287,15 +289,29 @@ specials that ran it are the owner's to change, as the changelog says):
 an album's round starts over by taking its lines out. `library_name()` and
 `album_of()` take the start off as text, as pathlib's `relative_to()` made
 a pick take 53 ms more for 7,641 photos. `moments()` is the one index of
-when each photo was taken, for `/photo <date> [<time>]`, `/albums` and
-`/onthisday`. Every photo command takes an album, and without one, every
-photo, in an album or not (the owner's decision, 2026-10-23). Each album's birth date is in `albums.txt`
-(`photos.birth_dates`), set with the admins' `/album`; `photos_birth_date`
-is for those without one.
+when each photo was taken, for `/photo <date>`, `/albums` and
+`/onthisday`. `/photo <date>` is as exact as it's given (the owner's
+decision, 2026-10-23): a year, month, day or hour (`Period`) is a photo
+from then at random, or else from the nearest one of its size that has
+some; to the minute, the photo taken nearest. Every photo command takes an
+album, and without one, every photo, in an album or not (the owner's
+decision, 2026-10-23). Each album's birth date and shortcuts are in
+`albums.txt` (`photos.album_settings`), set with the admins' `/album`;
+`photos_birth_date` is for those without one. A shortcut is an alias for
+`/photo <album>`, in place of the config's aliases for `/photo` (the
+owner's decision, 2026-10-23): `Photo.shortcuts()` hands them to
+`commands.aliases()`, where every other alias wins, and `check_aliases()`
+leaves them out, so the file can't stop the bot from starting. A line with
+a shortcut that is a command can't be read (`parse_album_settings`), and
+`/album` refuses any name the bot answers to already, as `/special add`
+refuses shortcuts.
 
 **Birthdays and holidays** (`birthdays.py`, `holidays.py`): `/today`
-(`today.py`) names the day atop the weather, `/day` alone, and `/today
-preview` shows the admins each group's: its holidays, in every chat, from
+(`today.py`, or `/day`) names the day, without the weather, which a daily
+post adds with `/weather` (the owner's decision, 2026-10-23); in what a
+timer, a special or `/run` posts, nothing on a day with nothing, as
+`send()` sends nothing with nothing in it (a `PerChat` with no text for the
+chat). `/today preview` shows the admins each group's: its holidays, in every chat, from
 rules in `holidays.py` (Easter from dateutil), for 35 countries by their ISO codes
 (`config.Country`, which a test keeps equal to `holidays.COUNTRIES`); and in
 a group only, never a direct chat (the owner's decision, 2026-10-19), the

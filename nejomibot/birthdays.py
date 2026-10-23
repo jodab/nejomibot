@@ -1,5 +1,5 @@
-"""Birthdays and name days, which /today names atop the weather on the day,
-in groups only: "🎂 Alice turns 36 today!", "🌸 Happy name day, Bob!".
+"""Birthdays and name days, which /today names on the day, in groups only:
+"🎂 Alice turns 36 today!", "🌸 Happy name day, Bob!".
 
 The admins keep them, in a direct chat with the bot. Someone on Signal is
 given as /contacts takes them, by name, phone number or ID, and must be a

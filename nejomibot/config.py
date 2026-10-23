@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     # asked at most every 10 minutes, and isn't counted.
     weather_calls_per_hour: Annotated[int, Field(ge=1)] = 10
 
-    # /today names the special days of these countries atop the weather:
+    # /today names the special days of these countries:
     # holidays, flag days and traditions. By their ISO 3166 codes, such as
     # SE for Sweden and GB for the United Kingdom (holidays.py).
     holidays: list[Country] = []

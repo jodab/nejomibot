@@ -148,7 +148,7 @@ def unreadable_lines() -> list[str]:
         birthdays.kept,
         reminders.kept,
         lists.kept,
-        photos.birth_dates,
+        photos.album_settings,
         chat_languages,
     ):
         counts[kept.name] = len(kept.current().broken)

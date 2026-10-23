@@ -59,11 +59,14 @@ def test_a_line_per_command() -> None:
     assert lines[0] == "**Commands**"
     assert lines[1] == "📷 `/photo [<album>]` – a random photo"
     assert lines[2] == (
-        "📅 `/photo [<album>] <date> [<time>]` – the one taken nearest then"
+        "📅 `/photo [<album>] <date>` – one from then: 2017, 2017-05 or "
+        "2017-05-14 15:30"
     )
     assert lines[3] == "🆕 `/uniquephoto [<album>]` – a photo not sent yet"
-    assert lines[13] == "🔮 `/fortune [<library>|all|list]` – a fortune"
-    assert lines[14] == "🔔 `/remind <when> <text>` – a reminder, here"
+    # /day, which /today was before, is one of its names
+    assert lines[7] == "🌅 `/today` – the day's holidays and birthdays (/day)"
+    assert lines[12] == "🔮 `/fortune [<library>|all|list]` – a fortune"
+    assert lines[13] == "🔔 `/remind <when> <text>` – a reminder, here"
 
 
 def test_aliases_are_listed(monkeypatch: pytest.MonkeyPatch) -> None:

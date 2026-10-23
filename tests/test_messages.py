@@ -466,6 +466,18 @@ async def test_each_chat_gets_its_own(
     assert post.sent == [(GROUP, "for the group"), (ALICE, "for all")]
 
 
+async def test_a_chat_with_nothing_to_get_gets_nothing(
+    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    post = FakePost()
+    monkeypatch.setattr(messages, "outbox", Outbox(post))
+    # As /today's in a post, on a day with nothing but a birthday in the group
+    message = PerChat(text="", texts={GROUP: "🎂 Alice"})
+    for chat in (GROUP, ALICE):
+        assert await messages.send(bot, chat, message) is Outcome.SENT
+    assert post.sent == [(GROUP, "🎂 Alice")]
+
+
 # Sending once, and saying when Signal starts rate-limiting the bot
 
 

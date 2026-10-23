@@ -73,6 +73,11 @@ wait for the owner.
 - [ ] **Holidays in `/today`** (2026-10-19): set `holidays = ["SE",
   "GR"]` in the server's config.toml, as it's none by default, then add the
   birthdays and name days with `/birthday add` and `/nameday add`.
+- [ ] **When the server gets the release after 0.99.13** (2026-10-23):
+  while the bot is stopped for it, take the aliases for `/photo` out of
+  config.toml; right after it, add `/weather` after `/today` in the daily
+  post's special, and give the album its shortcuts with `/album <album>
+  shortcuts ...`.
 - [ ] **Perhaps say on 0.94.0's release page that its images are broken**
   (2026-10-18), and to use 0.94.1: `gh release edit v0.94.0 --notes-file
   ...`. It stays as published, as releases do.
@@ -510,6 +515,19 @@ with people who have none.
   the chat's. The weather's descriptions were the bot's own already, so
   only places' names went by language. Measured: Resource budget in
   CLAUDE.md.
+- [x] `/today` without the weather, so a special or a timer posts it with
+  `/weather`: `/day` is another name for it (the owner's choice), and in
+  posts it's nothing on a day with nothing (the owner's choice), so
+  `/today; /weather` is the weather alone then. Timers and specials that
+  ran `/today` alone are changed by hand, as the changelog says.
+- [x] `/photo <date>` as exact as it's given: `2017`, `2017-05`,
+  `2017-05-14`, `2017-05-14 15`, at random, else the nearest of its size
+  with some; to the minute, the photo taken nearest.
+- [x] An album's own shortcuts, for `/photo <album>`, in place of the
+  config's aliases for `/photo`: `/album <album> shortcuts <names>` and
+  `/album <album> shortcuts -`, kept in `albums.txt` with the birth dates.
+  Measured: 10 µs more per alias lookup, about 26 µs, as each handler looks
+  them up for each message.
 
 ### The day images go to ghcr.io (done, 2026-10-18)
 

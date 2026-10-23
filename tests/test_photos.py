@@ -464,6 +464,28 @@ async def test_a_photo_taken_on_a_day(
     ]
 
 
+async def test_a_photo_taken_in_a_year_a_month_or_an_hour(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "a.jpg", taken="2017:05:14 15:10:00")
+    make_photos(photos_dir, "b.jpg", taken="2019:01:02 08:00:00")
+    for when in ("2017", "2017-05", "2017-05-14 15", "2018", "2017-07", "2017-05-14 9"):
+        await send(f"/photo {when}")
+    for when in ("2017-13", "2017-05-14 24", "2017-5"):
+        await send(f"/photo {when}")
+    assert [answer.text for answer in answers] == [
+        "📅 2017-05-14 15:10",
+        "📅 2017-05-14 15:10",
+        "📅 2017-05-14 15:10",
+        # Else the nearest of its size that has some, the earlier of two
+        "**Nearest to 2018: 1 year before**\n\n📅 2017-05-14 15:10",
+        "**Nearest to 2017-07: 2 months before**\n\n📅 2017-05-14 15:10",
+        "**Nearest to 2017-05-14 09:00: 6 hours after**\n\n📅 2017-05-14 15:10",
+        # No such month, no such hour, and a month by one digit
+        *[photos.photo_usage()] * 3,
+    ]
+
+
 async def test_a_photo_by_date_from_an_album(
     photos_dir: Path, answers: list[SendMessage]
 ) -> None:
@@ -491,7 +513,7 @@ async def test_no_photo_says_when_it_was_taken(
 def test_an_albums_own_birth_date(photos_dir: Path) -> None:
     make_photos(photos_dir, "Alice/a.jpg", "b.jpg", taken="2020:06:15 12:00:00")
     # By its name in any case
-    photos.birth_dates.add(photos.BirthDate("alice", date(2020, 6, 14)))
+    photos.album_settings.add(photos.AlbumSettings("alice", date(2020, 6, 14)))
     assert caption(photos_dir / "Alice/a.jpg") == "📅 2020-06-15 12:00\n🎂 1 day"
     # The others, photos_birth_date
     assert caption(photos_dir / "b.jpg") == "📅 2020-06-15 12:00\n🎂 1 year"

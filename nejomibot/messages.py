@@ -634,9 +634,15 @@ def chat_id(context: DataMessageContext) -> str:
 
 async def send(bot: SignalBot, recipient: str, message: SendMessage) -> Outcome:
     """Send to a contact or group, as the chat gets it, retrying while Signal
-    can't be reached: what became of it. Never raises."""
+    can't be reached: what became of it. Never raises. A message with nothing
+    in it, as a post with no text for the chat, as /today's on a day with
+    nothing special there, isn't sent."""
     chat = chat_of(bot, recipient)
-    return await outbox.send(chat, for_chat(message, chat))
+    message = for_chat(message, chat)
+    if not (message.text or message.base64_attachments or message.attachments):
+        logger.debug("Nothing to send %s", to_whom(chat))
+        return Outcome.SENT
+    return await outbox.send(chat, message)
 
 
 def arrival_delay(context: DataMessageContext) -> float:

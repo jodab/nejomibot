@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 19:12+0300\n"
+"POT-Creation-Date: 2026-10-23 20:10+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -208,12 +208,14 @@ msgstr[1] "📷 {count} bilder utan album"
 #: nejomibot/albums.py
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
-"captions count an age from; /album <album> -: none of its own. /albums lists "
-"the albums."
+"captions count an age from; /album <album> -: none of its own. /album "
+"<album> shortcuts /alice alice: other names for /photo <album>; /album "
+"<album> shortcuts -: none. /albums lists the albums."
 msgstr ""
 "/album <album>: albumet. /album <album> 2019-06-15: födelsedatumet som "
-"bildtexterna räknar en ålder från; /album <album> -: inget eget. /albums "
-"visar albumen."
+"bildtexterna räknar en ålder från; /album <album> -: inget eget. /album "
+"<album> genvägar /alice alice: andra namn för /bild <album>; /album <album> "
+"genvägar -: inga. /albums visar albumen."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -228,6 +230,15 @@ msgstr "Född {day}, enligt photos_birth_date"
 #: nejomibot/albums.py
 msgid "No birth date, so its captions show no age"
 msgstr "Inget födelsedatum, så bildtexterna visar ingen ålder"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "Shortcuts: {shortcuts}"
+msgstr "Genvägar: {shortcuts}"
+
+#: nejomibot/albums.py
+msgid "No shortcuts"
+msgstr "Inga genvägar"
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -251,6 +262,45 @@ msgstr ""
 #, python-brace-format
 msgid "✅ {album}: no birth date, so its captions show no age."
 msgstr "✅ {album}: inget födelsedatum, så bildtexterna visar ingen ålder."
+
+#: nejomibot/albums.py
+msgid "A shortcut can't have a | or a ;."
+msgstr "En genväg kan inte innehålla | eller ;."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{name} is an alias in the config: take it out there first."
+msgstr "{name} är ett alias i konfigurationen: ta bort det där först."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{name} is a shortcut for {album} already."
+msgstr "{name} är redan en genväg för {album}."
+
+#: nejomibot/albums.py nejomibot/specials.py
+#, python-brace-format
+msgid "{name} is a command already."
+msgstr "{name} är redan ett kommando."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{album} has no shortcuts."
+msgstr "{album} har inga genvägar."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ {album}: no shortcuts."
+msgstr "✅ {album}: inga genvägar."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "An album has at most {count} shortcuts."
+msgstr "Ett album har högst {count} genvägar."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ Shortcuts for /photo {album}: {shortcuts}."
+msgstr "✅ Genvägar för /bild {album}: {shortcuts}."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -989,12 +1039,12 @@ msgid "a random photo"
 msgstr "en slumpvis vald bild"
 
 #: nejomibot/help.py
-msgid "the one taken nearest then"
-msgstr "den som togs närmast då"
+msgid "one from then: 2017, 2017-05 or 2017-05-14 15:30"
+msgstr "en från då: 2017, 2017-05 eller 2017-05-14 15:30"
 
 #: nejomibot/help.py
-msgid "[<album>] <date> [<time>]"
-msgstr "[<album>] <datum> [<tid>]"
+msgid "[<album>] <date>"
+msgstr "[<album>] <datum>"
 
 #: nejomibot/help.py
 msgid "a photo not sent yet"
@@ -1011,10 +1061,6 @@ msgstr "en bild från den här dagen, för år sedan"
 #: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "hur många bilder, och hur stora"
-
-#: nejomibot/help.py
-msgid "the day's holidays and birthdays, and the weather"
-msgstr "dagens helgdagar och födelsedagar, och vädret"
 
 #: nejomibot/help.py
 msgid "the day's holidays and birthdays"
@@ -1097,8 +1143,8 @@ msgid "how the bot and the server are"
 msgstr "hur boten och servern mår"
 
 #: nejomibot/help.py
-msgid "what /today says atop the weather, in each chat"
-msgstr "vad /idag säger ovanför vädret, i varje chatt"
+msgid "what /today says, in each chat"
+msgstr "vad /idag säger, i varje chatt"
 
 #: nejomibot/help.py
 msgid "[<date>]"
@@ -1111,6 +1157,14 @@ msgstr "ett album, och födelsedatumet för åldern"
 #: nejomibot/help.py
 msgid "<album> [<date>|-]"
 msgstr "<album> [<datum>|-]"
+
+#: nejomibot/help.py
+msgid "other names for /photo <album>"
+msgstr "andra namn för /bild <album>"
+
+#: nejomibot/help.py
+msgid "<album> shortcuts <names>|-"
+msgstr "<album> genvägar <namn>|-"
 
 #: nejomibot/help.py
 msgid "[<who>]"
@@ -1346,18 +1400,18 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<parts> – text and commands, separated by ;, e.g. Good morning! /today; /"
-"uniquephoto"
+"weather; /uniquephoto"
 msgstr ""
 "<delar> – text och kommandon, åtskilda med ;, t.ex. God morgon! /idag; /"
-"unikbild"
+"väder; /unikbild"
 
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own"
+"for none of its own, and shortcuts as /alice alice, or - for none"
 msgstr ""
 "<album> – ett av /albums, med namn; /album tar ett <datum> med år, eller - "
-"för inget eget"
+"för inget eget, och genvägar som /alice alice, eller - för inga"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"
@@ -2108,27 +2162,22 @@ msgstr "Närmast {moment}: {off} före"
 
 #: nejomibot/photos.py
 #, python-brace-format
-msgid "Nearest to {day}: {count} day after"
-msgid_plural "Nearest to {day}: {count} days after"
-msgstr[0] "Närmast {day}: {count} dag efter"
-msgstr[1] "Närmast {day}: {count} dagar efter"
-
-#: nejomibot/photos.py
-#, python-brace-format
-msgid "Nearest to {day}: {count} day before"
-msgid_plural "Nearest to {day}: {count} days before"
-msgstr[0] "Närmast {day}: {count} dag före"
-msgstr[1] "Närmast {day}: {count} dagar före"
+msgid "{n} hour"
+msgid_plural "{n} hours"
+msgstr[0] "{n} timme"
+msgstr[1] "{n} timmar"
 
 #: nejomibot/photos.py
 msgid ""
-"/photo [<album>] [<date> [<time>]]: a random photo, from every album or the "
-"one named, or the one taken nearest a moment, e.g. /photo 2024-06-01 15:00. /"
+"/photo [<album>] [<date>]: a random photo, from every album or the one "
+"named; with a date, one taken then, as exactly as you like: 2017, 2017-05, "
+"2017-05-14 or 2017-05-14 15, or the one taken nearest 2017-05-14 15:30. /"
 "albums lists the albums."
 msgstr ""
-"/bild [<album>] [<datum> [<tid>]]: en slumpvis vald bild, från alla album "
-"eller det som nämns, eller den som togs närmast en tidpunkt, t.ex. /bild "
-"2024-06-01 15:00. /albums visar albumen."
+"/bild [<album>] [<datum>]: en slumpvis vald bild, från alla album eller det "
+"som nämns; med ett datum, en som togs då, så exakt du vill: 2017, 2017-05, "
+"2017-05-14 eller 2017-05-14 15, eller den som togs närmast 2017-05-14 "
+"15:30. /albums visar albumen."
 
 #: nejomibot/photos.py
 msgid "/photo new is /uniquephoto now."
@@ -2469,11 +2518,6 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with /, like /morning."
 msgstr "Ge det ett namn: ett ord som börjar med /, som /morgon."
-
-#: nejomibot/specials.py
-#, python-brace-format
-msgid "{name} is a command already."
-msgstr "{name} är redan ett kommando."
 
 #: nejomibot/specials.py
 msgid "A special can't have a |: the file of specials uses it."
@@ -2912,8 +2956,8 @@ msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."
 msgstr "Vilken dag? Som 10-25, 2026-10-25 eller imorgon; ingen för idag."
 
 #: nejomibot/today.py
-msgid "Nothing atop the weather."
-msgstr "Inget ovanför vädret."
+msgid "Nothing special."
+msgstr "Inget särskilt."
 
 #: nejomibot/today.py
 #, python-brace-format

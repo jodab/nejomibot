@@ -130,9 +130,9 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
 def check_aliases() -> None:
     """Every alias, the bot's own, the language's and the settings', is
     another name for a command the bot comes with, and not a command itself.
-    Not for the admins' own specials, which come and go as the bot runs.
-    Raises ValueError."""
-    for alias, command in aliases().items():
+    Not for the admins' own specials and shortcuts, which come and go as the
+    bot runs. Raises ValueError."""
+    for alias, command in aliases(shortcuts=False).items():
         if not built_in(command):
             raise ValueError(f"aliases: {command} isn't a command (for {alias})")
         if built_in(alias):

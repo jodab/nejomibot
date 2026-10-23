@@ -6,7 +6,9 @@ the setting aliases. A message that starts with an alias is handled as if it
 started with its command: /pic as /photo, /spådom startrek as /fortune
 startrek. So are every language's words for what follows a command, its
 subcommands: /lista lägg till mjölk as /list add mjölk, /spådom alla as
-/fortune all. The bot answers in the chat's language (i18n.speaking()).
+/fortune all. A handler may have shortcuts too, aliases the admins give, for
+its command and words after it: an album's, as alice 2017 for /photo Alice
+2017. The bot answers in the chat's language (i18n.speaking()).
 
 Each handler is a Handler that lists its commands, saying of each whether
 more may follow its name and whether timers and /run may run it. answer()
@@ -51,13 +53,23 @@ logger = logging.getLogger(__name__)
 FIRST_WORD = re.compile(r"^\S+")
 COMMAND_AND_SPACE = re.compile(r"^(\S+)\s+")
 # Names the bot has had all along, in every language
-ALIASES = {"/status": ["/test"], "/info": ["/time"], "/contacts": ["/safety"]}
+ALIASES = {
+    "/status": ["/test"],
+    "/info": ["/time"],
+    "/contacts": ["/safety"],
+    "/today": ["/day"],  # its own command till /today lost the weather
+}
 
 
-def aliases() -> dict[str, str]:
-    """Each alias, in lower case, and its command: the bot's own, every
-    language's, then the settings', which win."""
+def aliases(*, shortcuts: bool = True) -> dict[str, str]:
+    """Each alias, in lower case, and what it stands for: the handlers'
+    shortcuts, which come and go as the bot runs, unless not wanted; the
+    bot's own, every language's, then the settings', each winning over
+    those before."""
     table: dict[str, str] = {}
+    if shortcuts:
+        for handler in handlers():
+            table.update(handler.shortcuts())
     for command, names in [
         *ALIASES.items(),
         *(item for lang in every_language() for item in lang.commands.items()),
@@ -169,6 +181,12 @@ class Handler(DataMessageHandler):
     @classmethod
     def takes(cls, text: str) -> Command | None:
         return next((command for command in cls.commands if command.takes(text)), None)
+
+    @classmethod
+    def shortcuts(cls) -> dict[str, str]:
+        """Aliases the admins give it, in lower case, each with the command
+        and words it stands for, as an album's (photos.py)."""
+        return {}
 
     async def handle_data_message(self, context: DataMessageContext) -> None:
         context = resolved(context)

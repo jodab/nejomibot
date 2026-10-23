@@ -72,7 +72,7 @@ def settings_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[No
 @pytest.fixture(autouse=True)
 def fresh_lists() -> None:
     """The allowed list, the admins added, the admins' specials, the
-    reminders, lists, birthdays, albums' birth dates and chats' languages as
+    reminders, lists, birthdays, what albums have and chats' languages as
     the bot has them at a start: it keeps them for good. Nor has
     OpenWeatherMap been asked yet, nor a photo read for when it was taken,
     nor anyone shown a numbered list."""
@@ -84,7 +84,7 @@ def fresh_lists() -> None:
         reminders.kept,
         lists.kept,
         birthdays.kept,
-        photos.birth_dates,
+        photos.album_settings,
         i18n.chat_languages,
     ):
         kept.reset()

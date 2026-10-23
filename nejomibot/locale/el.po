@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 19:12+0300\n"
+"POT-Creation-Date: 2026-10-23 20:10+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -212,12 +212,15 @@ msgstr[1] "📷 {count} φωτογραφίες εκτός άλμπουμ"
 #: nejomibot/albums.py
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
-"captions count an age from; /album <album> -: none of its own. /albums lists "
-"the albums."
+"captions count an age from; /album <album> -: none of its own. /album "
+"<album> shortcuts /alice alice: other names for /photo <album>; /album "
+"<album> shortcuts -: none. /albums lists the albums."
 msgstr ""
 "/album <άλμπουμ>: το άλμπουμ. /album <άλμπουμ> 2019-06-15: η ημερομηνία "
 "γέννησης από την οποία οι λεζάντες του υπολογίζουν ηλικία· /album <άλμπουμ> "
-"-: καμία δική του. Το /άλμπουμ δείχνει τα άλμπουμ."
+"-: καμία δική του. /album <άλμπουμ> συντομεύσεις /alice alice: άλλα ονόματα "
+"για το /φωτογραφία <άλμπουμ>· /album <άλμπουμ> συντομεύσεις -: καμία. Το /"
+"άλμπουμ δείχνει τα άλμπουμ."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -232,6 +235,15 @@ msgstr "Γέννηση: {day}, από το photos_birth_date"
 #: nejomibot/albums.py
 msgid "No birth date, so its captions show no age"
 msgstr "Χωρίς ημερομηνία γέννησης, οπότε οι λεζάντες δεν δείχνουν ηλικία"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "Shortcuts: {shortcuts}"
+msgstr "Συντομεύσεις: {shortcuts}"
+
+#: nejomibot/albums.py
+msgid "No shortcuts"
+msgstr "Καμία συντόμευση"
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -256,6 +268,45 @@ msgstr ""
 msgid "✅ {album}: no birth date, so its captions show no age."
 msgstr ""
 "✅ {album}: χωρίς ημερομηνία γέννησης, οπότε οι λεζάντες δεν δείχνουν ηλικία."
+
+#: nejomibot/albums.py
+msgid "A shortcut can't have a | or a ;."
+msgstr "Μια συντόμευση δεν μπορεί να περιέχει | ή ;."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{name} is an alias in the config: take it out there first."
+msgstr "Το {name} είναι ψευδώνυμο στις ρυθμίσεις: αφαιρέστε το από εκεί πρώτα."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{name} is a shortcut for {album} already."
+msgstr "Το {name} είναι ήδη συντόμευση για το {album}."
+
+#: nejomibot/albums.py nejomibot/specials.py
+#, python-brace-format
+msgid "{name} is a command already."
+msgstr "Το {name} είναι ήδη εντολή."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{album} has no shortcuts."
+msgstr "Το {album} δεν έχει συντομεύσεις."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ {album}: no shortcuts."
+msgstr "✅ {album}: καμία συντόμευση."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "An album has at most {count} shortcuts."
+msgstr "Ένα άλμπουμ έχει έως {count} συντομεύσεις."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ Shortcuts for /photo {album}: {shortcuts}."
+msgstr "✅ Συντομεύσεις για το /φωτογραφία {album}: {shortcuts}."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -1010,12 +1061,12 @@ msgid "a random photo"
 msgstr "μια τυχαία φωτογραφία"
 
 #: nejomibot/help.py
-msgid "the one taken nearest then"
-msgstr "αυτή που τραβήχτηκε πιο κοντά τότε"
+msgid "one from then: 2017, 2017-05 or 2017-05-14 15:30"
+msgstr "μία από τότε: 2017, 2017-05 ή 2017-05-14 15:30"
 
 #: nejomibot/help.py
-msgid "[<album>] <date> [<time>]"
-msgstr "[<άλμπουμ>] <ημερομηνία> [<ώρα>]"
+msgid "[<album>] <date>"
+msgstr "[<άλμπουμ>] <ημερομηνία>"
 
 #: nejomibot/help.py
 msgid "a photo not sent yet"
@@ -1032,10 +1083,6 @@ msgstr "μια φωτογραφία από αυτήν τη μέρα, παλαι�
 #: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "πόσες φωτογραφίες, και τι μέγεθος"
-
-#: nejomibot/help.py
-msgid "the day's holidays and birthdays, and the weather"
-msgstr "οι αργίες και τα γενέθλια της ημέρας, και ο καιρός"
 
 #: nejomibot/help.py
 msgid "the day's holidays and birthdays"
@@ -1118,8 +1165,8 @@ msgid "how the bot and the server are"
 msgstr "η κατάσταση του bot και του διακομιστή"
 
 #: nejomibot/help.py
-msgid "what /today says atop the weather, in each chat"
-msgstr "τι δείχνει το /σήμερα πάνω από τον καιρό, σε κάθε συνομιλία"
+msgid "what /today says, in each chat"
+msgstr "τι δείχνει το /σήμερα, σε κάθε συνομιλία"
 
 #: nejomibot/help.py
 msgid "[<date>]"
@@ -1132,6 +1179,14 @@ msgstr "ένα άλμπουμ, και η ημερομηνία γέννησης �
 #: nejomibot/help.py
 msgid "<album> [<date>|-]"
 msgstr "<άλμπουμ> [<ημερομηνία>|-]"
+
+#: nejomibot/help.py
+msgid "other names for /photo <album>"
+msgstr "άλλα ονόματα για το /φωτογραφία <άλμπουμ>"
+
+#: nejomibot/help.py
+msgid "<album> shortcuts <names>|-"
+msgstr "<άλμπουμ> συντομεύσεις <ονόματα>|-"
 
 #: nejomibot/help.py
 msgid "[<who>]"
@@ -1368,18 +1423,19 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<parts> – text and commands, separated by ;, e.g. Good morning! /today; /"
-"uniquephoto"
+"weather; /uniquephoto"
 msgstr ""
 "<μέρη> – κείμενο και εντολές, χωρισμένα με ;, π.χ. Καλημέρα! /σήμερα; /"
-"νέαφωτο"
+"καιρός; /νέαφωτο"
 
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own"
+"for none of its own, and shortcuts as /alice alice, or - for none"
 msgstr ""
 "<άλμπουμ> – ένα από το /άλμπουμ, με το όνομά του· το /album δέχεται "
-"<ημερομηνία> με έτος, ή - για καμία δική του"
+"<ημερομηνία> με έτος, ή - για καμία δική του, και συντομεύσεις όπως /alice "
+"alice, ή - για καμία"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"
@@ -2138,28 +2194,22 @@ msgstr "Πλησιέστερη στις {moment}: {off} πριν"
 
 #: nejomibot/photos.py
 #, python-brace-format
-msgid "Nearest to {day}: {count} day after"
-msgid_plural "Nearest to {day}: {count} days after"
-msgstr[0] "Πλησιέστερη στις {day}: {count} μέρα μετά"
-msgstr[1] "Πλησιέστερη στις {day}: {count} μέρες μετά"
-
-#: nejomibot/photos.py
-#, python-brace-format
-msgid "Nearest to {day}: {count} day before"
-msgid_plural "Nearest to {day}: {count} days before"
-msgstr[0] "Πλησιέστερη στις {day}: {count} μέρα πριν"
-msgstr[1] "Πλησιέστερη στις {day}: {count} μέρες πριν"
+msgid "{n} hour"
+msgid_plural "{n} hours"
+msgstr[0] "{n} ώρα"
+msgstr[1] "{n} ώρες"
 
 #: nejomibot/photos.py
 msgid ""
-"/photo [<album>] [<date> [<time>]]: a random photo, from every album or the "
-"one named, or the one taken nearest a moment, e.g. /photo 2024-06-01 15:00. /"
+"/photo [<album>] [<date>]: a random photo, from every album or the one "
+"named; with a date, one taken then, as exactly as you like: 2017, 2017-05, "
+"2017-05-14 or 2017-05-14 15, or the one taken nearest 2017-05-14 15:30. /"
 "albums lists the albums."
 msgstr ""
-"/φωτογραφία [<άλμπουμ>] [<ημερομηνία> [<ώρα>]]: μια τυχαία φωτογραφία, από "
-"όλα τα άλμπουμ ή από αυτό που αναφέρεται, ή αυτή που τραβήχτηκε πιο κοντά σε "
-"μια στιγμή, π.χ. /φωτογραφία 2024-06-01 15:00. Το /άλμπουμ δείχνει τα "
-"άλμπουμ."
+"/φωτογραφία [<άλμπουμ>] [<ημερομηνία>]: μια τυχαία φωτογραφία, από όλα τα "
+"άλμπουμ ή από αυτό που αναφέρεται· με ημερομηνία, μία που τραβήχτηκε τότε, "
+"όσο ακριβώς θέλετε: 2017, 2017-05, 2017-05-14 ή 2017-05-14 15, ή αυτή που "
+"τραβήχτηκε πιο κοντά στις 2017-05-14 15:30. Το /άλμπουμ δείχνει τα άλμπουμ."
 
 #: nejomibot/photos.py
 msgid "/photo new is /uniquephoto now."
@@ -2503,11 +2553,6 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with /, like /morning."
 msgstr "Δώστε της όνομα: μια λέξη που ξεκινά με /, όπως /πρωί."
-
-#: nejomibot/specials.py
-#, python-brace-format
-msgid "{name} is a command already."
-msgstr "Το {name} είναι ήδη εντολή."
 
 #: nejomibot/specials.py
 msgid "A special can't have a |: the file of specials uses it."
@@ -2959,8 +3004,8 @@ msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."
 msgstr "Ποια μέρα; Π.χ. 10-25, 2026-10-25 ή αύριο· καμία για σήμερα."
 
 #: nejomibot/today.py
-msgid "Nothing atop the weather."
-msgstr "Τίποτα πάνω από τον καιρό."
+msgid "Nothing special."
+msgstr "Τίποτα ιδιαίτερο."
 
 #: nejomibot/today.py
 #, python-brace-format

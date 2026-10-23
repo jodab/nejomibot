@@ -22,7 +22,7 @@ from signalbot import (
     text_triggered,
 )
 
-from nejomibot import access, commands, messages, photos, specials, timers, today
+from nejomibot import access, commands, messages, photos, specials, timers, weather
 from nejomibot.access import HEADER
 from nejomibot.account import Contact
 from nejomibot.bot import handlers
@@ -594,19 +594,19 @@ async def test_a_daily_post_sends_everyone_the_same(
 ) -> None:
     photos_picked: list[bool] = []
 
-    async def weather_message() -> str:
+    async def weather_message(city: str = "") -> str:
         return "Vädret"
 
     async def photo_message(text: str = "", *, unique: bool = False) -> SendMessage:
         photos_picked.append(unique)
         return SendMessage(text="📷", text_mode=TextMode.STYLED)
 
-    monkeypatch.setattr(today, "weather_message", weather_message)
+    monkeypatch.setattr(weather, "weather_message", weather_message)
     monkeypatch.setattr(photos, "photo_message", photo_message)
     # A special of the admins', as /special add keeps it: Dagens bild! in
     # bold over the photo
     get_settings().specials_file.write_text(
-        "/dailypost | /today; **Dagens bild!** /uniquephoto\n"
+        "/dailypost | /today; /weather; **Dagens bild!** /uniquephoto\n"
     )
     bot = cast(SignalBot, FakeBot())
     keeper = Timekeeper()

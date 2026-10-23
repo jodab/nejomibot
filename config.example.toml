@@ -23,16 +23,15 @@ weather_city = "Stockholm"
 weather_units = "metric"  # or "imperial"
 # /weather Helsinki is the weather in Helsinki: the bot asks OpenWeatherMap
 # about such places at most this many times an hour, finding them included.
-# weather_city, as in /today, isn't counted. Each place's weather is kept for
+# weather_city, as /weather alone has it, isn't counted. Each place's weather is kept for
 # 10 minutes.
 # weather_calls_per_hour = 10
 
 # /today names the day's holidays, flag days and traditions of these
-# countries atop the weather, by their codes, such as "SE" Sweden, "GR"
-# Greece, "GB" the United Kingdom or "US" the United States: the 27 of the
-# European Union, Norway, Iceland, Switzerland, the United Kingdom, the
-# United States, Canada, Australia and New Zealand (see the README). None if
-# not set.
+# countries, by their codes, such as "SE" Sweden, "GR" Greece, "GB" the
+# United Kingdom or "US" the United States: the 27 of the European Union,
+# Norway, Iceland, Switzerland, the United Kingdom, the United States,
+# Canada, Australia and New Zealand (see the README). None if not set.
 # holidays = ["SE", "GR"]
 
 # The time zone of the bot: timers, and the times it shows

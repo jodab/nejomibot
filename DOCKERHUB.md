@@ -11,8 +11,8 @@ and it answers a handful of commands. It speaks English and Swedish.
 - 🌤️ **A daily post:** the weather, then the photo of the day, at the time you choose,
   with the day's holidays, and in each group the birthdays and name days of those in it
 - 📷 **`/photo`:** a random photo, with when it was taken and a map link, from every
-  album or one, or the one taken nearest a moment; `/onthisday`, one from this day
-  in an earlier year
+  album or one, or from a year, month, day or moment; `/onthisday`, one from this
+  day in an earlier year
 - 🔔 **`/remind` and `/list`:** reminders, and a list such as for shopping, for each chat
 - ⏰ **Timers:** any of its commands on a schedule, posted to the chats you choose
 - 🔐 **Only the people and groups you allow** may use it; you manage it from Signal
@@ -226,13 +226,14 @@ Send the bot:
 
 ```
 /chats
-/timer add 08:00 1 /today; /uniquephoto
+/timer add 08:00 1 /today; /weather; /uniquephoto
 /timer run 1
 ```
 
 - `/chats` numbers the chats the bot can post to: its groups, then the people
   allowed, then you.
-- `/timer add 08:00 1 /today; /uniquephoto` posts the weather, then a photo,
+- `/timer add 08:00 1 /today; /weather; /uniquephoto` posts the day's
+  holidays and birthdays, once there are some, the weather, then a photo,
   none twice until every one has been sent, at 08:00 every day, in your
   `timezone`, to chat 1. For more chats, give them all: `1,2`. Days work
   too: `mon-fri 07:30`.
@@ -252,7 +253,7 @@ That's it: the bot is up and running. 🎉
 - **See how it's doing:** send it `/status`. `docker compose ps` shows the
   containers as `healthy` a minute after they start (with Podman,
   `podman ps` does).
-- **Birthdays, name days and holidays atop the weather:** `/birthday add
+- **Birthdays, name days and holidays, for `/today`:** `/birthday add
   1990-03-14 Alice` for a contact, shown in the groups they're in, and
   `holidays = ["SE"]` in the settings for your country's days, by its code,
   such as `GB` or `US`: the European Union's, the Nordic countries' and most

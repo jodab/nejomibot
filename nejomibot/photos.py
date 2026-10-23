@@ -7,12 +7,13 @@ photos. A command names an album in any case, as the longest start of what
 follows it, so names may have spaces: /photo Alice and Bob.
 
 /photo picks a photo at random, from every album or from the one named.
-With a date, /photo 2024-06-01, it picks one taken that day, or else on the
-nearest day that has some; with a time too, /photo Alice 2024-06-01 15:00,
-the one taken nearest that moment, in the bot's timezone, as captions have
-it. When each photo was taken is read once, from its header, and kept while
-the bot runs (moments()), about 400 bytes a photo, so the first /photo with
-a date after a start takes longer.
+With a date, as exact as it's given, it picks one taken then: in 2017, in
+2017-05, on 2017-05-14 or at 15 that day, as /photo 2017-05-14 15, or else
+in the nearest year, month, day or hour that has some; to the minute, as
+/photo Alice 2024-06-01 15:00, the one taken nearest that moment, in the
+bot's timezone, as captions have it. When each photo was taken is read
+once, from its header, and kept while the bot runs (moments()), about 400
+bytes a photo, so the first /photo with a date after a start takes longer.
 
 /uniquephoto picks among the photos not sent yet in this round, and counts
 toward it: none twice until every photo has been sent, then a new round
@@ -23,6 +24,8 @@ photo once, round after round. /photo and /onthisday don't count toward it.
 
 With a birth date, captions show the age of who's in the photos on the day:
 the album's own, which /album sets (albums.py), or else photos_birth_date.
+An album can have shortcuts, too, other names for /photo with it, as alice
+for /photo Alice.
 
 HEIC and HEIF photos are sent as JPEG, with photos_heif; without it they're
 left out, which saves the memory of pillow-heif, which opens them.
@@ -47,7 +50,7 @@ from dateutil.relativedelta import relativedelta
 from PIL import ExifTags, Image
 from signalbot import DataMessageContext, SendMessage, TextMode
 
-from .commands import Command, Handler, answer, argument
+from .commands import Command, Handler, answer, argument, built_in
 from .config import get_settings
 from .files import KeptLines, append_privately, write_privately
 from .i18n import _, format_duration, format_file_size, ngettext
@@ -67,7 +70,7 @@ MAX_ZONE_SHIFT = timedelta(hours=14)  # the farthest any time zone is from UTC
 # show, which also sets how close the link is, about a metre or two
 OSM_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 OSM_ZOOM = 16
-REMOVE = "-"  # after /album <album>: no birth date of its own
+REMOVE = "-"  # after /album <album>, or its shortcuts: none of its own
 
 # /uniquephoto's pick and its marking as sent, one at a time, so two at once
 # don't pick the same photo
@@ -154,56 +157,78 @@ def no_album(name: str) -> str:
     return _("There's no album {name}: /albums lists them.").format(name=name)
 
 
-# The albums' birth dates, which /album sets
+# What albums have of their own, which /album sets
 
 
 @dataclass(frozen=True)
-class BirthDate:
-    """The birth date of who's in an album's photos."""
+class AlbumSettings:
+    """What an album has of its own: the birth date of who's in its photos,
+    and shortcuts, other names for /photo with the album."""
 
     album: str  # as its folder is named
-    day: date
+    born: date | None = None
+    shortcuts: tuple[str, ...] = ()  # each a word, with or without a / first
 
 
-BIRTH_DATES_HEADER = (
-    "# nejomibot's albums' birth dates, one per line:",
-    "#   album | 2019-06-15",
-    "# The album is a folder right in photos_dir, by its name: its photos'",
-    "# captions show the age of who's in them, born on that day. An album not",
-    "# here takes photos_birth_date, if the config has one.",
+ALBUMS_HEADER = (
+    "# nejomibot's albums, one per line:",
+    "#   album | 2019-06-15 | /alice alice",
+    "# The album is a folder right in photos_dir, by its name. Its photos'",
+    "# captions show the age of who's in them, born on that day; an album",
+    "# without one takes photos_birth_date, if the config has one. Each",
+    "# shortcut, a word with or without a / first, is another name for /photo",
+    "# with the album: alice is /photo Alice, and alice 2024 /photo Alice 2024.",
+    "# Either may be left out.",
     "# Changed with /album in Signal, or by hand: the bot reads it again when",
     "# it changes, and leaves comments and lines it can't read as they are.",
 )
 
 
-def parse_birth_date(line: str) -> BirthDate:
-    """A line of the file. Raises ValueError."""
-    album, bar, day = line.rpartition("|")
-    if not bar or not album.strip():
+def parse_album_settings(line: str) -> AlbumSettings:
+    """A line of the file; one without shortcuts may end at the date. Raises
+    ValueError."""
+    album, born, *names = (part.strip() for part in line.rsplit("|", 2))
+    shortcuts = tuple(names[0].split()) if names else ()
+    if not album:
         raise ValueError("no album")
-    return BirthDate(album.strip(), date.fromisoformat(day.strip()))
+    if commands := [name for name in shortcuts if built_in(name)]:
+        raise ValueError(f"{commands[0]} is a command")  # which it would hide
+    if not born and not shortcuts:
+        raise ValueError("neither a birth date nor shortcuts")
+    return AlbumSettings(album, date.fromisoformat(born) if born else None, shortcuts)
 
 
-def birth_date_line(entry: BirthDate) -> str:
-    return f"{entry.album} | {entry.day:%Y-%m-%d}"
+def album_settings_line(entry: AlbumSettings) -> str:
+    born = f"{entry.born:%Y-%m-%d}" if entry.born else ""
+    return f"{entry.album} | {born} | {' '.join(entry.shortcuts)}".rstrip()
 
 
-birth_dates = KeptLines(
-    "albums.txt", BIRTH_DATES_HEADER, parse_birth_date, birth_date_line
+album_settings = KeptLines(
+    "albums.txt", ALBUMS_HEADER, parse_album_settings, album_settings_line
 )
 
 
-def own_birth_dates(album: str) -> list[BirthDate]:
+def album_lines(album: str) -> list[AlbumSettings]:
     """The album's lines in the file: one, but for hand edits."""
     folded = album.casefold()
-    return [e for e in birth_dates.current().entries if e.album.casefold() == folded]
+    return [
+        entry
+        for entry in album_settings.current().entries
+        if entry.album.casefold() == folded
+    ]
+
+
+def own_settings(album: str) -> AlbumSettings:
+    """What the album has of its own: its last line's, or nothing."""
+    found = album_lines(album)
+    return found[-1] if found else AlbumSettings(album)
 
 
 def birth_date(album: str | None) -> date | None:
-    """The birth date ages count from in the album's photos: its own, the
-    last line's if there are more, or else photos_birth_date."""
-    if album is not None and (own := own_birth_dates(album)):
-        return own[-1].day
+    """The birth date ages count from in the album's photos: its own, or
+    else photos_birth_date."""
+    if album is not None and (born := own_settings(album).born):
+        return born
     return get_settings().photos_birth_date
 
 
@@ -533,6 +558,13 @@ def pick(
     return None
 
 
+def nearest_heading(asked: str, off: str, after: bool) -> str:
+    """E.g. 'Nearest to 2017-05-14: 3 days after'."""
+    if after:
+        return _("Nearest to {moment}: {off} after").format(moment=asked, off=off)
+    return _("Nearest to {moment}: {off} before").format(moment=asked, off=off)
+
+
 def nearest_moment(wanted: datetime, found: dict[Path, datetime]) -> SendMessage | None:
     """The photo taken nearest the moment, under how far off it is, unless
     it's that minute; None if no photo's time is known. Blocking."""
@@ -542,42 +574,63 @@ def nearest_moment(wanted: datetime, found: dict[Path, datetime]) -> SendMessage
     off = found[path] - wanted
     heading = ""
     if abs(off) >= timedelta(minutes=1):
-        if off > timedelta():
-            text = _("Nearest to {moment}: {off} after")
-        else:
-            text = _("Nearest to {moment}: {off} before")
-        heading = text.format(
-            moment=f"{wanted:%Y-%m-%d %H:%M}", off=format_duration(abs(off))
-        )
+        asked = f"{wanted:%Y-%m-%d %H:%M}"
+        heading = nearest_heading(asked, format_duration(abs(off)), off > timedelta())
     return pick([path], heading)
 
 
-def nearest_day(wanted: date, found: dict[Path, datetime]) -> SendMessage | None:
-    """A photo taken on the day, at random, or else on the nearest day that
-    has some, under how far off that is; None if no photo's day is known.
-    Blocking."""
-    days: dict[date, list[Path]] = {}
-    for path, moment in found.items():
-        days.setdefault(moment.date(), []).append(path)
-    if not days:
-        return None
-    day = min(days, key=lambda day: (abs((day - wanted).days), day))
-    heading = ""
-    if off := (day - wanted).days:
-        if off > 0:
-            text = ngettext(
-                "Nearest to {day}: {count} day after",
-                "Nearest to {day}: {count} days after",
-                off,
-            )
+# How exactly /photo's date says when: a year, a month, a day or an hour,
+# from which it picks a photo at random; to the minute, a moment, nearest
+# which it picks one
+YEAR, MONTH, DAY, HOUR = range(4)
+PERIOD_NAMES = ("%Y", "%Y-%m", "%Y-%m-%d", "%Y-%m-%d %H:%M")
+
+
+@dataclass(frozen=True)
+class Period:
+    """A year, month, day or hour that /photo asks for, by when it starts."""
+
+    start: datetime  # in the bot's time zone
+    size: int  # YEAR, MONTH, DAY or HOUR
+
+    def of(self, moment: datetime) -> int:
+        """Which period of this size the moment is in, counted from year 0."""
+        if self.size == YEAR:
+            return moment.year
+        if self.size == MONTH:
+            return moment.year * 12 + moment.month - 1
+        days = moment.date().toordinal()
+        return days if self.size == DAY else days * 24 + moment.hour
+
+    def counted(self, count: int) -> str:
+        """So many periods of this size, e.g. '3 years'."""
+        if self.size == YEAR:
+            text = ngettext("{n} year", "{n} years", count)
+        elif self.size == MONTH:
+            text = ngettext("{n} month", "{n} months", count)
+        elif self.size == DAY:
+            text = ngettext("{n} day", "{n} days", count)
         else:
-            text = ngettext(
-                "Nearest to {day}: {count} day before",
-                "Nearest to {day}: {count} days before",
-                -off,
-            )
-        heading = text.format(day=f"{wanted:%Y-%m-%d}", count=abs(off))
-    candidates = days[day]
+            text = ngettext("{n} hour", "{n} hours", count)
+        return text.format(n=count)
+
+
+def nearest_period(period: Period, found: dict[Path, datetime]) -> SendMessage | None:
+    """A photo taken in the period, at random, or else in the nearest one
+    of its size that has some, under how far off that is; None if no
+    photo's time is known. Blocking."""
+    periods: dict[int, list[Path]] = {}
+    for path, moment in found.items():
+        periods.setdefault(period.of(moment), []).append(path)
+    if not periods:
+        return None
+    wanted = period.of(period.start)
+    nearest = min(periods, key=lambda each: (abs(each - wanted), each))
+    heading = ""
+    if off := nearest - wanted:
+        asked = f"{period.start:{PERIOD_NAMES[period.size]}}"
+        heading = nearest_heading(asked, period.counted(abs(off)), off > 0)
+    candidates = periods[nearest]
     for path in chance().sample(candidates, min(MAX_ATTEMPTS, len(candidates))):
         if message := pick([path], heading):
             return message
@@ -586,25 +639,39 @@ def nearest_day(wanted: date, found: dict[Path, datetime]) -> SendMessage | None
 
 def photo_usage() -> str:
     return _(
-        "/photo [<album>] [<date> [<time>]]: a random photo, from every album "
-        "or the one named, or the one taken nearest a moment, e.g. /photo "
-        "2024-06-01 15:00. /albums lists the albums."
+        "/photo [<album>] [<date>]: a random photo, from every album or the one "
+        "named; with a date, one taken then, as exactly as you like: 2017, "
+        "2017-05, 2017-05-14 or 2017-05-14 15, or the one taken nearest "
+        "2017-05-14 15:30. /albums lists the albums."
     )
 
 
-def when_wanted(text: str) -> tuple[date, time | None] | None:
-    """The day, and the time if given, of 2024-06-01 or 2024-06-01 15:00;
-    None if it's neither."""
-    match text.split():
-        case [day] if DATE.match(day):
-            at = None
-        case [day, clock] if DATE.match(day) and (found := CLOCK.match(clock)):
-            at = time(int(found[1]), int(found[2]))
-        case _:
-            return None
+def when_wanted(text: str) -> Period | datetime | None:
+    """When /photo's text asks for: a year, a month, a day or an hour, as
+    2017, 2017-05, 2017-05-14 or 2017-05-14 15, or a moment, as 2017-05-14
+    15:30; None if it's none of those, or no such time."""
+    tz = get_settings().tz
     try:
-        return date.fromisoformat(day), at
-    except ValueError:
+        match text.split():
+            case [year] if re.fullmatch(r"\d{4}", year):
+                return Period(datetime(int(year), 1, 1, tzinfo=tz), YEAR)
+            case [month] if found := re.fullmatch(r"(\d{4})-(\d{2})", month):
+                return Period(
+                    datetime(int(found[1]), int(found[2]), 1, tzinfo=tz), MONTH
+                )
+            case [day] if DATE.match(day):
+                return Period(
+                    datetime.combine(date.fromisoformat(day), time(), tz), DAY
+                )
+            case [day, hour] if DATE.match(day) and re.fullmatch(r"\d{1,2}", hour):
+                at = time(int(hour))
+                return Period(datetime.combine(date.fromisoformat(day), at, tz), HOUR)
+            case [day, clock] if DATE.match(day) and (found := CLOCK.match(clock)):
+                at = time(int(found[1]), int(found[2]))
+                return datetime.combine(date.fromisoformat(day), at, tz)
+            case _:
+                return None
+    except ValueError:  # no such month, day or hour
         return None
 
 
@@ -627,11 +694,10 @@ def photo_for(text: str) -> SendMessage | str:
     found_at = moments(library)
     if album is not None:
         found_at = {path: found_at[path] for path in groups[album] if path in found_at}
-    day, at = wanted
-    if at is None:
-        message = nearest_day(day, found_at)
+    if isinstance(wanted, Period):
+        message = nearest_period(wanted, found_at)
     else:
-        message = nearest_moment(datetime.combine(day, at, get_settings().tz), found_at)
+        message = nearest_moment(wanted, found_at)
     return message or _("No photo there says when it was taken.")
 
 
@@ -732,6 +798,15 @@ class Photo(Handler):
         Command("/uniquephoto", more=True),
         Command("/cache", more=True),
     )
+
+    @classmethod
+    def shortcuts(cls) -> dict[str, str]:
+        """The albums' shortcuts, each for /photo with its album."""
+        return {
+            name.casefold(): f"/photo {entry.album}"
+            for entry in album_settings.current().entries
+            for name in entry.shortcuts
+        }
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         text = argument(context.message.text)

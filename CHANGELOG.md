@@ -4,6 +4,46 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- `/today` no longer posts the weather; `/weather` does. Add it after
+  `/today` in your timers and specials, such as the daily post's: `/today;
+  /weather; /uniquephoto`. Right after updating, send `/special add` with
+  the special's name and its new parts, or remove the timer and add it
+  again; or edit `timers.txt` and `specials.txt` in `data_dir` by hand while
+  the bot is stopped for the update. Until then, the daily post has no
+  weather; before the update, `/weather` there would post it twice.
+- An alias for `/photo` in the config that stands for an album, such as
+  `"/photo" = ["/alice"]` for a library that was all Alice's, can be the
+  album's shortcut now (see Added): take it out of the config first, as
+  `/album` doesn't take a name the bot answers to already.
+
+### Added
+
+- Shortcuts for an album, for the admins to give it: `/album Alice
+  shortcuts /alice alice` makes `/alice` and `alice` other names for `/photo
+  Alice`, so `alice 2017` is `/photo Alice 2017`; `/album Alice shortcuts -`
+  takes them away. A shortcut is a word, with or without a `/` first, but not
+  a name the bot answers to already: a command, an alias or a special.
+  `/albums` and `/album Alice` show them. They're kept in
+  `data_dir/albums.txt`, with the birth dates. In Swedish `genvägar`, in
+  Greek `συντομεύσεις`.
+- `/photo` takes a date as exact as you like: `/photo 2017`, a photo taken
+  in 2017; `/photo 2017-05`, in May 2017; `/photo 2017-05-14 15`, from 15:00
+  to 16:00 that day. With none then, it picks from the nearest year, month
+  or hour that has some, as `/photo 2017-05-14` does with days, and says how
+  far off that is.
+
+### Changed
+
+- `/today` names the day's holidays, birthdays and name days alone, as
+  `/day` did, which is another name for it now (in Swedish `/dagen`, in
+  Greek `/ημέρα`). In what a timer, a special or `/run` posts, it's nothing
+  on a day with none of them, so `/today; /weather` is the weather alone
+  then; asked for, it still says "Nothing special today.".
+
 ## 0.99.13 - 2026-10-23
 
 ### Updating
