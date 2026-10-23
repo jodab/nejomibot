@@ -6,6 +6,15 @@ what to do when updating. The format follows
 
 ## Unreleased
 
+### Added
+
+- A welcome for someone made an admin: `/admin add` sends them, in a direct
+  chat with the bot, who made them an admin, that `/help` lists every
+  command, and a few to start with. `/admin add <who> <language>`, such as
+  `/admin add 3 sv`, gives them that language, which the bot speaks with
+  them from then on, and welcomes them in it; without one, the welcome is in
+  their own language, or the bot's. The reply says whether the welcome went.
+
 ### Changed
 
 - nejomibot is under the MIT License from this release on, in place of the

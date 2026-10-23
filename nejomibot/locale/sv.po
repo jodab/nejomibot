@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 20:10+0300\n"
+"POT-Creation-Date: 2026-10-23 21:46+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -97,11 +97,13 @@ msgstr "Vill gå med: {groups}"
 
 #: nejomibot/admins.py
 msgid ""
-"/admin add <who>: make someone an admin, by their number in /contacts, phone "
-"number, Signal ID or name"
+"/admin add <who> [<language>]: make someone an admin, by their number in /"
+"contacts, phone number, Signal ID or name, and send them a welcome; with a "
+"language, such as sv, the bot speaks it with them"
 msgstr ""
-"/admin lägg till <vem>: gör någon till admin, med numret i /kontakter, "
-"telefonnummer, Signal-ID eller namn"
+"/admin lägg till <vem> [<språk>]: gör någon till admin, med numret i /"
+"kontakter, telefonnummer, Signal-ID eller namn, och skicka ett "
+"välkomstmeddelande; med ett språk, t.ex. sv, talar boten det med hen"
 
 #: nejomibot/admins.py
 msgid "/admin remove <n>: no longer, by their number in /admins"
@@ -132,6 +134,46 @@ msgstr ""
 #, python-brace-format
 msgid "{name} is a group: admins are people."
 msgstr "{name} är en grupp: admins är personer."
+
+#: nejomibot/admins.py
+msgid "Welcome!"
+msgstr "Välkommen!"
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{admin} has made you an admin of this bot."
+msgstr "{admin} har gjort dig till admin för den här boten."
+
+#: nejomibot/admins.py
+msgid "You're an admin of this bot now."
+msgstr "Du är admin för den här boten nu."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid ""
+"Here, in a direct chat with the bot, you may use every command: {help} lists "
+"them all, with what each takes. A few to start with:"
+msgstr ""
+"Här, i en direktchatt med boten, får du använda alla kommandon: {help} "
+"listar dem alla, med vad vart och ett tar. Några att börja med:"
+
+#: nejomibot/admins.py
+msgid "Thank you for helping look after the bot."
+msgstr "Tack för att du hjälper till att ta hand om boten."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "A welcome went to them, in {language}."
+msgstr "Ett välkomstmeddelande gick till hen, på {language}."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "A welcome to them, in {language}, waits to be sent."
+msgstr "Ett välkomstmeddelande till hen, på {language}, väntar på att skickas."
+
+#: nejomibot/admins.py
+msgid "The welcome to them couldn't be sent."
+msgstr "Välkomstmeddelandet till hen kunde inte skickas."
 
 #: nejomibot/admins.py nejomibot/allowed.py
 msgid "That's the bot itself."
@@ -165,6 +207,11 @@ msgstr "Listan är full: högst {count}."
 #, python-brace-format
 msgid "👑 {name} is an admin now, and may use every command."
 msgstr "👑 {name} är admin nu och får använda alla kommandon."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "The bot speaks {language} with them from now on."
+msgstr "Boten talar {language} med hen från och med nu."
 
 #: nejomibot/admins.py
 #, python-brace-format
@@ -1223,8 +1270,8 @@ msgid "make someone an admin, or no longer"
 msgstr "gör någon till admin, eller inte längre"
 
 #: nejomibot/help.py
-msgid "add <who> · remove <n>"
-msgstr "lägg till <vem> · ta bort <n>"
+msgid "add <who> [<language>] · remove <n>"
+msgstr "lägg till <vem> [<språk>] · ta bort <n>"
 
 #: nejomibot/help.py
 msgid "the bot's profile"
@@ -1420,10 +1467,12 @@ msgstr "ta bort – efter /om, /profilbild eller /användarnamn tar bort det"
 #: nejomibot/help.py
 msgid ""
 "<language> – sv, or Svenska, its own name; /language <chats> <language> "
-"gives those chats of /chats it, and a group's is an admin's to change"
+"gives those chats of /chats it, /admin add <who> <language> a new admin, and "
+"a group's is an admin's to change"
 msgstr ""
 "<språk> – sv, eller Svenska, dess eget namn; /språk <chattar> <språk> ger de "
-"chattarna i /chats det, och en grupps ändras av en admin"
+"chattarna i /chats det, /admin lägg till <vem> <språk> en ny admin, och en "
+"grupps ändras av en admin"
 
 #: nejomibot/help.py
 #, python-brace-format

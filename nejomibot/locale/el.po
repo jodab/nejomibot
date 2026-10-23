@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 20:10+0300\n"
+"POT-Creation-Date: 2026-10-23 21:46+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -97,11 +97,14 @@ msgstr "Αιτήματα συμμετοχής: {groups}"
 
 #: nejomibot/admins.py
 msgid ""
-"/admin add <who>: make someone an admin, by their number in /contacts, phone "
-"number, Signal ID or name"
+"/admin add <who> [<language>]: make someone an admin, by their number in /"
+"contacts, phone number, Signal ID or name, and send them a welcome; with a "
+"language, such as sv, the bot speaks it with them"
 msgstr ""
-"/admin πρόσθεσε <ποιος>: ορίστε κάποιον διαχειριστή, με τον αριθμό του στις /"
-"επαφές, τον αριθμό τηλεφώνου, το Signal ID ή το όνομα"
+"/admin πρόσθεσε <ποιος> [<γλώσσα>]: ορίστε κάποιον διαχειριστή, με τον "
+"αριθμό του στις /επαφές, τον αριθμό τηλεφώνου, το Signal ID ή το όνομα, και "
+"στείλτε του μήνυμα καλωσορίσματος· με γλώσσα, π.χ. sv, το bot τη "
+"χρησιμοποιεί μαζί του"
 
 #: nejomibot/admins.py
 msgid "/admin remove <n>: no longer, by their number in /admins"
@@ -135,6 +138,47 @@ msgstr ""
 msgid "{name} is a group: admins are people."
 msgstr "Το {name} είναι ομάδα: διαχειριστές μπορούν να είναι μόνο άτομα."
 
+#: nejomibot/admins.py
+msgid "Welcome!"
+msgstr "Καλώς ήρθατε!"
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{admin} has made you an admin of this bot."
+msgstr "Ο χρήστης {admin} σας όρισε διαχειριστή αυτού του bot."
+
+#: nejomibot/admins.py
+msgid "You're an admin of this bot now."
+msgstr "Είστε πλέον διαχειριστής αυτού του bot."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid ""
+"Here, in a direct chat with the bot, you may use every command: {help} lists "
+"them all, with what each takes. A few to start with:"
+msgstr ""
+"Εδώ, σε προσωπική συνομιλία με το bot, μπορείτε να χρησιμοποιείτε όλες τις "
+"εντολές: το {help} τις παραθέτει όλες, με ό,τι δέχεται η καθεμία. Μερικές "
+"για αρχή:"
+
+#: nejomibot/admins.py
+msgid "Thank you for helping look after the bot."
+msgstr "Σας ευχαριστούμε που βοηθάτε στη φροντίδα του bot."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "A welcome went to them, in {language}."
+msgstr "Στάλθηκε μήνυμα καλωσορίσματος, σε {language}."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "A welcome to them, in {language}, waits to be sent."
+msgstr "Ένα μήνυμα καλωσορίσματος, σε {language}, περιμένει να σταλεί."
+
+#: nejomibot/admins.py
+msgid "The welcome to them couldn't be sent."
+msgstr "Το μήνυμα καλωσορίσματος δεν μπόρεσε να σταλεί."
+
 #: nejomibot/admins.py nejomibot/allowed.py
 msgid "That's the bot itself."
 msgstr "Αυτό είναι το ίδιο το bot."
@@ -167,6 +211,11 @@ msgstr "Η λίστα είναι πλήρης: έως {count}."
 #, python-brace-format
 msgid "👑 {name} is an admin now, and may use every command."
 msgstr "👑 {name}: διαχειριστής πλέον, με πρόσβαση σε όλες τις εντολές."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "The bot speaks {language} with them from now on."
+msgstr "Από τώρα το bot χρησιμοποιεί μαζί του: {language}."
 
 #: nejomibot/admins.py
 #, python-brace-format
@@ -1245,8 +1294,8 @@ msgid "make someone an admin, or no longer"
 msgstr "ορισμός ή αφαίρεση διαχειριστή"
 
 #: nejomibot/help.py
-msgid "add <who> · remove <n>"
-msgstr "πρόσθεσε <ποιος> · αφαίρεσε <n>"
+msgid "add <who> [<language>] · remove <n>"
+msgstr "πρόσθεσε <ποιος> [<γλώσσα>] · αφαίρεσε <n>"
 
 #: nejomibot/help.py
 msgid "the bot's profile"
@@ -1444,11 +1493,13 @@ msgstr "αφαίρεσε – μετά από /σχετικά, /εικόνα ή /
 #: nejomibot/help.py
 msgid ""
 "<language> – sv, or Svenska, its own name; /language <chats> <language> "
-"gives those chats of /chats it, and a group's is an admin's to change"
+"gives those chats of /chats it, /admin add <who> <language> a new admin, and "
+"a group's is an admin's to change"
 msgstr ""
 "<γλώσσα> – el, ή Ελληνικά, το δικό της όνομα· το /γλώσσα <συνομιλίες> "
-"<γλώσσα> την ορίζει για αυτές τις συνομιλίες του /chats, και τη γλώσσα μιας "
-"ομάδας την αλλάζει διαχειριστής"
+"<γλώσσα> την ορίζει για αυτές τις συνομιλίες του /chats, το /admin πρόσθεσε "
+"<ποιος> <γλώσσα> για έναν νέο διαχειριστή, και τη γλώσσα μιας ομάδας την "
+"αλλάζει διαχειριστής"
 
 #: nejomibot/help.py
 #, python-brace-format

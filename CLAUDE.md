@@ -169,7 +169,11 @@ list). Admin commands are registered for direct chats only, with
 `data_dir/admins.txt` by `access.admin_list`, an `AllowedList` of Signal
 IDs only (the owner's decision, 2026-10-19: a phone number can change
 hands); only the config's admins add and remove admins (`is_config_admin`),
-and the notices, timers and the greeting stay theirs. `/delete` is
+and the notices, timers and the greeting stay theirs. `/admin add <who>
+[<language>]` sends the new admin a welcome (`admins.welcome_text`, with
+`/help`'s own lines for a few commands), in their language, or in the one
+given, which it makes theirs (`languages.set_language`), and the reply says
+what became of the welcome (`Outcome`). `/delete` is
 registered everywhere (in debug mode, in `debug_group`) with the same
 filter, and checks for an admin again itself; in groups it takes nothing
 after it: `/delete list` and `/delete 2,5,11` show

@@ -267,7 +267,7 @@ For the admins, in a direct chat with the bot:
 | `/allow <who>` | Let someone use them, or everyone in a group, there; `<who>` as for `/contacts`, or a group the bot is in, by name or group ID |
 | `/disallow <n>` | Take that away again, by the number in `/allowed` (or by phone number, ID or name) |
 | `/admins` | The admins: those in the configuration, then those added, numbered |
-| `/admin add <who>`, `/admin remove <n>` | Make someone an admin, `<who>` as for `/contacts`, or no longer, by their number in `/admins`; for the admins in the configuration alone (see [Who may use what](#who-may-use-what)) |
+| `/admin add <who>`, `/admin add <who> <language>`, `/admin remove <n>` | Make someone an admin, `<who>` as for `/contacts`, and send them a welcome, in their language, or in the one given, such as `sv`, which the bot then speaks with them; or no longer, by their number in `/admins`; for the admins in the configuration alone (see [Who may use what](#who-may-use-what)) |
 | `/profile` | The bot's Signal profile: name, About, username, avatar |
 | `/name <name>` | Change the bot's name |
 | `/about <text>`, `/about remove` | The About text under its name |
@@ -336,7 +336,11 @@ so it's greeted. The admins, strangers and groups aren't, nor edits.
 
 The admins in the configuration may make others admins, in a direct chat
 with the bot: `/admin add <who>`, who as `/contacts` takes them, and `/admin
-remove <n>`, by their number in `/admins`, which lists every admin. Those
+remove <n>`, by their number in `/admins`, which lists every admin. Someone
+made an admin gets a welcome from the bot, in a direct chat: who made them
+one, that `/help` lists every command, and a few to start with, as `/help`
+shows them. It's in their language, or in the one given after them, as
+`/admin add 3 sv`, which the bot speaks with them from then on. Those
 added may use every command, as the configuration's admins may, but they
 can't add or remove admins, and no command can take away what an admin in
 the configuration may do. The [notices](#notices-to-the-admins) go to the

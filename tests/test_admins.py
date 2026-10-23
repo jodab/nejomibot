@@ -21,14 +21,17 @@ from signalbot import (
     SignalBot,
 )
 
-from nejomibot import access, commands, contacts
+from nejomibot import access, admins, commands, contacts, i18n
 from nejomibot.access import ADMINS_HEADER, Entry, admin_list
-from nejomibot.admins import Admin, Admins
+from nejomibot.admins import Admin, Admins, welcome_text
 from nejomibot.config import get_settings
+from nejomibot.i18n import speaking
+from nejomibot.messages import Outcome
 from nejomibot.timers import people
 
 ADMIN = "+46700000009"  # in the config
 CAROL = "+46700000003"
+WELCOMED = "\nA welcome went to them, in English (en)."
 
 
 class Chat:
@@ -37,6 +40,8 @@ class Chat:
     def __init__(self, bot: SignalBot) -> None:
         self.bot = bot
         self.replies: list[str] = []
+        self.welcomes: list[tuple[str, str]] = []  # to whom, what
+        self.outcome = Outcome.SENT  # of each welcome
 
     async def send(
         self, text: str, *, sender: str = ADMIN, edit: bool = False, at: int = 2
@@ -74,8 +79,13 @@ async def chat(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Chat:
     async def mark_read(_: DataMessageContext) -> None:
         pass
 
+    async def send(_bot: SignalBot, recipient: str, message: SendMessage) -> Outcome:
+        chat.welcomes.append((recipient, message.text or ""))
+        return chat.outcome
+
     monkeypatch.setattr(commands, "reply", reply)
     monkeypatch.setattr(commands, "mark_read", mark_read)
+    monkeypatch.setattr(admins, "send", send)
     return chat
 
 
@@ -106,17 +116,25 @@ async def test_admins(chat: Chat) -> None:
     ("who", "answer", "kept"),
     [
         # By Signal ID, however they're given
-        (BOB, "👑 Bob Berg is an admin now, and may use every command.", BOB_ID),
-        ("bob berg", "👑 Bob Berg is an admin now, and may use every command.", BOB_ID),
+        (
+            BOB,
+            f"👑 Bob Berg is an admin now, and may use every command.{WELCOMED}",
+            BOB_ID,
+        ),
+        (
+            "bob berg",
+            f"👑 Bob Berg is an admin now, and may use every command.{WELCOMED}",
+            BOB_ID,
+        ),
         (
             "CA401000",
-            f"👑 {CAROL_ID} is an admin now, and may use every command.",
+            f"👑 {CAROL_ID} is an admin now, and may use every command.{WELCOMED}",
             CAROL_ID,
         ),
         # A Signal ID the bot doesn't know yet, as it is
         (
             DAVE_ID.upper(),
-            f"👑 {DAVE_ID} is an admin now, and may use every command.",
+            f"👑 {DAVE_ID} is an admin now, and may use every command.{WELCOMED}",
             DAVE_ID,
         ),
     ],
@@ -133,14 +151,16 @@ async def test_add(chat: Chat, who: str, answer: str, kept: str) -> None:
 async def test_add_by_their_number_in_contacts(chat: Chat) -> None:
     contacts.shown[ADMIN] = [(ALICE, None), (BOB, BOB_ID)]
     await chat.send("/admin add 2")
-    assert chat.replies == ["👑 Bob Berg is an admin now, and may use every command."]
+    assert chat.replies == [
+        f"👑 Bob Berg is an admin now, and may use every command.{WELCOMED}"
+    ]
     assert added() == [BOB_ID]
 
 
 @pytest.mark.parametrize(
     ("who", "answer"),
     [
-        ("", "/admin add <who>: make someone an admin"),
+        ("", "/admin add <who> [<language>]: make someone an admin"),
         (ADMIN, f"{ADMIN} is an admin in the config already."),
         (ME, "That's the bot itself."),
         ("Familjen", "Nobody called Familjen in /contacts."),
@@ -201,7 +221,7 @@ async def test_remove_says_they_may_still_use_the_everyday_commands(
 @pytest.mark.parametrize(
     ("who", "answer"),
     [
-        ("", "/admin add <who>: make someone an admin"),
+        ("", "/admin add <who> [<language>]: make someone an admin"),
         ("2", "There's no 2 in /admins."),
         (CAROL, f"{CAROL} isn't in /admins."),
         # No one takes away what the config's admins may do
@@ -247,9 +267,72 @@ async def test_in_swedish(chat: Chat) -> None:
     await chat.send("/admin lägg till Bob Berg")
     await chat.send("/admin ta bort 1")
     assert chat.replies == [
-        "👑 Bob Berg är admin nu och får använda alla kommandon.",
+        "👑 Bob Berg är admin nu och får använda alla kommandon.\n"
+        "Ett välkomstmeddelande gick till hen, på Svenska (sv).",
         "🗑️ Bob Berg är inte längre admin.",
     ]
+
+
+async def test_a_new_admin_is_welcomed(chat: Chat) -> None:
+    await chat.send(f"/admin add {BOB}")
+    [(to, text)] = chat.welcomes
+    assert to == BOB_ID  # by Signal ID, as admins are kept
+    with speaking("en"):
+        assert text == welcome_text(None)  # the config's admin has no name here
+    lines = text.splitlines()
+    assert lines[:4] == [
+        "**👑 Welcome!**",
+        "You're an admin of this bot now.",
+        "",
+        "Here, in a direct chat with the bot, you may use every command: /help "
+        "lists them all, with what each takes. A few to start with:",
+    ]
+    # As /help shows them
+    assert lines[4] == "🩺 `/status` – how the bot and the server are (/test)"
+    assert lines[-1] == "Thank you for helping look after the bot."
+
+
+def test_the_welcome_names_who_made_them_an_admin() -> None:
+    with speaking("en"):
+        assert welcome_text("Alice").splitlines()[1] == (
+            "Alice has made you an admin of this bot."
+        )
+
+
+async def test_a_new_admin_in_a_language_of_their_own(chat: Chat) -> None:
+    await chat.send(f"/admin add {BOB} sv")
+    assert chat.replies == [
+        "👑 Bob Berg is an admin now, and may use every command.\n"
+        "The bot speaks Svenska (sv) with them from now on.\n"
+        "A welcome went to them, in Svenska (sv)."
+    ]
+    [(_to, text)] = chat.welcomes
+    assert text.startswith("**👑 Välkommen!**")
+    # Their language from now on, by each of their IDs
+    assert i18n.chat_language(BOB_ID) == "sv"
+    assert i18n.chat_language(BOB) == "sv"
+    # By its own name too, after a name of more than one word
+    await chat.send("/admin remove 1")
+    await chat.send(f"/admin add Bob Berg {i18n.names_of('el').name}")
+    assert i18n.chat_language(BOB_ID) == "el"
+
+
+async def test_a_welcome_that_waits_or_cant_be_sent(chat: Chat) -> None:
+    chat.outcome = Outcome.RATE_LIMITED
+    await chat.send(f"/admin add {BOB}")
+    chat.outcome = Outcome.GIVE_UP
+    await chat.send("/admin add CA401000")
+    assert [reply.splitlines()[-1] for reply in chat.replies] == [
+        "A welcome to them, in English (en), waits to be sent.",
+        "The welcome to them couldn't be sent.",
+    ]
+
+
+async def test_an_edit_undoes_the_language_too(chat: Chat) -> None:
+    await chat.send(f"/admin add {BOB} sv")
+    await chat.send("/admin add CA401000", edit=True)
+    assert added() == [CAROL_ID]
+    assert i18n.own_language(BOB_ID, BOB) is None
 
 
 # What an admin added may do

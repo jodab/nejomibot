@@ -87,7 +87,7 @@ ADMIN = [
         "🎖️",
         "/admin",
         N_("make someone an admin, or no longer"),
-        N_("add <who> · remove <n>"),
+        N_("add <who> [<language>] · remove <n>"),
     ),
     Line("🪪", "/profile", N_("the bot's profile")),
     Line("✏️", "/name", N_("its name"), N_("<name>")),
@@ -189,8 +189,8 @@ def notes() -> list[str]:
         _("remove – after /about, /avatar or /username, takes it away"),
         _(
             "<language> – sv, or Svenska, its own name; /language <chats> "
-            "<language> gives those chats of /chats it, and a group's is an "
-            "admin's to change"
+            "<language> gives those chats of /chats it, /admin add <who> "
+            "<language> a new admin, and a group's is an admin's to change"
         ),
     ]
 

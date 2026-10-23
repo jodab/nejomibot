@@ -3,7 +3,11 @@ admins only, in direct chats.
 
 The admins in the config may make others admins: /admin add <who>, who as
 /allow takes someone (their number in /contacts, phone number, Signal ID or
-name), and /admin remove <n>, by their number in /admins. The admins added
+name), and /admin remove <n>, by their number in /admins. Someone made an
+admin gets a welcome, in a direct chat: that they are one, that /help lists
+every command, and a few to start with, as /help shows them. It's in their
+language, or in the one given after them, as /admin add 3 sv, which the bot
+speaks with them from then on. The admins added
 may use every command, as the config's may, but they can't add or remove
 admins, and no command can take away what the config's admins may do. The
 notices (notices.py) go to the config's admins alone.
@@ -18,7 +22,7 @@ be changed by hand, as the allowed list can (access.py).
 import logging
 import re
 
-from signalbot import DataMessageContext
+from signalbot import DataMessageContext, SendMessage, TextMode
 
 from . import access, contacts
 from .access import Entry, admin_list, allowed_list, is_group
@@ -26,20 +30,33 @@ from .account import Account, Contact, fetch_account, find_by_ids
 from .allowed import entry_text, find_listed, name_of, typed_chat_id
 from .commands import Command, Edits, Handler, answer, undo_with
 from .config import SIGNAL_ID, get_settings
-from .i18n import _
-from .messages import escape, unreadable_text
+from .help import ADMIN, EVERYDAY, command_line, shown_name
+from .i18n import _, chat_language, speaking
+from .languages import language_named, named, set_language
+from .messages import Outcome, escape, send, unreadable_text
 
 logger = logging.getLogger(__name__)
 
 CHANGES = ("add", "remove", "delete")  # what follows /admin
+# What a new admin's welcome starts them with, as /help shows them
+WELCOME_COMMANDS = (
+    "/status",
+    "/contacts",
+    "/allowed",
+    "/timers",
+    "/specials",
+    "/language",
+)
 
 
 def usage() -> str:
     return "\n".join(
         [
             _(
-                "/admin add <who>: make someone an admin, by their number in "
-                "/contacts, phone number, Signal ID or name"
+                "/admin add <who> [<language>]: make someone an admin, by their "
+                "number in /contacts, phone number, Signal ID or name, and send "
+                "them a welcome; with a language, such as sv, the bot speaks it "
+                "with them"
             ),
             _("/admin remove <n>: no longer, by their number in /admins"),
             only_the_config_text(),
@@ -95,7 +112,63 @@ def find_person(
     return Contact(number=chat_id)
 
 
-async def add(context: DataMessageContext, who: str) -> str:
+def welcome_text(adder: str | None) -> str:
+    """For someone just made an admin, in the language spoken: by whom, that
+    /help lists every command, and a few to start with. Styled."""
+    lines = [f"**👑 {escape(_('Welcome!'))}**"]
+    if adder:
+        made = _("{admin} has made you an admin of this bot.").format(admin=adder)
+    else:
+        made = _("You're an admin of this bot now.")
+    start = _(
+        "Here, in a direct chat with the bot, you may use every command: {help} "
+        "lists them all, with what each takes. A few to start with:"
+    ).format(help=shown_name("/help"))
+    lines += [escape(made), "", escape(start)]
+    lines += [
+        command_line(next(line for line in EVERYDAY + ADMIN if line.name == name))
+        for name in WELCOME_COMMANDS
+    ]
+    lines += ["", escape(_("Thank you for helping look after the bot."))]
+    return "\n".join(lines)
+
+
+async def welcome(
+    context: DataMessageContext, account: Account, uuid: str, ids: set[str]
+) -> str:
+    """Send someone just made an admin, by their Signal ID, a welcome, in
+    their language; what became of it."""
+    message = context.message
+    adder = find_by_ids(
+        account.recipient_by_id, message.source_number, message.source_uuid
+    )
+    code = chat_language(*ids)
+    with speaking(code):
+        text = welcome_text(adder.real_name if adder else None)
+    outcome = await send(
+        context.bot, uuid, SendMessage(text=text, text_mode=TextMode.STYLED)
+    )
+    language = named(code)
+    if outcome is Outcome.SENT:
+        return _("A welcome went to them, in {language}.").format(language=language)
+    if outcome.waits:
+        return _("A welcome to them, in {language}, waits to be sent.").format(
+            language=language
+        )
+    return _("The welcome to them couldn't be sent.")
+
+
+def with_language(text: str) -> tuple[str, str | None]:
+    """Whom /admin add names, and the language after them, by its code, if
+    the text ends with one, as in Bob sv or 3 Svenska."""
+    words = text.split()
+    if len(words) > 1 and (code := language_named(words[-1])):
+        return " ".join(words[:-1]), code
+    return text, None
+
+
+async def add(context: DataMessageContext, text: str) -> str:
+    who, code = with_language(text)
     if not who:
         return usage()
     account = await fetch_account(context.bot)
@@ -123,7 +196,18 @@ async def add(context: DataMessageContext, who: str) -> str:
     undo_with(lambda: admin_list.remove(entry.id))
     logger.info("Made someone an admin")
     logger.debug("Made %s an admin", entry.line)
-    return _("👑 {name} is an admin now, and may use every command.").format(name=name)
+    lines = [
+        _("👑 {name} is an admin now, and may use every command.").format(name=name)
+    ]
+    if code:
+        set_language(sorted(ids), code)
+        lines.append(
+            _("The bot speaks {language} with them from now on.").format(
+                language=named(code)
+            )
+        )
+    lines.append(await welcome(context, account, found.uuid, ids))
+    return "\n".join(lines)
 
 
 async def remove(context: DataMessageContext, who: str) -> str:
