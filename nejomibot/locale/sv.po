@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 10:05+0300\n"
+"POT-Creation-Date: 2026-10-23 10:46+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -1734,20 +1734,96 @@ msgstr[1] ""
 
 #: nejomibot/notices.py
 #, python-brace-format
-msgid "🔄 Updated: nejomibot {old} → {new}."
-msgstr "🔄 Uppdaterad: nejomibot {old} → {new}."
+msgid "nejomibot {version} started"
+msgstr "nejomibot {version} startad"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "ready in {duration}"
+msgstr "redo efter {duration}"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "🔄 Updated from {version}"
+msgstr "🔄 Uppdaterad från {version}"
 
 #: nejomibot/notices.py
 #, python-brace-format
 msgid ""
-"⚠️ Up again, after a stop that wasn't clean, such as a crash, a kill or a "
-"power cut. It had run since {time}. Messages that had waited less than half "
-"a minute to be sent may be lost."
+"⚠️ The run before, since {time}, didn't stop cleanly, as after a crash, a "
+"kill or a power cut: messages that had waited less than half a minute to be "
+"sent may be lost."
 msgstr ""
-"⚠️ Igång igen, efter ett stopp som inte gick rätt till, som en krasch, en "
-"tvångsavslutning eller ett strömavbrott. Den hade varit igång sedan {time}. "
-"Meddelanden som hade väntat mindre än en halv minut på att skickas kan ha "
-"gått förlorade."
+"⚠️ Förra körningen, sedan {time}, stoppades inte som den skulle, som efter en "
+"krasch, en tvångsavslutning eller ett strömavbrott: meddelanden som hade "
+"väntat mindre än en halv minut på att skickas kan ha gått förlorade."
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "⚠️ {file}: {count} line the bot can't read, left as it is"
+msgid_plural "⚠️ {file}: {count} lines the bot can't read, left as they are"
+msgstr[0] "⚠️ {file}: {count} rad som boten inte kan läsa, lämnad som den är"
+msgstr[1] "⚠️ {file}: {count} rader som boten inte kan läsa, lämnade som de är"
+
+#: nejomibot/notices.py nejomibot/status.py
+#, python-brace-format
+msgid "{count} message waiting to be sent again"
+msgid_plural "{count} messages waiting to be sent again"
+msgstr[0] "{count} meddelande väntar på att skickas igen"
+msgstr[1] "{count} meddelanden väntar på att skickas igen"
+
+#: nejomibot/notices.py
+msgid "⏰ No timers"
+msgstr "⏰ Inga timrar"
+
+#: nejomibot/notices.py nejomibot/timers.py
+#, python-brace-format
+msgid "⏰ {count} timer"
+msgid_plural "⏰ {count} timers"
+msgstr[0] "⏰ {count} timer"
+msgstr[1] "⏰ {count} timrar"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "⏰ {count} timer, the next {when}"
+msgid_plural "⏰ {count} timers, the next {when}"
+msgstr[0] "⏰ {count} timer, nästa {when}"
+msgstr[1] "⏰ {count} timrar, nästa {when}"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "In {count} group"
+msgid_plural "In {count} groups"
+msgstr[0] "I {count} grupp"
+msgstr[1] "I {count} grupper"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "{count} chat allowed"
+msgid_plural "{count} chats allowed"
+msgstr[0] "{count} chatt tillåten"
+msgstr[1] "{count} chattar tillåtna"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "{count} admin"
+msgid_plural "{count} admins"
+msgstr[0] "{count} admin"
+msgstr[1] "{count} admins"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "{engine} on {host}"
+msgstr "{engine} på {host}"
+
+#: nejomibot/notices.py nejomibot/status.py
+msgid "Photo library"
+msgstr "Bildarkiv"
+
+#: nejomibot/notices.py nejomibot/status.py
+#, python-brace-format
+msgid "Debug mode: only talking to {group}"
+msgstr "Felsökningsläge: pratar bara med {group}"
 
 #: nejomibot/notices.py
 msgid ""
@@ -2337,18 +2413,6 @@ msgstr "Ingen timer att köra"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "{count} message waiting to be sent again"
-msgid_plural "{count} messages waiting to be sent again"
-msgstr[0] "{count} meddelande väntar på att skickas igen"
-msgstr[1] "{count} meddelanden väntar på att skickas igen"
-
-#: nejomibot/status.py
-#, python-brace-format
-msgid "Debug mode: only talking to {group}"
-msgstr "Felsökningsläge: pratar bara med {group}"
-
-#: nejomibot/status.py
-#, python-brace-format
 msgid "Your message took {seconds} s to arrive"
 msgstr "Ditt meddelande tog {seconds} s att komma fram"
 
@@ -2433,10 +2497,6 @@ msgstr "Status"
 #: nejomibot/status.py
 msgid "Signal groups"
 msgstr "Signal-grupper"
-
-#: nejomibot/status.py
-msgid "Photo library"
-msgstr "Bildarkiv"
 
 #: nejomibot/status.py
 msgid "Signal account"
@@ -2561,13 +2621,6 @@ msgstr "Nästa: {when}"
 #: nejomibot/timers.py
 msgid "No timers yet."
 msgstr "Inga timrar ännu."
-
-#: nejomibot/timers.py
-#, python-brace-format
-msgid "⏰ {count} timer"
-msgid_plural "⏰ {count} timers"
-msgstr[0] "⏰ {count} timer"
-msgstr[1] "⏰ {count} timrar"
 
 #: nejomibot/timers.py
 #, python-brace-format

@@ -13,7 +13,6 @@ import shutil
 from collections.abc import Awaitable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 from signalbot import About, DataMessageContext, SignalBot
 
@@ -41,6 +40,7 @@ from .i18n import _, format_duration, format_file_size, ngettext
 from .info import fetch_rate
 from .messages import arrival_delay, describe, escape, outbox
 from .photos import scan_photos
+from .timers import timekeeper
 from .weather import UNITS, fetch_weather
 
 logger = logging.getLogger(__name__)
@@ -162,22 +162,10 @@ def system_checks() -> list[Check]:
     ]
 
 
-def next_timer_run(bot: SignalBot) -> datetime | None:
-    """When a timer runs next."""
-    jobs: list[Any] = bot.scheduler.get_jobs()  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
-    # Jobs only get next_run_time once the scheduler has started
-    times = (
-        getattr(job, "next_run_time", None)
-        for job in jobs
-        if job.id.startswith("timer-")
-    )
-    return min((t for t in times if t), default=None)
-
-
 # Report
 
 
-def bot_lines(bot: SignalBot, about: About | None, message_delay: float) -> list[str]:
+def bot_lines(about: About | None, message_delay: float) -> list[str]:
     """The bot's section: its versions, and its time zone, which the times
     the bot shows are in, without saying so each time."""
     settings = get_settings()
@@ -186,7 +174,7 @@ def bot_lines(bot: SignalBot, about: About | None, message_delay: float) -> list
         _("Time zone {zone}").format(zone=settings.timezone),
         up_since(STARTED),
     ]
-    if next_run := next_timer_run(bot):
+    if next_run := timekeeper.next_run():
         lines.append(
             _("Next timer run {time}").format(
                 time=f"{next_run.astimezone(settings.tz):%Y-%m-%d %H:%M}"
@@ -371,7 +359,7 @@ async def status_messages(bot: SignalBot, message_delay: float) -> list[str]:
         *device_lines(health.devices, datetime.now(UTC)),
     ]
     sections: list[Section] = [
-        ("🤖", _("Bot"), bot_lines(bot, health.about, message_delay)),
+        ("🤖", _("Bot"), bot_lines(health.about, message_delay)),
         ("📱", _("Signal account"), signal_lines),
         ("🌐", _("Internet"), internet),
         ("📦", _("Container"), container),

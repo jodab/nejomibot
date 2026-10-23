@@ -1,9 +1,18 @@
 """Notices to the admins, in a direct chat with each, of what they'd otherwise
 find out late:
 
-- At a start after an update, the versions; after a stop that wasn't clean
-  (a crash, a kill, a power cut), that the bot is up again. It knows from
-  data_dir/run.json, which it writes as it starts, and again as it stops.
+- At each start, that the bot is up, since when, and how long it took to be
+  ready; after an update, the version before; after a stop that wasn't clean
+  (a crash, a kill, a power cut), that messages may be lost. Then what needs
+  their attention, such as lines of the bot's files it can't read, or a
+  clock that isn't synchronized, and how the bot is: its timers, chats,
+  photos, backups and memory, its versions, and where it runs. Once in QUIET
+  at most, but after an update: a start sooner after the last told waits
+  till then, so a crash loop can't flood the admins, nor run into Signal's
+  rate limits; should the bot stop meanwhile, the next start tells instead.
+  It knows from data_dir/run.json, which it writes as it starts, as it
+  tells, and as it stops. In debug mode, which keeps no files from one
+  start to the next, each start tells.
 - When Signal starts rate-limiting the bot, how to lift the limit: once in
   six hours at most, and tried once, not kept to send later, as it may not
   get through either. The health check says so too, while messages wait.
@@ -14,25 +23,39 @@ find out late:
 
 import asyncio
 import logging
+import os
 from collections.abc import Coroutine
 from datetime import UTC, datetime, timedelta
 from importlib.metadata import version
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
-from signalbot import SendMessage, SignalBot
+from signalbot import About, SendMessage, SignalBot, TextMode
 
-from . import access, rest
+from . import access, birthdays, lists, reminders, rest, system
 from .account import IDENTITIES, UNTRUSTED
 from .config import get_settings
 from .files import write_privately
-from .i18n import _
-from .messages import describe, outbox, send
+from .health import (
+    CHECK_TIMEOUT,
+    STARTED,
+    Check,
+    memory_check,
+    run_check,
+    version_lines,
+)
+from .i18n import _, day_and_time, format_duration, ngettext, when_text
+from .messages import describe, escape, outbox, send
+from .specials import own_specials
+from .status import backups_check, check_photos, clock_check
+from .timers import timekeeper
 
 logger = logging.getLogger(__name__)
 
 RUN_FILE = "run.json"  # in data_dir
 RATE_LIMIT_AGAIN = timedelta(hours=6)
+# The least time between two notices of a start, but for an update's
+QUIET = timedelta(minutes=10)
 
 
 class Run(BaseModel):
@@ -41,6 +64,7 @@ class Run(BaseModel):
     version: str
     started: datetime
     stopped: datetime | None = None  # when, if it stopped cleanly
+    told: datetime | None = None  # when the admins last heard of a start
 
 
 def read_run() -> Run | None:
@@ -63,27 +87,172 @@ def save_run(run: Run) -> None:
         logger.error("Could not save %s: %r", path, e)
 
 
-def start_text(previous: Run | None, run: Run) -> str | None:
-    """What the admins hear as the bot starts, if anything."""
+# The notice of a start
+
+
+def header_text(run: Run, ready: datetime) -> str:
+    """The bot and its version, in bold, then when it started, in the bot's
+    time zone, and how long it took to be ready. Styled."""
+    title = _("nejomibot {version} started").format(version=run.version)
+    when = day_and_time(run.started.astimezone(get_settings().tz))
+    took = _("ready in {duration}").format(
+        duration=format_duration(ready - run.started)
+    )
+    return f"🟢 **{escape(title)}**\n{escape(f'{when} · {took}')}"
+
+
+def previous_lines(previous: Run | None, run: Run, now: datetime) -> list[str]:
+    """What the admins should know of the run before: its version, if this
+    is an update, and whether it stopped cleanly."""
     if previous is None:  # a first start, or debug mode
-        return None
+        return []
     lines: list[str] = []
     if previous.version != run.version:
-        lines.append(
-            _("🔄 Updated: nejomibot {old} → {new}.").format(
-                old=previous.version, new=run.version
-            )
-        )
+        lines.append(_("🔄 Updated from {version}").format(version=previous.version))
     if previous.stopped is None:
-        since = previous.started.astimezone(get_settings().tz)
         lines.append(
             _(
-                "⚠️ Up again, after a stop that wasn't clean, such as a crash, a "
-                "kill or a power cut. It had run since {time}. Messages that had "
-                "waited less than half a minute to be sent may be lost."
-            ).format(time=f"{since:%Y-%m-%d %H:%M}")
+                "⚠️ The run before, since {time}, didn't stop cleanly, as after a "
+                "crash, a kill or a power cut: messages that had waited less than "
+                "half a minute to be sent may be lost."
+            ).format(time=when_text(previous.started, now))
         )
-    return "\n\n".join(lines) or None
+    return lines
+
+
+def unreadable_lines() -> list[str]:
+    """For each of the bot's files with lines it can't read, how many. It
+    leaves them as they are, and they do nothing, as a timer's that names a
+    command the bot no longer has."""
+    settings = get_settings()
+    timekeeper.reread()
+    counts = {
+        settings.timers_file.name: len(timekeeper.broken),
+        settings.specials_file.name: len(own_specials.current().broken),
+        settings.allowed_file.name: len(access.allowed_list.current().broken),
+        settings.admins_file.name: len(access.admin_list.current().broken),
+    }
+    for kept in (birthdays.kept, reminders.kept, lists.kept):
+        counts[kept.name] = len(kept.current().broken)
+    return [
+        ngettext(
+            "⚠️ {file}: {count} line the bot can't read, left as it is",
+            "⚠️ {file}: {count} lines the bot can't read, left as they are",
+            count,
+        ).format(file=file, count=count)
+        for file, count in counts.items()
+        if count
+    ]
+
+
+def waiting_lines() -> list[str]:
+    """The messages from before that wait to be sent again, if any."""
+    if not (waiting := len(outbox)):
+        return []
+    text = ngettext(
+        "{count} message waiting to be sent again",
+        "{count} messages waiting to be sent again",
+        waiting,
+    ).format(count=waiting)
+    return [f"📤 {text}"]
+
+
+def timers_line() -> str:
+    """How many timers, and when one runs next, in the bot's time zone."""
+    if not (count := len(timekeeper.timers)):
+        return _("⏰ No timers")
+    if (at := timekeeper.next_run()) is None:
+        return ngettext("⏰ {count} timer", "⏰ {count} timers", count).format(
+            count=count
+        )
+    return ngettext(
+        "⏰ {count} timer, the next {when}",
+        "⏰ {count} timers, the next {when}",
+        count,
+    ).format(count=count, when=day_and_time(at.astimezone(get_settings().tz)))
+
+
+def chats_line(bot: SignalBot) -> str:
+    """The groups the bot is in, the chats on the allowed list, and the
+    admins."""
+    groups = sum(1 for group in bot.groups if group.member)
+    allowed = len(access.allowed_list.current().entries)
+    admins = len(access.admins())
+    parts = [
+        ngettext("In {count} group", "In {count} groups", groups).format(count=groups),
+        ngettext("{count} chat allowed", "{count} chats allowed", allowed).format(
+            count=allowed
+        ),
+        ngettext("{count} admin", "{count} admins", admins).format(count=admins),
+    ]
+    return "👥 " + " · ".join(parts)
+
+
+def host_line() -> str:
+    """Where the bot runs: its host, in a container if it is, and the
+    machine."""
+    uname = os.uname()
+    where = uname.nodename
+    if engine := system.container_engine():
+        where = _("{engine} on {host}").format(engine=engine.capitalize(), host=where)
+    return f"🖥️ {where} · {uname.machine}"
+
+
+def check_line(icon: str, check: Check) -> str:
+    """The check's name and what it found, after its icon, or after ⚠️ if it
+    failed."""
+    return f"{icon if check.ok else '⚠️'} {check.name}: {check.shown}"
+
+
+def local_checks() -> list[tuple[str, Check]]:
+    """The checks of the host's state for a start's notice, with their icons.
+    Blocking: reads /proc, /sys and the backups' folder."""
+    return [("💾", backups_check()), ("🕐", clock_check()), ("🧠", memory_check())]
+
+
+async def about_of(bot: SignalBot) -> About | None:
+    """signal-cli-rest-api's version and mode, if it says them in time."""
+    try:
+        async with asyncio.timeout(CHECK_TIMEOUT):
+            return await bot.general.about()
+    except Exception as e:
+        logger.warning("signal-cli-rest-api didn't say its version: %s", describe(e))
+        return None
+
+
+async def start_text(
+    bot: SignalBot, previous: Run | None, run: Run, ready: datetime
+) -> str:
+    """What the admins hear of a start: when, and how it went; then what
+    needs their attention, if anything; then how the bot is. Styled."""
+    settings = get_settings()
+    about, photos, checks = await asyncio.gather(
+        about_of(bot),
+        run_check(_("Photo library"), check_photos),
+        asyncio.to_thread(local_checks),
+    )
+    checks = [("📷", photos), *checks]
+    _nejomibot, runtime, api = version_lines(about)
+    debug = _("Debug mode: only talking to {group}").format(group=settings.debug_group)
+    attention = [
+        *([f"🐞 {debug}"] if settings.debug else []),
+        *previous_lines(previous, run, datetime.now(UTC)),
+        *unreadable_lines(),
+        *([f"⚠️ {api}"] if about is None else []),
+        *(check_line(icon, check) for icon, check in checks if not check.ok),
+        *waiting_lines(),
+    ]
+    state = [
+        timers_line(),
+        chats_line(bot),
+        *(check_line(icon, check) for icon, check in checks if check.ok),
+    ]
+    runs = [*([f"🔌 {api}"] if about else []), f"🐍 {runtime}", host_line()]
+    blocks = [escape("\n".join(lines)) for lines in (attention, state, runs) if lines]
+    return "\n\n".join([header_text(run, ready), *blocks])
+
+
+# The other notices
 
 
 def rate_limited_text() -> str:
@@ -114,7 +283,11 @@ class Notices:
         """Note this run, beside the one before, and tell the admins once the
         bot is ready."""
         self.previous = read_run()
-        self.run = Run(version=version("nejomibot"), started=datetime.now(UTC))
+        self.run = Run(
+            version=version("nejomibot"),
+            started=STARTED,
+            told=self.previous.told if self.previous else None,
+        )
         save_run(self.run)
         if previous := self.previous:
             self.looked = previous.stopped or previous.started
@@ -139,13 +312,10 @@ class Notices:
         task.add_done_callback(self.tasks.discard)
 
     async def serve(self, bot: SignalBot) -> None:
-        """Once signalbot is ready: tell the admins of the start, if there's
-        anything to tell, then look at the safety numbers every
-        healthcheck_minutes."""
+        """Once signalbot is ready: tell the admins of the start, beside what
+        follows, then look at the safety numbers every healthcheck_minutes."""
         await bot.wait_until_ready()
-        if self.run is not None and (text := start_text(self.previous, self.run)):
-            logger.info("Telling the admins of the start")
-            await tell(bot, text)
+        self.spawn(self.tell_of_start(bot, datetime.now(UTC)))
         await self.look_at_safety_numbers(bot)
         bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
             self.look_at_safety_numbers,
@@ -158,6 +328,35 @@ class Notices:
             max_instances=1,
             replace_existing=True,
         )
+
+    def delay(self, now: datetime) -> timedelta:
+        """How long to wait before telling the admins of this start: not at
+        all after an update, else until QUIET after they last heard of one."""
+        run, previous = self.run, self.previous
+        if run is None or run.told is None:
+            return timedelta()
+        if previous is not None and previous.version != run.version:
+            return timedelta()
+        # QUIET at most, should the clock have been set back since
+        return max(min(run.told + QUIET - now, QUIET), timedelta())
+
+    async def tell_of_start(self, bot: SignalBot, ready: datetime) -> None:
+        """Tell the admins of this start, which was ready then, once its
+        delay is over. Never raises."""
+        if (wait := self.delay(datetime.now(UTC))) > timedelta():
+            logger.info("Telling the admins of the start in %d s", wait.total_seconds())
+            await asyncio.sleep(wait.total_seconds())
+        if (run := self.run) is None:
+            return
+        try:
+            text = await start_text(bot, self.previous, run, ready)
+        except Exception:
+            logger.exception("Could not say how the start went")
+            return
+        logger.info("Telling the admins of the start")
+        await tell(bot, text, styled=True)
+        self.run = run.model_copy(update={"told": datetime.now(UTC)})
+        save_run(self.run)
 
     async def rate_limited(self, bot: SignalBot) -> None:
         """Tell the admins that Signal rate-limits the bot, once in
@@ -201,10 +400,11 @@ class Notices:
             await tell(bot, changed_text(name))
 
 
-async def tell(bot: SignalBot, text: str) -> None:
+async def tell(bot: SignalBot, text: str, *, styled: bool = False) -> None:
     """Send the text to each admin, waiting to be sent if need be."""
+    mode = TextMode.STYLED if styled else None
     for admin in get_settings().admins:
-        await send(bot, admin, SendMessage(text=text))
+        await send(bot, admin, SendMessage(text=text, text_mode=mode))
 
 
 notices = Notices()

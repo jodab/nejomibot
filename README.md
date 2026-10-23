@@ -1106,11 +1106,40 @@ version isn't there: signal-cli-rest-api doesn't say it.
 The bot tells the admins in the configuration itself, in a direct chat with
 each, what they'd otherwise find out late:
 
-- **An update, or a stop that wasn't clean.** After an update, the versions:
-  `🔄 Updated: nejomibot 0.98.0 → 0.99.0.`; after a crash, a kill or a power
-  cut, that it's up again, since when it had run, and that messages that had
-  waited less than half a minute may be lost. It knows from
-  `data_dir/run.json`, which it writes as it starts, and as it stops.
+- **Each start.** That it's up, since when, and how long it took to be
+  ready; after an update, the version before; after a crash, a kill or a
+  power cut, that messages that had waited less than half a minute may be
+  lost. Then what needs their attention, such as lines of its files it
+  can't read, which do nothing, a clock that isn't synchronized, or messages
+  still waiting to be sent; then how it is: its timers and when the next
+  runs, its groups, chats allowed and admins, the photos, the backups, the
+  clock, its memory, signal-cli-rest-api's version, and where it runs:
+
+  ```
+  🟢 nejomibot 0.99.11 started
+  Friday 23 October 09:46 · ready in 14 s
+
+  🔄 Updated from 0.99.10
+  ⚠️ timers.txt: 1 line the bot can't read, left as it is
+
+  ⏰ 2 timers, the next Saturday 24 October 08:00
+  👥 In 3 groups · 6 chats allowed · 1 admin
+  📷 Photo library: 1151 photos
+  💾 Backups: 12, the newest 5 h old, the oldest 12 d 5 h old
+  🕐 Clock: synchronized, max error 0.02 s
+  🧠 Bot memory: 74.1MB (peak 74.9MB)
+
+  🔌 signal-cli-rest-api unset, json-rpc mode
+  🐍 signalbot 2.1.3 · Python 3.14.0
+  🖥️ Podman on bothost · aarch64
+  ```
+
+  Once in ten minutes at most, but after an update: a start sooner after
+  the last one the admins heard of tells them once the ten minutes are up,
+  so a crash loop can't flood them, nor run into Signal's rate limits; if
+  the bot stops before then, the next start tells instead. It knows from
+  `data_dir/run.json`, which it writes as it starts, as it tells, and as it
+  stops.
 - **Signal rate-limits the bot.** As it starts to, how to lift the limit:
   `signal-account.sh rate-limit --to <your number>`, and a captcha. Once in
   six hours at most, and tried once, as while Signal rate-limits the bot, it
@@ -1122,8 +1151,8 @@ each, what they'd otherwise find out late:
   which asks nothing of Signal's servers, and at a start, for changes since
   it last ran.
 
-In debug mode, which starts anew each time, there's no update or stop to
-tell of.
+In debug mode, which starts anew each time, each start tells, marked as
+`🐞 Debug mode`, with no update or stop before it to tell of.
 
 ### The containers' health checks
 
@@ -1552,7 +1581,7 @@ nejomibot/
   delivery.py   /delivery: whether they arrived, from the receipts phones send
   incoming.py   /incoming: the latest messages people sent the bot
   greeting.py   the greeting for the allowed list's messages that aren't commands
-  notices.py    notices to the admins: an update, a crash, a rate limit, safety numbers
+  notices.py    notices to the admins: each start, a rate limit, safety numbers
   reminders.py  /remind: reminders, posted in their chat when due
   lists.py      /list: a list for each chat
   birthdays.py  /birthdays, /namedays, /birthday, /nameday: for /today

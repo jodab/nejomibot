@@ -4,6 +4,26 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- The admins hear of each start, in one message: `🟢 nejomibot 0.99.11
+  started`, when, and how long it took to be ready; then what needs their
+  attention, such as an update, a stop that wasn't clean, lines of the
+  bot's files it can't read, which do nothing, a clock that isn't
+  synchronized, or messages still waiting to be sent; then how the bot is:
+  its timers and the next run, its groups, chats allowed and admins, the
+  photos, the backups, the clock, its memory, signal-cli-rest-api's version,
+  and where it runs. Once in ten minutes at most, but after an update, so a
+  crash loop can't flood them: a start sooner tells once the ten minutes
+  are up. In debug mode too, marked as such.
+
+### Changed
+
+- The notices of an update and of a stop that wasn't clean are part of that
+  message now, rather than of their own.
+
 ## 0.99.10 - 2026-10-23
 
 ### Updating

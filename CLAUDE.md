@@ -299,10 +299,17 @@ everyone allowed. A job at the start of every minute posts the reminders
 due, after taking them out of the file, so none is posted twice. Timers
 can't run them, nor the birthday lists, as they answer for their own chat.
 
-**Notices** (`notices.py`): the admins hear of an update or a stop that
-wasn't clean (`data_dir/run.json`, written at start and at shutdown), of
-Signal starting to rate-limit the bot (tried once, `Outbox.try_once`), and
-of changed safety numbers, looked at every `healthcheck_minutes`.
+**Notices** (`notices.py`): the admins hear of each start, once ready, in
+one styled message (`start_text`): the version and how long it took, then
+what needs their attention (an update, a stop that wasn't clean, unreadable
+lines in the bot's files, failed checks, messages waiting), then how the bot
+is, reusing `/status`'s and the health checks' functions. Once in `QUIET`
+(10 minutes) at most, but after an update (the owner's decision,
+2026-10-23): a start sooner waits till then (`Notices.delay`), and
+`data_dir/run.json` keeps when the admins last heard (`Run.told`), beside
+each run's start and clean stop. They also hear of Signal starting to
+rate-limit the bot (tried once, `Outbox.try_once`), and of changed safety
+numbers, looked at every `healthcheck_minutes`.
 
 **Delivery** (`delivery.py`): signalbot drops receipts (2.1.3), so
 `rest.received()` opens a websocket of the bot's own beside signalbot's, as

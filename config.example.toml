@@ -93,12 +93,12 @@ send_retry_hours = 3
 # specials, /contacts, /trust, /allowed, /allow, /disallow, /admins, /admin,
 # the profile commands, the timers, /msg, /run, /birthday and /nameday) only
 # in a direct chat with the bot; /delete in any chat. They hear from the bot
-# of an update, a crash, a rate limit and a changed safety number. They may
-# make others admins with /admin add, who may then use every command but
-# /admin add and remove, but no command can take away what those here may
-# do. Everyone else is let in with /allow. The bot's greeting, for those on
-# the allowed list who write to it but send no command, names the first to
-# contact.
+# as it starts, with how it is, of a rate limit and of a changed safety
+# number. They may make others admins with /admin add, who may then use
+# every command but /admin add and remove, but no command can take away
+# what those here may do. Everyone else is let in with /allow. The bot's
+# greeting, for those on the allowed list who write to it but send no
+# command, names the first to contact.
 admins = [
     "+46700000001",  # you
 ]

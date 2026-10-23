@@ -505,7 +505,8 @@ class Timekeeper:
                     timezone=settings.tz,
                 )
 
-    def next_run(self, timer_id: int) -> datetime | None:
+    def next_run(self, timer_id: int | None = None) -> datetime | None:
+        """When the timer runs next, or without one, any timer."""
         # Jobs only get next_run_time once the scheduler has started
         times = (getattr(job, "next_run_time", None) for job in self.jobs(timer_id))
         return min((t for t in times if t), default=None)

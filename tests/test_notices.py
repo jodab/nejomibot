@@ -1,31 +1,39 @@
 import asyncio
 import logging
-from datetime import UTC, datetime
+import platform
+from datetime import UTC, datetime, timedelta
+from importlib.metadata import version
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
 from aiohttp import web
-from helpers import DAY_MS, ME, NOW_MS, FakeApi
-from signalbot import SendMessage, SignalBot
+from helpers import DAY_MS, GROUP, ME, NOW_MS, FakeApi, make_jpeg
+from signalbot import SendMessage, SignalBot, TextMode
 
 from nejomibot import notices
 from nejomibot.config import get_settings
+from nejomibot.health import Check
 from nejomibot.messages import Outcome
 from nejomibot.notices import (
+    QUIET,
     RATE_LIMIT_AGAIN,
     Notices,
     Run,
+    previous_lines,
     read_run,
     start_text,
 )
+from nejomibot.timers import Timekeeper
 
 ADMIN = "+46700000009"
 STARTED = datetime(2026, 10, 19, 6, 0, tzinfo=UTC)  # 08:00 in Stockholm
 STOPPED = datetime(2026, 10, 19, 9, 0, tzinfo=UTC)
+NOW = datetime(2026, 10, 19, 10, 0, tzinfo=UTC)
 UNCLEAN = (
-    "⚠️ Up again, after a stop that wasn't clean, such as a crash, a kill or a "
-    "power cut. It had run since 2026-10-19 08:00. Messages that had waited less "
-    "than half a minute to be sent may be lost."
+    "⚠️ The run before, since {time}, didn't stop cleanly, as after a crash, a "
+    "kill or a power cut: messages that had waited less than half a minute to be "
+    "sent may be lost."
 )
 
 
@@ -69,26 +77,148 @@ def told(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str]]:
 
 
 @pytest.mark.parametrize(
-    ("previous", "text"),
+    ("previous", "lines"),
     [
         # A first start, or debug mode, whose files are new each time
-        (None, None),
+        (None, []),
         # A restart like any other
-        (Run(version="0.99.0", started=STARTED, stopped=STOPPED), None),
+        (Run(version="0.99.0", started=STARTED, stopped=STOPPED), []),
         (
             Run(version="0.98.0", started=STARTED, stopped=STOPPED),
-            "🔄 Updated: nejomibot 0.98.0 → 0.99.0.",
+            ["🔄 Updated from 0.98.0"],
         ),
-        (Run(version="0.99.0", started=STARTED), UNCLEAN),
+        (Run(version="0.99.0", started=STARTED), [UNCLEAN.format(time="08:00")]),
         (
             Run(version="0.98.0", started=STARTED),
-            f"🔄 Updated: nejomibot 0.98.0 → 0.99.0.\n\n{UNCLEAN}",
+            ["🔄 Updated from 0.98.0", UNCLEAN.format(time="08:00")],
         ),
     ],
 )
-def test_what_a_start_tells(previous: Run | None, text: str | None) -> None:
-    now = datetime(2026, 10, 19, 10, 0, tzinfo=UTC)
-    assert start_text(previous, Run(version="0.99.0", started=now)) == text
+def test_what_a_start_says_of_the_run_before(
+    previous: Run | None, lines: list[str]
+) -> None:
+    assert previous_lines(previous, Run(version="0.99.0", started=NOW), NOW) == lines
+
+
+async def test_a_start_s_notice(
+    bot: SignalBot, photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The host's own state, as it could be anywhere
+    monkeypatch.setattr(
+        notices,
+        "local_checks",
+        lambda: [
+            ("💾", Check("Backups", ok=True, detail="none yet")),
+            ("🕐", Check("Clock", ok=False, detail="not synchronized")),
+            ("🧠", Check("Bot memory", ok=True, detail="70.0 MB")),
+        ],
+    )
+    monkeypatch.setattr(notices, "host_line", lambda: "🖥️ Podman on bothost · aarch64")
+    make_jpeg(photos_dir / "a.jpg")
+    # A timer, and a line with a command the bot no longer has
+    get_settings().timers_file.write_text(
+        f"1 | daily 08:00 | {GROUP} | /ping | 2026-10-12 08:00\n"
+        f"2 | daily 08:00 | {GROUP} | /dailypost | 2026-10-12 08:00\n"
+    )
+    keeper = Timekeeper()
+    keeper.read()
+    monkeypatch.setattr(notices, "timekeeper", keeper)
+    previous = Run(version="0.98.0", started=datetime(2026, 1, 2, 7, 0, tzinfo=UTC))
+    run = Run(version="0.99.0", started=STARTED)
+    text = await start_text(bot, previous, run, STARTED + timedelta(seconds=14))
+    # What it is, then what needs the admins' attention, then how the bot is
+    assert text == "\n".join(
+        [
+            "🟢 **nejomibot 0.99.0 started**",
+            "Monday 19 October 08:00 · ready in 14 s",
+            "",
+            "🔄 Updated from 0.98.0",
+            UNCLEAN.format(time="2026-01-02 08:00"),
+            "⚠️ timers.txt: 1 line the bot can't read, left as it is",
+            "⚠️ Clock: not synchronized",
+            "",
+            "⏰ 1 timer",
+            "👥 In 1 group · 0 chats allowed · 1 admin",
+            "📷 Photo library: 1 photo",
+            "💾 Backups: none yet",
+            "🧠 Bot memory: 70.0 MB",
+            "",
+            "🔌 signal-cli-rest-api unset, json-rpc mode",
+            f"🐍 signalbot {version('signalbot')} · Python {platform.python_version()}",
+            "🖥️ Podman on bothost · aarch64",
+        ]
+    )
+
+
+@pytest.mark.usefixtures("swedish")
+async def test_a_start_s_notice_in_debug_mode(
+    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_DEBUG", "true")
+    monkeypatch.setenv("NEJOMIBOT_DEBUG_GROUP", GROUP)
+    get_settings.cache_clear()
+    run = Run(version="0.99.0", started=STARTED)
+    lines = (await start_text(bot, None, run, STARTED)).splitlines()
+    assert lines[:4] == [
+        "🟢 **nejomibot 0.99.0 startad**",
+        "Måndag 19 Oktober 08:00 · redo efter 0 s",
+        "",
+        f"🐞 Felsökningsläge: pratar bara med {GROUP}",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("previous", "told", "delay"),
+    [
+        # A first start, or debug mode, or the admins never told
+        (None, None, timedelta()),
+        # Told 3 minutes ago: the rest of QUIET
+        (
+            Run(version="0.99.0", started=STARTED),
+            NOW - timedelta(minutes=3),
+            timedelta(minutes=7),
+        ),
+        (Run(version="0.99.0", started=STARTED), NOW - QUIET, timedelta()),
+        # An update tells at once
+        (Run(version="0.98.0", started=STARTED), NOW, timedelta()),
+        # QUIET at most, should the clock have been set back since
+        (Run(version="0.99.0", started=STARTED), NOW + timedelta(hours=5), QUIET),
+    ],
+)
+def test_a_start_is_told_once_in_quiet_at_most(
+    previous: Run | None, told: datetime | None, delay: timedelta
+) -> None:
+    keeper = Notices()
+    keeper.previous = previous
+    keeper.run = Run(version="0.99.0", started=NOW, told=told)
+    assert keeper.delay(NOW) == delay
+
+
+async def test_telling_of_a_start(
+    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sent: list[tuple[str, SendMessage]] = []
+
+    async def send(bot: SignalBot, recipient: str, message: SendMessage) -> Outcome:
+        sent.append((recipient, message))
+        return Outcome.SENT
+
+    monkeypatch.setattr(notices, "send", send)
+    keeper = Notices()
+    keeper.start(bot)
+    await keeper.tell_of_start(bot, datetime.now(UTC))
+    [(recipient, message)] = sent
+    assert recipient == ADMIN
+    assert message.text_mode == TextMode.STYLED
+    started = f"🟢 **nejomibot {version('nejomibot')} started**"
+    assert (message.text or "").startswith(started)
+    # Kept, so the next start knows when the admins last heard of one
+    run = read_run()
+    assert run is not None and run.told is not None
+    again = Notices()
+    again.start(bot)
+    assert again.run is not None and again.run.told == run.told
+    assert again.delay(datetime.now(UTC)) > QUIET - timedelta(minutes=1)
 
 
 @pytest.mark.usefixtures("outbox")
@@ -194,8 +324,12 @@ async def test_served_once_ready(
     # test runs, whenever that is
     keeper.looked = datetime.now(UTC)
     await keeper.serve(bot)
-    # The update, then the safety numbers changed since, of which there are none
-    assert told == [(ADMIN, "🔄 Updated: nejomibot 0.97.0 → 0.98.0.")]
+    await asyncio.gather(*keeper.tasks)
+    # The start, then the safety numbers changed since, of which there are none
+    [(admin, text)] = told
+    assert admin == ADMIN
+    assert text.startswith("🟢 **nejomibot 0.98.0 started**")
+    assert "\n🔄 Updated from 0.97.0\n" in text
     job = cast(Any, bot.scheduler.get_job("notices-safety-numbers"))  # pyright: ignore[reportUnknownMemberType]
     assert job is not None
     assert str(job.trigger) == "interval[0:05:00]"
