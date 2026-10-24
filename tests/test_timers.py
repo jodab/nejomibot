@@ -24,12 +24,12 @@ from signalbot import (
 
 from nejomibot import (
     access,
-    birthdays,
     commands,
     messages,
     photos,
     specials,
     timers,
+    today,
     weather,
 )
 from nejomibot.access import HEADER
@@ -263,6 +263,11 @@ def test_a_broken_line(line: str) -> None:
             "/timer add every 2h 1 2\n/ping\n/info",
             ("every 2h", [1, 2], ["/ping", "/info"]),
         ),
+        # A . for the /
+        (
+            "/timer add 08:00 1,2 .weather; /photo",
+            ("08:00", [1, 2], [".weather", "/photo"]),
+        ),
     ],
 )
 def test_parse_add(text: str, parsed: tuple[str, list[int], list[str]]) -> None:
@@ -273,7 +278,7 @@ def test_parse_add(text: str, parsed: tuple[str, list[int], list[str]]) -> None:
     ("text", "why"),
     [
         ("/timer add 08:00 1", "Which commands?"),
-        ("/timer add 08:00 /weather; photo", "Commands start with /"),
+        ("/timer add 08:00 /weather; photo", "Commands start with . or /"),
         ("/timer add 08:00 " + "; ".join(["/ping"] * 11), "At most 10"),
     ],
 )
@@ -622,8 +627,11 @@ async def test_a_daily_post_sends_everyone_the_same(
     keeper.start(bot, [h for h, *_ in handlers(bot, get_settings())])
     monkeypatch.setattr(specials, "timekeeper", keeper)
     timer = add(keeper, "08:00", [GROUP, ALICE], "/dailypost")
+    monkeypatch.setattr(today, "now", lambda: datetime(2026, 6, 8, 8, 0, tzinfo=TZ))
     await keeper.run(timer.id)
     assert sent == [
+        (GROUP, "📅 **Måndag 8 Juni** · 08:00"),
+        (ALICE, "📅 **Måndag 8 Juni** · 08:00"),
         (GROUP, "Vädret"),
         (ALICE, "Vädret"),
         (GROUP, "**Dagens bild!**\n\n📷"),
@@ -649,15 +657,19 @@ async def test_a_daily_post_joins_the_day_and_the_weather(
     monkeypatch.setattr(specials, "timekeeper", keeper)
     timer = add(keeper, "08:00", [GROUP, ALICE], "/dailypost")
     # The day with the weather under it, in one message
-    monkeypatch.setattr(birthdays, "today", lambda: date(2026, 6, 6))
+    monkeypatch.setattr(today, "now", lambda: datetime(2026, 6, 6, 8, 0, tzinfo=TZ))
     await keeper.run(timer.id)
-    day = "🇸🇪 National Day of Sweden · flag day\n\n**Weather**"
+    day = (
+        "📅 **Saturday 6 June** · 08:00\n"
+        "🇸🇪 National Day of Sweden · flag day\n\n**Weather**"
+    )
     assert sent == [(GROUP, day), (ALICE, day)]
-    # On a day with nothing special, the weather alone
+    # On a day with nothing special, the date over the weather
     sent.clear()
-    monkeypatch.setattr(birthdays, "today", lambda: date(2026, 6, 8))
+    monkeypatch.setattr(today, "now", lambda: datetime(2026, 6, 8, 8, 0, tzinfo=TZ))
     await keeper.run(timer.id)
-    assert sent == [(GROUP, "**Weather**"), (ALICE, "**Weather**")]
+    day = "📅 **Monday 8 June** · 08:00\n\n**Weather**"
+    assert sent == [(GROUP, day), (ALICE, day)]
 
 
 async def test_a_timer_runs_a_special_of_the_admins(
@@ -938,6 +950,22 @@ async def test_the_file_keeps_the_english_names(
     ) == (
         Timer(2, "daily 08:00", [ALICE], ["/weather", "/photo"], at("2026-10-12 08:00"))
     )
+
+
+async def test_commands_with_a_dot(
+    admin_chat: tuple[Timekeeper, list[str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Shown with a ., unless command_prefix is a /; the file keeps the /
+    monkeypatch.setenv("NEJOMIBOT_COMMAND_PREFIX", ".")
+    get_settings.cache_clear()
+    keeper, replies = admin_chat
+    await command(keeper, ".timer add 08:00 .today; .weather Helsinki")
+    assert replies[-1].startswith(
+        f"✅ **Added**\n**#1** · daily 08:00\n💬 Admin ({ADMIN})\n"
+        "▶️ .today; .weather Helsinki\n🔜 Next: "
+    )
+    assert keeper.timers[1].commands == ["/today", "/weather Helsinki"]
+    assert "| /today; /weather Helsinki |" in get_settings().timers_file.read_text()
 
 
 async def test_a_timer_speaks_each_chats_language(sent: Sent, photos_dir: Path) -> None:

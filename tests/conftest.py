@@ -46,6 +46,8 @@ TEST_ENV = {
     "NEJOMIBOT_WEATHER_CITY": "Stockholm",
     # Nothing listens there, so no test reaches a real bot's Signal
     "NEJOMIBOT_SIGNAL_SERVICE": "127.0.0.1:1",
+    # Commands shown as the code writes them; test_commands.py has the .
+    "NEJOMIBOT_COMMAND_PREFIX": "/",
 }
 
 

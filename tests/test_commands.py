@@ -99,6 +99,34 @@ def test_canonical(text: str, command: str) -> None:
     assert canonical(text) == command
 
 
+@pytest.mark.usefixtures("pic")
+@pytest.mark.parametrize(
+    ("text", "command"),
+    [
+        # A . for the /, as a phone's keyboard has it at hand
+        (".photo", "/photo"),
+        (".PIC now", "/photo now"),
+        (".väder Helsinki", "/weather Helsinki"),
+        (".f startrek", "/fortune startrek"),
+        # Before a letter only, and at the start
+        ("...", "..."),
+        (". pic", ". pic"),
+        (".5 kg", ".5 kg"),
+        ("a .pic", "a .pic"),
+    ],
+)
+def test_a_dot_for_the_slash(text: str, command: str) -> None:
+    assert canonical(text) == command
+
+
+def test_an_alias_given_with_a_dot(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Kept with a /, so it takes both
+    monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/weather": [".w"]}')
+    get_settings.cache_clear()
+    assert get_settings().aliases == {"/weather": ["/w"]}
+    assert canonical(".w") == canonical("/w") == "/weather"
+
+
 def test_the_bots_own_aliases_and_every_languages() -> None:
     table = aliases()
     for alias, command in [
@@ -194,6 +222,18 @@ async def test_a_command_by_a_name_the_bot_comes_with(
     handler = Seen()
     await handler.handle_data_message(context_of("/STASH"))
     assert handler.seen == [("/cache", "/cache")]
+
+
+@pytest.mark.usefixtures("pic")
+async def test_a_command_with_a_dot() -> None:
+    handler = Seen()
+    for text in [".photo", ".Cache", ".pic", ".photo now", "..photo"]:
+        await handler.handle_data_message(context_of(text))
+    assert handler.seen == [
+        ("/photo", "/photo"),
+        ("/Cache", "/cache"),
+        ("/photo", "/photo"),
+    ]
 
 
 @pytest.mark.usefixtures("pic")

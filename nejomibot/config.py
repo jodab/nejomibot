@@ -52,6 +52,17 @@ def valid_person(value: str) -> str:
     return value
 
 
+# A command may start with a . for its /, as a phone's keyboard has the . at
+# hand: .photo is /photo. Before a letter, so ... and .5 are no commands.
+DOT = re.compile(r"\.(?=[^\W\d_])")
+
+
+def slashed(text: str) -> str:
+    """The text, a command at its start with a / for its ., as the bot keeps
+    commands: .photo as /photo."""
+    return f"/{text[1:]}" if DOT.match(text) else text
+
+
 GroupId = Annotated[str, StringConstraints(pattern=GROUP_ID)]
 # Someone on Signal: by phone number, or by Signal ID for those who don't
 # share their number
@@ -64,7 +75,7 @@ TimeZone = Annotated[str, AfterValidator(valid_timezone)]
 HostPort = Annotated[str, StringConstraints(pattern=r"^[^:/\s]+:\d+$")]
 # A command, as its handler names it, and another name for it: one word each
 Command = Annotated[str, StringConstraints(pattern=r"^/\S+$", to_lower=True)]
-Alias = Annotated[str, StringConstraints(pattern=r"^\S+$")]
+Alias = Annotated[str, StringConstraints(pattern=r"^\S+$"), AfterValidator(slashed)]
 Currency = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
 # The countries whose holidays the calendar has
 Country = Literal[
@@ -89,6 +100,9 @@ class Settings(BaseSettings):
 
     # The language of the bot's messages: en, or one in nejomibot/locale
     language: str = "en"
+    # How the bot shows commands: .photo, as a phone's keyboard has the . at
+    # hand, or /photo. It takes both.
+    command_prefix: Literal[".", "/"] = "."
     # Other names for commands, e.g. {"/photo": ["/pic", "pic"]}
     aliases: dict[Command, list[Alias]] = {}
 

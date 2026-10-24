@@ -6,14 +6,16 @@ given as /contacts takes them, by name, phone number or ID, and must be a
 contact saved by name (/contacts add): theirs show in the groups they're in,
 by that name, as the contacts have it at the time. Someone not on Signal is
 given by name: theirs show in the groups given, by their numbers in /chats,
-or else in every group.
+or else in every group. Given again on that day, with other groups or none,
+they show there instead.
 
-  /birthday add 1990-03-14 Alice      a contact; the post says the age
-  /birthday add 03-14 Bob             without the year, it doesn't
-  /birthday add 1940-05-01 1 Grandma  someone not on Signal, in chat 1
+  /birthday add 1990-03-14 Alice        a contact; the post says the age
+  /birthday add 03-14 Bob               without the year, it doesn't
+  /birthday add 1940-05-01 1 Grandma    someone not on Signal, in chat 1
+  /birthday add 1940-05-01 1,2 Grandma  then in chats 1 and 2 instead
   /nameday add 08-08 Alice
-  /birthday remove 2                  by its number in /birthdays
-  /nameday remove 1                   by its number in /namedays
+  /birthday remove 2                    by its number in /birthdays
+  /nameday remove 1                     by its number in /namedays
 
 A contact has one birthday and one name day: adding another changes it.
 /birthdays and /namedays, for everyone allowed, list them, the coming ones
@@ -328,7 +330,13 @@ def usage(kind: str) -> str:
         )
     return "\n".join(
         [
-            _("/nameday add <date> [<chats>] <who>: a name day, as /birthday takes it"),
+            _("/nameday add <date> [<chats>] <who>: a name day, e.g."),
+            "  " + _("/nameday add 08-08 Alice: a contact, where they are"),
+            "  "
+            + _(
+                "/nameday add 08-08 1,2 Grandma: someone not on Signal, in "
+                "chats 1 and 2 of /chats; without them, in every group"
+            ),
             _("/nameday remove <n>: remove one, by its number in /namedays"),
         ]
     )
@@ -398,6 +406,17 @@ async def add(bot: SignalBot, kind: str, words: list[str], on: date) -> str:
         return found_contact
     else:
         name, their_ids, old = found_contact
+    if not their_ids:
+        # Someone not on Signal is known by name: on that day, the same one,
+        # whose groups this changes
+        old = [
+            each
+            for each in kept.current().entries
+            if each.kind == kind
+            and not each.who
+            and each.name.casefold() == name.casefold()
+            and (each.month, each.day) == (month, day)
+        ]
     new = Occasion(kind, month, day, name, their_ids, groups, year)
     entries = kept.current().entries
     if new in entries:
@@ -417,6 +436,13 @@ async def add(bot: SignalBot, kind: str, words: list[str], on: date) -> str:
     else:
         lines.append(
             _("👥 In every group: no contact is called {name}").format(name=name)
+        )
+        command = shown_name("/birthday add" if kind == BIRTHDAY else "/nameday add")
+        lines.append(
+            _(
+                "For some groups only, add it again with their numbers from "
+                "/chats: {example}"
+            ).format(example=f"{command} {words[0]} 1,2 {name}")
         )
     return "\n".join(lines)
 

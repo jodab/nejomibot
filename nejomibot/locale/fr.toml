@@ -1,0 +1,78 @@
+# French names for the bot's commands, and the French words it reads in
+# commands, next to the English ones; fr.po translates its messages. See
+# nejomibot/i18n.py.
+
+# The language's own name, as /langue lists it
+name = "Français"
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /. The bot answers the English names too.
+[commands]
+"/uniquephoto" = ["/nouvellephoto"]
+"/weather" = ["/météo", "/meteo"]
+"/info" = ["/heure"]
+"/fortune" = ["/citation"]
+"/help" = ["/aide"]
+"/trust" = ["/vérifier", "/verifier"]
+"/allowed" = ["/autorisés", "/autorises"]
+"/allow" = ["/autoriser"]
+"/disallow" = ["/interdire"]
+"/profile" = ["/profil"]
+"/name" = ["/nom"]
+"/about" = ["/àpropos", "/apropos"]
+"/avatar" = ["/photoprofil"]
+"/username" = ["/pseudo"]
+"/delete" = ["/supprimer"]
+"/delivery" = ["/distribution"]
+"/today" = ["/aujourdhui", "/jour"]
+"/msg" = ["/envoyer"]
+"/run" = ["/exécuter", "/executer"]
+"/incoming" = ["/reçus", "/recus"]
+"/onthisday" = ["/cejour"]
+"/forecast" = ["/prévisions", "/previsions"]
+"/remind" = ["/rappel"]
+"/list" = ["/liste"]
+"/birthdays" = ["/anniversaires"]
+"/namedays" = ["/fêtes", "/fetes"]
+"/birthday" = ["/anniversaire"]
+"/nameday" = ["/fête", "/fete"]
+"/language" = ["/langue"]
+
+# Words for when a timer runs (/timer ajouter lun-ven 07:30 ...) or a
+# reminder is due (/rappel dans 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
+[words]
+mon = ["lun"]
+tue = ["mar"]
+wed = ["mer"]
+thu = ["jeu"]
+fri = ["ven"]
+sat = ["sam"]
+sun = ["dim"]
+monday = ["lundi"]
+tuesday = ["mardi"]
+wednesday = ["mercredi"]
+thursday = ["jeudi"]
+friday = ["vendredi"]
+saturday = ["samedi"]
+sunday = ["dimanche"]
+daily = ["quotidien"]
+weekdays = ["ouvrables"]
+weekends = ["week-ends", "week-end"]
+today = ["aujourdhui", "aujourd'hui"]
+tomorrow = ["demain"]
+every = ["chaque"]
+in = ["dans"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/liste ajouter lait), each next to the English one it means. The first
+# is how /aide shows it.
+add = ["ajouter"]
+remove = ["supprimer", "retirer"]
+list = ["liste"]
+clear = ["vider"]
+run = ["exécuter", "executer", "lancer"]
+all = ["tout", "tous"]
+preview = ["aperçu", "apercu"]
+default = ["défaut", "defaut"]
+shortcuts = ["raccourcis", "raccourci"]

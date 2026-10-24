@@ -8,7 +8,8 @@ startrek. So are every language's words for what follows a command, its
 subcommands: /lista lägg till mjölk as /list add mjölk, /spådom alla as
 /fortune all. A handler may have shortcuts too, aliases the admins give, for
 its command and words after it: an album's, as alice 2017 for /photo Alice
-2017. The bot answers in the chat's language (i18n.speaking()).
+2017, or a special's, as /gm for /morning. The bot answers in the chat's
+language (i18n.speaking()).
 
 Each handler is a Handler that lists its commands, saying of each whether
 more may follow its name and whether timers and /run may run it. answer()
@@ -42,8 +43,8 @@ from signalbot import (
     TextMode,
 )
 
-from .config import get_settings
-from .i18n import _, every_language, speaking, speaking_now
+from .config import DOT, get_settings, slashed
+from .i18n import _, every_language, prefixed, speaking, speaking_now
 from .messages import collected, error_text, escape, language_here, log_failure, reply
 from .receipts import mark_read, show_typing
 from .styles import utf16_length
@@ -52,6 +53,9 @@ logger = logging.getLogger(__name__)
 
 FIRST_WORD = re.compile(r"^\S+")
 COMMAND_AND_SPACE = re.compile(r"^(\S+)\s+")
+# Where a command starts in a text, as after /timer add's time: a word that
+# starts with a /, or a . (slashed)
+COMMAND_START = re.compile(rf"(?:^|\s)(?:/|{DOT.pattern})")
 # Names the bot has had all along, in every language
 ALIASES = {
     "/status": ["/test"],
@@ -81,8 +85,10 @@ def aliases(*, shortcuts: bool = True) -> dict[str, str]:
 
 
 def canonical(text: str) -> str:
-    """The text, an alias at its start replaced by its command, and the
-    language's words for a subcommand after it by the English ones."""
+    """The text, its command with a / (slashed), an alias at its start
+    replaced by its command, and the language's words for a subcommand after
+    it by the English ones."""
+    text = slashed(text)
     if (word := FIRST_WORD.match(text)) and (
         command := aliases().get(word[0].casefold())
     ):
@@ -218,6 +224,30 @@ def built_in(text: str) -> Command | None:
     """The command the text is, if any, of those the handlers list: the ones
     the bot comes with, whatever the admins have added."""
     return next((c for h in handlers() for c in h.commands if c.takes(text)), None)
+
+
+def shortcut_clash(shortcut: str, stands_for: str) -> str | None:
+    """Why the shortcut can't be another name for stands_for, a command and
+    the words after it, if it can't: a name the bot answers to already would
+    hide one of the two. One that stands for it already may stay."""
+    if "|" in shortcut or ";" in shortcut:
+        return _("A shortcut can't have a | or a ;.")
+    folded, shown = shortcut.casefold(), prefixed(shortcut)
+    if any(
+        folded == each.casefold() for x in get_settings().aliases.values() for each in x
+    ):
+        return _("{name} is an alias in the config: take it out there first.").format(
+            name=shown
+        )
+    if known(shortcut) or folded in aliases(shortcuts=False):
+        return _("{name} is a command already.").format(name=shown)
+    for handler in handlers():
+        other = handler.shortcuts().get(folded)
+        if other is not None and other.casefold() != stands_for.casefold():
+            return _("{name} is a shortcut for {album} already.").format(
+                name=shown, album=prefixed(other)
+            )
+    return None
 
 
 def chat_kind(message: DataMessage) -> str:
@@ -361,7 +391,7 @@ async def answer(
             note = _(
                 "✏️ An edit of {command} isn't run, as what it did can't be "
                 "undone. Send it as a new message instead."
-            ).format(command=name)
+            ).format(command=prefixed(name))
             await reply(context, SendMessage(text=note))
         return
     logger.info("Received %s %s", name, chat_kind(message))

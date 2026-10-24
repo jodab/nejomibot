@@ -5,6 +5,8 @@ admins make them in a direct chat with the bot:
   /special add /morning Good morning! /today + /weather; /uniquephoto
   /special add /bins The bins go out tonight!
   /specials                    the admins' own
+  /special shortcuts /morning /gm   other names for /morning
+  /special shortcuts /morning -     none
   /special remove /bins
 
 A special's parts are separated by ; or line breaks. Text before a command
@@ -18,12 +20,17 @@ can, but not another special. Specials are for timers, /run and the admins,
 in a direct chat. Text keeps the formatting the admin gives it in Signal:
 bold, italic, strikethrough, monospace and spoiler.
 
-They're kept in data_dir/specials.txt, one per line, their commands by their
-English names, as the timers file keeps them, their texts in
-signal-cli-rest-api's marks for the formatting (styles.py). It can be
-changed by hand: the bot reads it again when it changes, and leaves comments
-and lines it can't read as they are. A special a timer runs can be changed,
-with /special add, but not removed.
+A special's shortcuts are other names for it, as an album's are for /photo
+with the album: each a word, with or without a / first, but not a name the
+bot answers to already. Timers keep a special by its name, whichever they
+were given.
+
+They're kept in data_dir/specials.txt, one per line, the name and its
+shortcuts first, their commands by their English names, as the timers file
+keeps them, their texts in signal-cli-rest-api's marks for the formatting
+(styles.py). It can be changed by hand: the bot reads it again when it
+changes, and leaves comments and lines it can't read as they are. A special
+a timer runs can be changed, with /special add, but not removed.
 """
 
 import logging
@@ -35,6 +42,7 @@ from typing import Self
 from signalbot import DataMessageContext, SendMessage, TextMode, TextStyle
 
 from .commands import (
+    COMMAND_START,
     Command,
     Edits,
     Handler,
@@ -42,12 +50,14 @@ from .commands import (
     answer,
     built_in,
     canonical,
+    shortcut_clash,
     undo_with,
 )
-from .config import get_settings
+from .config import get_settings, slashed
 from .files import write_privately
-from .i18n import _, ngettext
+from .i18n import _, ngettext, prefixed
 from .messages import PerChat, escape, for_chat, unreadable_text
+from .photos import REMOVE
 from .styles import Styles, marked, styles_of
 from .timers import check_commands, timekeeper
 
@@ -57,6 +67,7 @@ MAX_SPECIALS = 50
 # Few, as a timer may run several specials, and each part posts to each of
 # its chats
 MAX_PARTS = 5
+MAX_SHORTCUTS = 5  # a special's, as an album's
 NAME = re.compile(r"^/[^\s|;]+$")
 # What separates a special's parts: a ; or a line break, or a + of its own,
 # which keeps the parts on either side of it in one message
@@ -64,7 +75,7 @@ SEPARATOR = re.compile(r"([;\n]|(?<!\S)\+(?!\S))")
 
 HEADER = (
     "# nejomibot's specials, one per line:",
-    "#   name | its parts, separated by ;, or by + for one message",
+    "#   name and its shortcuts | its parts, separated by ;, or by + for one message",
     "# Texts in marks: **bold**, *italic*, ~strikethrough~, `monospace`, ||spoiler||,",
     "# a \\ before a *, ~, ` or | that shows as it is.",
     "# Changed with /special in Signal, or by hand: the bot reads it again when",
@@ -99,7 +110,10 @@ def by_message(parts: Parts) -> list[Parts]:
 def parts_text(parts: Parts, *, styled: bool = False) -> str:
     """As the file keeps them, or styled, as the bot shows them: their texts
     are in marks either way."""
-    command = escape if styled else str
+
+    def command(text: str) -> str:
+        return escape(prefixed(text)) if styled else text
+
     return "; ".join(
         " + ".join(f"{part.text} {command(part.command)}".strip() for part in one)
         for one in by_message(parts)
@@ -109,9 +123,9 @@ def parts_text(parts: Parts, *, styled: bool = False) -> str:
 def check_name(name: str) -> str | None:
     """Why a special can't have the name, if it can't."""
     if not NAME.match(name):
-        return _("Give it a name: a word that starts with /, like /morning.")
+        return _("Give it a name: a word that starts with . or /, like /morning.")
     if built_in(name) or name.casefold() in aliases():
-        return _("{name} is a command already.").format(name=name)
+        return _("{name} is a command already.").format(name=prefixed(name))
     return None
 
 
@@ -120,10 +134,10 @@ def parse_parts(
 ) -> Parts | str:
     """The parts in the text, separated by ; or line breaks, or by a + of its
     own, which joins them: each its text, then its command, from the first
-    word that starts with /. The text is a message's, with the styles of its
-    characters, or without them, in marks already, as the file keeps it. Or
-    why they can't be a special's: own are the names of the admins'
-    specials, which a special can't run."""
+    word that starts with a / or a . (COMMAND_START). The text is a
+    message's, with the styles of its characters, or without them, in marks
+    already, as the file keeps it. Or why they can't be a special's: own are
+    the names of the admins' specials, which a special can't run."""
     if styles is not None and "|" in text:
         return _("A special can't have a |: the file of specials uses it.")
     parts: list[Part] = []
@@ -138,7 +152,7 @@ def parse_parts(
         if not (stripped := piece.lstrip()):
             continue
         at += len(piece) - len(stripped)
-        start = re.search(r"(?:^|\s)/", stripped)
+        start = COMMAND_START.search(stripped)
         words = stripped[: start.start() if start else None].rstrip()
         if (
             styles is not None
@@ -155,7 +169,7 @@ def parse_parts(
                 return _(
                     "{command} is a special of yours, and specials can't run "
                     "each other."
-                ).format(command=command)
+                ).format(command=prefixed(command))
             # built_in, as known() would read the file this may be reading
             if why_not := check_commands([command], built_in):
                 return why_not
@@ -168,20 +182,38 @@ def parse_parts(
     return tuple(parts)
 
 
+type Shortcuts = tuple[str, ...]  # each a word, with or without a / first
+
+
+def names_on(line: str) -> list[str]:
+    """The names on a line of the file, before its |: the special's, then its
+    shortcuts."""
+    return line.partition("|")[0].split()
+
+
 def name_of(line: str) -> str:
-    """The name on a line of the file: what comes before its |."""
-    return line.partition("|")[0].strip().lower()
+    """The special's name on a line of the file."""
+    return (names_on(line) or [""])[0].lower()
 
 
-def parse_line(line: str, own: Collection[str]) -> tuple[str, Parts]:
-    """A line of the file: a special's name, and its parts. Raises ValueError."""
+def line_of(name: str, parts: Parts, shortcuts: Shortcuts) -> str:
+    return f"{' '.join((name, *shortcuts))} | {parts_text(parts)}"
+
+
+def parse_line(line: str, own: Collection[str]) -> tuple[str, Parts, Shortcuts]:
+    """A line of the file: a special's name, its parts and its shortcuts.
+    Raises ValueError."""
     if "|" not in line:
         raise ValueError("no |")
     if why_not := check_name(name := name_of(line)):
         raise ValueError(why_not)
+    shortcuts = tuple(names_on(line)[1:])
+    # Which it would hide
+    if taken := [each for each in shortcuts if built_in(each) or each.lower() in own]:
+        raise ValueError(f"{taken[0]} is a command")
     if isinstance(parts := parse_parts(line.partition("|")[2], own), str):
         raise ValueError(parts)
-    return name, parts
+    return name, parts, shortcuts
 
 
 class OwnSpecials:
@@ -190,6 +222,7 @@ class OwnSpecials:
     def __init__(self) -> None:
         self.lines: list[str] = []  # the file's, all of them
         self.specials: dict[str, Parts] = {}  # by name
+        self.shortcuts: dict[str, Shortcuts] = {}  # by the special's name
         self.broken: list[str] = []  # lines that can't be read
         self.seen: tuple[int, int] | None = None  # the file's mtime and size
 
@@ -222,12 +255,13 @@ class OwnSpecials:
         """Make the lines the specials."""
         names = set(map(name_of, lines))
         specials: dict[str, Parts] = {}
+        shortcuts: dict[str, Shortcuts] = {}
         broken: list[str] = []
         for number, line in enumerate(lines, start=1):
             if not line.strip() or line.lstrip().startswith("#"):
                 continue
             try:
-                name, parts = parse_line(line, names)
+                name, parts, its_shortcuts = parse_line(line, names)
                 if name in specials:
                     raise ValueError(f"a second {name}")
             except ValueError as e:
@@ -237,7 +271,10 @@ class OwnSpecials:
                 broken.append(line)
                 continue
             specials[name] = parts
+            if its_shortcuts:
+                shortcuts[name] = its_shortcuts
         self.lines, self.specials, self.broken = lines, specials, broken
+        self.shortcuts = shortcuts
 
     def save(self, lines: list[str]) -> None:
         """Write the lines to the file, and make them the specials. Raises
@@ -245,14 +282,19 @@ class OwnSpecials:
         path = get_settings().specials_file
         write_privately(path, "\n".join(lines) + "\n")
         stat = path.stat()
-        self.take(lines)
+        # Seen before they're read, as reading them looks up the shortcuts,
+        # which would read the file again
         self.seen = (stat.st_mtime_ns, stat.st_size)
+        self.take(lines)
 
-    def add(self, name: str, parts: Parts) -> None:
-        """Add the special, last, or change it. Raises OSError."""
-        lines = self.current().lines or list(HEADER)
-        kept = [line for line in lines if name_of(line) != name]
-        self.save([*kept, f"{name} | {parts_text(parts)}"])
+    def add(self, name: str, parts: Parts, shortcuts: Shortcuts | None = None) -> None:
+        """Add the special, last, or change it, with the shortcuts, or else
+        those it has. Raises OSError."""
+        found = self.current()
+        if shortcuts is None:
+            shortcuts = found.shortcuts.get(name, ())
+        kept = [line for line in found.lines or HEADER if name_of(line) != name]
+        self.save([*kept, line_of(name, parts, shortcuts)])
 
     def remove(self, name: str) -> None:
         """Raises OSError."""
@@ -335,9 +377,21 @@ def usage() -> str:
                 "message, as in /today + /weather."
             ),
             "  " + _("Text keeps the formatting you give it in Signal, such as bold."),
+            _(
+                "/special shortcuts <name> <names>: other names for one, such as "
+                "/special shortcuts /morning /gm; with -, none"
+            ),
             _("/special remove <name>: remove one"),
         ]
     )
+
+
+def shortcuts_shown(name: str) -> str:
+    """The special's shortcuts, as its line in /specials ends with them, if
+    it has any. Styled."""
+    if shortcuts := own_specials.current().shortcuts.get(name):
+        return f" · 🏷️ {escape(' '.join(map(prefixed, shortcuts)))}"
+    return ""
 
 
 def list_specials() -> str:
@@ -350,7 +404,8 @@ def list_specials() -> str:
     title = ngettext("✨ {count} special", "✨ {count} specials", count)
     lines = [f"**{escape(title.format(count=count))}**"]
     lines += [
-        f"**{escape(name)}** · {parts_text(parts, styled=True)}"
+        f"**{escape(prefixed(name))}** · {parts_text(parts, styled=True)}"
+        f"{shortcuts_shown(name)}"
         for name, parts in sorted(found.specials.items())
     ]
     if found.broken:
@@ -362,7 +417,7 @@ def add_special(text: str, styles: Iterable[TextStyle] | None) -> str:
     """Add the special /special add describes, or change it; or say why it
     can't be. styles are the message's. Styled."""
     words = text.split(maxsplit=3)
-    name = words[2].lower() if len(words) > 2 else ""
+    name = slashed(words[2]).lower() if len(words) > 2 else ""
     if why_not := check_name(name):
         return escape(why_not)
     found = own_specials.current()
@@ -385,7 +440,8 @@ def add_special(text: str, styles: Iterable[TextStyle] | None) -> str:
     else:
         undo_with(lambda: own_specials.add(name, previous))
     done = _("Changed {name}") if changed else _("Added {name}")
-    return f"✅ **{escape(done.format(name=name))}**\n{parts_text(parts, styled=True)}"
+    done = done.format(name=prefixed(name))
+    return f"✅ **{escape(done)}**\n{parts_text(parts, styled=True)}"
 
 
 def timers_running(name: str) -> list[int]:
@@ -398,13 +454,22 @@ def timers_running(name: str) -> list[int]:
     )
 
 
+def special_named(name: str) -> tuple[str, Parts | None] | str:
+    """The special given by its name, with or without its /, and its parts,
+    None if there's no such special; or why the name is missing."""
+    if not name:
+        return _("Which special? Give its name, as /specials shows.")
+    name = "/" + slashed(name).lower().removeprefix("/")
+    return name, own_specials.current().specials.get(name)
+
+
 def remove_special(name: str) -> str:
     """Remove the special, unless a timer runs it; or say why not. Styled."""
-    if not name:
-        return escape(_("Which special? Give its name, as /specials shows."))
-    name = "/" + name.lower().removeprefix("/")
-    if (parts := own_specials.current().specials.get(name)) is None:
-        return escape(_("There's no special {name}.").format(name=name))
+    if isinstance(found := special_named(name), str):
+        return escape(found)
+    name, parts = found
+    if parts is None:
+        return escape(_("There's no special {name}.").format(name=prefixed(name)))
     if running := timers_running(name):
         return escape(
             ngettext(
@@ -413,10 +478,44 @@ def remove_special(name: str) -> str:
                 len(running),
             ).format(timers=", ".join(f"#{n}" for n in running))
         )
+    shortcuts = own_specials.current().shortcuts.get(name, ())
     own_specials.remove(name)
-    undo_with(lambda: own_specials.add(name, parts))
-    removed = _("Removed {name}").format(name=name)
+    undo_with(lambda: own_specials.add(name, parts, shortcuts))
+    removed = _("Removed {name}").format(name=prefixed(name))
     return f"🗑️ **{escape(removed)}**\n{parts_text(parts, styled=True)}"
+
+
+def set_shortcuts(name: str, words: list[str]) -> str:
+    """Make the words the special's shortcuts, or with -, take them away; for
+    an edit to undo. Or say why not."""
+    if isinstance(found := special_named(name), str):
+        return found
+    name, parts = found
+    if parts is None:
+        return _("There's no special {name}.").format(name=prefixed(name))
+    if not words:
+        return usage()
+    previous = own_specials.current().shortcuts.get(name, ())
+    if words == [REMOVE]:
+        if not previous:
+            return _("{album} has no shortcuts.").format(album=prefixed(name))
+        shortcuts: Shortcuts = ()
+        done = _("✅ {album}: no shortcuts.").format(album=prefixed(name))
+    else:
+        shortcuts = tuple(dict.fromkeys(map(slashed, words)))
+        if len(shortcuts) > MAX_SHORTCUTS:
+            return _("A special has at most {count} shortcuts.").format(
+                count=MAX_SHORTCUTS
+            )
+        for shortcut in shortcuts:
+            if why_not := shortcut_clash(shortcut, name):
+                return why_not
+        done = _("✅ Shortcuts for {name}: {shortcuts}.").format(
+            name=prefixed(name), shortcuts=", ".join(map(prefixed, shortcuts))
+        )
+    own_specials.add(name, parts, shortcuts)
+    undo_with(lambda: own_specials.add(name, parts, previous))
+    return done
 
 
 def specials_answer(
@@ -431,6 +530,8 @@ def specials_answer(
         return add_special(text, styles)
     if action == "remove":
         return remove_special(words[2] if len(words) > 2 else "")
+    if action == "shortcuts":
+        return escape(set_shortcuts(words[2] if len(words) > 2 else "", words[3:]))
     return escape(usage())
 
 
@@ -448,7 +549,7 @@ class Specials(Handler):
             "/special",
             more=True,
             timers=False,
-            subcommands=("add", "remove", "list"),
+            subcommands=("add", "remove", "list", "shortcuts"),
         ),
     )
 
@@ -456,6 +557,14 @@ class Specials(Handler):
     def takes(cls, text: str) -> Command | None:
         """The admins' own specials too, by name."""
         return super().takes(text) or own_specials.command(text)
+
+    @classmethod
+    def shortcuts(cls) -> dict[str, str]:
+        """The specials' shortcuts, each for its special."""
+        found = own_specials.current().shortcuts
+        return {
+            each.casefold(): name for name, names in found.items() for each in names
+        }
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         text = context.message.text or ""

@@ -77,6 +77,9 @@ posted where and when. When unsure whether a change is user-facing, ask.
   `signal-account.sh --dry-run`, and ask before changing the bot's profile,
   username, PIN or privacy settings, which everyone sees. Ask before making
   any change on a server.
+- **signal-cli-rest-api runs in `json-rpc` mode** (the owner's decision,
+  2026-10-24): its `json-rpc-native` mode has had odd bugs, and 32-bit ARM
+  has no native build; the examples in `deploy/` use `json-rpc`.
 - **Deployment isn't `git push`.** `tools/build-image.sh` builds the image,
   and the owner's own untracked helper deploys it; `deploy/` holds examples
   for others, which run the published `docker.io/jodab/nejomibot:latest`.
@@ -116,7 +119,7 @@ uv run ruff check                          # lint
 uv run ruff format                         # format (ruff, not Black)
 uv run pyright                             # type check, strict
 shellcheck tools/*.sh                      # the shell tools; CI runs it, the build doesn't
-tools/translations.sh                      # after changing any message (needs GNU gettext)
+tools/translations.sh                      # after changing any message (needs GNU gettext); with a code, starts a language
 tools/build-image.sh                       # test stage first, then the amd64, arm64, arm/v7 image
 tools/release.sh patch                     # a release, once CI has passed; patch only until 1.0; see --help
 uv run nejomibot-timers                    # the timers from a terminal, as in the image
@@ -127,7 +130,10 @@ pytest in the Dockerfile's test stage, and builds nothing if they fail. That
 stage runs only for the building machine's platform. On linux/arm/v7,
 Pillow and pillow-heif have no wheels, so the build stage compiles them
 against Debian's libraries (`TARGETARCH` is `arm`). Debian's libheif reads
-HEIF but can't write it, which only the tests do. Before pushing, the script
+HEIF but can't write it, which only the tests do. Of `tools/`, the image
+has `signal-account.sh` and `nejomibot-help.sh`, the guide its
+`/etc/bash.bashrc` shows an interactive shell (`podman exec -it nejomibot
+bash`), not scripts or `bash -c`. Before pushing, the script
 runs each platform's image and stops unless Python there reports that
 platform's machine: Podman 4.9 built 0.94.0's images all for amd64, because
 the uv stage names its own platform (`$BUILDPLATFORM`), so the image jobs
@@ -262,6 +268,22 @@ subcommands (`add`, `remove`, `list` and so on), are listed in
 (`[words]` in the TOML file, such as `lägg till`) right after the command,
 so handlers read English, and the timers and specials files store English.
 
+Commands may start with `.` in place of `/` (the owner's request,
+2026-10-24: a phone's keyboard has the `.` on its first page; not `#`, which
+hashtags start): `config.slashed()` makes a `.` before a letter a `/`, in
+`canonical()`, the `Alias` setting type, specials' names, and shortcuts, so
+the code, the translations and the bot's files keep `/`, and
+`commands.COMMAND_START` finds where commands start in `/timer add`, `/run`
+and a special's parts. The bot shows them with `command_prefix`, `.` by
+default: `_()` and `ngettext()` pass the bot's own messages through
+`i18n.prefixed()` before values go in (`COMMAND_SLASH`: a `/` starting a
+word, before a letter), and a name or command put into a message gets
+`prefixed()` where it goes in (`help.shown_name()`, the timers' cards, the
+specials' and albums' lists and replies). The tests run with `/` (conftest),
+with tests of their own for the `.`; `test_the_prefix_shows_only_commands`
+keeps every such `/` in the messages a command's name or one of `EXAMPLES`,
+and each translation with as many as its message.
+
 **Sending** (`messages.py`): handlers answer through `reply()`, which goes
 through `send()` to the `Outbox`. Each chat's messages go out in order;
 sends that certainly failed are retried for `send_retry_hours`, with a note
@@ -301,8 +323,11 @@ A list shown under `collected` doesn't change the numbers that an admin's
 `contacts.remember()`.
 
 **Specials** (`specials.py`): the admins' own commands that post several
-things in order, stored in `data_dir/specials.txt` (`/special add|remove`,
-`/specials`): parts made of text and a command, each run through
+things in order, stored in `data_dir/specials.txt` (`/special
+add|remove|shortcuts`, `/specials`), a line each: the name and its
+shortcuts (`Specials.shortcuts()`, as an album's, at most five, checked by
+`commands.shortcut_clash()`), a `|`, then parts made of text and a command,
+each run through
 `Timekeeper.answers_to` as a timer's command is, with the text heading the
 command's first answer. Parts are separated by `;` or line breaks, or joined
 by a `+` standing on its own (`SEPARATOR`, `Part.joined`), which posts
@@ -350,12 +375,11 @@ responds to, just as `/special add` refuses shortcuts.
 
 **Birthdays and holidays** (`birthdays.py`, `holidays.py`): `/today`
 (`today.py`, or `/day`) describes the day, without the weather, which a
-daily post adds with `/weather` (the owner's decision, 2026-10-23). On a day
-with nothing, it says "Nothing special today." only when asked in a direct
-chat (`day_message(asked=True)`), and nothing in a group, nor in what a
-timer, a special or `/run` posts (the owner's decision, 2026-10-24), since
-`send()` sends nothing when a message has nothing in it (a `PerChat` with no
-text for the chat). `/today preview` shows the admins what each group gets.
+daily post adds with `/weather` (the owner's decision, 2026-10-23). It
+always answers (the owner's decision, 2026-10-24): the date and time in the
+bot's `timezone`, in bold (`day_message()`, `today.now()`), then the day's
+lines, if any, so `/weather` shows no date. `/today preview` shows the
+admins what each group gets.
 The holidays, shown in every chat, come from rules in `holidays.py` (Easter
 from dateutil), for 35 countries by their ISO codes (`config.Country`, which
 a test keeps equal to `holidays.COUNTRIES`); the birthdays and name days of
@@ -369,7 +393,9 @@ checked against python-holidays, which isn't a dependency, for 2026 to 2045.
 A contact's birthday is stored by Signal ID and phone number, is shown in the
 groups they are in, and names them by their name in the contacts
 (`Contact.saved_name`) at the time; the birthday of someone not on Signal is
-shown in the groups given, or in every group.
+shown in the groups given, or in every group, and given again on the same
+day (by name, in any case), it changes those groups (the owner's request,
+2026-10-24), and the reply to one in every group says how to choose them.
 
 **Reminders and lists** (`reminders.py`, `lists.py`): each chat's own, for
 everyone allowed. A job at the start of every minute posts the reminders
@@ -453,15 +479,25 @@ No backups are made in debug mode, or with `backups = false`.
 **Translations** (`i18n.py`): messages are written in English, marked with
 `_()`, `ngettext()`, or `N_()` in tables built ahead of use, and formatted
 after translation: `_("Weather in {city}").format(city=...)`. The
-Dockerfile's `translations` stage compiles each `locale/*.po` (Swedish,
-Greek) to a `.mo` file with polib (the `translations` dependency group), and
+Dockerfile's `translations` stage compiles each `locale/*.po` (Danish,
+German, Greek, Spanish, Finnish, French, Norwegian, Swedish) to a `.mo` file
+with polib (the `translations` dependency group), and
 the image gets only the `.mo` files, which the bot reads with gettext
 (`i18n.catalog`); from a checkout without `.mo` files, it compiles the `.po`
 files with polib, available there through the dev group. `.mo` files stay
 out of git. `tests/test_i18n.py` fails on an untranslated, fuzzy or obsolete
 message, or on differing `{fields}`: after changing messages, run
-`tools/translations.sh` and translate `sv.po` and `el.po` (Greek since
-2026-10-23: serious, not silly or chatty, as the owner asked). Each chat may
+`tools/translations.sh` and translate every `.po` (Greek since 2026-10-23:
+serious, not silly or chatty, as the owner asked). The messages stay in
+English in the code, as gettext's msgids, rather than as keys the owner
+asked about (2026-10-24): that's gettext's standard, keeps the code
+readable, and shows English for what isn't translated. A new language is
+its `.po` and `.toml` alone, with no code (`i18n.languages()` finds them):
+`tools/translations.sh <code>` starts both from `locale/messages.pot`, which
+it rewrites only when the messages change, and `locale/template.toml`,
+every command and word with empty lists; `test_the_templates_are_current`
+keeps both complete, and no test names the languages, which may have any
+number of plural forms. The image leaves out the templates. Each chat may
 have a language of its own (`languages.py`, `/language`, stored in
 `languages.txt` by `i18n.chat_languages`; a group's language is an admin's
 to set, and other chats' languages are set by their `/chats` numbers, the
@@ -567,3 +603,9 @@ in the bot's languages (`weather.Place.names`).
   3.0.0, Python 3.14.9): 78.5 MB peak RSS against 78.8 MB before, the median
   of five runs each (77.5 to 79.3 MB: noise), and a 235.6 MB image (amd64),
   as before.
+- **2026-10-24, nine languages:** the names of every language, which the bot
+  reads whatever it speaks, keep 113 KB (tracemalloc; 33 KB for three
+  before); the eight `.mo` files take 544 KB in the image, and a catalog
+  loads only once a chat speaks its language. On the owner's Raspberry Pi 4
+  (arm64), the bot's RSS was 90 MB, and signal-cli-rest-api's, in `json-rpc`
+  mode, about 360 MB (signal-cli on Java 321 MB, the REST API 42 MB).

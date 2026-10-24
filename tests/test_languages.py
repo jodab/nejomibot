@@ -43,19 +43,27 @@ def entries() -> list[ChatLanguage]:
     return i18n.chat_languages.current().entries
 
 
-# Greek's own name, as el.toml has it
-GREEK = i18n.names_of("el").name
+# The example, the first language after English
 USAGE = (
-    "/language <language>: the bot speaks it here, as /language el; /language "
-    "default: its own again."
+    f"/language <language>: the bot speaks it here, as /language "
+    f"{i18n.languages()[1]}; /language default: its own again."
 )
+
+
+def every_language(here: str = "", mark: str = "", between: str = "\n") -> str:
+    """The languages, by their own names and codes, as /language lists them,
+    the one spoken here marked."""
+    return between.join(
+        f"{i18n.names_of(code).name} ({code}){f' {mark}' if code == here else ''}"
+        for code in i18n.languages()
+    )
 
 
 async def test_the_languages(answers: list[SendMessage]) -> None:
     allow(ALICE)
     await send("/language")
     assert texts(answers) == [
-        f"🗣️ **Languages**\nEnglish (en) ✓ here\n{GREEK} (el)\nSvenska (sv)\n{USAGE}"
+        f"🗣️ **Languages**\n{every_language('en', '✓ here')}\n{USAGE}"
     ]
 
 
@@ -69,9 +77,7 @@ async def test_a_persons_own_language(answers: list[SendMessage]) -> None:
     # name, which the bot takes from anyone
     await send("/språk")
     await send("/språk", sender=BOB)
-    assert texts(answers)[1].startswith(
-        f"🗣️ **Språk**\nEnglish (en)\n{GREEK} (el)\nSvenska (sv) ✓ här"
-    )
+    assert texts(answers)[1].startswith(f"🗣️ **Språk**\n{every_language('sv', '✓ här')}")
     assert texts(answers)[2].startswith("🗣️ **Languages**\nEnglish (en) ✓ here")
     # The config's again: said in it
     await send("/språk standard")
@@ -85,8 +91,7 @@ async def test_what_language_can_t_read(answers: list[SendMessage]) -> None:
     await send("/language 2 sv")  # numbers: for the admins
     await send("/language two sv")
     assert texts(answers) == [
-        f"The bot doesn't speak klingon: it speaks English (en), {GREEK} (el), "
-        "Svenska (sv).",
+        f"The bot doesn't speak klingon: it speaks {every_language(between=', ')}.",
         "Only the admins, in a direct chat, give chats of /chats a language.",
         USAGE,
     ]

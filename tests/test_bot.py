@@ -14,6 +14,7 @@ from nejomibot import access, bot, commands, rest
 from nejomibot.bot import check_aliases, handlers, load_settings, wait_for_account
 from nejomibot.client import client
 from nejomibot.config import get_settings
+from nejomibot.i18n import languages
 from nejomibot.messages import Outbox, Outcome, Posted
 
 ADMIN = "+46700000009"
@@ -112,7 +113,7 @@ def test_an_outdated_config_says_what_to_change(
     assert str(stopped.value).splitlines()[:4] == [
         f"Invalid configuration (config file: {path}):",
         "  account: missing",
-        "  language: Value error, unknown language 'xx', not one of ['en', 'el', 'sv']",
+        f"  language: Value error, unknown language 'xx', not one of {languages()}",
         "  phone_number: no such setting: renamed or removed?",
     ]
     assert "/app/config.example.toml" in str(stopped.value)

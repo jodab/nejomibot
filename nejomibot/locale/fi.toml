@@ -1,0 +1,80 @@
+# Finnish names for the bot's commands, and the Finnish words it reads in
+# commands, next to the English ones; fi.po translates its messages. See
+# nejomibot/i18n.py.
+
+# The language's own name, as /kieli lists it
+name = "Suomi"
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /. The bot answers the English names too.
+[commands]
+"/photo" = ["/kuva"]
+"/uniquephoto" = ["/uusikuva"]
+"/albums" = ["/albumit"]
+"/weather" = ["/sää", "/saa"]
+"/info" = ["/aika"]
+"/fortune" = ["/mietelause"]
+"/help" = ["/apu"]
+"/contacts" = ["/yhteystiedot"]
+"/trust" = ["/vahvista"]
+"/allowed" = ["/sallitut"]
+"/allow" = ["/salli"]
+"/disallow" = ["/estä", "/esta"]
+"/profile" = ["/profiili"]
+"/name" = ["/nimi"]
+"/about" = ["/tietoja"]
+"/avatar" = ["/profiilikuva"]
+"/username" = ["/käyttäjänimi", "/kayttajanimi"]
+"/delete" = ["/poista"]
+"/delivery" = ["/toimitus"]
+"/today" = ["/tänään", "/tanaan", "/päivä", "/paiva"]
+"/msg" = ["/lähetä", "/laheta"]
+"/run" = ["/suorita"]
+"/incoming" = ["/saapuneet"]
+"/onthisday" = ["/tänäpäivänä", "/tanapaivana"]
+"/forecast" = ["/ennuste"]
+"/remind" = ["/muistuta"]
+"/list" = ["/lista"]
+"/birthdays" = ["/syntymäpäivät", "/syntymapaivat"]
+"/namedays" = ["/nimipäivät", "/nimipaivat"]
+"/birthday" = ["/syntymäpäivä", "/syntymapaiva"]
+"/nameday" = ["/nimipäivä", "/nimipaiva"]
+"/language" = ["/kieli"]
+
+# Words for when a timer runs (/timer lisää ma-pe 07:30 ...) or a
+# reminder is due (/muistuta 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
+[words]
+mon = ["ma"]
+tue = ["ti"]
+wed = ["ke"]
+thu = ["to"]
+fri = ["pe"]
+sat = ["la"]
+sun = ["su"]
+monday = ["maanantai"]
+tuesday = ["tiistai"]
+wednesday = ["keskiviikko"]
+thursday = ["torstai"]
+friday = ["perjantai"]
+saturday = ["lauantai"]
+sunday = ["sunnuntai"]
+daily = ["päivittäin", "paivittain"]
+weekdays = ["arkisin"]
+weekends = ["viikonloppuisin"]
+today = ["tänään", "tanaan"]
+tomorrow = ["huomenna"]
+every = ["joka"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/lista lisää maito), each next to the English one it means. The first
+# is how /apu shows it.
+add = ["lisää", "lisaa"]
+remove = ["poista"]
+list = ["lista"]
+clear = ["tyhjennä", "tyhjenna"]
+run = ["suorita"]
+all = ["kaikki"]
+preview = ["esikatsele"]
+default = ["oletus"]
+shortcuts = ["oikopolut", "oikopolku"]

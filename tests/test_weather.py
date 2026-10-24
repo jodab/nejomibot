@@ -31,11 +31,9 @@ def api_data(
 
 def test_format_weather() -> None:
     data = api_data(804, "mulet", 23.6, 24.4, 77)
-    now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
     # The heading in bold
-    assert weather.format_weather(data, "Göteborg", now) == (
+    assert weather.format_weather(data, "Göteborg") == (
         "**Vädret i Göteborg**\n"
-        "Söndag 11 Oktober 15:30\n"
         "☁️ Mulet\n"
         "☀️ Temperatur: 24°C\n"
         "🤔 Känns som: 24°C\n"
@@ -56,16 +54,13 @@ def test_format_weather() -> None:
 )
 def test_format_weather_in_swedish(code: int, line: str) -> None:
     data = api_data(code, "in English", 20, 20, 50)
-    now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
-    assert weather.format_weather(data, "Göteborg", now).splitlines()[2] == line
+    assert weather.format_weather(data, "Göteborg").splitlines()[1] == line
 
 
 def test_format_weather_unknown_condition() -> None:
     data = api_data(999, "vulkanisk aska", -3.2, -8, 20)
-    now = datetime(2027, 1, 4, 8, 0, tzinfo=TZ)
-    assert weather.format_weather(data, "Stockholm", now).splitlines() == [
+    assert weather.format_weather(data, "Stockholm").splitlines() == [
         "**Vädret i Stockholm**",
-        "Måndag 4 Januari 08:00",
         "🌡️ Vulkanisk aska",
         "🥶 Temperatur: -3°C",
         "🤔 Känns som: -8°C",
@@ -75,10 +70,7 @@ def test_format_weather_unknown_condition() -> None:
 
 def test_format_weather_in_fahrenheit() -> None:
     data = api_data(800, "klar himmel", 75.2, 80, 40)
-    now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
-    assert weather.format_weather(data, "Göteborg", now, "imperial").splitlines()[
-        2:5
-    ] == [
+    assert weather.format_weather(data, "Göteborg", "imperial").splitlines()[1:4] == [
         "☀️ Klar himmel",
         "☀️ Temperatur: 75°F",  # 24°C
         "🤔 Känns som: 80°F",
@@ -88,8 +80,7 @@ def test_format_weather_in_fahrenheit() -> None:
 def test_format_weather_escapes() -> None:
     # As it shows, the city as the config has it, the condition as given
     data = api_data(999, "*sunny* ~ish", 20, 20, 50)
-    now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
-    assert weather.format_weather(data, "Sthlm`", now).splitlines()[0:3:2] == [
+    assert weather.format_weather(data, "Sthlm`").splitlines()[0:2] == [
         "**Vädret i Sthlm\\`**",
         "🌡️ \\*sunny\\* \\~ish",
     ]
@@ -97,17 +88,15 @@ def test_format_weather_escapes() -> None:
 
 def test_format_weather_bad_data() -> None:
     with pytest.raises(weather.WeatherError, match="inte ut som väntat"):
-        weather.format_weather({"main": {}}, "Göteborg", datetime.now(TZ))
+        weather.format_weather({"main": {}}, "Göteborg")
 
 
 def test_format_weather_in_english(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NEJOMIBOT_LANGUAGE", "en")
     get_settings.cache_clear()
     data = api_data(804, "overcast clouds", 23.6, 24.4, 77)
-    now = datetime(2026, 10, 11, 15, 30, tzinfo=TZ)
-    assert weather.format_weather(data, "London", now) == (
+    assert weather.format_weather(data, "London") == (
         "**Weather in London**\n"
-        "Sunday 11 October 15:30\n"
         "☁️ Overcast clouds\n"
         "☀️ Temperature: 24°C\n"
         "🤔 Feels like: 24°C\n"
@@ -242,8 +231,9 @@ async def test_weather_message(api: dict[str, Any]) -> None:
         ' "main": {"temp": 9.5, "feels_like": 7, "humidity": 90}}'
     )
     lines = (await weather.weather_message()).splitlines()
-    assert lines[0] == "**Vädret i Stockholm**"
-    assert lines[2:] == [
+    # Without the date and the time, which /today has
+    assert lines == [
+        "**Vädret i Stockholm**",
         "🌧️ Måttligt regn",
         "🌡️ Temperatur: 10°C",
         "🤔 Känns som: 7°C",
@@ -508,12 +498,11 @@ def with_sun(data: Any, zone: int) -> Any:
 
 def test_the_sun() -> None:
     data = with_sun(api_data(804, "mulet", 9, 7, 80), 7200)
-    now = datetime(2026, 10, 19, 8, 0, tzinfo=TZ)
-    lines = weather.format_weather(data, "Stockholm", now).splitlines()
+    lines = weather.format_weather(data, "Stockholm").splitlines()
     assert lines[-1] == "🌅 07:35 · 🌇 17:21 · 9 tim 46 min dagsljus"
     # In the place's time
     data = with_sun(api_data(804, "mulet", 9, 7, 80), 10800)
-    lines = weather.format_weather(data, "Helsingfors", now).splitlines()
+    lines = weather.format_weather(data, "Helsingfors").splitlines()
     assert lines[-1] == "🌅 08:35 · 🌇 18:21 · 9 tim 46 min dagsljus"
 
 
@@ -527,8 +516,7 @@ def test_the_sun() -> None:
 )
 def test_no_sun(sun: Any) -> None:
     data = api_data(804, "mulet", 9, 7, 80) | sun
-    now = datetime(2026, 10, 19, 8, 0, tzinfo=TZ)
-    assert len(weather.format_weather(data, "Kiruna", now).splitlines()) == 6
+    assert len(weather.format_weather(data, "Kiruna").splitlines()) == 5
 
 
 # The forecast

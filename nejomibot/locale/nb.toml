@@ -1,0 +1,80 @@
+# Norwegian names for the bot's commands, and the Norwegian words it reads in
+# commands, next to the English ones; nb.po translates its messages. See
+# nejomibot/i18n.py.
+
+# The language's own name, as /språk lists it
+name = "Norsk"
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /. The bot answers the English names too.
+[commands]
+"/photo" = ["/bilde", "/foto"]
+"/uniquephoto" = ["/nyttbilde"]
+"/weather" = ["/vær", "/vaer"]
+"/info" = ["/tid"]
+"/fortune" = ["/spådom", "/spadom"]
+"/help" = ["/hjelp"]
+"/contacts" = ["/kontakter"]
+"/trust" = ["/bekreft"]
+"/allowed" = ["/tillatte"]
+"/allow" = ["/tillat"]
+"/disallow" = ["/avvis"]
+"/profile" = ["/profil"]
+"/name" = ["/navn"]
+"/about" = ["/om"]
+"/avatar" = ["/profilbilde"]
+"/username" = ["/brukernavn"]
+"/delete" = ["/slett"]
+"/delivery" = ["/levering"]
+"/today" = ["/idag", "/dagen"]
+"/msg" = ["/send"]
+"/run" = ["/kjør", "/kjor"]
+"/incoming" = ["/innboks"]
+"/onthisday" = ["/dennedagen"]
+"/forecast" = ["/prognose"]
+"/remind" = ["/påminn", "/paminn"]
+"/list" = ["/liste"]
+"/birthdays" = ["/bursdager"]
+"/namedays" = ["/navnedager"]
+"/birthday" = ["/bursdag"]
+"/nameday" = ["/navnedag"]
+"/language" = ["/språk", "/sprak"]
+
+# Words for when a timer runs (/timer legg til man-fre 07:30 ...) or a
+# reminder is due (/påminn om 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
+[words]
+mon = ["man"]
+tue = ["tir"]
+wed = ["ons"]
+thu = ["tor"]
+fri = ["fre"]
+sat = ["lør"]
+sun = ["søn"]
+monday = ["mandag"]
+tuesday = ["tirsdag"]
+wednesday = ["onsdag"]
+thursday = ["torsdag"]
+friday = ["fredag"]
+saturday = ["lørdag"]
+sunday = ["søndag"]
+daily = ["daglig"]
+weekdays = ["hverdager"]
+weekends = ["helger", "helg"]
+today = ["idag"]
+tomorrow = ["imorgen"]
+every = ["hver"]
+in = ["om"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/liste legg til melk), each next to the English one it means. The first
+# is how /hjelp shows it.
+add = ["legg til"]
+remove = ["fjern", "slett"]
+list = ["liste"]
+clear = ["tøm"]
+run = ["kjør"]
+all = ["alle"]
+preview = ["forhåndsvis"]
+default = ["standard"]
+shortcuts = ["snarveier", "snarvei"]

@@ -11,10 +11,15 @@ signal_service = "127.0.0.1:8080"
 # link it with signal-account.sh once the bot runs; it waits till then.
 account = "+46700000000"
 
-# The language the bot answers in: en, sv for Swedish or el for Greek,
-# where a chat hasn't chosen one of its own with /language. The translations
-# are in nejomibot/locale, with each language's own names for the commands.
+# The language the bot answers in, where a chat hasn't chosen one of its own
+# with /language: en (English), da (Danish), de (German), el (Greek), es
+# (Spanish), fi (Finnish), fr (French), nb (Norwegian) or sv (Swedish). The
+# translations are in nejomibot/locale, with each language's own names for
+# the commands.
 language = "en"
+# How the bot shows commands: "." as in .photo, which a phone's keyboard has
+# at hand, or "/" as in /photo. It takes both, whichever this is.
+# command_prefix = "."
 
 # https://openweathermap.org/api
 openweather_api_key = "your-api-key"

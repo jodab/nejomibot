@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 12:25+0300\n"
+"POT-Creation-Date: 2026-10-24 15:20+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -318,31 +318,17 @@ msgid "✅ {album}: no birth date, so its captions show no age."
 msgstr ""
 "✅ {album}: χωρίς ημερομηνία γέννησης, οπότε οι λεζάντες δεν δείχνουν ηλικία."
 
-#: nejomibot/albums.py
-msgid "A shortcut can't have a | or a ;."
-msgstr "Μια συντόμευση δεν μπορεί να περιέχει | ή ;."
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid "{name} is an alias in the config: take it out there first."
-msgstr "Το {name} είναι ψευδώνυμο στις ρυθμίσεις: αφαιρέστε το από εκεί πρώτα."
-
-#: nejomibot/albums.py
+#: nejomibot/albums.py nejomibot/commands.py
 #, python-brace-format
 msgid "{name} is a shortcut for {album} already."
 msgstr "Το {name} είναι ήδη συντόμευση για το {album}."
 
 #: nejomibot/albums.py nejomibot/specials.py
 #, python-brace-format
-msgid "{name} is a command already."
-msgstr "Το {name} είναι ήδη εντολή."
-
-#: nejomibot/albums.py
-#, python-brace-format
 msgid "{album} has no shortcuts."
 msgstr "Το {album} δεν έχει συντομεύσεις."
 
-#: nejomibot/albums.py
+#: nejomibot/albums.py nejomibot/specials.py
 #, python-brace-format
 msgid "✅ {album}: no shortcuts."
 msgstr "✅ {album}: καμία συντόμευση."
@@ -572,10 +558,21 @@ msgid "/birthday remove <n>: remove one, by its number in /birthdays"
 msgstr "/birthday αφαίρεσε <n>: αφαίρεση, με τον αριθμό τους στο /γενέθλια"
 
 #: nejomibot/birthdays.py
-msgid "/nameday add <date> [<chats>] <who>: a name day, as /birthday takes it"
+msgid "/nameday add <date> [<chats>] <who>: a name day, e.g."
 msgstr ""
-"/γιορτή πρόσθεσε <ημερομηνία> [<συνομιλίες>] <ποιος>: ονομαστική γιορτή, "
-"όπως στο /birthday"
+"/γιορτή πρόσθεσε <ημερομηνία> [<συνομιλίες>] <ποιος>: ονομαστική γιορτή, π.χ."
+
+#: nejomibot/birthdays.py
+msgid "/nameday add 08-08 Alice: a contact, where they are"
+msgstr "/γιορτή πρόσθεσε 08-08 Alice: μια επαφή, όπου βρίσκεται"
+
+#: nejomibot/birthdays.py
+msgid ""
+"/nameday add 08-08 1,2 Grandma: someone not on Signal, in chats 1 and 2 of /"
+"chats; without them, in every group"
+msgstr ""
+"/γιορτή πρόσθεσε 08-08 1,2 Γιαγιά: κάποιος χωρίς Signal, στις συνομιλίες 1 "
+"και 2 του /chats· χωρίς αυτές, σε όλες τις ομάδες"
 
 #: nejomibot/birthdays.py
 msgid "/nameday remove <n>: remove one, by its number in /namedays"
@@ -653,6 +650,14 @@ msgstr "👥 Σε όλες τις ομάδες: καμία επαφή δεν ο�
 
 #: nejomibot/birthdays.py
 #, python-brace-format
+msgid ""
+"For some groups only, add it again with their numbers from /chats: {example}"
+msgstr ""
+"Μόνο σε ορισμένες ομάδες: προσθέστε ξανά, με τους αριθμούς τους από το /"
+"chats: {example}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
 msgid "Which? Give its number, as {command} shows."
 msgstr "Ποιο; Δώστε τον αριθμό του, όπως τον δείχνει το {command}."
 
@@ -670,6 +675,20 @@ msgstr "Το {n} δεν υπάρχει πια: αφαιρέθηκε ή άλλα�
 #, python-brace-format
 msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Αφαιρέθηκε: {what}"
+
+#: nejomibot/commands.py
+msgid "A shortcut can't have a | or a ;."
+msgstr "Μια συντόμευση δεν μπορεί να περιέχει | ή ;."
+
+#: nejomibot/commands.py
+#, python-brace-format
+msgid "{name} is an alias in the config: take it out there first."
+msgstr "Το {name} είναι ψευδώνυμο στις ρυθμίσεις: αφαιρέστε το από εκεί πρώτα."
+
+#: nejomibot/commands.py nejomibot/specials.py
+#, python-brace-format
+msgid "{name} is a command already."
+msgstr "Το {name} είναι ήδη εντολή."
 
 #: nejomibot/commands.py
 msgid ""
@@ -1134,8 +1153,8 @@ msgid "how many photos, and how big"
 msgstr "πόσες φωτογραφίες, και τι μέγεθος"
 
 #: nejomibot/help.py
-msgid "the day's holidays and birthdays"
-msgstr "οι αργίες και τα γενέθλια της ημέρας"
+msgid "the date, and the day's holidays and birthdays"
+msgstr "η ημερομηνία, και οι αργίες και τα γενέθλια της ημέρας"
 
 #: nejomibot/help.py
 msgid "[<city>]"
@@ -1362,6 +1381,14 @@ msgid "add <name> <parts>"
 msgstr "πρόσθεσε <όνομα> <μέρη>"
 
 #: nejomibot/help.py
+msgid "other names for one"
+msgstr "άλλα ονόματα για μία"
+
+#: nejomibot/help.py
+msgid "shortcuts <name> <names>|-"
+msgstr "συντομεύσεις <όνομα> <ονόματα>|-"
+
+#: nejomibot/help.py
 msgid "remove <name>"
 msgstr "αφαίρεσε <όνομα>"
 
@@ -1517,6 +1544,10 @@ msgstr "Διαχειριστές, σε κάθε συνομιλία"
 #: nejomibot/help.py
 msgid "Commands"
 msgstr "Εντολές"
+
+#: nejomibot/help.py
+msgid "Commands start with . or /, whichever is easier to type."
+msgstr "Οι εντολές ξεκινούν με . ή /, όποιο πληκτρολογείται πιο εύκολα."
 
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
@@ -2602,8 +2633,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/specials.py
-msgid "Give it a name: a word that starts with /, like /morning."
-msgstr "Δώστε της όνομα: μια λέξη που ξεκινά με /, όπως /πρωί."
+msgid "Give it a name: a word that starts with . or /, like /morning."
+msgstr "Δώστε της όνομα: μια λέξη που ξεκινά με . ή /, όπως /πρωί."
 
 #: nejomibot/specials.py
 msgid "A special can't have a |: the file of specials uses it."
@@ -2670,6 +2701,14 @@ msgstr ""
 "Το κείμενο διατηρεί τη μορφοποίηση που του δίνετε στο Signal, όπως τα έντονα."
 
 #: nejomibot/specials.py
+msgid ""
+"/special shortcuts <name> <names>: other names for one, such as /special "
+"shortcuts /morning /gm; with -, none"
+msgstr ""
+"/special συντομεύσεις <όνομα> <ονόματα>: άλλα ονόματα για μία, όπως /special "
+"συντομεύσεις /πρωί /gm· με -, καμία"
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
 msgstr "/special αφαίρεσε <όνομα>: αφαίρεση μίας"
 
@@ -2724,6 +2763,16 @@ msgstr[1] ""
 #, python-brace-format
 msgid "Removed {name}"
 msgstr "Αφαιρέθηκε το {name}"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "A special has at most {count} shortcuts."
+msgstr "Μια ειδική εντολή έχει έως {count} συντομεύσεις."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Shortcuts for {name}: {shortcuts}."
+msgstr "✅ Συντομεύσεις για το {name}: {shortcuts}."
 
 #: nejomibot/status.py
 #, python-brace-format
@@ -2999,8 +3048,8 @@ msgstr "Το {command} δεν είναι εντολή που γνωρίζει τ
 
 #: nejomibot/timers.py
 #, python-brace-format
-msgid "Commands start with /, unlike {command}."
-msgstr "Οι εντολές ξεκινούν με /, σε αντίθεση με το {command}."
+msgid "Commands start with . or /, unlike {command}."
+msgstr "Οι εντολές ξεκινούν με . ή /, σε αντίθεση με το {command}."
 
 #: nejomibot/timers.py
 #, python-brace-format
@@ -3053,10 +3102,6 @@ msgstr "Δεν υπάρχει χρονοδιακόπτης #{n}."
 #, python-brace-format
 msgid "▶️ Ran timer #{n}"
 msgstr "▶️ Εκτελέστηκε ο χρονοδιακόπτης #{n}"
-
-#: nejomibot/today.py
-msgid "Nothing special today."
-msgstr "Τίποτα ιδιαίτερο σήμερα."
 
 #: nejomibot/today.py
 msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."

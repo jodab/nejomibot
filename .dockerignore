@@ -9,4 +9,5 @@
 !nejomibot/
 !tests/
 !tools/signal-account.sh
+!tools/nejomibot-help.sh
 **/__pycache__

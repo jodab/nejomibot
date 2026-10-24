@@ -112,6 +112,7 @@ async def test_greets_what_isnt_a_command(greeted: Greeted, sent: DataMessage) -
     "text",
     [
         "/weather",
+        ".weather",  # with a . for its /
         "/HELP",  # in any case
         "/fortune startrek",  # with more after it
         "/time",  # the bot's own alias, for /info

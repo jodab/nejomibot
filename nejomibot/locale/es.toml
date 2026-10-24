@@ -1,0 +1,80 @@
+# Spanish names for the bot's commands, and the Spanish words it reads in
+# commands, next to the English ones; es.po translates its messages. See
+# nejomibot/i18n.py.
+
+# The language's own name, as /idioma lists it
+name = "Español"
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /. The bot answers the English names too.
+[commands]
+"/photo" = ["/foto"]
+"/uniquephoto" = ["/fotonueva"]
+"/albums" = ["/álbumes", "/albumes"]
+"/weather" = ["/clima"]
+"/info" = ["/hora"]
+"/fortune" = ["/frase"]
+"/help" = ["/ayuda"]
+"/contacts" = ["/contactos"]
+"/trust" = ["/verificar"]
+"/allowed" = ["/permitidos"]
+"/allow" = ["/permitir"]
+"/disallow" = ["/denegar"]
+"/profile" = ["/perfil"]
+"/name" = ["/nombre"]
+"/about" = ["/acerca"]
+"/avatar" = ["/fotoperfil"]
+"/username" = ["/usuario"]
+"/delete" = ["/borrar"]
+"/delivery" = ["/entrega"]
+"/today" = ["/hoy", "/día", "/dia"]
+"/msg" = ["/enviar"]
+"/run" = ["/ejecutar"]
+"/incoming" = ["/entrantes"]
+"/onthisday" = ["/estedía", "/estedia"]
+"/forecast" = ["/pronóstico", "/pronostico"]
+"/remind" = ["/recordar"]
+"/list" = ["/lista"]
+"/birthdays" = ["/cumpleaños", "/cumpleanos"]
+"/namedays" = ["/santos"]
+"/nameday" = ["/santo"]
+"/language" = ["/idioma"]
+
+# Words for when a timer runs (/timer añadir lun-vie 07:30 ...) or a
+# reminder is due (/recordar en 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
+[words]
+mon = ["lun"]
+tue = ["mar"]
+wed = ["mié", "mie"]
+thu = ["jue"]
+fri = ["vie"]
+sat = ["sáb", "sab"]
+sun = ["dom"]
+monday = ["lunes"]
+tuesday = ["martes"]
+wednesday = ["miércoles", "miercoles"]
+thursday = ["jueves"]
+friday = ["viernes"]
+saturday = ["sábado", "sabado"]
+sunday = ["domingo"]
+daily = ["diario", "diariamente"]
+weekdays = ["laborables"]
+weekends = ["findes", "finde"]
+today = ["hoy"]
+tomorrow = ["mañana", "manana"]
+every = ["cada"]
+in = ["en"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/lista añadir leche), each next to the English one it means. The first
+# is how /ayuda shows it.
+add = ["añadir", "anadir", "agregar"]
+remove = ["quitar", "eliminar"]
+list = ["lista"]
+clear = ["vaciar"]
+run = ["ejecutar"]
+all = ["todo", "todos"]
+preview = ["vista previa"]
+default = ["predeterminado"]
+shortcuts = ["atajos", "atajo"]

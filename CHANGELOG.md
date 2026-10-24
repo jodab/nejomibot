@@ -4,6 +4,69 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- The bot now shows commands with a period, as in `.photo`, which phone
+  keyboards have on their first page (see Added). Commands with a slash work
+  as before, and the bot's files keep them that way. To have the bot show
+  them with a slash again, set `command_prefix = "/"`.
+- `/weather` no longer starts with the date and time, which `/today` now
+  shows: a timer or special that runs `/weather` without `/today` posts no
+  date any more.
+- The examples in `deploy/` now run signal-cli-rest-api in `json-rpc` mode
+  rather than `json-rpc-native` (see Changed). To follow them, change `MODE`
+  to `json-rpc` in your Quadlet or Compose file and restart
+  signal-cli-rest-api; the Signal account's data works in either mode.
+
+### Added
+
+- Every command can start with a period in place of its slash: `.photo` is
+  `/photo`, in a message, a timer, a special, `/run`, an alias or a
+  shortcut. The new `command_prefix` setting sets how the bot shows
+  commands: `"."`, the default, or `"/"`. `/help` ends with a note that
+  either works.
+- Shortcuts for specials: `/special shortcuts /dailypost /daily` makes
+  `/daily` post the same as `/dailypost`, and `/special shortcuts
+  /dailypost -` removes them. A special has at most five, `/specials` lists
+  them, and `specials.txt` keeps them after the special's name.
+- Danish, German, Spanish, Finnish, French and Norwegian, with their own
+  names for the commands and their words for days, times and subcommands.
+- Templates for new languages: `nejomibot/locale/messages.pot`, every
+  message, and `template.toml`, every command and word, which
+  `tools/translations.sh <code>` copies to start one. A new language takes
+  its two files and no change to the code; the README's Languages section
+  has the steps, and the tests now take languages with any number of plural
+  forms.
+- A shell in the bot's container, as in `podman exec -it nejomibot bash`,
+  starts with a short guide to the bot's tools, where they are, and where
+  the bot keeps its files. `nejomibot-help.sh` shows it again.
+
+### Changed
+
+- `/today` and `/day` always reply now, with the date and time in bold
+  first, then the day's holidays, and in a group its birthdays and name
+  days. On a day with none of these, they show the date and time alone,
+  where before they said "Nothing special today." in a direct chat and
+  nothing in a group.
+- The birthday or name day of someone not on Signal, given again on the
+  same day, now shows in the groups given this time, or in every group,
+  instead of being added a second time: after `/nameday add 08-08 Grandma`,
+  `/nameday add 08-08 1,2 Grandma` shows it in chats 1 and 2 alone. The reply
+  to one shown in every group says how to choose the groups, and `/nameday`
+  on its own now gives examples, as `/birthday` does.
+- The examples in `deploy/` run signal-cli-rest-api in `json-rpc` mode,
+  where signal-cli runs on Java: its native build has had bugs that the
+  Java one hasn't, and 32-bit ARM has no native build. signal-cli-rest-api
+  then takes about 360 MB of memory on a Raspberry Pi 4. The README and the
+  Docker Hub page say so, and that the image runs on 32-bit ARM as well.
+
+### Fixed
+
+- The Swedish example timer in `/chats` ran `/dagenspost`, which no longer
+  exists; it runs `/väder; /bild` now.
+
 ## 0.99.16 - 2026-10-24
 
 ### Updating

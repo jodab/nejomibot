@@ -1,10 +1,10 @@
-"""/today (or /day): the day's holidays, in the countries of the setting
-holidays (holidays.py), and in a group, the birthdays and name days of those
-it's for (birthdays.py). For everyone allowed. On a day with nothing
-special, it says so in a direct chat, and nothing in a group, nor in what a
-timer, a special or /run posts. A timer posts it to every chat at once, each
-group with its own birthdays; with /weather and /uniquephoto after it, it's
-a daily post: /timer add 08:00 1,2 /today; /weather; /uniquephoto.
+"""/today (or /day): the date and the time, then the day's holidays, in the
+countries of the setting holidays (holidays.py), and in a group, the
+birthdays and name days of those it's for (birthdays.py). For everyone
+allowed. On a day with nothing special, it's the date and the time alone. A
+timer posts it to every chat at once, each group with its own birthdays;
+with /weather and /uniquephoto after it, it's a daily post: /timer add 08:00
+1,2 /today; /weather; /uniquephoto.
 
 /today preview, or /today preview 10-25, 2026-10-25 or tomorrow, shows an
 admin what /today will say on that day, today if none is given, in each
@@ -12,7 +12,7 @@ group the bot is in and in a direct chat.
 """
 
 import contextlib
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from signalbot import DataMessageContext, SignalBot, TextMode
 
@@ -22,30 +22,31 @@ from .config import get_settings
 from .help import shown_name
 from .holidays import days_on
 from .i18n import _, weekday_and_day
-from .messages import PerChat, collected, escape
+from .messages import PerChat, escape
+from .styles import bold
 from .timers import DAYS_FROM_NOW, in_language
 
 
-async def day_message(
-    bot: SignalBot, day: date | None = None, *, asked: bool = False
-) -> PerChat | None:
-    """The day's holidays, in the countries of the setting holidays, and in
-    a group, the birthdays and name days of those it's for: today's, or the
-    day's. A chat with nothing special gets nothing (messages.send()), and
-    with nothing anywhere, there's no message; asked, as in a direct chat,
-    it says there's nothing special. Styled."""
-    day = day or birthdays.today()
-    holidays = days_on(day, get_settings().holidays)
-    greetings = await birthdays.greetings(bot, day)
-    if not asked and not holidays and not any(greetings.values()):
-        return None
-    nothing = escape(_("Nothing special today.")) if asked else ""
+def now() -> datetime:
+    """Now, in the bot's time zone, which /today names."""
+    return datetime.now(get_settings().tz)
+
+
+async def day_message(bot: SignalBot, at: datetime | None = None) -> PerChat:
+    """The date and the time, now or at, in bold, then the day's holidays,
+    in the countries of the setting holidays, and in a group, the birthdays
+    and name days of those it's for. Styled."""
+    at = at or now()
+    holidays = days_on(at.date(), get_settings().holidays)
+    greetings = await birthdays.greetings(bot, at.date())
+    heading = f"📅 {bold(weekday_and_day(at))} · {at:%H:%M}"
+
+    def text(lines: list[str]) -> str:
+        return "\n".join([heading, escape("\n".join(lines))]) if lines else heading
+
     return PerChat(
-        text=escape("\n".join(holidays)) or nothing,
-        texts={
-            group: escape("\n".join([*holidays, *lines]))
-            for group, lines in greetings.items()
-        },
+        text=text(holidays),
+        texts={group: text([*holidays, *lines]) for group, lines in greetings.items()},
         text_mode=TextMode.STYLED,
     )
 
@@ -108,10 +109,7 @@ class Today(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         bot = context.bot
-        # Whether to say there's nothing special: not in a group, nor to the
-        # made-up direct message of a timer, a special or /run
-        asked = not context.message.is_group() and collected.get() is None
-        await answer(context, lambda: day_message(bot, asked=asked), styled=True)
+        await answer(context, lambda: day_message(bot), styled=True)
 
 
 class TodayPreview(Handler):

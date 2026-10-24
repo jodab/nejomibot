@@ -12,7 +12,7 @@ from signalbot import (
 )
 
 from nejomibot import commands, specials
-from nejomibot.commands import known
+from nejomibot.commands import aliases, canonical, known
 from nejomibot.config import get_settings
 from nejomibot.messages import PerChat, for_chat
 from nejomibot.specials import (
@@ -290,6 +290,146 @@ async def test_parts_joined_by_a_plus_post_in_one_message(chat: Chat) -> None:
         "**/daily** · /today + /weather\n"
         "**/morning** · Morning! /status + /ping; Hi + Bye; /ping"
     ]
+
+
+async def test_shortcuts_are_other_names_for_a_special(chat: Chat) -> None:
+    await chat.send("/special add /morning /ping")
+    assert await chat.send("/special shortcuts /morning /gm gm") == [
+        "✅ Shortcuts for /morning: /gm, gm."
+    ]
+    # Taken as its name is, in any case
+    assert await chat.send("/GM") == ["/ping!"]
+    assert await chat.send("gm") == ["/ping!"]
+    assert check_commands(["/gm"]) is None
+    assert canonical("/gm") == "/morning"
+    # Kept with it, also when it changes, and listed with it
+    await chat.send("/special add /morning /weather")
+    lines = get_settings().specials_file.read_text().splitlines()
+    assert lines[-1] == "/morning /gm gm | /weather"
+    assert await chat.send("/specials") == [
+        "**✨ 1 special**\n**/morning** · /weather · 🏷️ /gm gm"
+    ]
+    # Taken away
+    assert await chat.send("/special shortcuts /morning -") == [
+        "✅ /morning: no shortcuts."
+    ]
+    assert await chat.send("/special shortcuts /morning -") == [
+        "/morning has no shortcuts."
+    ]
+    assert "/gm" not in aliases()
+    assert get_settings().specials_file.read_text().splitlines()[-1] == (
+        "/morning | /weather"
+    )
+
+
+async def test_names_parts_and_shortcuts_with_a_dot(
+    chat: Chat, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Shown with a ., unless command_prefix is a /; the file keeps the /
+    monkeypatch.setenv("NEJOMIBOT_COMMAND_PREFIX", ".")
+    get_settings.cache_clear()
+    assert await chat.send(".special add .morning Hi! .ping + .info") == [
+        "✅ **Added .morning**\nHi! .ping + .info"
+    ]
+    assert await chat.send(".special shortcuts .morning .gm") == [
+        "✅ Shortcuts for .morning: .gm."
+    ]
+    lines = get_settings().specials_file.read_text().splitlines()
+    assert lines[-1] == "/morning /gm | Hi! /ping + /info"
+    assert await chat.send(".GM") == ["Hi!\n\n/ping!\n\n/info!"]
+    assert await chat.send("/specials") == [
+        "**✨ 1 special**\n**.morning** · Hi! .ping + .info · 🏷️ .gm"
+    ]
+    assert await chat.send(".special remove .morning") == [
+        "🗑️ **Removed .morning**\nHi! .ping + .info"
+    ]
+
+
+async def test_a_shortcut_cant_hide_a_name(
+    chat: Chat, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic"]}')
+    get_settings.cache_clear()
+    get_settings().data_file("albums.txt").write_text("Alice | | /alice\n")
+    await chat.send("/special add /bins Bins!")
+    await chat.send("/special shortcuts /bins /b")
+    await chat.send("/special add /morning /ping")
+    answers = [
+        (await chat.send(text))[0]
+        for text in (
+            "/special shortcuts",
+            "/special shortcuts /nope /n",
+            "/special shortcuts /morning /weather",
+            "/special shortcuts /morning /väder",  # Swedish for /weather
+            "/special shortcuts /morning /test",  # the bot's own alias
+            "/special shortcuts /morning /bins",
+            "/special shortcuts /morning /morning",
+            "/special shortcuts /morning /pic",
+            "/special shortcuts /morning /B",
+            "/special shortcuts /morning /Alice",
+            "/special shortcuts /morning a|b",
+            "/special shortcuts /morning a b c d e f",
+        )
+    ]
+    assert answers == [
+        "Which special? Give its name, as /specials shows.",
+        "There's no special /nope.",
+        "/weather is a command already.",
+        "/väder is a command already.",
+        "/test is a command already.",
+        "/bins is a command already.",
+        "/morning is a command already.",
+        "/pic is an alias in the config: take it out there first.",
+        "/B is a shortcut for /bins already.",
+        "/Alice is a shortcut for /photo Alice already.",
+        "A shortcut can't have a \\| or a ;.",  # escaped, as the answer is styled
+        "A special has at most 5 shortcuts.",
+    ]
+    assert own_specials.current().shortcuts == {"/bins": ("/b",)}
+    # Nor can a special, or an album, take a shortcut's name
+    assert await chat.send("/special add /b Hi!") == ["/b is a command already."]
+
+
+async def test_shortcuts_go_and_come_back_with_their_special(chat: Chat) -> None:
+    await chat.send("/special add /bins Bins!")
+    await chat.send("/special shortcuts /bins /b")
+    await chat.send("/special add /morning /ping")
+    await chat.send("/special remove /bins")
+    assert "/b" not in aliases()
+    # An edit of the removal undoes it, then removes the special it names
+    await chat.send("/special remove /morning", edit=True)
+    assert own_specials.current().shortcuts == {"/bins": ("/b",)}
+    assert aliases()["/b"] == "/bins"
+    # An edit of shortcuts takes the place of those it set
+    await chat.send("/special shortcuts /bins /c")
+    await chat.send("/special shortcuts /bins /d", edit=True)
+    assert own_specials.current().shortcuts == {"/bins": ("/d",)}
+    assert "/c" not in aliases()
+
+
+@pytest.mark.usefixtures("swedish")
+async def test_shortcuts_in_swedish(chat: Chat) -> None:
+    await chat.send("/special lägg till /morgon /ping")
+    assert await chat.send("/special genvägar /morgon /gm") == [
+        "✅ Genvägar för /morgon: /gm."
+    ]
+    assert await chat.send("/gm") == ["/ping!"]
+
+
+@pytest.mark.parametrize(
+    "lines",
+    [
+        # A shortcut that is a command, or another special's name, would hide it
+        ["/morning /weather | /ping"],
+        ["/morning /bins | /ping", "/bins | Bins!"],
+    ],
+)
+def test_a_line_whose_shortcut_hides_a_name_isnt_read(lines: list[str]) -> None:
+    get_settings().specials_file.write_text("\n".join(lines) + "\n")
+    found = own_specials.current()
+    assert found.broken == [lines[0]]
+    assert "/morning" not in found.specials
+    assert found.shortcuts == {}
 
 
 async def test_an_edit_runs_a_special_again_or_changes_it(chat: Chat) -> None:

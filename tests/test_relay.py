@@ -116,7 +116,7 @@ async def test_msg(chat: Chat, signal_api: FakeApi) -> None:
         ("/msg 1", "Send /msg <chats> <text>"),
         ("/msg 9 Hello", "There's no chat 9: /chats numbers them."),
         ("/run 1", "Send /run <chats> <commands>, e.g. /run 1 /weather; /photo."),
-        ("/run 1 ping", "Commands start with /, unlike ping."),
+        ("/run 1 ping", "Commands start with . or /, unlike ping."),
         ("/run 1 /frobnicate", "/frobnicate isn't a command the bot knows."),
         (
             "/run 1 /timer add 08:00 /ping",

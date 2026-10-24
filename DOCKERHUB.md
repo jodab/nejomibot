@@ -28,7 +28,8 @@ Signal.
 - ⏰ **Timers and commands of your own:** any command on a schedule, posted to
   the chats you choose, and your own commands that combine texts and other
   commands, such as a morning greeting.
-- 🌍 **English, Swedish and Greek**, with each chat in its own language.
+- 🌍 **Nine languages:** English, Danish, Finnish, French, German, Greek,
+  Norwegian, Spanish and Swedish, with each chat in its own language.
 - 🔐 **Private by design:** only the people and groups you allow may use it,
   admins manage it from a direct chat, and by default, the log contains no
   phone numbers or message text.
@@ -59,9 +60,10 @@ Signal  <-->  signal-cli-rest-api (the account)  <-->  nejomibot (the bot)
 You need:
 
 1. **A Linux machine that is always on**, such as a home server, a Raspberry
-   Pi running a 64-bit operating system, or a small cloud server, with
+   Pi with a 64-bit or 32-bit operating system, or a small cloud server, with
    [Docker](https://docs.docker.com/engine/install/) and its Compose plugin
-   installed: `docker compose version` should print a version.
+   installed: `docker compose version` should print a version. The bot and
+   signal-cli-rest-api together use about 450 MB of memory.
 2. **A phone number for the bot alone.** It must be able to receive one text
    message or call with a verification code. Don't use your own number, or
    any number that is in use with Signal on a phone: registering it for the
@@ -118,7 +120,7 @@ Fill in at least the following settings, keeping the quotes:
 | `openweather_api_key` | Your OpenWeatherMap API key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
 | `timezone` | Your time zone, used by the timers | `"Europe/Stockholm"` |
-| `language` | `"en"` for English, `"sv"` for Swedish, `"el"` for Greek; each chat can choose its own with `/language` | `"en"` |
+| `language` | The bot's language: `"en"` (English), `"da"` (Danish), `"de"` (German), `"el"` (Greek), `"es"` (Spanish), `"fi"` (Finnish), `"fr"` (French), `"nb"` (Norwegian) or `"sv"` (Swedish); each chat can choose its own with `/language` | `"en"` |
 
 Write phone numbers in international format: a `+`, the country code, then
 the number without its leading 0, with no spaces. In Sweden, 070-000 00 00
@@ -219,6 +221,10 @@ The bot replies with the commands you may use. As its admin, you may use all
 of them, but the admin commands only in this direct chat. No reply within a
 minute? See Troubleshooting below.
 
+Every command can start with a period instead of the slash, as in `.help`,
+which phone keyboards have on their first page; the bot's replies show
+commands that way.
+
 ## Step 7: Add the bot to your groups
 
 1. In Signal on your phone, open a group, tap its name, tap **Add members**,
@@ -252,9 +258,9 @@ Send the bot:
 - `/chats` numbers the chats the bot can post to: its groups first, then the
   people you have allowed, then you.
 - `/timer add 08:00 1 /today; /weather; /uniquephoto` posts to chat 1 at
-  08:00 every day, in your `timezone`: the day's holidays and birthdays (on
-  days that have any), the weather, and a photo, never the same photo twice
-  until every photo has been sent. For several chats, list them all: `1,2`.
+  08:00 every day, in your `timezone`: the date and time with the day's
+  holidays and birthdays, the weather, and a photo, never the same photo
+  twice until every photo has been sent. For several chats, list them all: `1,2`.
   You can also give days: `mon-fri 07:30`.
 - `/timer run 1` runs the timer right away, so you can see that it works.
   `/timers` lists the timers.
@@ -275,16 +281,22 @@ That's it: the bot is up and running. 🎉
 - **The day in one message:** `/special add /dailypost /today + /weather;
   Photo of the day! /uniquephoto` creates a command of your own that posts
   the day and the weather in one message, then the photo under a heading;
-  run it from the timer with `/timer add 08:00 1 /dailypost`.
+  run it from the timer with `/timer add 08:00 1 /dailypost`, and give it a
+  shorter name with `/special shortcuts /dailypost /daily`.
 - **Birthdays, name days and holidays for `/today`:** `/birthday add
   1990-03-14 Alice` adds a contact's birthday, shown in the groups they are
-  in, and `holidays = ["SE"]` in the settings adds your country's days, by
-  its code, such as `GB` or `US`: those of the European Union, the Nordic
-  countries and most of the Western world are included; see
+  in, `/nameday add 08-08 1,2 Grandma` the name day of someone not on Signal,
+  shown in chats 1 and 2 of `/chats`, and `holidays = ["SE"]` in the
+  settings adds your country's days, by its code, such as `GB` or `US`:
+  those of the European Union, the Nordic countries and most of the Western
+  world are included; see
   [the README](https://github.com/jodab/nejomibot#birthdays-name-days-and-holidays).
 - **Backups:** every day at 04:00, the bot backs up what it stores, along
   with its settings, in `data/backups`, unless nothing has changed, and keeps
   the latest 30; see [the README](https://github.com/jodab/nejomibot#backups).
+- **A shell in the container:** `docker compose exec nejomibot bash` starts
+  with a short guide to the bot's tools, such as `nejomibot-timers` and
+  `signal-account.sh`, and where the bot keeps its files.
 - **Commands of your own, other names for commands, and all the settings:**
   see the [README](https://github.com/jodab/nejomibot#readme).
 

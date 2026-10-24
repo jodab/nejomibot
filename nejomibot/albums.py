@@ -30,14 +30,13 @@ from .commands import (
     Command,
     Edits,
     Handler,
-    aliases,
     answer,
     argument,
-    known,
+    shortcut_clash,
     undo_with,
 )
-from .config import get_settings
-from .i18n import _, every_word, ngettext
+from .config import get_settings, slashed
+from .i18n import _, every_word, ngettext, prefixed
 from .messages import escape
 from .photos import (
     REMOVE,
@@ -79,7 +78,7 @@ def album_line(name: str, photos: list[Path], found: dict[Path, datetime]) -> st
     if born := birth_date(name):
         text += f" · {get_settings().photos_age_emoji} {born:%Y-%m-%d}"
     if shortcuts := own_settings(name).shortcuts:
-        text += f" · 🏷️ {' '.join(shortcuts)}"
+        text += f" · 🏷️ {' '.join(map(prefixed, shortcuts))}"
     return text
 
 
@@ -133,7 +132,8 @@ def born_text(name: str) -> str:
 
 def shortcuts_text(name: str) -> str:
     if shortcuts := own_settings(name).shortcuts:
-        return _("Shortcuts: {shortcuts}").format(shortcuts=", ".join(shortcuts))
+        shown = ", ".join(map(prefixed, shortcuts))
+        return _("Shortcuts: {shortcuts}").format(shortcuts=shown)
     return _("No shortcuts")
 
 
@@ -182,25 +182,17 @@ def remove_birth_date(name: str) -> str:
 
 def shortcut_problem(shortcut: str, name: str) -> str | None:
     """Why the album can't have the shortcut, if it can't: a name the bot
-    answers to already would hide one of the two."""
-    if "|" in shortcut or ";" in shortcut:
-        return _("A shortcut can't have a | or a ;.")
+    answers to already would hide one of the two. Another album's is named
+    by the album."""
     folded = shortcut.casefold()
-    settings = get_settings()
-    if any(folded == each.casefold() for x in settings.aliases.values() for each in x):
-        return _("{name} is an alias in the config: take it out there first.").format(
-            name=shortcut
-        )
     for entry in album_settings.current().entries:
         if entry.album.casefold() != name.casefold() and folded in (
             each.casefold() for each in entry.shortcuts
         ):
             return _("{name} is a shortcut for {album} already.").format(
-                name=shortcut, album=entry.album
+                name=prefixed(shortcut), album=entry.album
             )
-    if known(shortcut) or folded in aliases(shortcuts=False):
-        return _("{name} is a command already.").format(name=shortcut)
-    return None
+    return shortcut_clash(shortcut, f"/photo {name}")
 
 
 def set_shortcuts(name: str, words: list[str]) -> str:
@@ -214,7 +206,7 @@ def set_shortcuts(name: str, words: list[str]) -> str:
             return _("{album} has no shortcuts.").format(album=name)
         keep(replace(own, album=name, shortcuts=()))
         return _("✅ {album}: no shortcuts.").format(album=name)
-    shortcuts = tuple(dict.fromkeys(words))
+    shortcuts = tuple(dict.fromkeys(map(slashed, words)))
     if len(shortcuts) > MAX_SHORTCUTS:
         return _("An album has at most {count} shortcuts.").format(count=MAX_SHORTCUTS)
     for shortcut in shortcuts:
@@ -222,7 +214,7 @@ def set_shortcuts(name: str, words: list[str]) -> str:
             return why
     keep(replace(own, album=name, shortcuts=shortcuts))
     return _("✅ Shortcuts for /photo {album}: {shortcuts}.").format(
-        album=name, shortcuts=", ".join(shortcuts)
+        album=name, shortcuts=", ".join(map(prefixed, shortcuts))
     )
 
 

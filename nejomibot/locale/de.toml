@@ -1,0 +1,79 @@
+# German names for the bot's commands, and the German words it reads in
+# commands, next to the English ones; de.po translates its messages. See
+# nejomibot/i18n.py.
+
+# The language's own name, as /sprache lists it
+name = "Deutsch"
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /. The bot answers the English names too.
+[commands]
+"/photo" = ["/foto", "/bild"]
+"/uniquephoto" = ["/neuesfoto"]
+"/albums" = ["/alben"]
+"/weather" = ["/wetter"]
+"/info" = ["/zeit"]
+"/fortune" = ["/spruch"]
+"/help" = ["/hilfe"]
+"/contacts" = ["/kontakte"]
+"/trust" = ["/verifizieren"]
+"/allowed" = ["/erlaubt"]
+"/allow" = ["/erlauben"]
+"/disallow" = ["/verbieten"]
+"/profile" = ["/profil"]
+"/about" = ["/über", "/ueber"]
+"/avatar" = ["/profilbild"]
+"/username" = ["/benutzername"]
+"/delete" = ["/löschen", "/loeschen"]
+"/delivery" = ["/zustellung"]
+"/today" = ["/heute", "/tag"]
+"/msg" = ["/senden"]
+"/run" = ["/ausführen", "/ausfuehren"]
+"/incoming" = ["/eingang"]
+"/onthisday" = ["/andiesemtag"]
+"/forecast" = ["/vorhersage"]
+"/remind" = ["/erinnern"]
+"/list" = ["/liste"]
+"/birthdays" = ["/geburtstage"]
+"/namedays" = ["/namenstage"]
+"/birthday" = ["/geburtstag"]
+"/nameday" = ["/namenstag"]
+"/language" = ["/sprache"]
+
+# Words for when a timer runs (/timer hinzufügen mo-fr 07:30 ...) or a
+# reminder is due (/erinnern 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
+[words]
+mon = ["mo"]
+tue = ["di"]
+wed = ["mi"]
+thu = ["do"]
+fri = ["fr"]
+sat = ["sa"]
+sun = ["so"]
+monday = ["montag"]
+tuesday = ["dienstag"]
+wednesday = ["mittwoch"]
+thursday = ["donnerstag"]
+friday = ["freitag"]
+saturday = ["samstag"]
+sunday = ["sonntag"]
+daily = ["täglich", "taeglich"]
+weekdays = ["werktags"]
+weekends = ["wochenenden", "wochenende"]
+today = ["heute"]
+tomorrow = ["morgen"]
+every = ["jede"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/liste hinzufügen Milch), each next to the English one it means. The first
+# is how /hilfe shows it.
+add = ["hinzufügen", "hinzufuegen"]
+remove = ["entfernen", "löschen", "loeschen"]
+list = ["liste"]
+clear = ["leeren"]
+run = ["ausführen", "ausfuehren"]
+all = ["alle"]
+preview = ["vorschau"]
+default = ["standard"]
+shortcuts = ["kürzel", "kuerzel"]

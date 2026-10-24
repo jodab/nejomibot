@@ -70,7 +70,7 @@ MAX_ZONE_SHIFT = timedelta(hours=14)  # the farthest any time zone is from UTC
 # show, which also sets how close the link is, about a metre or two
 OSM_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 OSM_ZOOM = 16
-REMOVE = "-"  # after /album <album>, or its shortcuts: none of its own
+REMOVE = "-"  # after /album <album>, or its or a special's shortcuts: none
 
 # /uniquephoto's pick and its marking as sent, one at a time, so two at once
 # don't pick the same photo

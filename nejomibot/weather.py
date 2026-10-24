@@ -45,7 +45,6 @@ from .config import get_settings
 from .i18n import (
     N_,
     _,
-    day_and_time,
     format_duration,
     languages,
     ngettext,
@@ -212,9 +211,7 @@ def sun_line(data: dict[str, Any]) -> str | None:
     )
 
 
-def format_weather(
-    data: dict[str, Any], city: str, now: datetime, units: str = "metric"
-) -> str:
+def format_weather(data: dict[str, Any], city: str, units: str = "metric") -> str:
     """Styled."""
     try:
         condition = data["weather"][0]
@@ -231,7 +228,6 @@ def format_weather(
     celsius = temp if units == "metric" else (temp - 32) * 5 / 9
     heading = _("Weather in {city}").format(city=city)
     lines = [
-        day_and_time(now),
         f"{condition_icon(code)} {description}",
         _("{icon} Temperature: {temperature}").format(
             icon=temperature_icon(celsius), temperature=f"{temp}{unit}"
@@ -427,9 +423,7 @@ async def weather_message(city: str = "") -> str:
     settings = get_settings()
     try:
         where, data = await fetch_weather(city)
-        return format_weather(
-            data, named(where, city), datetime.now(settings.tz), settings.weather_units
-        )
+        return format_weather(data, named(where, city), settings.weather_units)
     except Exception as e:
         return failed("The weather", city, e)
 

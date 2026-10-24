@@ -4,16 +4,18 @@
 # Usage: translations.sh [LANGUAGE]
 #
 # Collects the messages marked for translation in nejomibot/*.py (see
-# nejomibot/i18n.py) and merges them into each nejomibot/locale/*.po: a new
-# message comes in untranslated, a changed one marked fuzzy, and one that's
-# gone goes. Untranslated and fuzzy messages show in English until they're
-# translated, and the tests fail on them.
+# nejomibot/i18n.py) into nejomibot/locale/messages.pot, the template that
+# translation tools such as Poedit and Weblate start a language from, and
+# merges them into each nejomibot/locale/*.po: a new message comes in
+# untranslated, a changed one marked fuzzy, and one that's gone goes.
+# Untranslated and fuzzy messages show in English until they're translated,
+# and the tests fail on them.
 #
-# With LANGUAGE, such as de, it starts nejomibot/locale/LANGUAGE.po first, if
-# there's none. Its names for commands, and the words it reads in commands,
-# go in LANGUAGE.toml: copy sv.toml.
+# With LANGUAGE, a code such as de or pt_BR, it starts a new language first:
+# LANGUAGE.po from the template, and LANGUAGE.toml, for its names for the
+# commands and the words it reads in them, from template.toml.
 #
-# Needs GNU gettext: xgettext, msgmerge, msgattrib and msginit.
+# Needs GNU gettext: xgettext, msgmerge, msgattrib, msgfmt and msginit.
 
 set -euo pipefail
 
@@ -25,14 +27,30 @@ trap 'rm -f -- "$template"' EXIT
 xgettext --language=Python --from-code=UTF-8 \
   --keyword=_ --keyword=N_ --keyword=ngettext:1,2 \
   --add-location=file --sort-by-file --package-name=nejomibot \
-  --output="$template" nejomibot/*.py
+  --output=- nejomibot/*.py | {
+  # In place of xgettext's placeholder title and copyright lines
+  printf '%s\n' "# nejomibot's messages, the template for each language's .po:" \
+    "# tools/translations.sh writes it from the code."
+  tail -n +3
+} >"$template"
+# Only when the messages change, so its date alone changes nothing
+if ! diff -q -I '^"POT-Creation-Date: ' "$template" "$locale/messages.pot" >/dev/null 2>&1; then
+  cp --no-preserve=mode -- "$template" "$locale/messages.pot"
+fi
 
-if (($# > 0)) && [[ ! -f $locale/$1.po ]]; then
-  msginit --no-translator --locale="$1" --input="$template" --output-file="$locale/$1.po"
+if (($# > 0)); then
+  if [[ ! -f $locale/$1.po ]]; then
+    msginit --no-translator --locale="$1" --input="$locale/messages.pot" \
+      --output-file="$locale/$1.po"
+  fi
+  if [[ ! -f $locale/$1.toml ]]; then
+    cp -- "$locale/template.toml" "$locale/$1.toml"
+    echo "$locale/$1.toml: give the language's own name and its names"
+  fi
 fi
 
 for po in "$locale"/*.po; do
-  msgmerge --quiet --update --backup=none --add-location=file "$po" "$template"
+  msgmerge --quiet --update --backup=none --add-location=file "$po" "$locale/messages.pot"
   msgattrib --no-obsolete --output-file="$po" "$po" # what the code no longer has
   echo "$po: $(msgfmt --statistics --output-file=/dev/null "$po" 2>&1)"
 done

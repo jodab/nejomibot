@@ -9,7 +9,8 @@ FROM docker.io/library/python:3.14-slim@sha256:0514bc76712d64f8bb48adcb95b1ab0d8
 # tzdata lets TZ give local log timestamps; curl, jq and qrencode are for
 # signal-account.sh. On 32-bit ARM, where Pillow and pillow-heif have no
 # wheels, the libraries they're built against (the wheels bring their own).
-# The bot's user and group are 1001 both.
+# The bot's user and group are 1001 both. An interactive shell, as in podman
+# exec -it nejomibot bash, starts with a short guide (tools/nejomibot-help.sh).
 ARG TARGETARCH
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata curl jq qrencode \
@@ -19,7 +20,9 @@ RUN apt-get update \
     fi \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 1001 nejomibot \
-    && useradd --system --uid 1001 --gid 1001 --no-create-home nejomibot
+    && useradd --system --uid 1001 --gid 1001 --no-create-home nejomibot \
+    && echo 'if command -v nejomibot-help.sh >/dev/null; then nejomibot-help.sh; fi' \
+        >> /etc/bash.bashrc
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -62,9 +65,11 @@ RUN if [ "$TARGETARCH" = arm ]; then \
 # Dependencies first, so code changes don't reinstall them
 RUN uv sync --locked --no-dev --no-install-project
 COPY nejomibot/ nejomibot/
-# The compiled translations, without what they're compiled from
+# The compiled translations, without what they're compiled from, nor the
+# templates that new languages start from
 COPY --from=translations /app/locale/*.mo nejomibot/locale/
-RUN rm nejomibot/locale/*.po \
+RUN rm nejomibot/locale/*.po nejomibot/locale/messages.pot \
+        nejomibot/locale/template.toml \
     && uv sync --locked --no-dev --no-editable
 
 
@@ -84,13 +89,13 @@ RUN uv sync --locked \
 FROM base
 ARG VERSION=unknown
 LABEL org.opencontainers.image.title=nejomibot \
-      org.opencontainers.image.description="Signal bot that posts the weather and a photo of the day" \
+      org.opencontainers.image.description="A Signal bot for a family or a group of friends." \
       org.opencontainers.image.licenses=MIT \
       org.opencontainers.image.version=$VERSION
 # Owned by root: the bot can read its code, not change it
 COPY --from=build /app/.venv .venv
 COPY config.example.toml ./
-COPY tools/signal-account.sh tools/
+COPY tools/signal-account.sh tools/nejomibot-help.sh tools/
 
 # The photos go in /photos, which the bot only reads, and config.toml in
 # /data, where the bot keeps what it's told. By number, so a runtime can see

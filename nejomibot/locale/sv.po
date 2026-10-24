@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 12:25+0300\n"
+"POT-Creation-Date: 2026-10-24 15:20+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -310,31 +310,17 @@ msgstr ""
 msgid "✅ {album}: no birth date, so its captions show no age."
 msgstr "✅ {album}: inget födelsedatum, så bildtexterna visar ingen ålder."
 
-#: nejomibot/albums.py
-msgid "A shortcut can't have a | or a ;."
-msgstr "En genväg kan inte innehålla | eller ;."
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid "{name} is an alias in the config: take it out there first."
-msgstr "{name} är ett alias i konfigurationen: ta bort det där först."
-
-#: nejomibot/albums.py
+#: nejomibot/albums.py nejomibot/commands.py
 #, python-brace-format
 msgid "{name} is a shortcut for {album} already."
 msgstr "{name} är redan en genväg för {album}."
 
 #: nejomibot/albums.py nejomibot/specials.py
 #, python-brace-format
-msgid "{name} is a command already."
-msgstr "{name} är redan ett kommando."
-
-#: nejomibot/albums.py
-#, python-brace-format
 msgid "{album} has no shortcuts."
 msgstr "{album} har inga genvägar."
 
-#: nejomibot/albums.py
+#: nejomibot/albums.py nejomibot/specials.py
 #, python-brace-format
 msgid "✅ {album}: no shortcuts."
 msgstr "✅ {album}: inga genvägar."
@@ -561,10 +547,21 @@ msgid "/birthday remove <n>: remove one, by its number in /birthdays"
 msgstr "/födelsedag ta bort <n>: ta bort en, med dess nummer i /födelsedagar"
 
 #: nejomibot/birthdays.py
-msgid "/nameday add <date> [<chats>] <who>: a name day, as /birthday takes it"
+msgid "/nameday add <date> [<chats>] <who>: a name day, e.g."
+msgstr "/namnsdag lägg till <datum> [<chattar>] <vem>: en namnsdag, t.ex."
+
+#: nejomibot/birthdays.py
+msgid "/nameday add 08-08 Alice: a contact, where they are"
 msgstr ""
-"/namnsdag lägg till <datum> [<chattar>] <vem>: en namnsdag, som /födelsedag "
-"tar den"
+"/namnsdag lägg till 08-08 Alice: en kontakt, i grupperna kontakten är med i"
+
+#: nejomibot/birthdays.py
+msgid ""
+"/nameday add 08-08 1,2 Grandma: someone not on Signal, in chats 1 and 2 of /"
+"chats; without them, in every group"
+msgstr ""
+"/namnsdag lägg till 08-08 1,2 Mormor: någon som inte har Signal, i chatt 1 "
+"och 2 i /chats; utan dem, i alla grupper"
 
 #: nejomibot/birthdays.py
 msgid "/nameday remove <n>: remove one, by its number in /namedays"
@@ -640,6 +637,13 @@ msgstr "👥 I alla grupper: ingen kontakt heter {name}"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
+msgid ""
+"For some groups only, add it again with their numbers from /chats: {example}"
+msgstr ""
+"Bara i vissa grupper: lägg till den igen med deras nummer i /chats: {example}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
 msgid "Which? Give its number, as {command} shows."
 msgstr "Vilken? Ange dess nummer, som {command} visar."
 
@@ -657,6 +661,20 @@ msgstr "{n} finns inte längre: borttagen eller ändrad sedan dess."
 #, python-brace-format
 msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Borttaget: {what}"
+
+#: nejomibot/commands.py
+msgid "A shortcut can't have a | or a ;."
+msgstr "En genväg kan inte innehålla | eller ;."
+
+#: nejomibot/commands.py
+#, python-brace-format
+msgid "{name} is an alias in the config: take it out there first."
+msgstr "{name} är ett alias i konfigurationen: ta bort det där först."
+
+#: nejomibot/commands.py nejomibot/specials.py
+#, python-brace-format
+msgid "{name} is a command already."
+msgstr "{name} är redan ett kommando."
 
 #: nejomibot/commands.py
 msgid ""
@@ -1110,8 +1128,8 @@ msgid "how many photos, and how big"
 msgstr "hur många bilder, och hur stora"
 
 #: nejomibot/help.py
-msgid "the day's holidays and birthdays"
-msgstr "dagens helgdagar och födelsedagar"
+msgid "the date, and the day's holidays and birthdays"
+msgstr "datumet, och dagens helgdagar och födelsedagar"
 
 #: nejomibot/help.py
 msgid "[<city>]"
@@ -1338,6 +1356,14 @@ msgid "add <name> <parts>"
 msgstr "lägg till <namn> <delar>"
 
 #: nejomibot/help.py
+msgid "other names for one"
+msgstr "andra namn för ett"
+
+#: nejomibot/help.py
+msgid "shortcuts <name> <names>|-"
+msgstr "genvägar <namn> <andra namn>|-"
+
+#: nejomibot/help.py
 msgid "remove <name>"
 msgstr "ta bort <namn>"
 
@@ -1490,6 +1516,10 @@ msgstr "Admins, i alla chattar"
 #: nejomibot/help.py
 msgid "Commands"
 msgstr "Kommandon"
+
+#: nejomibot/help.py
+msgid "Commands start with . or /, whichever is easier to type."
+msgstr "Kommandon börjar med . eller /, det som är lättast att skriva."
 
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
@@ -2565,8 +2595,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/specials.py
-msgid "Give it a name: a word that starts with /, like /morning."
-msgstr "Ge det ett namn: ett ord som börjar med /, som /morgon."
+msgid "Give it a name: a word that starts with . or /, like /morning."
+msgstr "Ge det ett namn: ett ord som börjar med . eller /, som /morgon."
 
 #: nejomibot/specials.py
 msgid "A special can't have a |: the file of specials uses it."
@@ -2631,6 +2661,14 @@ msgid "Text keeps the formatting you give it in Signal, such as bold."
 msgstr "Texten behåller formateringen du ger den i Signal, som fetstil."
 
 #: nejomibot/specials.py
+msgid ""
+"/special shortcuts <name> <names>: other names for one, such as /special "
+"shortcuts /morning /gm; with -, none"
+msgstr ""
+"/special genvägar <namn> <andra namn>: andra namn för ett, som /special "
+"genvägar /morgon /gm; med -, inga"
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
 msgstr "/special ta bort <namn>: ta bort ett"
 
@@ -2683,6 +2721,16 @@ msgstr[1] ""
 #, python-brace-format
 msgid "Removed {name}"
 msgstr "Tog bort {name}"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "A special has at most {count} shortcuts."
+msgstr "Ett specialkommando har högst {count} genvägar."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Shortcuts for {name}: {shortcuts}."
+msgstr "✅ Genvägar för {name}: {shortcuts}."
 
 #: nejomibot/status.py
 #, python-brace-format
@@ -2951,8 +2999,8 @@ msgstr "{command} är inte ett kommando som boten känner till."
 
 #: nejomibot/timers.py
 #, python-brace-format
-msgid "Commands start with /, unlike {command}."
-msgstr "Kommandon börjar med /, till skillnad från {command}."
+msgid "Commands start with . or /, unlike {command}."
+msgstr "Kommandon börjar med . eller /, till skillnad från {command}."
 
 #: nejomibot/timers.py
 #, python-brace-format
@@ -2965,7 +3013,7 @@ msgstr "Vilka kommandon?"
 
 #: nejomibot/timers.py
 msgid "For /timer add, e.g. /timer add 08:00 1,2 /weather; /photo"
-msgstr "För /timer lägg till, t.ex. /timer lägg till 08:00 1,2 /dagenspost"
+msgstr "För /timer lägg till, t.ex. /timer lägg till 08:00 1,2 /väder; /bild"
 
 #: nejomibot/timers.py
 msgid "Timers can post to:"
@@ -3003,10 +3051,6 @@ msgstr "Ingen timer #{n}."
 #, python-brace-format
 msgid "▶️ Ran timer #{n}"
 msgstr "▶️ Körde timer #{n}"
-
-#: nejomibot/today.py
-msgid "Nothing special today."
-msgstr "Inget särskilt idag."
 
 #: nejomibot/today.py
 msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."

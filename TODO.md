@@ -75,6 +75,32 @@ they wait for the owner.
     shown as Boxing Day everywhere, St Stephen's Day included, as Greece's
     is.
 
+- [ ] **Choices made for the requests of 2026-10-24** where you didn't
+  specify, any of which can change:
+  - Commands may start with `.`, which the bot shows by default, but not
+    with `#`, which hashtags start: `#photo` in a group would post a photo.
+    `command_prefix = "/"` shows the `/` again; both work either way, and
+    the files keep the `/`. A `.` counts only before a letter, so `...` and
+    `.5` are no commands.
+  - The messages stay in English in the code, as gettext's msgids, rather
+    than as keys with an `en.po`: that is gettext's standard (Python,
+    Django and Qt work the same way), keeps the code readable, and shows
+    English for what isn't translated yet. What makes a language easy to
+    add instead: `messages.pot` and `template.toml` as templates,
+    `tools/translations.sh <code>` to start one, and tests that name no
+    language.
+  - The holidays of the countries other than Sweden and Greece stay in
+    English (your decision of 2026-10-19), now in nine languages: Germany's
+    German Unity Day, for one, shows in English to a German chat. Marking
+    every country's names for translation would add about 100 messages to
+    each language.
+  - Someone not on Signal, given again on the same day by the same name,
+    counts as the same person: their groups change. Two people of the same
+    name on the same day share one entry, whose groups are both of theirs.
+  - The examples run signal-cli-rest-api in `json-rpc` mode, as your server
+    does, which takes about 360 MB of memory on a Raspberry Pi 4, against
+    less for `json-rpc-native`.
+
 ### For you to do
 
 - [ ] **Holidays in `/today`** (2026-10-19): set `holidays = ["SE", "GR"]`
@@ -593,7 +619,20 @@ Login, and work with people who have no phone number.
   number, remains text.
 - [x] `/today` and `/day` say "Nothing special today." only when asked in a
   direct chat; in a group, and in what timers, specials and `/run` post,
-  they say nothing on a day with nothing special.
+  they say nothing on a day with nothing special. Later that day replaced:
+  they always post, the date and time first, in bold, and `/weather` no
+  longer shows them.
+- [x] Shortcuts for specials, `/special shortcuts /dailypost /dagenspost`,
+  as an album has.
+- [x] Danish, German, Spanish, Finnish, French and Norwegian, and the
+  templates that make a new language two files and no code.
+- [x] Commands may start with a `.`, which the bot shows by default.
+- [x] A birthday or name day of someone not on Signal, given again on the
+  same day, changes its groups; the reply says how to choose them.
+- [x] A shell in the container starts with a guide to the bot's tools.
+- [x] The README and Docker Hub page say that 32-bit ARM works, and the
+  examples run signal-cli-rest-api in `json-rpc` mode, as `json-rpc-native`
+  has had odd bugs.
 
 ### The day the images went to ghcr.io (done, 2026-10-18)
 

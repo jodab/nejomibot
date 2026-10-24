@@ -203,7 +203,7 @@ async def test_a_shortcut_cant_hide_a_name(
 ) -> None:
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic"]}')
     get_settings.cache_clear()
-    get_settings().data_file("specials.txt").write_text("/morning | Morning!\n")
+    get_settings().data_file("specials.txt").write_text("/morning /gm | Morning!\n")
     await send(Album(), "/album Bob and Carol shortcuts /bc")
     answers.clear()
     for text in (
@@ -213,6 +213,7 @@ async def test_a_shortcut_cant_hide_a_name(
         "/album Alice shortcuts /morning",
         "/album Alice shortcuts /pic",
         "/album Alice shortcuts /a /BC",
+        "/album Alice shortcuts /GM",  # the special's
         "/album Alice shortcuts a|b",
         "/album Alice shortcuts a b c d e f",
         "/album Alice shortcuts",
@@ -225,6 +226,7 @@ async def test_a_shortcut_cant_hide_a_name(
         "/morning is a command already.",
         "/pic is an alias in the config: take it out there first.",
         "/BC is a shortcut for Bob and Carol already.",
+        "/GM is a shortcut for /morning already.",
         "A shortcut can't have a \\| or a ;.",  # escaped, as the answer is styled
         "An album has at most 5 shortcuts.",
         album_usage(),

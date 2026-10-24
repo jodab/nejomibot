@@ -1,0 +1,80 @@
+# Danish names for the bot's commands, and the Danish words it reads in
+# commands, next to the English ones; da.po translates its messages. See
+# nejomibot/i18n.py.
+
+# The language's own name, as /sprog lists it
+name = "Dansk"
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /. The bot answers the English names too.
+[commands]
+"/photo" = ["/billede", "/foto"]
+"/uniquephoto" = ["/nytbillede"]
+"/weather" = ["/vejr"]
+"/info" = ["/tid"]
+"/fortune" = ["/spådom", "/spadom"]
+"/help" = ["/hjælp", "/hjaelp"]
+"/contacts" = ["/kontakter"]
+"/trust" = ["/bekræft", "/bekraeft"]
+"/allowed" = ["/tilladte"]
+"/allow" = ["/tillad"]
+"/disallow" = ["/afvis"]
+"/profile" = ["/profil"]
+"/name" = ["/navn"]
+"/about" = ["/om"]
+"/avatar" = ["/profilbillede"]
+"/username" = ["/brugernavn"]
+"/delete" = ["/slet"]
+"/delivery" = ["/levering"]
+"/today" = ["/idag", "/dagen"]
+"/msg" = ["/send"]
+"/run" = ["/kør", "/kor"]
+"/incoming" = ["/indbakke"]
+"/onthisday" = ["/dennedag"]
+"/forecast" = ["/prognose"]
+"/remind" = ["/påmind", "/pamind"]
+"/list" = ["/liste"]
+"/birthdays" = ["/fødselsdage", "/fodselsdage"]
+"/namedays" = ["/navnedage"]
+"/birthday" = ["/fødselsdag", "/fodselsdag"]
+"/nameday" = ["/navnedag"]
+"/language" = ["/sprog"]
+
+# Words for when a timer runs (/timer tilføj man-fre 07:30 ...) or a
+# reminder is due (/påmind om 30m ...), each next to the English one it
+# means. The first is how /timers shows it.
+[words]
+mon = ["man"]
+tue = ["tir"]
+wed = ["ons"]
+thu = ["tor"]
+fri = ["fre"]
+sat = ["lør"]
+sun = ["søn"]
+monday = ["mandag"]
+tuesday = ["tirsdag"]
+wednesday = ["onsdag"]
+thursday = ["torsdag"]
+friday = ["fredag"]
+saturday = ["lørdag"]
+sunday = ["søndag"]
+daily = ["dagligt"]
+weekdays = ["hverdage"]
+weekends = ["weekender", "weekend"]
+today = ["idag"]
+tomorrow = ["imorgen"]
+every = ["hver"]
+in = ["om"]
+
+# Words for what follows a command to say what it does, its subcommands
+# (/liste tilføj mælk), each next to the English one it means. The first
+# is how /hjælp shows it.
+add = ["tilføj"]
+remove = ["fjern", "slet"]
+list = ["liste"]
+clear = ["tøm"]
+run = ["kør"]
+all = ["alle"]
+preview = ["forhåndsvis"]
+default = ["standard"]
+shortcuts = ["genveje", "genvej"]

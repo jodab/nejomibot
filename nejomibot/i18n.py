@@ -18,10 +18,15 @@ Mark text with _() where it's used, ngettext() when it depends on a number,
 and N_() in a table made ahead of use, then _() it when used. Put values in
 with str.format, after translating: _("Weather in {city}").format(city=...).
 tools/translations.sh brings the .po files up to date with the code.
+
+Commands start with a / in the code, the translations and the bot's files.
+The bot shows them with the setting command_prefix, a . unless it's a /:
+_() shows those in its own messages so, and prefixed() those put in them.
 """
 
 import gettext
 import io
+import re
 import tomllib
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
@@ -39,6 +44,9 @@ from .files import KeptLines
 LOCALE_DIR = Path(__file__).parent / "locale"
 SOURCE_LANGUAGE = "en"  # the language the messages are written in
 SOURCE_NAME = "English"  # its own name
+# The / of a command in the bot's text: at the start of a word, before a
+# letter, as in /photo or (/pic), but not in 3/4, km/h or a path's a/b
+COMMAND_SLASH = re.compile(r"(?<![\w/.:}])/(?=[^\W\d_])")
 
 
 class Names(BaseModel):
@@ -148,12 +156,19 @@ def every_word(word: str) -> list[str]:
     ]
 
 
+def prefixed(text: str) -> str:
+    """The bot's text, or a command's name, its commands shown as the setting
+    command_prefix has them: /photo as .photo."""
+    prefix = get_settings().command_prefix
+    return text if prefix == "/" else COMMAND_SLASH.sub(prefix, text)
+
+
 def _(message: str) -> str:
-    return language().translations.gettext(message)
+    return prefixed(language().translations.gettext(message))
 
 
 def ngettext(singular: str, plural: str, n: int) -> str:
-    return language().translations.ngettext(singular, plural, n)
+    return prefixed(language().translations.ngettext(singular, plural, n))
 
 
 def N_(message: str) -> str:

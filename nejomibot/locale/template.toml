@@ -1,0 +1,99 @@
+# What a new language's <code>.toml starts from: its names for the bot's
+# commands, and its words that the bot reads in commands, next to the English
+# ones. tools/translations.sh <code> copies it to <code>.toml, beside the
+# <code>.po it starts for the bot's messages; the README's Languages section
+# has the steps. An empty list keeps the English name alone, which the bot
+# takes in every language anyway. See nejomibot/i18n.py.
+
+# The language's own name, as /language lists it, such as Svenska
+name = ""
+
+# Other names for each command, as aliases in the config: one word each,
+# starting with /, such as "/photo" = ["/bild", "/foto"]. The first is how
+# /help shows it. Leave a command's list empty where the language uses the
+# English name, or one close to it, such as /ping or /chats.
+[commands]
+"/photo" = []
+"/uniquephoto" = []
+"/albums" = []
+"/onthisday" = []
+"/cache" = []
+"/today" = []
+"/weather" = []
+"/forecast" = []
+"/info" = []
+"/ping" = []
+"/fortune" = []
+"/remind" = []
+"/list" = []
+"/birthdays" = []
+"/namedays" = []
+"/language" = []
+"/help" = []
+"/status" = []
+"/album" = []
+"/contacts" = []
+"/trust" = []
+"/allowed" = []
+"/allow" = []
+"/disallow" = []
+"/admins" = []
+"/admin" = []
+"/profile" = []
+"/name" = []
+"/about" = []
+"/avatar" = []
+"/username" = []
+"/timers" = []
+"/chats" = []
+"/timer" = []
+"/specials" = []
+"/special" = []
+"/msg" = []
+"/run" = []
+"/incoming" = []
+"/birthday" = []
+"/nameday" = []
+"/delete" = []
+"/delivery" = []
+
+# Words for when a timer runs (/timer add mon-fri 07:30 ...) or a reminder
+# is due (/remind in 30m ...), such as mon = ["mån"]. The first is how
+# /timers shows it.
+[words]
+mon = []
+tue = []
+wed = []
+thu = []
+fri = []
+sat = []
+sun = []
+monday = []
+tuesday = []
+wednesday = []
+thursday = []
+friday = []
+saturday = []
+sunday = []
+daily = []
+weekdays = []
+weekends = []
+weekend = []
+today = []
+tomorrow = []
+every = []
+in = []
+
+# Words for what follows a command to say what it does, its subcommands
+# (/list add milk), such as add = ["lägg till"]. The first is how /help shows
+# it. remove and delete mean the same.
+add = []
+remove = []
+delete = []
+list = []
+clear = []
+run = []
+all = []
+preview = []
+default = []
+shortcuts = []

@@ -1,10 +1,11 @@
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 from helpers import ALICE, ALICE_ID, GROUP, message_from
 from signalbot import DataMessageContext, SendMessage, SignalBot
 
-from nejomibot import birthdays
+from nejomibot import today
 from nejomibot.config import get_settings
 from nejomibot.messages import for_chat
 from nejomibot.timers import check_commands
@@ -12,6 +13,9 @@ from nejomibot.today import Today, TodayPreview, day_message, preview, preview_d
 
 ADMIN = "+46700000009"
 NATIONAL_DAY = "🇸🇪 National Day of Sweden · flag day"
+TZ = ZoneInfo("Europe/Stockholm")
+SATURDAY = datetime(2026, 6, 6, 8, 0, tzinfo=TZ)  # National Day of Sweden
+MONDAY = datetime(2026, 6, 8, 8, 0, tzinfo=TZ)  # nothing special
 
 
 async def test_today_names_the_day(
@@ -22,41 +26,38 @@ async def test_today_names_the_day(
     get_settings().data_file("birthdays.txt").write_text(
         f"birthday | 1990-06-06 | {ALICE_ID} {ALICE} | Alice\n"
     )
-    # In the group Alice is in, her birthday too; elsewhere, the day alone
-    post = await day_message(bot, day=date(2026, 6, 6))
-    assert post is not None
-    assert for_chat(post, GROUP).text == f"{NATIONAL_DAY}\n🎂 Alice turns 36 today!"
-    assert for_chat(post, ALICE).text == NATIONAL_DAY
-    # Or, asked in a direct chat, that there's nothing special
-    post = await day_message(bot, day=date(2026, 6, 8), asked=True)
-    assert post is not None
-    assert post.text == "Nothing special today."
+    # The date and the time in bold; then, in the group Alice is in, her
+    # birthday too; elsewhere, the day alone
+    post = await day_message(bot, SATURDAY)
+    heading = "📅 **Saturday 6 June** · 08:00"
+    assert for_chat(post, GROUP).text == (
+        f"{heading}\n{NATIONAL_DAY}\n🎂 Alice turns 36 today!"
+    )
+    assert for_chat(post, ALICE).text == f"{heading}\n{NATIONAL_DAY}"
 
 
-async def test_unasked_it_says_nothing_of_a_day_with_nothing(bot: SignalBot) -> None:
+async def test_a_day_with_nothing_special_is_the_date_alone(bot: SignalBot) -> None:
     get_settings().data_file("birthdays.txt").write_text(
         f"birthday | 1990-06-06 | {ALICE_ID} {ALICE} | Alice\n"
     )
-    # As in a group, or as a timer, a special or /run runs it: a chat with
-    # nothing special gets nothing, and with nothing anywhere, there's no
-    # message
-    assert await day_message(bot, day=date(2026, 6, 8)) is None
-    post = await day_message(bot, day=date(2026, 6, 6))
-    assert post is not None
-    assert for_chat(post, GROUP).text == "🎂 Alice turns 36 today!"
-    assert for_chat(post, ALICE).text == ""
+    post = await day_message(bot, MONDAY)
+    assert for_chat(post, GROUP).text == "📅 **Monday 8 June** · 08:00"
+    assert for_chat(post, ALICE).text == "📅 **Monday 8 June** · 08:00"
 
 
-async def test_a_group_hears_of_a_day_with_something_alone(
+async def test_every_chat_hears_it(
     bot: SignalBot, answers: list[SendMessage], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("NEJOMIBOT_HOLIDAYS", '["SE"]')
     get_settings.cache_clear()
-    context = DataMessageContext(bot, message_from(ADMIN, "/today", in_group=True))
-    for day in (date(2026, 6, 6), date(2026, 6, 8)):
-        monkeypatch.setattr(birthdays, "today", lambda day=day: day)
-        await Today().handle_data_message(context)
-    assert [answer.text for answer in answers] == [NATIONAL_DAY]
+    for at in (SATURDAY, MONDAY):
+        monkeypatch.setattr(today, "now", lambda at=at: at)
+        for in_group in (True, False):
+            message = message_from(ADMIN, "/today", in_group=in_group)
+            await Today().handle_data_message(DataMessageContext(bot, message))
+    saturday = f"📅 **Saturday 6 June** · 08:00\n{NATIONAL_DAY}"
+    monday = "📅 **Monday 8 June** · 08:00"
+    assert [answer.text for answer in answers] == [saturday, saturday, monday, monday]
 
 
 @pytest.mark.parametrize(
@@ -106,25 +107,24 @@ async def test_the_preview(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> N
 
 
 @pytest.mark.usefixtures("swedish")
-async def test_the_commands(bot: SignalBot, answers: list[SendMessage]) -> None:
-    async def send(text: str, *, in_group: bool = False) -> str:
-        """What the bot answers an admin's direct message, or the admin in
-        GROUP, as text: nothing, if it doesn't answer."""
+async def test_the_commands(
+    bot: SignalBot, answers: list[SendMessage], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def send(text: str) -> str:
+        """What the bot answers an admin's direct message, as text."""
         answers.clear()
-        message = message_from(ADMIN, text, in_group=in_group)
-        context = DataMessageContext(bot, message)
+        context = DataMessageContext(bot, message_from(ADMIN, text))
         for handler in (Today(), TodayPreview()):
             await handler.handle_data_message(context)
-        assert len(answers) <= 1
-        return "".join(answer.text or "" for answer in answers)
+        [answer] = answers
+        return answer.text or ""
 
-    # By their Swedish names, as an admin sends them; /day is /today too
-    assert await send("/idag") == "Inget särskilt idag."
-    assert await send("/dagen") == "Inget särskilt idag."
-    assert await send("/day") == "Inget särskilt idag."
-    # In a group, on a day with nothing special, nothing
-    assert await send("/idag", in_group=True) == ""
-    assert await send("/day", in_group=True) == ""
+    monkeypatch.setattr(today, "now", lambda: MONDAY)
+    # By their Swedish names, as an admin sends them; /day is /today too, in
+    # Swedish with the month capitalized, as always
+    assert await send("/idag") == "📅 **Måndag 8 Juni** · 08:00"
+    assert await send("/dagen") == "📅 **Måndag 8 Juni** · 08:00"
+    assert await send("/day") == "📅 **Måndag 8 Juni** · 08:00"
     assert (await send("/idag förhandsvisa imorgon")).startswith("**👁️ /idag på ")
     # The English word too
     assert (await send("/idag preview")).startswith("**👁️ /idag på ")

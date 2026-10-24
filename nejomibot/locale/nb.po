@@ -1,0 +1,3386 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nejomibot\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-24 15:20+0300\n"
+"Language-Team: Norwegian Bokmål\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: nejomibot/account.py
+msgid "today"
+msgstr "i dag"
+
+#: nejomibot/account.py
+msgid "yesterday"
+msgstr "i går"
+
+#: nejomibot/account.py
+msgid "primary"
+msgstr "primær"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "(seen {day})"
+msgstr "(sist sett {day})"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} contact"
+msgid_plural "{count} contacts"
+msgstr[0] "{count} kontakt"
+msgstr[1] "{count} kontakter"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} known recipient"
+msgid_plural "{count} known recipients"
+msgstr[0] "{count} kjent mottaker"
+msgstr[1] "{count} kjente mottakere"
+
+#: nejomibot/account.py nejomibot/status.py
+#, python-brace-format
+msgid "blocked: {who}"
+msgstr "blokkerte: {who}"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "Safety numbers: {trusted} trusted ({verified} verified)"
+msgstr "Sikkerhetsnumre: {trusted} godkjente ({verified} bekreftede)"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} untrusted"
+msgstr "{count} ikke godkjente"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "New or changed in the last week: {who}"
+msgstr "Nye eller endrede den siste uken: {who}"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} group (admin in {admin})"
+msgid_plural "{count} groups (admin in {admin})"
+msgstr[0] "{count} gruppe (administrator i {admin})"
+msgstr[1] "{count} grupper (administrator i {admin})"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} other member"
+msgid_plural "{count} other members"
+msgstr[0] "{count} annet medlem"
+msgstr[1] "{count} andre medlemmer"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} left"
+msgstr "{count} har forlatt"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "{count} pending invite"
+msgid_plural "{count} pending invites"
+msgstr[0] "{count} ventende invitasjon"
+msgstr[1] "{count} ventende invitasjoner"
+
+#: nejomibot/account.py
+#, python-brace-format
+msgid "Asking to join: {groups}"
+msgstr "Ber om å bli med: {groups}"
+
+#: nejomibot/admins.py
+msgid ""
+"/admin add <who> [<language>]: make someone an admin, by their number in /"
+"contacts, phone number, Signal ID or name, and send them a welcome; with a "
+"language, such as sv, the bot speaks it with them"
+msgstr ""
+"/admin legg til <hvem> [<språk>]: gjør noen til administrator, med nummeret "
+"i /kontakter, telefonnummer, Signal-ID eller navn, og send en "
+"velkomstmelding; med et språk, for eksempel nb, snakker boten det med "
+"vedkommende"
+
+#: nejomibot/admins.py
+msgid "/admin remove <n>: no longer, by their number in /admins"
+msgstr "/admin fjern <n>: ikke lenger, med nummeret i /admins"
+
+#: nejomibot/admins.py
+msgid "Only the admins in the config add and remove admins."
+msgstr ""
+"Bare administratorene i konfigurasjonen legger til og fjerner "
+"administratorer."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "Admins ({count}):"
+msgstr "Administratorer ({count}):"
+
+#: nejomibot/admins.py
+msgid "in the config"
+msgstr "i konfigurasjonen"
+
+#: nejomibot/admins.py
+msgid ""
+"/admin add <who> adds one, /admin remove <n> removes one; only the admins in "
+"the config can."
+msgstr ""
+"/admin legg til <hvem> legger til én, /admin fjern <n> fjerner én; det kan "
+"bare administratorene i konfigurasjonen."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{name} is a group: admins are people."
+msgstr "{name} er en gruppe: administratorer er personer."
+
+#: nejomibot/admins.py
+msgid "Welcome!"
+msgstr "Velkommen!"
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{admin} has made you an admin of this bot."
+msgstr "{admin} har gjort deg til administrator for denne boten."
+
+#: nejomibot/admins.py
+msgid "You're an admin of this bot now."
+msgstr "Du er nå administrator for denne boten."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid ""
+"Here, in a direct chat with the bot, you may use every command: {help} lists "
+"them all, with what each takes. A few to start with:"
+msgstr ""
+"Her, i en direkte chat med boten, kan du bruke alle kommandoer: {help} viser "
+"dem alle, med hva hver av dem tar. Noen å begynne med:"
+
+#: nejomibot/admins.py
+msgid "Thank you for helping look after the bot."
+msgstr "Takk for at du hjelper til med å ta vare på boten."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "A welcome went to them, in {language}."
+msgstr "En velkomstmelding ble sendt til vedkommende, på {language}."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "A welcome to them, in {language}, waits to be sent."
+msgstr ""
+"En velkomstmelding til vedkommende, på {language}, venter på å bli sendt."
+
+#: nejomibot/admins.py
+msgid "The welcome to them couldn't be sent."
+msgstr "Velkomstmeldingen til vedkommende kunne ikke sendes."
+
+#: nejomibot/admins.py nejomibot/allowed.py
+msgid "That's the bot itself."
+msgstr "Det er boten selv."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{name} is an admin in the config already."
+msgstr "{name} er allerede administrator i konfigurasjonen."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid ""
+"The bot doesn't know the Signal ID of {name} yet, by which admins are kept: "
+"once they've written to it, it does."
+msgstr ""
+"Boten kjenner ennå ikke Signal-ID-en til {name}, som administratorer lagres "
+"med: når vedkommende har skrevet til den, gjør den det."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{name} is an admin already."
+msgstr "{name} er allerede administrator."
+
+#: nejomibot/admins.py nejomibot/allowed.py
+#, python-brace-format
+msgid "The list is full: {count} at most."
+msgstr "Listen er full: høyst {count}."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "👑 {name} is an admin now, and may use every command."
+msgstr "👑 {name} er nå administrator og kan bruke alle kommandoer."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "The bot speaks {language} with them from now on."
+msgstr "Boten snakker {language} med vedkommende fra nå av."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "{who} is an admin in the config, which no command changes."
+msgstr "{who} er administrator i konfigurasjonen, noe ingen kommando endrer."
+
+#: nejomibot/admins.py
+#, python-brace-format
+msgid "🗑️ {name} is no longer an admin."
+msgstr "🗑️ {name} er ikke lenger administrator."
+
+#: nejomibot/admins.py
+msgid "They're on /allowed, so may still use the everyday commands."
+msgstr ""
+"Vedkommende står i /tillatte og kan fortsatt bruke hverdagskommandoene."
+
+#: nejomibot/albums.py nejomibot/status.py
+#, python-brace-format
+msgid "{count} photo"
+msgid_plural "{count} photos"
+msgstr[0] "{count} bilde"
+msgstr[1] "{count} bilder"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "📚 {count} album"
+msgid_plural "📚 {count} albums"
+msgstr[0] "📚 {count} album"
+msgstr[1] "📚 {count} album"
+
+#: nejomibot/albums.py
+msgid "📚 No albums: each folder in the photo library is one."
+msgstr "📚 Ingen album: hver mappe i bildearkivet er ett."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "📷 {count} photo in no album"
+msgid_plural "📷 {count} photos in no album"
+msgstr[0] "📷 {count} bilde uten album"
+msgstr[1] "📷 {count} bilder uten album"
+
+#: nejomibot/albums.py
+msgid ""
+"/album <album>: the album. /album <album> 2019-06-15: the birth date its "
+"captions count an age from; /album <album> -: none of its own. /album "
+"<album> shortcuts /alice alice: other names for /photo <album>; /album "
+"<album> shortcuts -: none. /albums lists the albums."
+msgstr ""
+"/album <album>: albumet. /album <album> 2019-06-15: fødselsdatoen "
+"bildetekstene regner en alder fra; /album <album> -: ingen egen. /album "
+"<album> snarveier /alice alice: andre navn for /bilde <album>; /album "
+"<album> snarveier -: ingen. /albums viser albumene."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "Born {day}"
+msgstr "Født {day}"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "Born {day}, as photos_birth_date has it"
+msgstr "Født {day}, ifølge photos_birth_date"
+
+#: nejomibot/albums.py
+msgid "No birth date, so its captions show no age"
+msgstr "Ingen fødselsdato, så bildetekstene viser ingen alder"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "Shortcuts: {shortcuts}"
+msgstr "Snarveier: {shortcuts}"
+
+#: nejomibot/albums.py
+msgid "No shortcuts"
+msgstr "Ingen snarveier"
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ {album}: born {day}, so its captions show the age."
+msgstr "✅ {album}: født {day}, så bildetekstene viser alderen."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{album} has no birth date of its own."
+msgstr "{album} har ingen egen fødselsdato."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid ""
+"✅ {album}: no birth date of its own, so photos_birth_date's, {day}, counts."
+msgstr ""
+"✅ {album}: ingen egen fødselsdato, så den i photos_birth_date, {day}, "
+"gjelder."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ {album}: no birth date, so its captions show no age."
+msgstr "✅ {album}: ingen fødselsdato, så bildetekstene viser ingen alder."
+
+#: nejomibot/albums.py nejomibot/commands.py
+#, python-brace-format
+msgid "{name} is a shortcut for {album} already."
+msgstr "{name} er allerede en snarvei for {album}."
+
+#: nejomibot/albums.py nejomibot/specials.py
+#, python-brace-format
+msgid "{album} has no shortcuts."
+msgstr "{album} har ingen snarveier."
+
+#: nejomibot/albums.py nejomibot/specials.py
+#, python-brace-format
+msgid "✅ {album}: no shortcuts."
+msgstr "✅ {album}: ingen snarveier."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "An album has at most {count} shortcuts."
+msgstr "Et album har høyst {count} snarveier."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "✅ Shortcuts for /photo {album}: {shortcuts}."
+msgstr "✅ Snarveier for /bilde {album}: {shortcuts}."
+
+#: nejomibot/albums.py
+#, python-brace-format
+msgid "{text} isn't a date, as 2019-06-15."
+msgstr "{text} er ikke en dato som 2019-06-15."
+
+#: nejomibot/allowed.py
+msgid ""
+"Send /allow and who: a phone number, Signal ID or group ID, the name of a "
+"group the bot is in, or someone in /contacts, by their number there or name."
+msgstr ""
+"Send /tillat og hvem: et telefonnummer, en Signal-ID eller gruppe-ID, navnet "
+"på en gruppe boten er med i, eller noen i /kontakter, med nummeret der eller "
+"navnet."
+
+#: nejomibot/allowed.py
+msgid ""
+"Send /disallow and who: their number in /allowed, phone number, Signal ID or "
+"group ID, or name."
+msgstr ""
+"Send /avvis og hvem: nummeret i /tillatte, telefonnummer, Signal-ID eller "
+"gruppe-ID, eller navn."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{who} is an admin, and may use every command: see /admins."
+msgstr "{who} er administrator og kan bruke alle kommandoer: se /admins."
+
+#: nejomibot/allowed.py
+msgid "(the bot isn't in it)"
+msgstr "(boten er ikke med i den)"
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "Who may use the everyday commands ({count}):"
+msgstr "Hvem som kan bruke hverdagskommandoene ({count}):"
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "The admins may use every command: {admins}"
+msgstr "Administratorene kan bruke alle kommandoer: {admins}"
+
+#: nejomibot/allowed.py
+msgid "/allow <who> adds one, /disallow <n> removes one."
+msgstr "/tillat <hvem> legger til noen, /avvis <n> fjerner noen."
+
+#: nejomibot/allowed.py nejomibot/contacts.py
+#, python-brace-format
+msgid "No phone number or ID for {name}."
+msgstr "Ikke noe telefonnummer eller ID for {name}."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "Nobody and no group is called {who}."
+msgstr "Ingen person og ingen gruppe heter {who}."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{who} could be any of {count}, give their ID: {ids}"
+msgstr "{who} kan være hvem som helst av {count}, oppgi ID-en: {ids}"
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{name} may use the everyday commands already."
+msgstr "{name} kan allerede bruke hverdagskommandoene."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "✅ {name} may use the everyday commands now."
+msgstr "✅ {name} kan nå bruke hverdagskommandoene."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "✅ Everyone in {name} may use the everyday commands there now."
+msgstr "✅ Alle i {name} kan nå bruke hverdagskommandoene der."
+
+#: nejomibot/allowed.py
+msgid "The bot isn't in the group: it answers there once added."
+msgstr "Boten er ikke med i gruppen: den svarer der når den er lagt til."
+
+#: nejomibot/allowed.py nejomibot/birthdays.py nejomibot/contacts.py
+#, python-brace-format
+msgid "There's no {n} in {command}."
+msgstr "Det finnes ingen {n} i {command}."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{who} isn't in {command}."
+msgstr "{who} er ikke i {command}."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "{who} could be any of {count} in {command}: give its number."
+msgstr "{who} kan være hvem som helst av {count} i {command}: oppgi nummeret."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "Timer {timers} still posts there: see /timers."
+msgid_plural "Timers {timers} still post there: see /timers."
+msgstr[0] "Timer {timers} poster fortsatt der: se /timers."
+msgstr[1] "Timerne {timers} poster fortsatt der: se /timers."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "🗑️ Nobody in {name} may use the everyday commands there now."
+msgstr "🗑️ Ingen i {name} kan nå bruke hverdagskommandoene der."
+
+#: nejomibot/allowed.py
+#, python-brace-format
+msgid "🗑️ {name} may no longer use the everyday commands."
+msgstr "🗑️ {name} kan ikke lenger bruke hverdagskommandoene."
+
+#: nejomibot/allowed.py
+msgid "They're an admin, so may still use them."
+msgstr "Vedkommende er administrator og kan derfor fortsatt bruke dem."
+
+#: nejomibot/backups.py
+msgid "off"
+msgstr "av"
+
+#: nejomibot/backups.py
+msgid "none yet"
+msgstr "ingen ennå"
+
+#: nejomibot/backups.py
+#, python-brace-format
+msgid "{count}, {newest} old"
+msgid_plural "{count}, the newest {newest} old, the oldest {oldest} old"
+msgstr[0] "{count}, {newest} gammel"
+msgstr[1] "{count}, den nyeste {newest} gammel, den eldste {oldest} gammel"
+
+#: nejomibot/backups.py
+msgid "last skipped: no changes"
+msgstr "siste hoppet over: ingen endringer"
+
+#: nejomibot/backups.py
+#, python-brace-format
+msgid "last failed: {error}"
+msgstr "siste mislyktes: {error}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🌸 Happy name day, {name}!"
+msgstr "🌸 Gratulerer med navnedagen, {name}!"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🎂 {name} turns {age} today!"
+msgstr "🎂 {name} fyller {age} i dag!"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🎂 Happy birthday, {name}!"
+msgstr "🎂 Gratulerer med dagen, {name}!"
+
+#: nejomibot/birthdays.py
+msgid "every group"
+msgstr "alle grupper"
+
+#: nejomibot/birthdays.py
+msgid "No birthdays here."
+msgstr "Ingen bursdager her."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🎂 {count} birthday"
+msgid_plural "🎂 {count} birthdays"
+msgstr[0] "🎂 {count} bursdag"
+msgstr[1] "🎂 {count} bursdager"
+
+#: nejomibot/birthdays.py
+msgid "No name days here."
+msgstr "Ingen navnedager her."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🌸 {count} name day"
+msgid_plural "🌸 {count} name days"
+msgstr[0] "🌸 {count} navnedag"
+msgstr[1] "🌸 {count} navnedager"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "(turns {age})"
+msgstr "(fyller {age})"
+
+#: nejomibot/birthdays.py
+msgid "Birthdays and name days show in groups, for those in them."
+msgstr "Bursdager og navnedager vises i grupper, for dem som er med i dem."
+
+#: nejomibot/birthdays.py
+msgid "/birthday add <date> [<chats>] <who>: a birthday, e.g."
+msgstr "/bursdag legg til <dato> [<chatter>] <hvem>: en bursdag, for eksempel"
+
+#: nejomibot/birthdays.py
+msgid "/birthday add 1990-03-14 Alice: a contact, where they are"
+msgstr ""
+"/bursdag legg til 1990-03-14 Alice: en kontakt, i gruppene kontakten er med i"
+
+#: nejomibot/birthdays.py
+msgid ""
+"/birthday add 03-14 1,2 Grandma: someone not on Signal, in chats 1 and 2 of /"
+"chats; without them, in every group"
+msgstr ""
+"/bursdag legg til 03-14 1,2 Mormor: noen som ikke er på Signal, i chat 1 og "
+"2 i /chats; uten dem, i alle grupper"
+
+#: nejomibot/birthdays.py
+msgid "/birthday remove <n>: remove one, by its number in /birthdays"
+msgstr "/bursdag fjern <n>: fjern én, med nummeret i /bursdager"
+
+#: nejomibot/birthdays.py
+msgid "/nameday add <date> [<chats>] <who>: a name day, e.g."
+msgstr ""
+"/navnedag legg til <dato> [<chatter>] <hvem>: en navnedag, for eksempel"
+
+#: nejomibot/birthdays.py
+msgid "/nameday add 08-08 Alice: a contact, where they are"
+msgstr ""
+"/navnedag legg til 08-08 Alice: en kontakt, i gruppene kontakten er med i"
+
+#: nejomibot/birthdays.py
+msgid ""
+"/nameday add 08-08 1,2 Grandma: someone not on Signal, in chats 1 and 2 of /"
+"chats; without them, in every group"
+msgstr ""
+"/navnedag legg til 08-08 1,2 Mormor: noen som ikke er på Signal, i chat 1 og "
+"2 i /chats; uten dem, i alle grupper"
+
+#: nejomibot/birthdays.py
+msgid "/nameday remove <n>: remove one, by its number in /namedays"
+msgstr "/navnedag fjern <n>: fjern én, med nummeret i /navnedager"
+
+#: nejomibot/birthdays.py nejomibot/contacts.py
+#, python-brace-format
+msgid "Nobody called {who} in /contacts."
+msgstr "Ingen heter {who} i /kontakter."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid ""
+"Save {who} as a contact first, by the name to show: /contacts add {who} "
+"<name>"
+msgstr ""
+"Lagre {who} som kontakt først, med navnet som skal vises: /kontakter legg "
+"til {who} <navn>"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{text} isn't a day: give it as 1990-03-14, or 03-14."
+msgstr "{text} er ikke en dag: oppgi den som 1990-03-14 eller 03-14."
+
+#: nejomibot/birthdays.py
+msgid "A name day has no year: give it as 08-08."
+msgstr "En navnedag har ikke noe år: oppgi den som 08-08."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{day} is still to come."
+msgstr "{day} har ikke kommet ennå."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "A name has at most {count} characters."
+msgstr "Et navn har høyst {count} tegn."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{name} is no group: they show in groups only."
+msgstr ""
+"{name} er ikke en gruppe: bursdager og navnedager vises bare i grupper."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{name} is there already, on that day."
+msgstr "{name} er der allerede, på den dagen."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "There are {count} birthdays and name days already: remove one first."
+msgstr "Det finnes allerede {count} bursdager og navnedager: fjern én først."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "✅ Added: {day} · {name}"
+msgstr "✅ Lagt til: {day} · {name}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "✅ Changed: {day} · {name}"
+msgstr "✅ Endret: {day} · {name}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "👥 In the groups {name} is in"
+msgstr "👥 I gruppene {name} er med i"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "👥 In every group: no contact is called {name}"
+msgstr "👥 I alle grupper: ingen kontakt heter {name}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid ""
+"For some groups only, add it again with their numbers from /chats: {example}"
+msgstr ""
+"Bare i noen grupper: legg den til igjen med numrene deres i /chats: {example}"
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "Which? Give its number, as {command} shows."
+msgstr "Hvilken? Oppgi nummeret, slik {command} viser det."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "Which ones? Send {command} first, for their numbers."
+msgstr "Hvilke? Send {command} først for å se numrene."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "{n} is gone already: removed or changed since."
+msgstr "{n} finnes ikke lenger: fjernet eller endret siden."
+
+#: nejomibot/birthdays.py
+#, python-brace-format
+msgid "🗑️ Removed: {what}"
+msgstr "🗑️ Fjernet: {what}"
+
+#: nejomibot/commands.py
+msgid "A shortcut can't have a | or a ;."
+msgstr "En snarvei kan ikke inneholde | eller ;."
+
+#: nejomibot/commands.py
+#, python-brace-format
+msgid "{name} is an alias in the config: take it out there first."
+msgstr "{name} er et alias i konfigurasjonen: fjern det der først."
+
+#: nejomibot/commands.py nejomibot/specials.py
+#, python-brace-format
+msgid "{name} is a command already."
+msgstr "{name} er allerede en kommando."
+
+#: nejomibot/commands.py
+msgid ""
+"✏️ That edit isn't run: the bot has started again since the message it edits, "
+"so it can't tell what that did. Send it as a new message instead."
+msgstr ""
+"✏️ Den redigeringen kjøres ikke: boten har startet på nytt siden meldingen "
+"den redigerer, så den kan ikke vite hva den gjorde. Send den som en ny "
+"melding i stedet."
+
+#: nejomibot/commands.py
+msgid ""
+"✏️ That edit isn't run: undoing what the message it edits did failed. Send it "
+"as a new message instead."
+msgstr ""
+"✏️ Den redigeringen kjøres ikke: det mislyktes å angre det meldingen den "
+"redigerer gjorde. Send den som en ny melding i stedet."
+
+#: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
+"a new message instead."
+msgstr ""
+"✏️ En redigering av {command} kjøres ikke, siden det den gjorde ikke kan "
+"angres. Send den som en ny melding i stedet."
+
+#: nejomibot/contacts.py
+msgid ""
+"Send: /contacts add <number in /contacts, phone number, u:username, ID or "
+"name> <their name>"
+msgstr ""
+"Send: /kontakter legg til <nummer i /kontakter, telefonnummer, u:brukernavn, "
+"ID eller navn> <navnet deres>"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ""
+"To verify a safety number, compare it with the one on their phone, then "
+"send: {command} <who> <safety number>, all 60 digits"
+msgstr ""
+"For å bekrefte et sikkerhetsnummer, sammenlign det med det på telefonen til "
+"vedkommende, og send deretter: {command} <hvem> <sikkerhetsnummer>, alle 60 "
+"sifrene"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ""
+"To verify it, compare it with the one on their phone, then send: {command} "
+"{who} <safety number>"
+msgstr ""
+"For å bekrefte det, sammenlign det med det på telefonen til vedkommende, og "
+"send deretter: {command} {who} <sikkerhetsnummer>"
+
+#: nejomibot/contacts.py nejomibot/health.py nejomibot/status.py
+msgid "unknown"
+msgstr "ukjent"
+
+#: nejomibot/contacts.py
+msgid "No safety number yet"
+msgstr "Ikke noe sikkerhetsnummer ennå"
+
+#: nejomibot/contacts.py
+msgid "✅ Verified"
+msgstr "✅ Bekreftet"
+
+#: nejomibot/contacts.py
+msgid "❌ Untrusted: safety number changed"
+msgstr "❌ Ikke godkjent: sikkerhetsnummeret er endret"
+
+#: nejomibot/contacts.py
+msgid "⚪ Not verified"
+msgstr "⚪ Ikke bekreftet"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ", key from {day}"
+msgstr ", nøkkel fra {day}"
+
+#: nejomibot/contacts.py
+msgid "phone number not shared"
+msgstr "telefonnummeret deles ikke"
+
+#: nejomibot/contacts.py
+msgid "🚫 blocked"
+msgstr "🚫 blokkert"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "Profile name: {name}"
+msgstr "Profilnavn: {name}"
+
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "Username: {username}"
+msgstr "Brukernavn: {username}"
+
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "Number: {number}"
+msgstr "Nummer: {number}"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "In {groups}"
+msgstr "I {groups}"
+
+#: nejomibot/contacts.py
+msgid "Contacts"
+msgstr "Kontakter"
+
+#: nejomibot/contacts.py
+msgid "Other known recipients"
+msgstr "Andre kjente mottakere"
+
+#: nejomibot/contacts.py
+msgid "Only a safety number"
+msgstr "Bare et sikkerhetsnummer"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "{count} safety number: {verified} verified, {untrusted} untrusted."
+msgid_plural ""
+"{count} safety numbers: {verified} verified, {untrusted} untrusted."
+msgstr[0] ""
+"{count} sikkerhetsnummer: {verified} bekreftede, {untrusted} ikke godkjente."
+msgstr[1] ""
+"{count} sikkerhetsnumre: {verified} bekreftede, {untrusted} ikke godkjente."
+
+#: nejomibot/contacts.py
+msgid ""
+"/contacts <n> shows one in full; /trust lists the safety numbers, to compare "
+"with their phones."
+msgstr ""
+"/kontakter <n> viser én i sin helhet; /bekreft viser sikkerhetsnumrene, for "
+"å sammenligne med telefonene deres."
+
+#: nejomibot/contacts.py
+msgid "Who the bot knows"
+msgstr "Hvem boten kjenner"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ""
+"To verify one, compare it with the one on their phone, then send: {command} "
+"<n> <safety number>"
+msgstr ""
+"For å bekrefte ett, sammenlign det med det på telefonen til vedkommende, og "
+"send deretter: {command} <n> <sikkerhetsnummer>"
+
+#: nejomibot/contacts.py nejomibot/status.py
+msgid "Safety numbers"
+msgstr "Sikkerhetsnumre"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "Which one? Send {command} first, for their numbers."
+msgstr "Hvilken? Send {command} først for å se numrene."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "{who} could be any of {count}, use their ID: {ids}"
+msgstr "{who} kan være hvem som helst av {count}, bruk ID-en: {ids}"
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "No safety number for {name} yet."
+msgstr "Ikke noe sikkerhetsnummer for {name} ennå."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid ""
+"❌ That isn't the safety number for {name}, so it's not verified. If theirs "
+"really is different, they may have reinstalled Signal, or it may not be them."
+msgstr ""
+"❌ Det er ikke sikkerhetsnummeret til {name}, så det bekreftes ikke. Hvis "
+"deres virkelig er et annet, kan de ha installert Signal på nytt, eller så er "
+"det ikke dem."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "✅ {name} is already verified."
+msgstr "✅ {name} er allerede bekreftet."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "✅ {name} verified."
+msgstr "✅ {name} bekreftet."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "📇 Added {was} to the contacts, as {name}."
+msgstr "📇 La til {was} i kontaktene, som {name}."
+
+#: nejomibot/contacts.py
+#, python-brace-format
+msgid "✏️ Renamed {was} to {name} in the contacts."
+msgstr "✏️ {was} heter nå {name} i kontaktene."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "Nothing left to delete here since the bot started, at {time}."
+msgstr "Ingenting igjen å slette her siden boten startet, kl. {time}."
+
+#: nejomibot/delete.py
+msgid ""
+"Nothing left to delete here from the last day: Signal only deletes messages "
+"for everyone within a day."
+msgstr ""
+"Ingenting igjen å slette her fra det siste døgnet: Signal sletter bare "
+"meldinger for alle innen et døgn."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "No messages sent since the bot started, at {time}."
+msgstr "Ingen meldinger sendt siden boten startet, kl. {time}."
+
+#: nejomibot/delete.py
+msgid ""
+"The bot has sent no messages in the last 24 hours, and Signal only deletes "
+"messages for everyone within 24 hours."
+msgstr ""
+"Boten har ikke sendt noen meldinger de siste 24 timene, og Signal sletter "
+"bare meldinger for alle innen 24 timer."
+
+#: nejomibot/delete.py
+msgid "The bot's latest messages, newest first:"
+msgstr "Botens siste meldinger, nyeste først:"
+
+#: nejomibot/delete.py
+msgid "/delete <n> deletes one for everyone; /delete 2,5,11 several."
+msgstr "/slett <n> sletter én for alle; /slett 2,5,11 flere."
+
+#: nejomibot/delete.py
+msgid "Which ones? Send /delete list first, for their numbers."
+msgstr "Hvilke? Send /slett liste først for å se numrene."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "There's no message {n}: /delete list numbers them."
+msgstr "Det finnes ingen melding {n}: /slett liste nummererer dem."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "Message {n} is gone already: deleted, or too old for Signal to delete."
+msgstr ""
+"Melding {n} er allerede borte: slettet, eller for gammel til at Signal kan "
+"slette den."
+
+#: nejomibot/delete.py
+#, python-brace-format
+msgid "Not tried after that: {numbers}"
+msgstr "Ikke forsøkt etter det: {numbers}"
+
+#: nejomibot/delete.py
+msgid "Deleted"
+msgstr "Slettet"
+
+#: nejomibot/delete.py
+msgid "/delete: delete the bot's latest message here, for everyone"
+msgstr "/slett: slett botens siste melding her, for alle"
+
+#: nejomibot/delete.py
+msgid "/delete list: its latest messages, wherever it sent them"
+msgstr "/slett liste: botens siste meldinger, uansett hvor den sendte dem"
+
+#: nejomibot/delete.py
+msgid "/delete <n>: delete one of those for everyone; /delete 2,5,11 several"
+msgstr "/slett <n>: slett én av dem for alle; /slett 2,5,11 flere"
+
+#: nejomibot/delivery.py
+msgid "No messages sent in the last 24 hours."
+msgstr "Ingen meldinger sendt de siste 24 timene."
+
+#: nejomibot/delivery.py
+#, python-brace-format
+msgid ""
+"📬 delivered, of those in the chat · 👀 read · ⏳ none yet · ⚠️ none within "
+"{minutes} minutes"
+msgstr ""
+"📬 levert, av dem i chatten · 👀 lest · ⏳ ingen ennå · ⚠️ ingen innen "
+"{minutes} minutter"
+
+#: nejomibot/delivery.py
+msgid ""
+"⚠️ Delivery receipts are not being received at the moment: the counts may be "
+"behind."
+msgstr ""
+"⚠️ Leveringskvitteringer mottas ikke for øyeblikket: tallene kan ligge etter."
+
+#: nejomibot/delivery.py
+msgid "Delivery of the bot's latest messages, newest first:"
+msgstr "Levering av botens siste meldinger, nyeste først:"
+
+#: nejomibot/fortune.py
+msgid "Fortune libraries:"
+msgstr "Spådomssamlinger:"
+
+#: nejomibot/fortune.py
+msgid "No fortunes found."
+msgstr "Fant ingen spådommer."
+
+#: nejomibot/fortune.py
+msgid "Unknown fortune library. Use /fortune list to see the names."
+msgstr "Ukjent spådomssamling. Send /spådom liste for å se navnene."
+
+#: nejomibot/greeting.py
+msgid "Hi, I'm a bot."
+msgstr "Hei, jeg er en bot."
+
+#: nejomibot/greeting.py
+#, python-brace-format
+msgid "Hi, I'm {name}, a bot."
+msgstr "Hei, jeg er {name}, en bot."
+
+#: nejomibot/greeting.py
+#, python-brace-format
+msgid "Try {help} for a list of commands."
+msgstr "Prøv {help} for en liste over kommandoer."
+
+#: nejomibot/greeting.py
+#, python-brace-format
+msgid "Contact {admin} for more information."
+msgstr "Kontakt {admin} for mer informasjon."
+
+#: nejomibot/greeting.py
+msgid "Contact the bot's admin for more information."
+msgstr "Kontakt botens administrator for mer informasjon."
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{detail}, in {seconds} s"
+msgstr "{detail}, på {seconds} s"
+
+#: nejomibot/health.py
+msgid "timed out"
+msgstr "svarte ikke i tide"
+
+#: nejomibot/health.py nejomibot/status.py
+msgid "Bot"
+msgstr "Bot"
+
+#: nejomibot/health.py
+msgid "starting: waiting for signal-cli-rest-api and the account"
+msgstr "starter: venter på signal-cli-rest-api og kontoen"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{count} message queued, the oldest for {duration}"
+msgid_plural "{count} messages queued, the oldest for {duration}"
+msgstr[0] "{count} melding i kø, i {duration}"
+msgstr[1] "{count} meldinger i kø, den eldste i {duration}"
+
+#: nejomibot/health.py
+msgid ""
+"rate-limited by Signal: run signal-account.sh rate-limit to lift the limit"
+msgstr ""
+"begrenset av Signal: kjør signal-account.sh rate-limit for å oppheve "
+"begrensningen"
+
+#: nejomibot/health.py
+msgid "running"
+msgstr "kjører"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "version {version} in {mode} mode, not json-rpc"
+msgstr "versjon {version} i modusen {mode}, ikke json-rpc"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "version {version} is not supported: a later version is required"
+msgstr "versjon {version} støttes ikke: en nyere versjon kreves"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "version {version}"
+msgstr "versjon {version}"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "the account has {count} device"
+msgid_plural "the account has {count} devices"
+msgstr[0] "kontoen har {count} enhet"
+msgstr[1] "kontoen har {count} enheter"
+
+#: nejomibot/health.py
+msgid "Signal"
+msgstr "Signal"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "signal-cli-rest-api {version}, {mode} mode"
+msgstr "signal-cli-rest-api {version}, modusen {mode}"
+
+#: nejomibot/health.py
+msgid "signal-cli-rest-api: no answer"
+msgstr "signal-cli-rest-api: ikke noe svar"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "Up {duration}, since {time}"
+msgstr "Kjørt i {duration}, siden {time}"
+
+#: nejomibot/health.py
+msgid "Bot memory"
+msgstr "Botens minne"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "{used} of {limit} limit"
+msgstr "{used} av grensen på {limit}"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid "(peak {peak})"
+msgstr "(topp {peak})"
+
+#: nejomibot/health.py nejomibot/status.py
+msgid "Backups"
+msgstr "Sikkerhetskopier"
+
+#: nejomibot/help.py
+msgid "[<album>]"
+msgstr "[<album>]"
+
+#: nejomibot/help.py
+msgid "a random photo"
+msgstr "et tilfeldig bilde"
+
+#: nejomibot/help.py
+msgid "one from then: 2017, 2017-05 or 2017-05-14 15:30"
+msgstr "et fra den gangen: 2017, 2017-05 eller 2017-05-14 15:30"
+
+#: nejomibot/help.py
+msgid "[<album>] <date>"
+msgstr "[<album>] <dato>"
+
+#: nejomibot/help.py
+msgid "a photo not sent yet"
+msgstr "et bilde som ikke er sendt ennå"
+
+#: nejomibot/help.py
+msgid "the albums"
+msgstr "albumene"
+
+#: nejomibot/help.py
+msgid "a photo from this day, years ago"
+msgstr "et bilde fra denne dagen, for år siden"
+
+#: nejomibot/help.py
+msgid "how many photos, and how big"
+msgstr "hvor mange bilder, og hvor store"
+
+#: nejomibot/help.py
+msgid "the date, and the day's holidays and birthdays"
+msgstr "datoen, og dagens helligdager og bursdager"
+
+#: nejomibot/help.py
+msgid "[<city>]"
+msgstr "[<sted>]"
+
+#: nejomibot/help.py
+msgid "the weather now"
+msgstr "været nå"
+
+#: nejomibot/help.py
+msgid "the weather today and tomorrow"
+msgstr "været i dag og i morgen"
+
+#: nejomibot/help.py
+msgid "the time, and an exchange rate"
+msgstr "klokka, og en valutakurs"
+
+#: nejomibot/help.py
+msgid "is the bot there?"
+msgstr "er boten der?"
+
+#: nejomibot/help.py
+msgid "[<library>|all|list]"
+msgstr "[<samling>|alle|liste]"
+
+#: nejomibot/help.py
+msgid "a fortune"
+msgstr "en spådom"
+
+#: nejomibot/help.py
+msgid "<when> <text>"
+msgstr "<når> <tekst>"
+
+#: nejomibot/help.py
+msgid "a reminder, here"
+msgstr "en påminnelse, her"
+
+#: nejomibot/help.py
+msgid "[remove <n>]"
+msgstr "[fjern <n>]"
+
+#: nejomibot/help.py
+msgid "the reminders here; remove one"
+msgstr "påminnelsene her; fjern én"
+
+#: nejomibot/help.py
+msgid "[add <things> · remove <n>,…]"
+msgstr "[legg til <ting> · fjern <n>,…]"
+
+#: nejomibot/help.py
+msgid "this chat's list"
+msgstr "denne chattens liste"
+
+#: nejomibot/help.py
+msgid "the birthdays, the coming ones first"
+msgstr "bursdagene, de nærmeste først"
+
+#: nejomibot/help.py
+msgid "the name days, the coming ones first"
+msgstr "navnedagene, de nærmeste først"
+
+#: nejomibot/help.py
+msgid "[<language>]"
+msgstr "[<språk>]"
+
+#: nejomibot/help.py
+msgid "the bot's languages; one for here"
+msgstr "botens språk; ett for her"
+
+#: nejomibot/help.py
+msgid "these commands"
+msgstr "disse kommandoene"
+
+#: nejomibot/help.py
+msgid "how the bot and the server are"
+msgstr "hvordan boten og serveren har det"
+
+#: nejomibot/help.py
+msgid "what /today says, in each chat"
+msgstr "hva /idag sier, i hver chat"
+
+#: nejomibot/help.py
+msgid "[<date>]"
+msgstr "[<dato>]"
+
+#: nejomibot/help.py
+msgid "an album, and the birth date for its ages"
+msgstr "et album, og fødselsdatoen for alderen"
+
+#: nejomibot/help.py
+msgid "<album> [<date>|-]"
+msgstr "<album> [<dato>|-]"
+
+#: nejomibot/help.py
+msgid "other names for /photo <album>"
+msgstr "andre navn for /bilde <album>"
+
+#: nejomibot/help.py
+msgid "<album> shortcuts <names>|-"
+msgstr "<album> snarveier <navn>|-"
+
+#: nejomibot/help.py
+msgid "[<who>]"
+msgstr "[<hvem>]"
+
+#: nejomibot/help.py
+msgid "who the bot knows"
+msgstr "hvem boten kjenner"
+
+#: nejomibot/help.py
+msgid "add <who> <name>"
+msgstr "legg til <hvem> <navn>"
+
+#: nejomibot/help.py
+msgid "add a contact, or rename"
+msgstr "legg til en kontakt, eller gi nytt navn"
+
+#: nejomibot/help.py
+msgid "the safety numbers, or one's"
+msgstr "sikkerhetsnumrene, eller ett av dem"
+
+#: nejomibot/help.py
+msgid "<who> <safety number>"
+msgstr "<hvem> <sikkerhetsnummer>"
+
+#: nejomibot/help.py
+msgid "mark as verified"
+msgstr "merk som bekreftet"
+
+#: nejomibot/help.py
+msgid "who may use the bot"
+msgstr "hvem som kan bruke boten"
+
+#: nejomibot/help.py
+msgid "<who>"
+msgstr "<hvem>"
+
+#: nejomibot/help.py
+msgid "put someone, or a group, on that list"
+msgstr "sett noen, eller en gruppe, på listen"
+
+#: nejomibot/help.py
+msgid "<n>"
+msgstr "<n>"
+
+#: nejomibot/help.py
+msgid "take someone off it"
+msgstr "fjern noen fra listen"
+
+#: nejomibot/help.py
+msgid "who the admins are"
+msgstr "hvem administratorene er"
+
+#: nejomibot/help.py
+msgid "make someone an admin, or no longer"
+msgstr "gjør noen til administrator, eller ikke lenger"
+
+#: nejomibot/help.py
+msgid "add <who> [<language>] · remove <n>"
+msgstr "legg til <hvem> [<språk>] · fjern <n>"
+
+#: nejomibot/help.py
+msgid "the bot's profile"
+msgstr "botens profil"
+
+#: nejomibot/help.py
+msgid "<name>"
+msgstr "<navn>"
+
+#: nejomibot/help.py
+msgid "its name"
+msgstr "navnet dens"
+
+#: nejomibot/help.py
+msgid "<text>"
+msgstr "<tekst>"
+
+#: nejomibot/help.py
+msgid "its About text"
+msgstr "Om-teksten dens"
+
+#: nejomibot/help.py
+msgid "its picture: send one with this as its caption"
+msgstr "bildet dens: send et med dette som bildetekst"
+
+#: nejomibot/help.py
+msgid "its username, and a link"
+msgstr "brukernavnet dens, og en lenke"
+
+#: nejomibot/help.py
+msgid "what it runs on a schedule"
+msgstr "det den kjører etter en tidsplan"
+
+#: nejomibot/help.py
+msgid "where timers can post"
+msgstr "hvor timere kan poste"
+
+#: nejomibot/help.py
+msgid "a new timer"
+msgstr "en ny timer"
+
+#: nejomibot/help.py
+msgid "add <when> [<chats>] <commands>"
+msgstr "legg til <når> [<chatter>] <kommandoer>"
+
+#: nejomibot/help.py
+msgid "remove <n> · run <n>"
+msgstr "fjern <n> · kjør <n>"
+
+#: nejomibot/help.py
+msgid "remove one, or run it now"
+msgstr "fjern én, eller kjør den nå"
+
+#: nejomibot/help.py
+msgid "commands of your own"
+msgstr "egne kommandoer"
+
+#: nejomibot/help.py
+msgid "a new one, or a change"
+msgstr "en ny, eller en endring"
+
+#: nejomibot/help.py
+msgid "add <name> <parts>"
+msgstr "legg til <navn> <deler>"
+
+#: nejomibot/help.py
+msgid "other names for one"
+msgstr "andre navn for én"
+
+#: nejomibot/help.py
+msgid "shortcuts <name> <names>|-"
+msgstr "snarveier <navn> <navn>|-"
+
+#: nejomibot/help.py
+msgid "remove <name>"
+msgstr "fjern <navn>"
+
+#: nejomibot/help.py
+msgid "remove one"
+msgstr "fjern én"
+
+#: nejomibot/help.py
+msgid "<chats> <text>"
+msgstr "<chatter> <tekst>"
+
+#: nejomibot/help.py
+msgid "post a message to chats"
+msgstr "post en melding i chatter"
+
+#: nejomibot/help.py
+msgid "<chats> <commands>"
+msgstr "<chatter> <kommandoer>"
+
+#: nejomibot/help.py
+msgid "post commands' answers to chats"
+msgstr "post kommandoers svar i chatter"
+
+#: nejomibot/help.py
+msgid "[<n>,…]"
+msgstr "[<n>,…]"
+
+#: nejomibot/help.py
+msgid "messages people sent it; forward some"
+msgstr "meldinger folk har sendt den; videresend noen"
+
+#: nejomibot/help.py
+msgid "a birthday"
+msgstr "en bursdag"
+
+#: nejomibot/help.py
+msgid "add <date> [<chats>] <who>"
+msgstr "legg til <dato> [<chatter>] <hvem>"
+
+#: nejomibot/help.py
+msgid "a name day"
+msgstr "en navnedag"
+
+#: nejomibot/help.py
+msgid "remove <n>"
+msgstr "fjern <n>"
+
+#: nejomibot/help.py
+msgid "remove one; /nameday too"
+msgstr "fjern én; /navnedag også"
+
+#: nejomibot/help.py
+msgid "its latest messages anywhere; delete some"
+msgstr "botens siste meldinger overalt; slett noen"
+
+#: nejomibot/help.py
+msgid "list · <n>,…"
+msgstr "liste · <n>,…"
+
+#: nejomibot/help.py
+msgid "whether its latest messages arrived"
+msgstr "om botens siste meldinger kom fram"
+
+#: nejomibot/help.py
+msgid "delete its latest message here"
+msgstr "slett botens siste melding her"
+
+#: nejomibot/help.py
+msgid ""
+"<who> – a number from /contacts or /trust, or a name, phone number or ID; /"
+"allow takes groups too"
+msgstr ""
+"<hvem> – et nummer fra /kontakter eller /bekreft, eller et navn, "
+"telefonnummer eller ID; /tillat tar også grupper"
+
+#: nejomibot/help.py
+msgid ""
+"<n> – a number from /allowed, /admins, /timers, /delete list, /incoming, /"
+"birthdays or /namedays"
+msgstr ""
+"<n> – et nummer fra /tillatte, /admins, /timers, /slett liste, /innboks, /"
+"bursdager eller /navnedager"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · every 2h, "
+"in {zone} time"
+msgstr ""
+"<når> – 08:00 · man-fre 07:30 · {date} 15:00 · imorgen 08:00 · hver 2h, "
+"etter tiden i {zone}"
+
+#: nejomibot/help.py
+msgid ""
+"<chats> – numbers from /chats, like 1,2; a timer without them posts to you"
+msgstr ""
+"<chatter> – numre fra /chats, som 1,2; en timer uten dem poster til deg"
+
+#: nejomibot/help.py
+msgid ""
+"<date> – 1990-03-14, or 03-14 without the year; for someone not on Signal, "
+"<who> is a name, shown in <chats>, or in every group"
+msgstr ""
+"<dato> – 1990-03-14, eller 03-14 uten år; for noen som ikke er på Signal, er "
+"<hvem> et navn, som vises i <chatter> eller i alle grupper"
+
+#: nejomibot/help.py
+msgid ""
+"<parts> – text and commands, separated by ;, or by + for one message, e.g. "
+"Good morning! /today + /weather; /uniquephoto"
+msgstr ""
+"<deler> – tekst og kommandoer, skilt med ; eller med + for én melding, for "
+"eksempel God morgen! /idag + /vær; /nyttbilde"
+
+#: nejomibot/help.py
+msgid ""
+"<album> – one of /albums, by name; /album takes a <date> with its year, or - "
+"for none of its own, and shortcuts as /alice alice, or - for none"
+msgstr ""
+"<album> – ett av /albums, med navn; /album tar en <dato> med år, eller - for "
+"ingen egen, og snarveier som /alice alice, eller - for ingen"
+
+#: nejomibot/help.py
+msgid "remove – after /about, /avatar or /username, takes it away"
+msgstr "fjern – etter /om, /profilbilde eller /brukernavn fjerner det"
+
+#: nejomibot/help.py
+msgid ""
+"<language> – sv, or Svenska, its own name; /language <chats> <language> "
+"gives those chats of /chats it, /admin add <who> <language> a new admin, and "
+"a group's is an admin's to change"
+msgstr ""
+"<språk> – nb, eller Norsk, språkets eget navn; /språk <chatter> <språk> gir "
+"det til de chattene i /chats, /admin legg til <hvem> <språk> til en ny "
+"administrator, og en gruppes språk endres av en administrator"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "For everyone allowed ({count})"
+msgstr "For alle som er tillatt ({count})"
+
+#: nejomibot/help.py
+msgid "Admins, in a direct chat"
+msgstr "Administratorer, i en direkte chat"
+
+#: nejomibot/help.py
+msgid "Admins, in any chat"
+msgstr "Administratorer, i alle chatter"
+
+#: nejomibot/help.py
+msgid "Commands"
+msgstr "Kommandoer"
+
+#: nejomibot/help.py
+msgid "Commands start with . or /, whichever is easier to type."
+msgstr "Kommandoer begynner med . eller /, det som er lettest å skrive."
+
+#: nejomibot/help.py
+msgid "Every command takes its English name too."
+msgstr "Alle kommandoer fungerer også med sitt engelske navn."
+
+#: nejomibot/holidays.py
+msgid "New Year's Day"
+msgstr "Første nyttårsdag"
+
+#: nejomibot/holidays.py
+msgid "Epiphany"
+msgstr "Hellige tre kongers dag"
+
+#: nejomibot/holidays.py
+msgid "The King's name day"
+msgstr "Kongens navnedag"
+
+#: nejomibot/holidays.py
+msgid "Valentine's Day"
+msgstr "Valentinsdagen"
+
+#: nejomibot/holidays.py
+msgid "Shrove Tuesday"
+msgstr "Fetetirsdag"
+
+#: nejomibot/holidays.py
+msgid "The Crown Princess's name day"
+msgstr "Kronprinsessens navnedag"
+
+#: nejomibot/holidays.py
+msgid "Maundy Thursday"
+msgstr "Skjærtorsdag"
+
+#: nejomibot/holidays.py
+msgid "Good Friday"
+msgstr "Langfredag"
+
+#: nejomibot/holidays.py
+msgid "Holy Saturday"
+msgstr "Påskeaften"
+
+#: nejomibot/holidays.py
+msgid "Easter Sunday"
+msgstr "Første påskedag"
+
+#: nejomibot/holidays.py
+msgid "Easter Monday"
+msgstr "Andre påskedag"
+
+#: nejomibot/holidays.py
+msgid "The King's birthday"
+msgstr "Kongens fødselsdag"
+
+#: nejomibot/holidays.py
+msgid "Walpurgis Night"
+msgstr "Valborgsmessaften"
+
+#: nejomibot/holidays.py
+msgid "May Day"
+msgstr "Første mai"
+
+#: nejomibot/holidays.py
+msgid "Ascension Day"
+msgstr "Kristi himmelfartsdag"
+
+#: nejomibot/holidays.py
+msgid "Mother's Day"
+msgstr "Morsdag"
+
+#: nejomibot/holidays.py
+msgid "Veterans' Day"
+msgstr "Veterandagen"
+
+#: nejomibot/holidays.py
+msgid "Whit Sunday"
+msgstr "Første pinsedag"
+
+#: nejomibot/holidays.py
+msgid "National Day of Sweden"
+msgstr "Sveriges nasjonaldag"
+
+#: nejomibot/holidays.py
+msgid "Midsummer Eve"
+msgstr "Sankthansaften"
+
+#: nejomibot/holidays.py
+msgid "Midsummer Day"
+msgstr "Sankthansdagen"
+
+#: nejomibot/holidays.py
+msgid "The Crown Princess's birthday"
+msgstr "Kronprinsessens fødselsdag"
+
+#: nejomibot/holidays.py
+msgid "The Queen's name day"
+msgstr "Dronningens navnedag"
+
+#: nejomibot/holidays.py
+msgid "Election day"
+msgstr "Valgdagen"
+
+#: nejomibot/holidays.py
+msgid "United Nations Day"
+msgstr "FN-dagen"
+
+#: nejomibot/holidays.py
+msgid "All Saints' Day"
+msgstr "Allehelgensdag"
+
+#: nejomibot/holidays.py
+msgid "Gustavus Adolphus Day"
+msgstr "Gustav Adolf-dagen"
+
+#: nejomibot/holidays.py
+msgid "Father's Day"
+msgstr "Farsdag"
+
+#: nejomibot/holidays.py
+msgid "First Sunday of Advent"
+msgstr "Første søndag i advent"
+
+#: nejomibot/holidays.py
+msgid "Second Sunday of Advent"
+msgstr "Andre søndag i advent"
+
+#: nejomibot/holidays.py
+msgid "Third Sunday of Advent"
+msgstr "Tredje søndag i advent"
+
+#: nejomibot/holidays.py
+msgid "Fourth Sunday of Advent"
+msgstr "Fjerde søndag i advent"
+
+#: nejomibot/holidays.py
+msgid "Nobel Day"
+msgstr "Nobeldagen"
+
+#: nejomibot/holidays.py
+msgid "St Lucy's Day"
+msgstr "Luciadagen"
+
+#: nejomibot/holidays.py
+msgid "The Queen's birthday"
+msgstr "Dronningens fødselsdag"
+
+#: nejomibot/holidays.py
+msgid "Christmas Eve"
+msgstr "Julaften"
+
+#: nejomibot/holidays.py
+msgid "Christmas Day"
+msgstr "Første juledag"
+
+#: nejomibot/holidays.py
+msgid "Boxing Day"
+msgstr "Andre juledag"
+
+#: nejomibot/holidays.py
+msgid "New Year's Eve"
+msgstr "Nyttårsaften"
+
+#: nejomibot/holidays.py
+msgid "Tsiknopempti"
+msgstr "Tsiknopempti"
+
+#: nejomibot/holidays.py
+msgid "Clean Monday"
+msgstr "Ren mandag"
+
+#: nejomibot/holidays.py
+msgid "Greek Independence Day"
+msgstr "Hellas' uavhengighetsdag"
+
+#: nejomibot/holidays.py
+msgid "Whit Monday"
+msgstr "Andre pinsedag"
+
+#: nejomibot/holidays.py
+msgid "Dormition of the Virgin Mary"
+msgstr "Jomfru Marias himmelfart"
+
+#: nejomibot/holidays.py
+msgid "Ochi Day"
+msgstr "Ochi-dagen"
+
+#: nejomibot/holidays.py
+msgid "flag day"
+msgstr "flaggdag"
+
+#: nejomibot/i18n.py
+msgid "Monday"
+msgstr "Mandag"
+
+#: nejomibot/i18n.py
+msgid "Tuesday"
+msgstr "Tirsdag"
+
+#: nejomibot/i18n.py
+msgid "Wednesday"
+msgstr "Onsdag"
+
+#: nejomibot/i18n.py
+msgid "Thursday"
+msgstr "Torsdag"
+
+#: nejomibot/i18n.py
+msgid "Friday"
+msgstr "Fredag"
+
+#: nejomibot/i18n.py
+msgid "Saturday"
+msgstr "Lørdag"
+
+#: nejomibot/i18n.py
+msgid "Sunday"
+msgstr "Søndag"
+
+#: nejomibot/i18n.py
+msgid "January"
+msgstr "januar"
+
+#: nejomibot/i18n.py
+msgid "February"
+msgstr "februar"
+
+#: nejomibot/i18n.py
+msgid "March"
+msgstr "mars"
+
+#: nejomibot/i18n.py
+msgid "April"
+msgstr "april"
+
+#: nejomibot/i18n.py
+msgid "May"
+msgstr "mai"
+
+#: nejomibot/i18n.py
+msgid "June"
+msgstr "juni"
+
+#: nejomibot/i18n.py
+msgid "July"
+msgstr "juli"
+
+#: nejomibot/i18n.py
+msgid "August"
+msgstr "august"
+
+#: nejomibot/i18n.py
+msgid "September"
+msgstr "september"
+
+#: nejomibot/i18n.py
+msgid "October"
+msgstr "oktober"
+
+#: nejomibot/i18n.py
+msgid "November"
+msgstr "november"
+
+#: nejomibot/i18n.py
+msgid "December"
+msgstr "desember"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{weekday} {day} {month}"
+msgstr "{weekday} {day}. {month}"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{weekday} {day} {month} {time}"
+msgstr "{weekday} {day}. {month} {time}"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "yesterday {time}"
+msgstr "i går {time}"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{seconds} s"
+msgstr "{seconds} s"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{days} d {hours} h"
+msgstr "{days} d {hours} t"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{hours} h {minutes} min"
+msgstr "{hours} t {minutes} min"
+
+#: nejomibot/i18n.py
+#, python-brace-format
+msgid "{minutes} min"
+msgstr "{minutes} min"
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "No messages kept since the bot started, at {time}."
+msgstr "Ingen meldinger lagret siden boten startet, kl. {time}."
+
+#: nejomibot/incoming.py
+msgid "Incoming messages, newest first:"
+msgstr "Innkomne meldinger, nyeste først:"
+
+#: nejomibot/incoming.py
+msgid "/incoming <n> forwards one to you, in full; /incoming 4,9 several."
+msgstr "/innboks <n> videresender én til deg i sin helhet; /innboks 4,9 flere."
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "📎 and an attachment, which the bot can't forward"
+msgid_plural "📎 and {count} attachments, which the bot can't forward"
+msgstr[0] "📎 og et vedlegg, som boten ikke kan videresende"
+msgstr[1] "📎 og {count} vedlegg, som boten ikke kan videresende"
+
+#: nejomibot/incoming.py
+msgid "Which ones? Send /incoming first, for their numbers."
+msgstr "Hvilke? Send /innboks først for å se numrene."
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "There's no message {n}: /incoming numbers them."
+msgstr "Det finnes ingen melding {n}: /innboks nummererer dem."
+
+#: nejomibot/incoming.py
+#, python-brace-format
+msgid "Message {n} is gone: its sender deleted it, or it disappeared."
+msgstr "Melding {n} er borte: avsenderen slettet den, eller den forsvant."
+
+#: nejomibot/incoming.py
+msgid "/incoming: the latest messages people sent the bot, numbered"
+msgstr "/innboks: de siste meldingene folk har sendt boten, nummerert"
+
+#: nejomibot/incoming.py
+msgid "/incoming <n>: forward one to you, in full; /incoming 4,9 several"
+msgstr "/innboks <n>: videresend én til deg i sin helhet; /innboks 4,9 flere"
+
+#: nejomibot/info.py
+msgid "Standard time"
+msgstr "Normaltid"
+
+#: nejomibot/info.py
+msgid "Summer time"
+msgstr "Sommertid"
+
+#: nejomibot/info.py
+msgid "Time zones"
+msgstr "Tidssoner"
+
+#: nejomibot/info.py
+#, python-brace-format
+msgid "⏰ Time difference: {hours} h"
+msgstr "⏰ Tidsforskjell: {hours} t"
+
+#: nejomibot/info.py nejomibot/status.py
+msgid "Exchange rates"
+msgstr "Valutakurser"
+
+#: nejomibot/info.py
+msgid "the exchange rates can't be read"
+msgstr "valutakursene kan ikke leses"
+
+#: nejomibot/info.py
+#, python-brace-format
+msgid "the exchange rate API answered with an error ({error})"
+msgstr "valutakurstjenesten svarte med en feil ({error})"
+
+#: nejomibot/info.py
+#, python-brace-format
+msgid "the exchange rate API has no rate for {currency}"
+msgstr "valutakurstjenesten har ingen kurs for {currency}"
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid ""
+"/language <language>: the bot speaks it here, as /language {code}; /language "
+"default: its own again."
+msgstr ""
+"/språk <språk>: boten snakker det her, som /språk {code}; /språk standard: "
+"sitt eget igjen."
+
+#: nejomibot/languages.py
+msgid "Languages"
+msgstr "Språk"
+
+#: nejomibot/languages.py
+msgid "here"
+msgstr "her"
+
+#: nejomibot/languages.py
+msgid "Chats with a language of their own:"
+msgstr "Chatter med eget språk:"
+
+#: nejomibot/languages.py
+msgid "/language <chats> <language>: for those chats of /chats."
+msgstr "/språk <chatter> <språk>: for de chattene i /chats."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "The bot doesn't speak {text}: it speaks {languages}."
+msgstr "Boten snakker ikke {text}: den snakker {languages}."
+
+#: nejomibot/languages.py
+msgid "Only the admins, in a direct chat, give chats of /chats a language."
+msgstr ""
+"Bare administratorene, i en direkte chat, gir chatter i /chats et språk."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ The bot's own language for {chats} again: {language}."
+msgstr "✅ Botens eget språk for {chats} igjen: {language}."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ {language} for {chats}."
+msgstr "✅ {language} for {chats}."
+
+#: nejomibot/languages.py
+msgid "Only an admin can change the language of a group."
+msgstr "Bare en administrator kan endre språket i en gruppe."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ The bot's own language here again: {language}."
+msgstr "✅ Botens eget språk her igjen: {language}."
+
+#: nejomibot/languages.py
+#, python-brace-format
+msgid "✅ {language} here from now on."
+msgstr "✅ {language} her fra nå av."
+
+#: nejomibot/lists.py
+msgid "/list add <things>: put things on the list, e.g. /list add milk, eggs"
+msgstr ""
+"/liste legg til <ting>: sett ting på listen, for eksempel /liste legg til "
+"melk, egg"
+
+#: nejomibot/lists.py
+msgid "/list remove <n>,…: take them off, by their numbers"
+msgstr "/liste fjern <n>,…: stryk dem, med numrene deres"
+
+#: nejomibot/lists.py
+msgid "/list clear: take everything off"
+msgstr "/liste tøm: stryk alt"
+
+#: nejomibot/lists.py
+msgid "📝 The list is empty."
+msgstr "📝 Listen er tom."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "📝 The list: {count} thing"
+msgid_plural "📝 The list: {count} things"
+msgstr[0] "📝 Listen: {count} ting"
+msgstr[1] "📝 Listen: {count} ting"
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "A thing on the list has at most {count} characters."
+msgstr "En ting på listen har høyst {count} tegn."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "A list has at most {count} things: take some off first."
+msgstr "En liste har høyst {count} ting: stryk noen først."
+
+#: nejomibot/lists.py
+msgid "Which? Give their numbers, as /list shows."
+msgstr "Hvilke? Oppgi numrene, slik /liste viser dem."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "There's no {n} on the list."
+msgstr "Det finnes ingen {n} på listen."
+
+#: nejomibot/lists.py
+#, python-brace-format
+msgid "🗑️ Took off: {things}"
+msgstr "🗑️ Strøket: {things}"
+
+#: nejomibot/lists.py
+msgid "🗑️ The list is empty now."
+msgstr "🗑️ Listen er tom nå."
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "signal-cli-rest-api returned {status} {reason}"
+msgstr "signal-cli-rest-api svarte {status} {reason}"
+
+#: nejomibot/messages.py
+msgid "signal-cli-rest-api is unreachable"
+msgstr "signal-cli-rest-api kan ikke nås"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "Something went wrong: {error}"
+msgstr "Noe gikk galt: {error}"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid ""
+"⚠️ The file has {count} unreadable line, which is ignored and left unchanged: "
+"{lines}"
+msgid_plural ""
+"⚠️ The file has {count} unreadable lines, which are ignored and left "
+"unchanged: {lines}"
+msgstr[0] ""
+"⚠️ Filen har {count} uleselig linje, som ignoreres og lates uendret: {lines}"
+msgstr[1] ""
+"⚠️ Filen har {count} uleselige linjer, som ignoreres og lates uendret: {lines}"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid "⏳ Delayed: this message was due at {time}"
+msgstr "⏳ Forsinket: meldingen skulle vært sendt kl. {time}"
+
+#: nejomibot/messages.py
+#, python-brace-format
+msgid ""
+"{count} message could not be delivered within {hours} hours and was discarded"
+msgid_plural ""
+"{count} messages could not be delivered within {hours} hours and were "
+"discarded"
+msgstr[0] ""
+"{count} melding kunne ikke leveres innen {hours} timer og er forkastet"
+msgstr[1] ""
+"{count} meldinger kunne ikke leveres innen {hours} timer og er forkastet"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "nejomibot {version} started"
+msgstr "nejomibot {version} startet"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "ready in {duration}"
+msgstr "klar etter {duration}"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "🔄 Updated from {version}"
+msgstr "🔄 Oppdatert fra {version}"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid ""
+"⚠️ The previous run, started {time}, did not shut down cleanly, as after a "
+"crash, a forced stop or a power failure. Messages queued for less than 30 "
+"seconds may have been lost."
+msgstr ""
+"⚠️ Den forrige kjøringen, startet {time}, ble ikke avsluttet riktig, som "
+"etter en krasj, en tvungen stopp eller et strømbrudd. Meldinger som har "
+"ligget i kø i under 30 sekunder, kan ha gått tapt."
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "⚠️ {file}: {count} unreadable line, ignored and left unchanged"
+msgid_plural "⚠️ {file}: {count} unreadable lines, ignored and left unchanged"
+msgstr[0] "⚠️ {file}: {count} uleselig linje, ignoreres og lates uendret"
+msgstr[1] "⚠️ {file}: {count} uleselige linjer, ignoreres og lates uendret"
+
+#: nejomibot/notices.py nejomibot/status.py
+#, python-brace-format
+msgid "{count} message queued for retry"
+msgid_plural "{count} messages queued for retry"
+msgstr[0] "{count} melding i kø for nytt forsøk"
+msgstr[1] "{count} meldinger i kø for nytt forsøk"
+
+#: nejomibot/notices.py
+msgid "⏰ No timers"
+msgstr "⏰ Ingen timere"
+
+#: nejomibot/notices.py nejomibot/timers.py
+#, python-brace-format
+msgid "⏰ {count} timer"
+msgid_plural "⏰ {count} timers"
+msgstr[0] "⏰ {count} timer"
+msgstr[1] "⏰ {count} timere"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "⏰ {count} timer, next run {when}"
+msgid_plural "⏰ {count} timers, next run {when}"
+msgstr[0] "⏰ {count} timer, neste kjøring {when}"
+msgstr[1] "⏰ {count} timere, neste kjøring {when}"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "Member of {count} group"
+msgid_plural "Member of {count} groups"
+msgstr[0] "Medlem av {count} gruppe"
+msgstr[1] "Medlem av {count} grupper"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "{count} chat allowed"
+msgid_plural "{count} chats allowed"
+msgstr[0] "{count} chat tillatt"
+msgstr[1] "{count} chatter tillatt"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "{count} admin"
+msgid_plural "{count} admins"
+msgstr[0] "{count} administrator"
+msgstr[1] "{count} administratorer"
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid "{engine} on {host}"
+msgstr "{engine} på {host}"
+
+#: nejomibot/notices.py nejomibot/status.py
+msgid "Photo library"
+msgstr "Bildearkiv"
+
+#: nejomibot/notices.py nejomibot/status.py
+#, python-brace-format
+msgid "Debug mode: communicating with {group} only"
+msgstr "Feilsøkingsmodus: kommuniserer bare med {group}"
+
+#: nejomibot/notices.py
+msgid ""
+"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
+"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
+"<your number> on the server and solve the captcha."
+msgstr ""
+"⚠️ Signal begrenser botens sendinger. Utgående meldinger settes i kø og "
+"forsøkes på nytt hvert 30. minutt. For å oppheve begrensningen, kjør signal-"
+"account.sh rate-limit --to <ditt nummer> på serveren og løs captchaen."
+
+#: nejomibot/notices.py
+#, python-brace-format
+msgid ""
+"🔐 The safety number for {name} has changed. This usually means a new phone "
+"or a reinstall, but it may also mean that someone else is using the account. "
+"Messages to {name} cannot be sent until the new safety number is trusted: "
+"compare it with the one on their phone using /contacts {name}, then confirm "
+"it with /trust."
+msgstr ""
+"🔐 Sikkerhetsnummeret til {name} er endret. Det betyr som regel en ny "
+"telefon eller en ny installasjon, men det kan også bety at noen andre bruker "
+"kontoen. Meldinger til {name} kan ikke sendes før det nye sikkerhetsnummeret "
+"er godkjent: sammenlign det med det på telefonen til vedkommende med /"
+"kontakter {name}, og bekreft det deretter med /bekreft."
+
+#: nejomibot/onthisday.py
+#, python-brace-format
+msgid "{count} year ago today"
+msgid_plural "{count} years ago today"
+msgstr[0] "For {count} år siden i dag"
+msgstr[1] "For {count} år siden i dag"
+
+#: nejomibot/onthisday.py
+#, python-brace-format
+msgid "{count} year ago, around this day"
+msgid_plural "{count} years ago, around this day"
+msgstr[0] "For {count} år siden, rundt denne dagen"
+msgstr[1] "For {count} år siden, rundt denne dagen"
+
+#: nejomibot/onthisday.py
+msgid "No photos from this day, or the days around it, in earlier years."
+msgstr ""
+"Ingen bilder fra denne dagen, eller dagene rundt den, fra tidligere år."
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "There's no album {name}: /albums lists them."
+msgstr "Det finnes ikke noe album {name}: /albums viser dem."
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{n} year"
+msgid_plural "{n} years"
+msgstr[0] "{n} år"
+msgstr[1] "{n} år"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{n} month"
+msgid_plural "{n} months"
+msgstr[0] "{n} md."
+msgstr[1] "{n} md."
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{n} day"
+msgid_plural "{n} days"
+msgstr[0] "{n} dag"
+msgstr[1] "{n} dager"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{list} and {last}"
+msgstr "{list} og {last}"
+
+#: nejomibot/photos.py
+msgid "⚠️ Date unknown (see the file name)"
+msgstr "⚠️ Dato ukjent (se filnavnet)"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "Nearest to {moment}: {off} after"
+msgstr "Nærmest {moment}: {off} etter"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "Nearest to {moment}: {off} before"
+msgstr "Nærmest {moment}: {off} før"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{n} hour"
+msgid_plural "{n} hours"
+msgstr[0] "{n} time"
+msgstr[1] "{n} timer"
+
+#: nejomibot/photos.py
+msgid ""
+"/photo [<album>] [<date>]: a random photo, from every album or the one "
+"named; with a date, one taken then, as exactly as you like: 2017, 2017-05, "
+"2017-05-14 or 2017-05-14 15, or the one taken nearest 2017-05-14 15:30. /"
+"albums lists the albums."
+msgstr ""
+"/bilde [<album>] [<dato>]: et tilfeldig bilde, fra alle album eller det som "
+"nevnes; med en dato et som ble tatt da, så nøyaktig du vil: 2017, 2017-05, "
+"2017-05-14 eller 2017-05-14 15, eller det som ble tatt nærmest 2017-05-14 "
+"15:30. /albums viser albumene."
+
+#: nejomibot/photos.py
+msgid "/photo new is /uniquephoto now."
+msgstr "/photo new heter nå /nyttbilde."
+
+#: nejomibot/photos.py
+msgid "No photo there says when it was taken."
+msgstr "Ingen bilder der sier når de ble tatt."
+
+#: nejomibot/photos.py
+msgid "found no photo that could be sent"
+msgstr "fant ikke noe bilde som kunne sendes"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "📂 Photo cache contains {count} photo ({size}):"
+msgid_plural "📂 Photo cache contains {count} photos ({size}):"
+msgstr[0] "📂 Bildearkivet har {count} bilde ({size}):"
+msgstr[1] "📂 Bildearkivet har {count} bilder ({size}):"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "📂 {album} has {count} photo ({size}):"
+msgid_plural "📂 {album} has {count} photos ({size}):"
+msgstr[0] "📂 {album} har {count} bilde ({size}):"
+msgstr[1] "📂 {album} har {count} bilder ({size}):"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "{type}: {count} file ({size})"
+msgid_plural "{type}: {count} files ({size})"
+msgstr[0] "{type}: {count} fil ({size})"
+msgstr[1] "{type}: {count} filer ({size})"
+
+#: nejomibot/photos.py
+#, python-brace-format
+msgid "📚 In {count} album"
+msgid_plural "📚 In {count} albums"
+msgstr[0] "📚 I {count} album"
+msgstr[1] "📚 I {count} album"
+
+#: nejomibot/ping.py
+#, python-brace-format
+msgid "pong! Your ping took {seconds} s to arrive"
+msgstr "pong! Pingen din brukte {seconds} s på å komme fram"
+
+#: nejomibot/profile.py
+msgid "Send /name <new name>."
+msgstr "Send /navn <nytt navn>."
+
+#: nejomibot/profile.py
+msgid "Send /about <text>, or /about remove."
+msgstr "Send /om <tekst>, eller /om fjern."
+
+#: nejomibot/profile.py
+msgid "Send a picture with /avatar as its caption, or /avatar remove."
+msgstr ""
+"Send et bilde med /profilbilde som bildetekst, eller /profilbilde fjern."
+
+#: nejomibot/profile.py
+msgid ""
+"Send /username <name>, or /username remove. A name is 3 to 32 letters, "
+"digits or _, not starting with a digit; Signal adds a number to it, like "
+"mybot.42, unless you give one."
+msgstr ""
+"Send /brukernavn <navn>, eller /brukernavn fjern. Et navn er 3 til 32 "
+"bokstaver, sifre eller _, og begynner ikke med et siffer; Signal legger til "
+"et nummer, som mybot.42, med mindre du oppgir ett."
+
+#: nejomibot/profile.py
+msgid "Give the bot a name first: Signal's profile needs one."
+msgstr "Gi boten et navn først: profilen i Signal må ha et."
+
+#: nejomibot/profile.py
+msgid ""
+"signal-cli didn't keep the picture, so it can't be the avatar. It keeps none "
+"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh can "
+"set the avatar from a file instead."
+msgstr ""
+"signal-cli tok ikke vare på bildet, så det kan ikke bli profilbilde. Den tar "
+"ikke vare på noen bilder når den kjører med "
+"JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh kan i stedet sette "
+"profilbildet fra en fil."
+
+#: nejomibot/profile.py
+msgid ""
+"signal-cli can't give back the avatar, and the change would remove it: /"
+"avatar remove first, then set it again."
+msgstr ""
+"signal-cli kan ikke gi tilbake profilbildet, og endringen ville fjerne det: /"
+"profilbilde fjern først, og sett det så på nytt."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid ""
+"That's {size} bytes, and Signal holds at most {limit}: letters such as å and "
+"é take two each, emoji four."
+msgstr ""
+"Det er {size} byte, og Signal rommer høyst {limit}: bokstaver som å og é tar "
+"to hver, emoji fire."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "About: {about}"
+msgstr "Om: {about}"
+
+#: nejomibot/profile.py
+msgid "No About"
+msgstr "Ingen Om-tekst"
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "Name: {name}"
+msgstr "Navn: {name}"
+
+#: nejomibot/profile.py
+msgid "No name"
+msgstr "Ikke noe navn"
+
+#: nejomibot/profile.py
+msgid "A Signal profile needs a name, so it can only be changed."
+msgstr "En Signal-profil må ha et navn, så det kan bare endres."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid ""
+"About holds at most {limit} characters in Signal's apps, and that's {count}."
+msgstr ""
+"Om-teksten rommer høyst {limit} tegn i Signal-appene, og denne har {count}."
+
+#: nejomibot/profile.py
+msgid "✅ No About now."
+msgstr "✅ Ingen Om-tekst nå."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "That picture is {size}, too big for an avatar: send one under {limit}."
+msgstr "Bildet er {size}, for stort for et profilbilde: send et under {limit}."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "That picture can't be read: {error}"
+msgstr "Bildet kan ikke leses: {error}"
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "✅ New avatar: {size} {format}, {bytes}."
+msgstr "✅ Nytt profilbilde: {size} {format}, {bytes}."
+
+#: nejomibot/profile.py
+msgid "✅ Avatar removed."
+msgstr "✅ Profilbildet er fjernet."
+
+#: nejomibot/profile.py
+msgid "That isn't a picture."
+msgstr "Det er ikke et bilde."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "That's {count} picture: send just one with /avatar."
+msgid_plural "That's {count} pictures: send just one with /avatar."
+msgstr[0] "Det er {count} bilde: send bare ett med /profilbilde."
+msgstr[1] "Det er {count} bilder: send bare ett med /profilbilde."
+
+#: nejomibot/profile.py
+msgid "No username"
+msgstr "Ikke noe brukernavn"
+
+#: nejomibot/profile.py
+msgid "✅ Username removed."
+msgstr "✅ Brukernavnet er fjernet."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "{username} can't be a Signal username."
+msgstr "{username} kan ikke være et brukernavn i Signal."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid ""
+"Signal turned {username} down: it's most likely taken, or not allowed. Try "
+"another."
+msgstr ""
+"Signal avviste {username}: det er sannsynligvis opptatt, eller ikke tillatt. "
+"Prøv et annet."
+
+#: nejomibot/profile.py
+#, python-brace-format
+msgid "A link that starts a chat with the bot: {link}"
+msgstr "En lenke som starter en chat med boten: {link}"
+
+#: nejomibot/profile.py
+msgid "Avatar: yes"
+msgstr "Profilbilde: ja"
+
+#: nejomibot/profile.py
+msgid "No avatar"
+msgstr "Ikke noe profilbilde"
+
+#: nejomibot/profile.py
+msgid "Change them with /name, /about, /avatar and /username."
+msgstr "Endre dem med /navn, /om, /profilbilde og /brukernavn."
+
+#: nejomibot/profile.py
+msgid "No name, so Signal shows the number"
+msgstr "Ikke noe navn, så Signal viser nummeret"
+
+#: nejomibot/publicip.py
+msgid "not announced"
+msgstr "ikke annonsert"
+
+#: nejomibot/publicip.py
+#, python-brace-format
+msgid "{family} none ({error})"
+msgstr "{family} ingen ({error})"
+
+#: nejomibot/relay.py
+msgid ""
+"Send /msg <chats> <text>, e.g. /msg 1,2 Hello! The chats are numbers from /"
+"chats."
+msgstr ""
+"Send /send <chatter> <tekst>, for eksempel /send 1,2 Hei! Chattene er numre "
+"fra /chats."
+
+#: nejomibot/relay.py
+msgid ""
+"Send /run <chats> <commands>, e.g. /run 1 /weather; /photo. The chats are "
+"numbers from /chats."
+msgstr ""
+"Send /kjør <chatter> <kommandoer>, for eksempel /kjør 1 /vær; /bilde. "
+"Chattene er numre fra /chats."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "⏳ Not sent yet to {chats}: tried again for {hours} hours."
+msgstr "⏳ Ikke sendt ennå til {chats}: forsøkes på nytt i {hours} timer."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "⚠️ May not have reached {chats}."
+msgstr "⚠️ Har kanskje ikke kommet fram til {chats}."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "✉️ Sent to {chats}."
+msgstr "✉️ Sendt til {chats}."
+
+#: nejomibot/relay.py
+#, python-brace-format
+msgid "▶️ Posted the answers to {chats}."
+msgstr "▶️ Postet svarene i {chats}."
+
+#: nejomibot/reminders.py
+msgid "/remind <when> <text>: a reminder here, e.g."
+msgstr "/påminn <når> <tekst>: en påminnelse her, for eksempel"
+
+#: nejomibot/reminders.py
+msgid "/remind tomorrow 08:00 Pick up Bob"
+msgstr "/påminn imorgen 08:00 Hent Bob"
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid ""
+"<when> is a time (18:00), a day and a time (fri 17:00, tomorrow 08:00, "
+"{date} 15:00), or how soon (30m, 2h, 1h30m), in {zone} time"
+msgstr ""
+"<når> er et klokkeslett (18:00), en dag og et klokkeslett (fre 17:00, "
+"imorgen 08:00, {date} 15:00), eller hvor snart (30m, 2h, om 1h30m), etter "
+"tiden i {zone}"
+
+#: nejomibot/reminders.py
+msgid "/remind: the reminders here"
+msgstr "/påminn: påminnelsene her"
+
+#: nejomibot/reminders.py
+msgid "/remind remove <n>: remove one"
+msgstr "/påminn fjern <n>: fjern én"
+
+#: nejomibot/reminders.py
+msgid "No reminders here."
+msgstr "Ingen påminnelser her."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "🔔 {count} reminder here"
+msgid_plural "🔔 {count} reminders here"
+msgstr[0] "🔔 {count} påminnelse her"
+msgstr[1] "🔔 {count} påminnelser her"
+
+#: nejomibot/reminders.py
+msgid "When?"
+msgstr "Når?"
+
+#: nejomibot/reminders.py
+msgid "What should the reminder say?"
+msgstr "Hva skal påminnelsen si?"
+
+#: nejomibot/reminders.py nejomibot/timers.py
+#, python-brace-format
+msgid "{when} has already been."
+msgstr "{when} har allerede vært."
+
+#: nejomibot/reminders.py
+msgid "A reminder can be at most a year ahead."
+msgstr "En påminnelse kan ligge høyst ett år fram i tid."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "A reminder has at most {count} characters."
+msgstr "En påminnelse har høyst {count} tegn."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "There are {count} reminders here already: remove one first."
+msgstr "Det finnes allerede {count} påminnelser her: fjern én først."
+
+#: nejomibot/reminders.py nejomibot/timers.py
+msgid "Added"
+msgstr "Lagt til"
+
+#: nejomibot/reminders.py
+msgid "Which reminder? Give its number, as /remind shows."
+msgstr "Hvilken påminnelse? Oppgi nummeret, slik /påminn viser det."
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "No reminder #{n} here."
+msgstr "Ingen påminnelse #{n} her."
+
+#: nejomibot/reminders.py nejomibot/timers.py
+msgid "Removed"
+msgstr "Fjernet"
+
+#: nejomibot/reminders.py
+#, python-brace-format
+msgid "⏰ {text}"
+msgstr "⏰ {text}"
+
+#: nejomibot/specials.py
+msgid "Give it a name: a word that starts with . or /, like /morning."
+msgstr "Gi den et navn: et ord som begynner med . eller /, som /morgen."
+
+#: nejomibot/specials.py
+msgid "A special can't have a |: the file of specials uses it."
+msgstr ""
+"En spesialkommando kan ikke inneholde |: filen med spesialkommandoer bruker "
+"det tegnet."
+
+#: nejomibot/specials.py
+msgid ""
+"That formatting can't be kept: bold and italic can't meet inside a word, nor "
+"a style start or end right by a \\ or *."
+msgstr ""
+"Den formateringen kan ikke beholdes: fet og kursiv kan ikke møtes inne i et "
+"ord, og ingen stil kan begynne eller slutte rett ved et \\ eller *."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "{command} is a special of yours, and specials can't run each other."
+msgstr ""
+"{command} er en av dine spesialkommandoer, og de kan ikke kjøre hverandre."
+
+#: nejomibot/specials.py
+msgid "What should it post?"
+msgstr "Hva skal den poste?"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "A special has at most {count} parts."
+msgstr "En spesialkommando har høyst {count} deler."
+
+#: nejomibot/specials.py
+msgid "/specials: commands of your own, of text and other commands"
+msgstr "/specials: dine egne kommandoer, av tekst og andre kommandoer"
+
+#: nejomibot/specials.py
+msgid "/special add <name> <parts>: a new one, or a change, e.g."
+msgstr ""
+"/special legg til <navn> <deler>: en ny, eller en endring, for eksempel"
+
+#: nejomibot/specials.py
+msgid "/special add /morning Good morning! /weather"
+msgstr "/special legg til /morgen God morgen! /vær"
+
+#: nejomibot/specials.py
+msgid ""
+"Parts are separated by ; or line breaks. Text before a command heads its "
+"answer, text alone is a message."
+msgstr ""
+"Delene skilles med ; eller linjeskift. Tekst foran en kommando står over "
+"svaret, tekst alene er en egen melding."
+
+#: nejomibot/specials.py
+msgid ""
+"A + in place of a ; puts the parts on either side of it in one message, as "
+"in /today + /weather."
+msgstr ""
+"Et + i stedet for et ; samler delene på begge sider av det i én melding, som "
+"i /idag + /vær."
+
+#: nejomibot/specials.py
+msgid "Text keeps the formatting you give it in Signal, such as bold."
+msgstr "Teksten beholder formateringen du gir den i Signal, som fet skrift."
+
+#: nejomibot/specials.py
+msgid ""
+"/special shortcuts <name> <names>: other names for one, such as /special "
+"shortcuts /morning /gm; with -, none"
+msgstr ""
+"/special snarveier <navn> <navn>: andre navn for én, som /special snarveier /"
+"morgen /gm; med -, ingen"
+
+#: nejomibot/specials.py
+msgid "/special remove <name>: remove one"
+msgstr "/special fjern <navn>: fjern én"
+
+#: nejomibot/specials.py
+msgid "No specials of your own yet."
+msgstr "Ingen egne spesialkommandoer ennå."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✨ {count} special"
+msgid_plural "✨ {count} specials"
+msgstr[0] "✨ {count} spesialkommando"
+msgstr[1] "✨ {count} spesialkommandoer"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "There are {count} specials already: remove one first."
+msgstr "Det finnes allerede {count} spesialkommandoer: fjern én først."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Added {name}"
+msgstr "La til {name}"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Changed {name}"
+msgstr "Endret {name}"
+
+#: nejomibot/specials.py
+msgid "Which special? Give its name, as /specials shows."
+msgstr "Hvilken spesialkommando? Oppgi navnet, slik /specials viser det."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "There's no special {name}."
+msgstr "Det finnes ingen spesialkommando {name}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Timer {timers} runs it: remove that first, or change the special."
+msgid_plural ""
+"Timers {timers} run it: remove those first, or change the special."
+msgstr[0] ""
+"Timer {timers} kjører den: fjern den først, eller endre spesialkommandoen."
+msgstr[1] ""
+"Timerne {timers} kjører den: fjern dem først, eller endre spesialkommandoen."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Removed {name}"
+msgstr "Fjernet {name}"
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "A special has at most {count} shortcuts."
+msgstr "En spesialkommando har høyst {count} snarveier."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Shortcuts for {name}: {shortcuts}."
+msgstr "✅ Snarveier for {name}: {shortcuts}."
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "not a member of {groups}"
+msgstr "ikke med i {groups}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "member of {count}, all {allowed} allowed"
+msgstr "med i {count}, alle {allowed} tillatt"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{temperature} in {city}"
+msgstr "{temperature} i {city}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "no photos in {dir}"
+msgstr "ingen bilder i {dir}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "in {count} album"
+msgid_plural "in {count} albums"
+msgstr[0] "i {count} album"
+msgstr[1] "i {count} album"
+
+#: nejomibot/status.py
+msgid "Photo disk"
+msgstr "Bildedisk"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "no size reported for {path}"
+msgstr "ingen størrelse oppgitt for {path}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{free} free of {total}"
+msgstr "{free} ledig av {total}"
+
+#: nejomibot/status.py
+msgid "Clock"
+msgstr "Klokke"
+
+#: nejomibot/status.py
+msgid "not synchronized (is NTP running?)"
+msgstr "ikke synkronisert (kjører NTP?)"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "synchronized, max error {error} s"
+msgstr "synkronisert, høyst {error} s feil"
+
+#: nejomibot/status.py
+msgid "none blocked"
+msgstr "ingen blokkert"
+
+#: nejomibot/status.py
+msgid "Recipients"
+msgstr "Mottakere"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "untrusted, so messages are not sent: {who}"
+msgstr "ikke godkjente, så meldinger sendes ikke: {who}"
+
+#: nejomibot/status.py
+msgid "all trusted"
+msgstr "alle godkjent"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Time zone {zone}"
+msgstr "Tidssone {zone}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Next timer run {time}"
+msgstr "Neste timerkjøring {time}"
+
+#: nejomibot/status.py
+msgid "No timer to run"
+msgstr "Ingen timer å kjøre"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Your message took {seconds} s to arrive"
+msgstr "Meldingen din brukte {seconds} s på å komme fram"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "In a {engine} container, hostname {hostname}"
+msgstr "I en {engine}-container, vertsnavn {hostname}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Not in a container, hostname {hostname}"
+msgstr "Ikke i en container, vertsnavn {hostname}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{count} open file"
+msgid_plural "{count} open files"
+msgstr[0] "{count} åpen fil"
+msgstr[1] "{count} åpne filer"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "CPU time {duration}"
+msgstr "CPU-tid {duration}"
+
+#: nejomibot/status.py
+msgid "none (no route to the internet)"
+msgstr "ingen (ingen rute til internett)"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{count} thread"
+msgid_plural "{count} threads"
+msgstr[0] "{count} tråd"
+msgstr[1] "{count} tråder"
+
+#: nejomibot/status.py
+msgid "(virtual machine)"
+msgstr "(virtuell maskin)"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "{cpu}, {count} CPU"
+msgid_plural "{cpu}, {count} CPUs"
+msgstr[0] "{cpu}, {count} CPU"
+msgstr[1] "{cpu}, {count} CPU-er"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Load {load}"
+msgstr "Belastning {load}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Waiting (last minute): {waits}"
+msgstr "Ventetid (siste minutt): {waits}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Memory {available} available of {total}"
+msgstr "Minne {available} tilgjengelig av {total}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Swap {used} used of {total}"
+msgstr "Swap {used} brukt av {total}"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "❌ {failed} of {count} checks failed"
+msgstr "❌ {failed} av {count} kontroller mislyktes"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "✅ All {count} checks passed"
+msgstr "✅ Alle {count} kontroller bestått"
+
+#: nejomibot/status.py
+msgid "Status"
+msgstr "Status"
+
+#: nejomibot/status.py
+msgid "Signal groups"
+msgstr "Signal-grupper"
+
+#: nejomibot/status.py
+msgid "Signal account"
+msgstr "Signal-konto"
+
+#: nejomibot/status.py
+msgid "Internet"
+msgstr "Internett"
+
+#: nejomibot/status.py
+msgid "Container"
+msgstr "Container"
+
+#: nejomibot/status.py
+msgid "Host"
+msgstr "Vert"
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid ""
+"<when> is a time (08:00, or 08:00,18:30), days and a time (mon-fri 07:30, "
+"sat,sun 10:00), a date and a time for once ({date} 15:00, tomorrow 08:00), "
+"or every 2h or 30m"
+msgstr ""
+"<når> er et klokkeslett (08:00, eller 08:00,18:30), dager og et klokkeslett "
+"(man-fre 07:30, lør,søn 10:00), en dato og et klokkeslett for én gang "
+"({date} 15:00, imorgen 08:00), eller hver 2h eller 30m"
+
+#: nejomibot/timers.py
+msgid "/chats: where timers can post, numbered"
+msgstr "/chats: hvor timere kan poste, nummerert"
+
+#: nejomibot/timers.py
+msgid "/timers: the timers"
+msgstr "/timers: timerne"
+
+#: nejomibot/timers.py
+msgid "/timer add <when> [<chats>] <commands>: a new one, e.g."
+msgstr "/timer legg til <når> [<chatter>] <kommandoer>: en ny, for eksempel"
+
+#: nejomibot/timers.py
+msgid "/timer add mon-fri 07:30 1,2 /weather; /photo"
+msgstr "/timer legg til man-fre 07:30 1,2 /vær; /bilde"
+
+#: nejomibot/timers.py
+msgid "The chats are numbers from /chats; without them, it posts to you."
+msgstr "Chattene er numre fra /chats; uten dem poster den til deg."
+
+#: nejomibot/timers.py
+msgid "/timer remove <n>, /timer run <n>: remove one, or run it now"
+msgstr "/timer fjern <n>, /timer kjør <n>: fjern én, eller kjør den nå"
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "{when_help}, in {zone} time."
+msgstr "{when_help}, etter tiden i {zone}."
+
+#: nejomibot/timers.py
+msgid "Every how long? Like every 30m, every 2h or every 1h30m."
+msgstr "Hvor ofte? Som hver 30m, hver 2h eller hver 1h30m."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "Not more often than every {every}."
+msgstr "Ikke oftere enn hver {every}."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "There's no such day as {day}."
+msgstr "Det finnes ingen dag {day}."
+
+#: nejomibot/timers.py
+msgid "At what time?"
+msgstr "På hvilket klokkeslett?"
+
+#: nejomibot/timers.py
+msgid "A timer on a date runs once: give it one time, and no days."
+msgstr ""
+"En timer på en dato kjøres én gang: gi den ett klokkeslett og ingen dager."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "Timers, specials and /run can't run {command}."
+msgstr "Timere, spesialkommandoer og /kjør kan ikke kjøre {command}."
+
+#: nejomibot/timers.py
+msgid "A timer's commands can't have a |: the timers file uses it."
+msgstr ""
+"En timers kommandoer kan ikke inneholde |: timerfilen bruker det tegnet."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "{command} isn't a command the bot knows."
+msgstr "{command} er ikke en kommando boten kjenner."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "Commands start with . or /, unlike {command}."
+msgstr "Kommandoer begynner med . eller /, i motsetning til {command}."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "At most {count} commands at once."
+msgstr "Høyst {count} kommandoer om gangen."
+
+#: nejomibot/timers.py
+msgid "Which commands?"
+msgstr "Hvilke kommandoer?"
+
+#: nejomibot/timers.py
+msgid "For /timer add, e.g. /timer add 08:00 1,2 /weather; /photo"
+msgstr ""
+"For /timer legg til, for eksempel /timer legg til 08:00 1,2 /vær; /bilde"
+
+#: nejomibot/timers.py
+msgid "Timers can post to:"
+msgstr "Timere kan poste til:"
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "Next: {when}"
+msgstr "Neste: {when}"
+
+#: nejomibot/timers.py
+msgid "No timers yet."
+msgstr "Ingen timere ennå."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "There's no chat {n}: /chats numbers them."
+msgstr "Det finnes ingen chat {n}: /chats nummererer dem."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "There are {count} timers already: remove one first."
+msgstr "Det finnes allerede {count} timere: fjern én først."
+
+#: nejomibot/timers.py
+msgid "Which timer? Give its number, as /timers shows."
+msgstr "Hvilken timer? Oppgi nummeret, slik /timers viser det."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "No timer #{n}."
+msgstr "Ingen timer #{n}."
+
+#: nejomibot/timers.py
+#, python-brace-format
+msgid "▶️ Ran timer #{n}"
+msgstr "▶️ Kjørte timer #{n}"
+
+#: nejomibot/today.py
+msgid "Which day? Such as 10-25, 2026-10-25 or tomorrow; none for today."
+msgstr "Hvilken dag? Som 10-25, 2026-10-25 eller imorgen; ingen for i dag."
+
+#: nejomibot/today.py
+msgid "Nothing special."
+msgstr "Ikke noe spesielt."
+
+#: nejomibot/today.py
+#, python-brace-format
+msgid "👁️ {command} on {day}"
+msgstr "👁️ {command} den {day}"
+
+#: nejomibot/today.py
+msgid "In a direct chat"
+msgstr "I en direkte chat"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with light rain"
+msgstr "torden med lett regn"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with rain"
+msgstr "torden med regn"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with heavy rain"
+msgstr "torden med kraftig regn"
+
+#: nejomibot/weather.py
+msgid "light thunderstorm"
+msgstr "lett torden"
+
+#: nejomibot/weather.py
+msgid "thunderstorm"
+msgstr "torden"
+
+#: nejomibot/weather.py
+msgid "heavy thunderstorm"
+msgstr "kraftig torden"
+
+#: nejomibot/weather.py
+msgid "ragged thunderstorm"
+msgstr "spredt torden"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with light drizzle"
+msgstr "torden med lett yr"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with drizzle"
+msgstr "torden med yr"
+
+#: nejomibot/weather.py
+msgid "thunderstorm with heavy drizzle"
+msgstr "torden med kraftig yr"
+
+#: nejomibot/weather.py
+msgid "light drizzle"
+msgstr "lett yr"
+
+#: nejomibot/weather.py
+msgid "drizzle"
+msgstr "yr"
+
+#: nejomibot/weather.py
+msgid "heavy drizzle"
+msgstr "kraftig yr"
+
+#: nejomibot/weather.py
+msgid "light drizzle and rain"
+msgstr "lett yr og regn"
+
+#: nejomibot/weather.py
+msgid "drizzle and rain"
+msgstr "yr og regn"
+
+#: nejomibot/weather.py
+msgid "heavy drizzle and rain"
+msgstr "kraftig yr og regn"
+
+#: nejomibot/weather.py
+msgid "shower rain and drizzle"
+msgstr "regnbyger og yr"
+
+#: nejomibot/weather.py
+msgid "heavy shower rain and drizzle"
+msgstr "kraftige regnbyger og yr"
+
+#: nejomibot/weather.py
+msgid "shower drizzle"
+msgstr "yrbyger"
+
+#: nejomibot/weather.py
+msgid "light rain"
+msgstr "lett regn"
+
+#: nejomibot/weather.py
+msgid "moderate rain"
+msgstr "moderat regn"
+
+#: nejomibot/weather.py
+msgid "heavy rain"
+msgstr "kraftig regn"
+
+#: nejomibot/weather.py
+msgid "very heavy rain"
+msgstr "svært kraftig regn"
+
+#: nejomibot/weather.py
+msgid "extreme rain"
+msgstr "styrtregn"
+
+#: nejomibot/weather.py
+msgid "freezing rain"
+msgstr "underkjølt regn"
+
+#: nejomibot/weather.py
+msgid "light shower rain"
+msgstr "lette regnbyger"
+
+#: nejomibot/weather.py
+msgid "shower rain"
+msgstr "regnbyger"
+
+#: nejomibot/weather.py
+msgid "heavy shower rain"
+msgstr "kraftige regnbyger"
+
+#: nejomibot/weather.py
+msgid "ragged shower rain"
+msgstr "spredte regnbyger"
+
+#: nejomibot/weather.py
+msgid "light snow"
+msgstr "lett snø"
+
+#: nejomibot/weather.py
+msgid "snow"
+msgstr "snø"
+
+#: nejomibot/weather.py
+msgid "heavy snow"
+msgstr "kraftig snø"
+
+#: nejomibot/weather.py
+msgid "sleet"
+msgstr "sludd"
+
+#: nejomibot/weather.py
+msgid "light shower sleet"
+msgstr "lette sluddbyger"
+
+#: nejomibot/weather.py
+msgid "shower sleet"
+msgstr "sluddbyger"
+
+#: nejomibot/weather.py
+msgid "light rain and snow"
+msgstr "lett regn og snø"
+
+#: nejomibot/weather.py
+msgid "rain and snow"
+msgstr "regn og snø"
+
+#: nejomibot/weather.py
+msgid "light shower snow"
+msgstr "lette snøbyger"
+
+#: nejomibot/weather.py
+msgid "shower snow"
+msgstr "snøbyger"
+
+#: nejomibot/weather.py
+msgid "heavy shower snow"
+msgstr "kraftige snøbyger"
+
+#: nejomibot/weather.py
+msgid "mist"
+msgstr "dis"
+
+#: nejomibot/weather.py
+msgid "smoke"
+msgstr "røyk"
+
+#: nejomibot/weather.py
+msgid "haze"
+msgstr "disig"
+
+#: nejomibot/weather.py
+msgid "sand and dust whirls"
+msgstr "sand- og støvvirvler"
+
+#: nejomibot/weather.py
+msgid "fog"
+msgstr "tåke"
+
+#: nejomibot/weather.py
+msgid "sand"
+msgstr "sand i lufta"
+
+#: nejomibot/weather.py
+msgid "dust"
+msgstr "støv i lufta"
+
+#: nejomibot/weather.py
+msgid "volcanic ash"
+msgstr "vulkansk aske"
+
+#: nejomibot/weather.py
+msgid "squalls"
+msgstr "kraftige vindkast"
+
+#: nejomibot/weather.py
+msgid "tornado"
+msgstr "tornado"
+
+#: nejomibot/weather.py
+msgid "clear sky"
+msgstr "klar himmel"
+
+#: nejomibot/weather.py
+msgid "few clouds"
+msgstr "lettskyet"
+
+#: nejomibot/weather.py
+msgid "scattered clouds"
+msgstr "spredte skyer"
+
+#: nejomibot/weather.py
+msgid "broken clouds"
+msgstr "skyet"
+
+#: nejomibot/weather.py
+msgid "overcast clouds"
+msgstr "overskyet"
+
+#: nejomibot/weather.py
+msgid "unknown weather"
+msgstr "ukjent vær"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "🌅 {sunrise} · 🌇 {sunset} · {daylight} of daylight"
+msgstr "🌅 {sunrise} · 🌇 {sunset} · {daylight} dagslys"
+
+#: nejomibot/weather.py
+msgid "the weather data isn't as expected"
+msgstr "værdataene ser ikke ut som forventet"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "Weather in {city}"
+msgstr "Været i {city}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "{icon} Temperature: {temperature}"
+msgstr "{icon} Temperatur: {temperature}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "🤔 Feels like: {temperature}"
+msgstr "🤔 Føles som: {temperature}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "{icon} Humidity: {humidity}"
+msgstr "{icon} Luftfuktighet: {humidity}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid ""
+"⏳ The bot asks OpenWeatherMap about places at most {count} time an hour."
+msgid_plural ""
+"⏳ The bot asks OpenWeatherMap about places at most {count} times an hour."
+msgstr[0] "⏳ Boten spør OpenWeatherMap om steder høyst {count} gang i timen."
+msgstr[1] ""
+"⏳ Boten spør OpenWeatherMap om steder høyst {count} ganger i timen."
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "Try again in {minutes} minute."
+msgid_plural "Try again in {minutes} minutes."
+msgstr[0] "Prøv igjen om {minutes} minutt."
+msgstr[1] "Prøv igjen om {minutes} minutter."
+
+#: nejomibot/weather.py
+msgid "the weather data can't be read"
+msgstr "værdataene kan ikke leses"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "OpenWeatherMap answered with an error ({error})"
+msgstr "OpenWeatherMap svarte med en feil ({error})"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "OpenWeatherMap is unreachable: {error}"
+msgstr "OpenWeatherMap kan ikke nås: {error}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "OpenWeatherMap knows no place called {city}"
+msgstr "OpenWeatherMap kjenner ikke noe sted som heter {city}"
+
+#: nejomibot/weather.py
+msgid "the forecast data isn't as expected"
+msgstr "prognosedataene ser ikke ut som forventet"
+
+#: nejomibot/weather.py
+msgid "Today"
+msgstr "I dag"
+
+#: nejomibot/weather.py
+msgid "Tomorrow"
+msgstr "I morgen"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "🌡️ {low} to {high}"
+msgstr "🌡️ {low} til {high}"
+
+#: nejomibot/weather.py
+#, python-brace-format
+msgid "Forecast for {city}"
+msgstr "Prognose for {city}"

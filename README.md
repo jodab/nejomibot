@@ -28,8 +28,9 @@ Signal.
 - ⏰ **Timers and commands of your own:** any command on a schedule, posted to
   the chats you choose, and your own commands that combine texts and other
   commands, such as a morning greeting.
-- 🌍 **English, Swedish and Greek**, with each chat in its own language, and
-  room for more languages through translation.
+- 🌍 **Nine languages:** English, Danish, Finnish, French, German, Greek,
+  Norwegian, Spanish and Swedish, with each chat in its own language, and
+  room for more: a new language takes two files and no code.
 - 🔐 **Private by design:** only the people and groups you allow may use it,
   admins manage it from a direct chat, and by default, the log contains no
   phone numbers or message text.
@@ -60,9 +61,10 @@ guide as it appears on Docker Hub.
 ### Prerequisites
 
 1. **A Linux machine that is always on**, such as a home server, a Raspberry
-   Pi running a 64-bit operating system, or a small cloud server, with
+   Pi with a 64-bit or 32-bit operating system, or a small cloud server, with
    [Docker](https://docs.docker.com/engine/install/) and its Compose plugin
-   installed: `docker compose version` should print a version.
+   installed: `docker compose version` should print a version. The bot and
+   signal-cli-rest-api together use about 450 MB of memory.
 2. **A phone number for the bot alone.** It must be able to receive one text
    message or call with a verification code. Don't use your own number, or
    any number that is in use with Signal on a phone: registering it for the
@@ -108,7 +110,7 @@ Fill in at least the following settings, keeping the quotes:
 | `openweather_api_key` | Your OpenWeatherMap API key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
 | `timezone` | Your time zone, used by the timers | `"Europe/Stockholm"` |
-| `language` | `"en"` for English, `"sv"` for Swedish, `"el"` for Greek | `"en"` |
+| `language` | The bot's language: `"en"` (English), `"da"` (Danish), `"de"` (German), `"el"` (Greek), `"es"` (Spanish), `"fi"` (Finnish), `"fr"` (French), `"nb"` (Norwegian) or `"sv"` (Swedish) | `"en"` |
 
 Write phone numbers in international format: a `+`, the country code, then
 the number without its leading 0, with no spaces. Leave `signal_service` as
@@ -185,7 +187,10 @@ the Signal account](#setting-up-and-managing-the-signal-account).
 On your phone, start a new chat in Signal with the bot's number (tap the
 pencil button, then **Find by phone number**) and send it `/help`. The bot
 replies with the commands you may use. As its admin, you may use all of
-them, but the admin commands only in this direct chat.
+them, but the admin commands only in this direct chat. Every command can
+start with a period instead of the slash, as in `.help`, which phone
+keyboards have on their first page; the bot's replies show commands that
+way.
 
 ### Step 7: Add the bot to your groups
 
@@ -214,7 +219,7 @@ Send the bot:
 `/chats` numbers the chats the bot can post to: its groups first, then the
 people you have allowed, then you. `/timer add 08:00 1 /today; /weather;
 /uniquephoto` posts to chat 1 at 08:00 every day, in your `timezone`: the
-day's holidays and birthdays (on days that have any), the weather, and a
+date and time with the day's holidays and birthdays, the weather, and a
 photo, never the same photo twice until every photo has been sent. For
 several chats, list them, as in `1,2`; you can also give days, as in
 `mon-fri 07:30` ([more](#timers)). `/timer run 1` runs the timer right away,
@@ -226,8 +231,10 @@ Possible next steps: get alerted when the bot is down, with
 `healthcheck_url` ([how](#health-checks)); add birthdays, name days and your
 country's holidays for `/today` ([how](#birthdays-name-days-and-holidays));
 create [specials](#specials) of your own, such as a daily post with the day
-and the weather in one message and a heading above the photo; and set a
-profile picture:
+and the weather in one message and a heading above the photo, with a
+shorter name of your choice; open a shell in the bot's container, which
+starts with a guide to its tools (`docker compose exec nejomibot bash`); and
+set a profile picture:
 
 ```sh
 docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg
@@ -269,6 +276,12 @@ To update the bot later, see [Updating](#updating).
 
 ## Commands
 
+Every command starts with a period or a slash, whichever is easier to type:
+`.photo` and `/photo` are the same command, and phone keyboards have the
+period on their first page. The bot shows commands with a period, unless
+`command_prefix = "/"`. This guide writes them with a slash, as the bot's
+files store them.
+
 Everyday commands, for everyone the bot may talk to:
 
 | Command | Reply |
@@ -279,7 +292,7 @@ Everyday commands, for everyone the bot may talk to:
 | `/albums` | The albums, which are the folders of the photo library: how many photos each one has, the years they were taken, the birth date its captions count an age from, and its shortcuts |
 | `/onthisday`, `/onthisday <album>` | A photo taken on this day in an earlier year, or failing that, within three days of it, from all albums or the album named, with the same caption as `/photo`, under a heading that says how many years ago (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/cache`, `/cache <album>` | The number and total size of the photos in the library, by file type, and how many albums there are; with an album, that album's photos |
-| `/today`, `/day` | The day's holidays, and in a group, the birthdays and name days for that group. On a day with none of these, it says "Nothing special today." in a direct chat, and nothing in a group, nor in what a timer, a special or `/run` posts (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
+| `/today`, `/day` | The date and time, then the day's holidays, and in a group, the birthdays and name days for that group; on a day with none of these, the date and time alone (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/weather`, `/weather <city>` | The current weather in `weather_city`, or in the city named, such as `/weather Helsinki`, under a bold heading, with the day's sunrise and sunset (see [The weather](#the-weather)) |
 | `/forecast`, `/forecast <city>` | The weather today and tomorrow in the same place: each day's worst weather, its lowest and highest temperatures, and its chance of rain or snow (see [The weather](#the-weather)) |
 | `/info`, `/time` | The current time in the places listed in `clocks`, and the `exchange_rate` |
@@ -321,11 +334,12 @@ For admins, in a direct chat with the bot:
 | `/timer remove <n>`, `/timer run <n>` | Removes a timer, or runs it now |
 | `/specials` | Your own [specials](#specials): commands that post text and the answers of other commands |
 | `/special add <name> <parts>` | Adds a special or changes one, for example `/special add /morning Good morning! /today + /weather; /uniquephoto` |
+| `/special shortcuts <name> <names>`, `/special shortcuts <name> -` | Other names for a special: `/special shortcuts /morning /gm gm` makes `/gm` and `gm` post the same as `/morning`; `-` removes them |
 | `/special remove <name>` | Removes a special, unless a timer runs it |
 | `/msg <chats> <text>` | Posts the text to other chats, for example `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Runs commands and posts their answers to other chats, for example `/run 1 /status` |
 | `/incoming`, `/incoming <n>,<n>` | The 50 latest messages that anyone other than the admins sent the bot in a direct chat, numbered: when, from whom, and how each one begins. `/incoming 4,9` forwards those two messages to you in full (see [Incoming messages](#incoming-messages)) |
-| `/birthday add <date> [<chats>] <who>` | Adds a birthday: a contact's, found the way `/contacts` finds people, shown in the groups they are in; or the birthday of someone not on Signal, by name, shown in the groups numbered in `/chats`, or otherwise in every group (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
+| `/birthday add <date> [<chats>] <who>` | Adds a birthday: a contact's, found the way `/contacts` finds people, shown in the groups they are in; or the birthday of someone not on Signal, by name, shown in the groups numbered in `/chats`, or otherwise in every group. Given again on the same day, someone not on Signal shows in the groups given this time (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/nameday add <date> [<chats>] <who>` | Adds a name day, the same way as `/birthday add` |
 | `/birthday remove <n>`, `/nameday remove <n>` | Removes one, by its number in the list that `/birthdays` or `/namedays` showed you last; `/birthday remove 2,5` removes several |
 | `/delete list`, `/delete <n>,<n>` | The bot's 50 latest messages, wherever it sent them, numbered: when, where to, and how each one begins. `/delete 2,5,11` deletes those messages for everyone (see [Who may use what](#who-may-use-what)) |
@@ -346,7 +360,9 @@ language (see [Languages](#languages)). For example, `/väder` is `/weather`,
 `/idag` and `/dagen` are `/today`. `/help` shows the names in the chat's
 language, as well as the aliases. An album's shortcuts, which admins set
 with `/album`, are names for `/photo` with that album (see
-[Photos and the daily post](#photos-and-the-daily-post)).
+[Photos and the daily post](#photos-and-the-daily-post)), and a special's,
+set with `/special shortcuts`, are names for the special (see
+[Specials](#specials)).
 
 The words that follow a command to say what it should do, its subcommands,
 have names in each language too. In Swedish, `lägg till` is `add`, `ta bort`
@@ -570,16 +586,18 @@ Tomorrow: ☁️ Overcast clouds
 
 The daily post is a timer: `/timer add 08:00 1,2 /today; /weather;
 /uniquephoto` posts at 08:00 in the bot's `timezone`, whatever the server's
-own time zone, to chats 1 and 2 of `/chats`. It posts the day's holidays,
-and in a group, the birthdays and name days for that group, if there are any
-(see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)),
+own time zone, to chats 1 and 2 of `/chats`. It posts the date and time
+with the day's holidays, and in a group, the birthdays and name days for
+that group (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)),
 then the weather under its bold heading, then a photo. Every chat gets the
 same weather and the same photo. To have the day and the weather in one
 message, and a heading above the photo, make the post a [special](#specials),
-with "Photo of the day!" formatted in bold in Signal:
+with "Photo of the day!" formatted in bold in Signal, and give it a shorter
+name if you like:
 
 ```
 /special add /dailypost /today + /weather; Photo of the day! /uniquephoto
+/special shortcuts /dailypost /daily
 /timer add 08:00 1,2 /dailypost
 ```
 
@@ -704,23 +722,21 @@ commands, because each chat's reminders and list are its own.
 
 ### Birthdays, name days and holidays
 
-`/today` (or `/day`) describes the day. In every chat, it lists the day's
-holidays, flag days and traditions in the countries named in `holidays`, by
-the codes below, such as `holidays = ["SE", "GR"]` (none by default), each
-after its country's flag; a day that two of the countries share is listed
-once, after both flags. In a group, it also lists the birthdays and name
-days for that group:
+`/today` (or `/day`) describes the day: the date and time, in the bot's
+`timezone`, then, in every chat, the day's holidays, flag days and
+traditions in the countries named in `holidays`, by the codes below, such as
+`holidays = ["SE", "GR"]` (none by default), each after its country's flag;
+a day that two of the countries share is listed once, after both flags. In
+a group, it also lists the birthdays and name days for that group:
 
 ```
+📅 Saturday 6 June · 08:00
 🇸🇪 National Day of Sweden · flag day
 🎂 Alice turns 36 today!
 🌸 Happy name day, Bob!
 ```
 
-On a day with none of these, it says "Nothing special today." in a direct
-chat, and nothing in a group, nor in what a timer, a special or `/run`
-posts, so a daily post of `/today + /weather` shows just the weather on such
-a day.
+On a day with none of these, it shows the date and time alone.
 
 - Sweden: its public holidays and their eves, its flag days
   ([förordning 1982:270](https://lagen.nu/1982:270)), the Sundays of Advent,
@@ -795,9 +811,12 @@ number or ID, and must be a contact saved under a name with `/contacts add
 as the contacts have it at the time, so a rename takes effect. A contact has
 one birthday and one name day: adding another replaces it. Someone not on
 Signal is given by a name that no contact has, and their days show in the
-groups given by their numbers in `/chats`, or otherwise in every group. The
-reply says which of the two it took, so a mistyped contact name is easy to
-spot. Birthdays and name days never show in a direct chat. A birthday on
+groups given by their numbers in `/chats`, or otherwise in every group.
+Given again on the same day, they show where the new one says instead:
+after `/nameday add 08-08 Grandma`, which shows in every group,
+`/nameday add 08-08 1,2 Grandma` shows it in chats 1 and 2 alone. The reply
+says which of the two it took, so a mistyped contact name is easy to spot,
+and after one for every group, how to choose the groups. Birthdays and name days never show in a direct chat. A birthday on
 29 February is shown on the 28th in other years.
 
 To see what `/today` will say on a day before it comes, admins can send
@@ -1080,6 +1099,7 @@ with the bot, mostly for timers:
 
 ```
 /special add /morning Good morning! /today + /weather; /uniquephoto
+/special shortcuts /morning /gm            other names for it
 /special add /bins The bins go out tonight!
 /specials                                  your own specials
 /timer add tue 18:00 1 /bins               a reminder, every Tuesday
@@ -1096,9 +1116,18 @@ weather under it, and `/weather + Have a nice day!` posts the weather with a
 line under it. A `+` inside a word, as in `C++` or `+4670000000`, is text.
 As a result, a text, or what follows a command, such as an album name, can't
 contain a `+` standing on its own, just as neither can contain a `;`. A
-special's name is a single word that starts with `/` and isn't already a
-command or an alias; `/special add` with the name of one of your specials
-changes it. A special has at most five parts.
+special's name is a single word that starts with `/` or `.` and isn't
+already a command or an alias; `/special add` with the name of one of your
+specials changes it. A special has at most five parts.
+
+Admins can give a special shortcuts, which are other names for it:
+`/special shortcuts /morning /gm gm` makes `/gm` and `gm` post the same as
+`/morning`, and `/special shortcuts /morning -` removes them. A special has
+at most five shortcuts, each a single word, with or without a leading `/`,
+that the bot doesn't already respond to. They stay with the special when it
+changes, go when it is removed, and are listed after it in `/specials`. A
+shortcut without a `/` is recognized in any message that starts with it, in
+groups too, just like an alias in the configuration.
 
 Text keeps the formatting you give it in Signal, as in any message: select
 the words, then choose bold, italic, strikethrough, monospace or spoiler.
@@ -1128,15 +1157,16 @@ change nothing; an edit of `/special add` or `remove` replaces what the
 original did. A special that a timer runs can be changed, but not removed:
 remove the timer first.
 
-Your specials are stored in `data_dir/specials.txt`, one per line: the name,
-a `|`, and the parts, separated by `;` or joined by `+`, with the commands by
-their English names and the texts in signal-cli-rest-api's formatting
+Your specials are stored in `data_dir/specials.txt`, one per line: the name
+and its shortcuts, a `|`, and the parts, separated by `;` or joined by `+`,
+with the commands by their English names and the texts in
+signal-cli-rest-api's formatting
 marks: `**bold**`, `*italic*`, `***both***`, `~strikethrough~`,
 `` `monospace` `` and `||spoiler||`, with a `\` before any `*`, `~`, `` ` ``
 or `|` that should show as it is:
 
 ```
-/morning | **Good morning!** /today + /weather; /uniquephoto
+/morning /gm | **Good morning!** /today + /weather; /uniquephoto
 ```
 
 The bot reads the file again when it changes, so it can also be edited by
@@ -1145,9 +1175,11 @@ hand; the bot leaves comments and lines it can't read as they are, and
 
 ## Languages
 
-The bot's messages are written in English. The `language` setting selects a
-translation from [nejomibot/locale](nejomibot/locale), which the bot uses
-wherever nobody has chosen another language.
+The bot's messages are written in English, and translated into Danish
+(`da`), German (`de`), Greek (`el`), Spanish (`es`), Finnish (`fi`), French
+(`fr`), Norwegian (`nb`) and Swedish (`sv`). The `language` setting selects
+one by its code, which the bot uses wherever nobody has chosen another
+language.
 
 Each chat can have its own language. `/language sv` (in Swedish, `/språk`)
 makes the bot speak Swedish in a direct chat with the sender, and in a
@@ -1165,9 +1197,12 @@ and the round uses up only one photo. Each chat's language is stored in
 A special's texts stay as the admins wrote them, and the weather gives place
 names in each chat's language when OpenWeatherMap has them.
 
-- `sv.po` translates the messages into Swedish, and `el.po` into Greek, in
-  gettext's format, which translation tools such as Poedit can open.
-  Untranslated messages are shown in English.
+Each language is two files in [nejomibot/locale](nejomibot/locale), where
+the bot finds every language it has:
+
+- `sv.po` translates the messages into Swedish, in gettext's format, which
+  translation tools such as Poedit and Weblate open. Untranslated messages
+  are shown in English.
 - `sv.toml` holds the language's own name, `Svenska`, its names for
   commands, which work like the aliases in the configuration, its words for
   days and times in `/timer add`, and its words for subcommands, such as
@@ -1182,19 +1217,40 @@ system locales installed. The fortune libraries aren't translated: each is
 in its own language, and `fortune_library` sets the one that `/fortune` uses
 when no library is named.
 
-After changing the bot's messages, run
-[tools/translations.sh](tools/translations.sh) (it requires GNU gettext) to
-update every `.po` file: new messages are added untranslated, and changed
-ones are marked as fuzzy. Translate those; the tests check that every
-message is translated and has the same `{fields}`. For a new language,
-`tools/translations.sh de` creates `de.po`; copy `sv.toml` to `de.toml` for
-its names.
-
 The image contains the translations compiled once, at build time, as
 `sv.mo` and so on, which the bot reads with Python's built-in gettext in
 place of the `.po` files. When it runs from a source checkout without `.mo`
 files, the bot reads the `.po` files directly with polib, which is needed
 only for development.
+
+### Adding a language
+
+A new language needs its two files and nothing else, as the bot finds them
+by themselves. For Portuguese, by its code `pt`:
+
+1. Run `tools/translations.sh pt` (it requires GNU gettext). It creates
+   `pt.po` from `messages.pot`, the template of every message, with the
+   language's plural forms, and `pt.toml` from `template.toml`, which lists
+   every command and word. A translation tool can start `pt.po` from
+   `messages.pot` just as well.
+2. Translate the messages in `pt.po`. Keep each `{field}` as it is, and write
+   commands with a `/`, by the names `pt.toml` gives them: the bot shows them
+   with the `command_prefix`.
+3. In `pt.toml`, give the language's own name, its names for the commands,
+   each starting with `/`, and its words for days, times and subcommands.
+   Leave a list empty where the English name serves, as for `/ping`.
+4. Run `uv run pytest`. The tests check that every message is translated,
+   with the same `{fields}` and the same commands, and that no name or word
+   stands for two different things in any of the languages.
+
+Then `language = "pt"`, or `/language pt` in a chat, makes the bot speak it.
+
+After changing the bot's messages, run
+[tools/translations.sh](tools/translations.sh) to update `messages.pot` and
+every `.po` file: new messages are added untranslated, and changed ones are
+marked as fuzzy. Translate those; until then, the tests fail and the bot
+shows them in English. A new command goes in `template.toml` too, which a
+test checks.
 
 ### Aliases
 
@@ -1208,13 +1264,14 @@ Other names for commands go in the configuration, as a table at its end:
 
 A message that starts with an alias is treated as if it started with the
 command: `pic` sends a photo, and with `"/fortune" = ["/f"]`, `/f startrek`
-sends a Star Trek fortune. An alias is a single word, with or without a `/`;
-an alias without one, like `pic`, is recognized from anyone allowed who
-sends just that word. The bot's own command names, in English and in its
-other languages, all start with `/`. An alias can't be a command's own name,
-and the bot won't start with an alias for a command it doesn't have. Aliases
-in the configuration take precedence over the language's names, and over
-the bot's own other names: `/test`, `/time`, `/safety` and `/day`.
+sends a Star Trek fortune. An alias is a single word, with or without a `/`
+(or a `.` in its place, as for any command); an alias without one, like
+`pic`, is recognized from anyone allowed who sends just that word. The
+bot's own command names, in English and in its other languages, all start
+with `/`. An alias can't be a command's own name, and the bot won't start
+with an alias for a command it doesn't have. Aliases in the configuration
+take precedence over the language's names, and over the bot's own other
+names: `/test`, `/time`, `/safety` and `/day`.
 
 ## The bot's profile
 
@@ -1484,6 +1541,14 @@ while it is still busy with the previous message: of a burst of receipts,
 some can be lost, so `/delivery`'s counts can come out too low. The pinned
 build fixes this.
 
+Run it in `json-rpc` mode, as the examples do, where one signal-cli, on
+Java, serves every request. Its `json-rpc-native` mode, with signal-cli
+compiled to native code, starts faster and uses less memory, but it has had
+bugs that `json-rpc` mode doesn't have, such as the linked devices above,
+and it doesn't exist on 32-bit ARM, which has no native build. In `json-rpc`
+mode, signal-cli-rest-api uses about 360 MB of memory on a Raspberry Pi 4,
+and the bot about 90 MB.
+
 ## Configuration
 
 Settings are read from `config.toml`, or from the file named by
@@ -1578,6 +1643,12 @@ the tools leave behind (`RunInit=true`). It uses two folders:
 - `/data`: `config.toml` and everything the bot stores. It must belong to
   the bot's user: Podman's `:U` option sees to that; otherwise, run
   `chown 1001` on it.
+
+A shell in the container, `podman exec -it nejomibot bash` (with Compose,
+`docker compose exec nejomibot bash`), starts with a short guide to the
+bot's tools there: `nejomibot-healthcheck`, `nejomibot-timers` and
+`signal-account.sh`, what each does and where it is, and where the bot keeps
+its files. `nejomibot-help.sh` shows the guide again.
 
 ### A fresh install
 
@@ -1774,8 +1845,9 @@ nejomibot/
   allowed.py    /allowed, /allow, /disallow
   admins.py     /admins, /admin: admins besides those in the configuration
   commands.py   commands: each handler's, by any of their names, and how they are answered
-  i18n.py       translations
-  locale/       the translations: sv.po and el.po for the messages, sv.toml and el.toml for the names
+  i18n.py       translations, and how commands are shown: .photo or /photo
+  locale/       the translations, a .po for each language's messages and a .toml for its names,
+                and the templates a new language starts from: messages.pot and template.toml
   photos.py     /photo, /uniquephoto, /cache: photos with their dates, ages and locations; albums
   albums.py     /albums, /album: the albums, their birth dates and shortcuts
   onthisday.py  /onthisday: a photo from this day in an earlier year
@@ -1817,10 +1889,11 @@ nejomibot/
 deploy/         examples: Podman Quadlets and a Compose file
 tests/
 tools/          build-image.sh: tests and builds the image, for x86 and ARM;
+                nejomibot-help.sh: the guide a shell in the container starts with;
                 release.sh: makes a release, and with it the image;
                 signal-account.sh: sets up and manages the Signal account;
                 tidy-photos.sh: converts, renames and deduplicates the photo library;
-                translations.sh: brings the translations up to date
+                translations.sh: brings the translations up to date, and starts new ones
 .github/        CI, publishing the image on a release, and Dependabot
 ```
 

@@ -21,10 +21,10 @@ Image=docker.io/bbernhard/signal-cli-rest-api@sha256:b96eff9857a6fe99be64e9cbfb3
 # :U hands the folder to the user signal-cli-rest-api runs as, uid 1000
 Volume=/srv/signal:/home/.local/share/signal-cli:U
 Timezone=local
-# One signal-cli for every request, as signalbot needs: json-rpc mode, here
-# with signal-cli built natively, which starts faster and takes less memory
-# (or MODE=json-rpc)
-Environment=MODE=json-rpc-native
+# One signal-cli for every request, as signalbot needs: json-rpc mode, on
+# Java. Built natively (json-rpc-native), it starts faster and takes less
+# memory, but it has had bugs this hasn't, and 32-bit ARM has no such build.
+Environment=MODE=json-rpc
 # It keeps no pictures sent to the bot, so /avatar can't take one; nor
 # stories
 Environment=JSON_RPC_IGNORE_ATTACHMENTS=true

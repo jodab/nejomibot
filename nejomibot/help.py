@@ -14,7 +14,7 @@ from signalbot import DataMessageContext
 from . import access
 from .commands import ALIASES, Command, Handler, aliases, answer
 from .config import get_settings
-from .i18n import N_, SOURCE_LANGUAGE, _, language, spoken
+from .i18n import N_, SOURCE_LANGUAGE, _, language, prefixed, spoken
 from .messages import escape
 from .timers import example_date
 
@@ -41,7 +41,7 @@ EVERYDAY = [
     Line("📚", "/albums", N_("the albums")),
     Line("🎞️", "/onthisday", N_("a photo from this day, years ago"), N_("[<album>]")),
     Line("📂", "/cache", N_("how many photos, and how big"), N_("[<album>]")),
-    Line("🌅", "/today", N_("the day's holidays and birthdays")),
+    Line("🌅", "/today", N_("the date, and the day's holidays and birthdays")),
     Line("🌤️", "/weather", N_("the weather now"), N_("[<city>]")),
     Line("🌦️", "/forecast", N_("the weather today and tomorrow"), N_("[<city>]")),
     Line("🕰️", "/info", N_("the time, and an exchange rate")),
@@ -100,6 +100,12 @@ ADMIN = [
     Line("⚙️", "/timer", N_("remove one, or run it now"), N_("remove <n> · run <n>")),
     Line("✨", "/specials", N_("commands of your own")),
     Line("🧩", "/special", N_("a new one, or a change"), N_("add <name> <parts>")),
+    Line(
+        "🏷️",
+        "/special",
+        N_("other names for one"),
+        N_("shortcuts <name> <names>|-"),
+    ),
     Line("🗑️", "/special", N_("remove one"), N_("remove <name>")),
     Line("✉️", "/msg", N_("post a message to chats"), N_("<chats> <text>")),
     Line("▶️", "/run", N_("post commands' answers to chats"), N_("<chats> <commands>")),
@@ -121,11 +127,12 @@ ANYWHERE = [
 
 
 def shown_name(command: str) -> str:
-    """The command by its first name in the language, if it has one; one of
-    two words, its subcommand too: /today preview as /idag förhandsvisa."""
+    """The command by its first name in the language, if it has one, as the
+    bot shows commands (prefixed); one of two words, its subcommand too:
+    /today preview as .idag förhandsvisa in Swedish."""
     first, space, second = command.partition(" ")
     name = next(iter(language().commands.get(first, [])), first)
-    return name + space + next(iter(language().words.get(second, [])), second)
+    return prefixed(name + space + next(iter(language().words.get(second, [])), second))
 
 
 def other_names(command: str) -> list[str]:
@@ -133,7 +140,7 @@ def other_names(command: str) -> list[str]:
     config gives another command."""
     table = aliases()
     names = [*ALIASES.get(command, []), *get_settings().aliases.get(command, [])]
-    return [name for name in names if table[name.casefold()] == command]
+    return [prefixed(name) for name in names if table[name.casefold()] == command]
 
 
 def command_line(command: Line) -> str:
@@ -210,8 +217,10 @@ def help_message(admin: bool) -> str:
         ]
     else:
         parts = [section(_("Commands"), EVERYDAY)]
+    hints = [_("Commands start with . or /, whichever is easier to type.")]
     if spoken() != SOURCE_LANGUAGE:
-        parts.append(escape(_("Every command takes its English name too.")))
+        hints.append(_("Every command takes its English name too."))
+    parts.append(escape(" ".join(hints)))
     return "\n\n".join(parts)
 
 

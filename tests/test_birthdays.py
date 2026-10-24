@@ -81,7 +81,8 @@ async def test_someone_not_on_signal(
     # a contact's name mistyped
     assert await ask(bot, answers, "/birthday add 1940-05-01 Grandma Berg") == (
         "✅ Added: 1 May · Grandma Berg\n👥 In every group: no contact is called "
-        "Grandma Berg"
+        "Grandma Berg\nFor some groups only, add it again with their numbers "
+        "from /chats: /birthday add 1940-05-01 1,2 Grandma Berg"
     )
     # Or in the groups given, by their numbers in /chats
     assert await ask(bot, answers, "/nameday add 05-01 1 Grandma Berg") == (
@@ -91,6 +92,19 @@ async def test_someone_not_on_signal(
         "birthday | 1940-05-01 | * | Grandma Berg",
         f"nameday | 05-01 | {GROUP} | Grandma Berg",
     ]
+    # Given again on that day, they show where it says now
+    assert await ask(bot, answers, "/birthday add 1940-05-01 1 grandma berg") == (
+        "✅ Changed: 1 May · grandma berg\n👥 Familjen"
+    )
+    changed = await ask(bot, answers, "/nameday add 05-01 Grandma Berg")
+    assert changed.startswith("✅ Changed: 1 May · Grandma Berg\n👥 In every group")
+    assert the_file() == [
+        f"birthday | 1940-05-01 | {GROUP} | grandma berg",
+        "nameday | 05-01 | * | Grandma Berg",
+    ]
+    # Another day is someone else
+    await ask(bot, answers, "/nameday add 05-02 1 Grandma Berg")
+    assert len(the_file()) == 3
 
 
 @pytest.mark.parametrize(

@@ -9,6 +9,7 @@ from nejomibot import access
 from nejomibot.bot import handlers
 from nejomibot.config import get_settings
 from nejomibot.help import ADMIN, ANYWHERE, EVERYDAY, help_message
+from nejomibot.i18n import COMMAND_SLASH
 
 
 def commands(*, everyday: bool) -> set[str]:
@@ -64,7 +65,9 @@ def test_a_line_per_command() -> None:
     )
     assert lines[3] == "🆕 `/uniquephoto [<album>]` – a photo not sent yet"
     # /day, which /today was before, is one of its names
-    assert lines[7] == "🌅 `/today` – the day's holidays and birthdays (/day)"
+    assert lines[7] == (
+        "🌅 `/today` – the date, and the day's holidays and birthdays (/day)"
+    )
     assert lines[12] == "🔮 `/fortune [<library>|all|list]` – a fortune"
     assert lines[13] == "🔔 `/remind <when> <text>` – a reminder, here"
 
@@ -94,6 +97,19 @@ def test_an_alias_is_listed_by_the_command_it_is(
     text = help_message(admin=True)
     assert "📷 `/photo [<album>]` – a random photo (/test)" in text
     assert "🩺 `/status` – how the bot and the server are (/s)" in text
+
+
+def test_commands_show_with_the_prefix(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A ., unless command_prefix is a /: in the lines, the aliases, the notes
+    monkeypatch.setenv("NEJOMIBOT_COMMAND_PREFIX", ".")
+    monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic", "pic"]}')
+    get_settings.cache_clear()
+    text = help_message(admin=True)
+    assert "📷 `.photo [<album>]` – a random photo (.pic, pic)" in text
+    assert "🗑️ `.birthday remove <n>` – remove one; .nameday too" in text
+    assert "<n> – a number from .allowed, .admins, .timers" in text
+    assert not COMMAND_SLASH.search(text)
+    assert text.endswith("Commands start with . or /, whichever is easier to type.")
 
 
 @pytest.mark.usefixtures("swedish")

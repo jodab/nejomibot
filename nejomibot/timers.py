@@ -41,8 +41,17 @@ from signalbot import (
 )
 
 from . import access
-from .commands import Command, Edits, Handler, answer, canonical, known, undo_with
-from .config import SIGNAL_ID, get_settings
+from .commands import (
+    COMMAND_START,
+    Command,
+    Edits,
+    Handler,
+    answer,
+    canonical,
+    known,
+    undo_with,
+)
+from .config import SIGNAL_ID, get_settings, slashed
 from .files import write_privately
 from .i18n import (
     _,
@@ -50,6 +59,7 @@ from .i18n import (
     day_and_time,
     every_word,
     ngettext,
+    prefixed,
     shown_word,
     speaking,
 )
@@ -684,12 +694,12 @@ def check_commands(
 
 
 def split_commands(text: str) -> list[str] | str:
-    """The commands in the text, each with its /, separated by ; or line
+    """The commands in the text, each with its / or ., separated by ; or line
     breaks; or why they aren't commands."""
     commands = [command.strip() for command in re.split(r"[;\n]", text)]
     commands = [command for command in commands if command]
-    if bad := [command for command in commands if not command.startswith("/")]:
-        return _("Commands start with /, unlike {command}.").format(command=bad[0])
+    if bad := [command for command in commands if slashed(command)[:1] != "/"]:
+        return _("Commands start with . or /, unlike {command}.").format(command=bad[0])
     if len(commands) > MAX_COMMANDS:
         return _("At most {count} commands at once.").format(count=MAX_COMMANDS)
     return commands
@@ -698,9 +708,9 @@ def split_commands(text: str) -> list[str] | str:
 def parse_add(text: str) -> tuple[str, list[int], list[str]] | str:
     """'/timer add <when> [<chats>] <commands>' -> (when, chat numbers,
     commands). The chats are the numbers just before the first command; the
-    commands start at the first /, separated by ;."""
+    commands start at the first word with a / or a . first, separated by ;."""
     rest = text.split(maxsplit=2)[2] if len(text.split()) > 2 else ""
-    start = re.search(r"(?:^|\s)/", rest)
+    start = COMMAND_START.search(rest)
     if start is None:
         return _("Which commands?") + f"\n\n{usage()}"
     words = [word for word in re.split(r"[\s,]+", rest[: start.start()]) if word]
@@ -763,7 +773,7 @@ def card(timer: Timer, names: access.Names) -> str:
     """A timer in short lines: its number and when, its chats, its commands,
     and when it runs next. Styled."""
     chats = ", ".join(names.of(chat) for chat in timer.chats)
-    lines = [f"💬 {chats}", f"▶️ {'; '.join(timer.commands)}"]
+    lines = [f"💬 {chats}", f"▶️ {'; '.join(map(prefixed, timer.commands))}"]
     if (at := timekeeper.next_run(timer.id)) is not None:
         when = day_and_time(at.astimezone(get_settings().tz))
         lines.append("🔜 " + _("Next: {when}").format(when=when))
