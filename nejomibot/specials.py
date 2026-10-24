@@ -21,9 +21,10 @@ in a direct chat. Text keeps the formatting the admin gives it in Signal:
 bold, italic, strikethrough, monospace and spoiler.
 
 A special's shortcuts are other names for it, as an album's are for /photo
-with the album: each a word, with or without a / first, but not a name the
-bot answers to already. Timers keep a special by its name, whichever they
-were given.
+with the album: each a word that starts with a / or a ., as a plain word
+would make every message that starts with it a command (alice is taken as
+/alice), but not a name the bot answers to already. Timers keep a special by
+its name, whichever they were given.
 
 They're kept in data_dir/specials.txt, one per line, the name and its
 shortcuts first, their commands by their English names, as the timers file
@@ -39,7 +40,7 @@ from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass
 from typing import Self
 
-from signalbot import DataMessageContext, SendMessage, TextMode, TextStyle
+from signalbot import DataMessage, DataMessageContext, SendMessage, TextMode, TextStyle
 
 from .commands import (
     COMMAND_START,
@@ -53,7 +54,7 @@ from .commands import (
     shortcut_clash,
     undo_with,
 )
-from .config import get_settings, slashed
+from .config import as_command, get_settings, slashed
 from .files import write_privately
 from .i18n import _, ngettext, prefixed
 from .messages import PerChat, escape, for_chat, unreadable_text
@@ -182,7 +183,7 @@ def parse_parts(
     return tuple(parts)
 
 
-type Shortcuts = tuple[str, ...]  # each a word, with or without a / first
+type Shortcuts = tuple[str, ...]  # each a word with a / first (as_command)
 
 
 def names_on(line: str) -> list[str]:
@@ -201,13 +202,13 @@ def line_of(name: str, parts: Parts, shortcuts: Shortcuts) -> str:
 
 
 def parse_line(line: str, own: Collection[str]) -> tuple[str, Parts, Shortcuts]:
-    """A line of the file: a special's name, its parts and its shortcuts.
-    Raises ValueError."""
+    """A line of the file: a special's name, its parts and its shortcuts, one
+    without its / read with one, as as_command() has it. Raises ValueError."""
     if "|" not in line:
         raise ValueError("no |")
     if why_not := check_name(name := name_of(line)):
         raise ValueError(why_not)
-    shortcuts = tuple(names_on(line)[1:])
+    shortcuts = tuple(dict.fromkeys(map(as_command, names_on(line)[1:])))
     # Which it would hide
     if taken := [each for each in shortcuts if built_in(each) or each.lower() in own]:
         raise ValueError(f"{taken[0]} is a command")
@@ -340,15 +341,18 @@ def joined(messages: Sequence[SendMessage]) -> SendMessage:
     return SendMessage(text=text(), base64_attachments=photos or None, text_mode=mode)
 
 
-async def posts(parts: Parts) -> list[SendMessage]:
-    """What a special posts, part after part: what its command answers, the
+async def posts(parts: Parts, admin: DataMessage) -> list[SendMessage]:
+    """What a special posts, part after part, its commands run as the admin
+    who sent the message, as /run runs them: what each command answers, the
     first headed by its text, or the text alone; and in one message, all
     that parts joined by + post."""
     found: list[SendMessage] = []
     for one in by_message(parts):
         answers: list[SendMessage] = []
         for part in one:
-            own = await timekeeper.answers_to(part.command) if part.command else []
+            own = (
+                await timekeeper.answers_to(part.command, admin) if part.command else []
+            )
             if part.text:
                 heading = SendMessage(text=part.text, text_mode=TextMode.STYLED)
                 own[:1] = [joined([heading, *own[:1]])]
@@ -502,7 +506,7 @@ def set_shortcuts(name: str, words: list[str]) -> str:
         shortcuts: Shortcuts = ()
         done = _("✅ {album}: no shortcuts.").format(album=prefixed(name))
     else:
-        shortcuts = tuple(dict.fromkeys(map(slashed, words)))
+        shortcuts = tuple(dict.fromkeys(map(as_command, words)))
         if len(shortcuts) > MAX_SHORTCUTS:
             return _("A special has at most {count} shortcuts.").format(
                 count=MAX_SHORTCUTS
@@ -582,4 +586,5 @@ class Specials(Handler):
             )
         elif parts := own_specials.specials.get(command.name):
             # Their commands are what timers may run, which change nothing
-            await answer(context, lambda: posts(parts), slow=True)
+            message = context.message
+            await answer(context, lambda: posts(parts, message), slow=True)

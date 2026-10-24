@@ -69,7 +69,8 @@ def aliases(*, shortcuts: bool = True) -> dict[str, str]:
     """Each alias, in lower case, and what it stands for: the handlers'
     shortcuts, which come and go as the bot runs, unless not wanted; the
     bot's own, every language's, then the settings', each winning over
-    those before."""
+    those before. One that is its command's own name, as a plain word given
+    a / may be, is left out."""
     table: dict[str, str] = {}
     if shortcuts:
         for handler in handlers():
@@ -80,7 +81,8 @@ def aliases(*, shortcuts: bool = True) -> dict[str, str]:
         *get_settings().aliases.items(),
     ]:
         for name in names:
-            table[name.casefold()] = command
+            if (folded := name.casefold()) != command:
+                table[folded] = command
     return table
 
 
@@ -128,19 +130,39 @@ def subcommand_words(command: str) -> list[tuple[str, str]]:
     return sorted(found, key=lambda each: -len(each[1]))
 
 
+# The latest messages resolved, by their id(), each with what it resolved
+# to: signalbot hands every handler the same message, as timers do, so one
+# resolution serves them all. Kept with the message, so its id isn't reused.
+RESOLVED_KEPT = 16
+resolutions: dict[int, tuple[DataMessage, DataMessage]] = {}
+
+
+def resolved_message(message: DataMessage) -> DataMessage:
+    """The message, its alias replaced by its command, and its text styles
+    moved with the text after it; worked out once for each message."""
+    if (found := resolutions.get(id(message))) and found[0] is message:
+        return found[1]
+    text = message.text
+    result = message
+    if text is not None and (command_text := canonical(text)) != text:
+        shift = utf16_length(command_text) - utf16_length(text)
+        styles = message.text_styles
+        if styles:
+            styles = [s.model_copy(update={"start": s.start + shift}) for s in styles]
+        result = message.model_copy(
+            update={"text": command_text, "text_styles": styles}
+        )
+    resolutions[id(message)] = (message, result)
+    while len(resolutions) > RESOLVED_KEPT:
+        del resolutions[next(iter(resolutions))]
+    return result
+
+
 def resolved(context: DataMessageContext) -> DataMessageContext:
-    """The context, with the message's alias replaced by its command, and its
-    text styles moved with the text after it."""
-    text = context.message.text
-    if text is None or (command_text := canonical(text)) == text:
+    """The context, with its message as resolved_message() has it."""
+    message = resolved_message(context.message)
+    if message is context.message:
         return context
-    shift = utf16_length(command_text) - utf16_length(text)
-    styles = context.message.text_styles
-    if styles:
-        styles = [s.model_copy(update={"start": s.start + shift}) for s in styles]
-    message = context.message.model_copy(
-        update={"text": command_text, "text_styles": styles}
-    )
     return DataMessageContext(context.bot, message)
 
 
@@ -313,6 +335,15 @@ def cannot_undo(why: str) -> None:
         now.final = why
 
 
+def not_run_text(command: str) -> str:
+    """Why an edit of the command isn't run: what it did, as a post, can't be
+    undone."""
+    return _(
+        "✏️ An edit of {command} isn't run, as what it did can't be "
+        "undone. Send it as a new message instead."
+    ).format(command=prefixed(command))
+
+
 def message_keys(message: DataMessage) -> set[tuple[str, int]]:
     """Who sent the message, and when, as Signal knows it; an edit also by
     the message it edits, which the next edit may name instead."""
@@ -388,11 +419,7 @@ async def answer(
     if edited and edits in (Edits.NOT_RUN, Edits.IGNORE):
         logger.info("Ignored an edited %s %s", name, chat_kind(message))
         if edits is Edits.NOT_RUN:
-            note = _(
-                "✏️ An edit of {command} isn't run, as what it did can't be "
-                "undone. Send it as a new message instead."
-            ).format(command=prefixed(name))
-            await reply(context, SendMessage(text=note))
+            await reply(context, SendMessage(text=not_run_text(name)))
         return
     logger.info("Received %s %s", name, chat_kind(message))
     logger.debug(

@@ -70,7 +70,7 @@ class Greeted:
 @pytest.fixture
 def greeted(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Greeted:
     """Bob is the admin, Alice and the group are on the allowed list, and
-    pic is another name for /photo."""
+    /pic is another name for /photo, given in the config as pic."""
     monkeypatch.setenv("NEJOMIBOT_ADMINS", f'["{BOB}"]')
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["pic"]}')
     get_settings.cache_clear()
@@ -102,6 +102,7 @@ async def test_greets_the_allowed_list_once_a_day(
     [
         message(None, attachments=[PHOTO]),
         message("/weathr"),  # no command, so the greeting points to /help
+        message("pic of the day?"),  # the config's pic is /pic
     ],
 )
 async def test_greets_what_isnt_a_command(greeted: Greeted, sent: DataMessage) -> None:
@@ -116,7 +117,7 @@ async def test_greets_what_isnt_a_command(greeted: Greeted, sent: DataMessage) -
         "/HELP",  # in any case
         "/fortune startrek",  # with more after it
         "/time",  # the bot's own alias, for /info
-        "pic",  # the config's
+        "/pic",  # the config's
         "/status",  # an admin command, which the bot doesn't answer her
         "/today preview",  # one of two words
         "/bins",  # one of the admins' own specials

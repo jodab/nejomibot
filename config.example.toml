@@ -28,8 +28,8 @@ weather_city = "Stockholm"
 weather_units = "metric"  # or "imperial"
 # /weather Helsinki is the weather in Helsinki: the bot asks OpenWeatherMap
 # about such places at most this many times an hour, finding them included.
-# weather_city, as /weather alone has it, isn't counted. Each place's weather is kept for
-# 10 minutes.
+# weather_city, as /weather alone has it, isn't counted. Each place's
+# weather is kept for 10 minutes.
 # weather_calls_per_hour = 10
 
 # /today names the day's holidays, flag days and traditions of these
@@ -96,10 +96,11 @@ send_retry_hours = 3
 
 # The admins, by phone number, or by Signal ID for those who don't share
 # their number. They may use every command: the everyday ones anywhere
-# they're allowed, and the admin commands (/status, /today preview, the
-# specials, /contacts, /trust, /allowed, /allow, /disallow, /admins, /admin,
-# the profile commands, the timers, /msg, /run, /birthday and /nameday) only
-# in a direct chat with the bot; /delete in any chat. They hear from the bot
+# they're allowed, and the admin commands (/status, /today preview, /album,
+# the specials, /contacts, /trust, /allowed, /allow, /disallow, /admins,
+# /admin, the profile commands, the timers, /msg, /run, /incoming,
+# /birthday, /nameday and /delivery) only in a direct chat with the bot;
+# /delete in any chat. They hear from the bot
 # as it starts, with how it is, of a rate limit and of a changed safety
 # number. They may make others admins with /admin add, who may then use
 # every command but /admin add and remove, but no command can take away
@@ -127,7 +128,8 @@ admins = [
 # NEJOMIBOT_DEBUG=1 talks only to this group (and the admins); see README
 # debug_group = "group.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx="
 
-# Other names for commands, one word each, with or without /. Tables go
-# last in the file.
+# Other names for commands, one word each, starting with / or . (a plain
+# word is taken with a /, as it would make every message that starts with
+# it a command). Tables go last in the file.
 [aliases]
-"/photo" = ["/pic", "pic"]
+"/photo" = ["/pic"]

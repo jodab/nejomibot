@@ -32,7 +32,7 @@ def test_reads_toml_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Non
         healthcheck_url = "https://hc-ping.com/abc"
 
         [aliases]
-        "/Photo" = ["/pic", "pic"]
+        ".Photo" = ["/pic", "pix", ".pics"]
         """,
     )
     settings = Settings()  # type: ignore[call-arg]
@@ -47,10 +47,13 @@ def test_reads_toml_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Non
     assert settings.healthcheck_url == "https://hc-ping.com/abc"
     assert settings.healthcheck_minutes == 5
     assert settings.weather_calls_per_hour == 10
-    assert settings.aliases == {"/photo": ["/pic", "pic"]}
+    # Each with a /: a plain word would make every message that starts with
+    # it a command
+    assert settings.aliases == {"/photo": ["/pic", "/pix", "/pics"]}
     assert settings.allowed_file == settings.data_dir / "allowed.txt"
     assert settings.timers_file == settings.data_dir / "timers.txt"
     assert settings.sent_photos_file == settings.data_dir / "sent-photos.txt"
+    assert settings.album_rounds_file == settings.data_dir / "album-rounds.txt"
     assert settings.delete_groups is True
 
 
@@ -75,9 +78,13 @@ def test_the_environment_is_enough(tmp_path: Path) -> None:
     ("name", "value"),
     [
         ("NEJOMIBOT_ACCOUNT", "0701234567"),
+        # E.164: no country code starts with 0, and no number is that short
+        ("NEJOMIBOT_ACCOUNT", "+0701234567"),
+        ("NEJOMIBOT_ACCOUNT", "+467012"),
         ("NEJOMIBOT_ADMINS", '["Alice"]'),
         ("NEJOMIBOT_SIGNAL_SERVICE", "http://127.0.0.1:8080"),
         ("NEJOMIBOT_SIGNAL_SERVICE", "signal"),
+        ("NEJOMIBOT_SIGNAL_SERVICE", "::1:8080"),
         ("NEJOMIBOT_WEATHER_UNITS", "kelvin"),
         ("NEJOMIBOT_TIMEZONE", "Europe/Nowhere"),
         ("NEJOMIBOT_PHOTOS_TIMEZONE", "Europe/Nowhere"),
@@ -101,6 +108,16 @@ def test_rejects_invalid_values(
     monkeypatch.setenv(name, value)
     with pytest.raises(ValidationError):
         Settings()  # type: ignore[call-arg]
+
+
+@pytest.mark.parametrize(
+    "service", ["127.0.0.1:8080", "signal:8080", "[::1]:8080", "[fd00::2]:8080"]
+)
+def test_signal_service_by_name_or_address(
+    monkeypatch: pytest.MonkeyPatch, service: str
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_SIGNAL_SERVICE", service)
+    assert Settings().signal_service == service  # type: ignore[call-arg]
 
 
 def test_signal_service_and_account_are_needed(

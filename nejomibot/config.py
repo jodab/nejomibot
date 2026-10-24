@@ -6,6 +6,7 @@ when the environment has every setting needed. Environment variables override
 the file, e.g. NEJOMIBOT_OPENWEATHER_API_KEY or NEJOMIBOT_DEBUG=1.
 """
 
+import logging
 import os
 import re
 import tempfile
@@ -18,6 +19,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import (
     AfterValidator,
+    BeforeValidator,
     Field,
     PositiveFloat,
     SecretStr,
@@ -41,7 +43,10 @@ def valid_timezone(value: str) -> str:
     return value
 
 
-PHONE_NUMBER = r"^\+\d{6,15}$"
+logger = logging.getLogger(__name__)
+
+# E.164: a country code, which doesn't start with 0, and 7 to 15 digits in all
+PHONE_NUMBER = r"^\+[1-9]\d{6,14}$"
 GROUP_ID = r"^group\.[A-Za-z0-9+/=]+$"
 # A Signal account's ID (its ACI), as signal-cli shows it
 SIGNAL_ID = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
@@ -67,6 +72,29 @@ def slashed(text: str) -> str:
     return f"/{text[1:]}" if DOT.match(text) else text
 
 
+def as_command(word: str) -> str:
+    """An alias or a shortcut as the bot keeps it: with a / for its .
+    (slashed), and a plain word with a / added, as a plain word would make
+    every message that starts with it a command: alice as /alice."""
+    word = slashed(word)
+    return word if word.startswith("/") else f"/{word}"
+
+
+def alias_name(word: str) -> str:
+    """An alias in the config, as as_command() keeps it, saying in the log
+    when a plain word is taken with a /."""
+    if (name := as_command(word)) != slashed(word):
+        logger.warning(
+            "aliases: %s is taken as %s: aliases start with . or /", word, name
+        )
+    return name
+
+
+def command_name(value: object) -> object:
+    """A command the config names, with a / for its ., as slashed() has it."""
+    return slashed(value) if isinstance(value, str) else value
+
+
 GroupId = Annotated[str, StringConstraints(pattern=GROUP_ID)]
 # Someone on Signal: by phone number, or by Signal ID for those who don't
 # share their number
@@ -76,10 +104,17 @@ Person = Annotated[
     AfterValidator(valid_person),
 ]
 TimeZone = Annotated[str, AfterValidator(valid_timezone)]
-HostPort = Annotated[str, StringConstraints(pattern=r"^[^:/\s]+:\d+$")]
+# A host name or IPv4 address, or an IPv6 address in brackets, and a port
+HostPort = Annotated[
+    str, StringConstraints(pattern=r"^(?:[^:/\s\[\]]+|\[[0-9A-Fa-f:.]+\]):\d+$")
+]
 # A command, as its handler names it, and another name for it: one word each
-Command = Annotated[str, StringConstraints(pattern=r"^/\S+$", to_lower=True)]
-Alias = Annotated[str, StringConstraints(pattern=r"^\S+$"), AfterValidator(slashed)]
+Command = Annotated[
+    str,
+    BeforeValidator(command_name),
+    StringConstraints(pattern=r"^/\S+$", to_lower=True),
+]
+Alias = Annotated[str, StringConstraints(pattern=r"^\S+$"), AfterValidator(alias_name)]
 Currency = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
 # The countries whose holidays the calendar has
 Country = Literal[
@@ -130,8 +165,8 @@ class Settings(BaseSettings):
 
     photos_dir: Path = Path("/photos")
     # Where the bot keeps what it's been told and what it's done: the timers,
-    # the specials, the allowed list and the photos sent this round. Only the
-    # bot reads it.
+    # the specials, the allowed list and the photos sent in the current
+    # rounds. Only the bot reads it.
     data_dir: Path = Path("/data")
     # Where photos that don't say their time zone were taken; timezone if not
     # given. Captions show the time in timezone, wherever a photo was taken.
@@ -273,8 +308,13 @@ class Settings(BaseSettings):
 
     @property
     def sent_photos_file(self) -> Path:
-        """Photos already sent in this round, one path per line."""
+        """The photos sent in the library's round, a path a line."""
         return self.data_file("sent-photos.txt")
+
+    @property
+    def album_rounds_file(self) -> Path:
+        """The photos sent in their albums' rounds, a path a line."""
+        return self.data_file("album-rounds.txt")
 
     @property
     def timers_file(self) -> Path:

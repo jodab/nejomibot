@@ -402,23 +402,47 @@ def test_an_album_is_named_by_the_longest_start() -> None:
     assert photos.album_named("2024-06-01", names) is None
 
 
+def album_round_names() -> list[str]:
+    return photos.get_settings().album_rounds_file.read_text().splitlines()
+
+
 def test_each_album_has_a_round_of_its_own(photos_dir: Path) -> None:
     make_photos(photos_dir, "Alice/a.jpg", "Alice/b.jpg", "Bob/c.jpg", "d.jpg")
+    # As 0.99.19 left it, with the albums' rounds in it too
     get_settings().sent_photos_file.write_text("Bob/c.jpg\ngone/e.jpg\n")
     for _ in range(2):
         assert photos.random_photo_message(track_sent=True, album="Alice")
-    assert sorted(sent_names()) == [
-        "Alice/a.jpg",
-        "Alice/b.jpg",
-        "Bob/c.jpg",
-        "gone/e.jpg",
-    ]
+    library = ["Alice/a.jpg", "Alice/b.jpg", "Bob/c.jpg", "gone/e.jpg"]
+    assert sorted(sent_names()) == sorted(album_round_names()) == library
     # All of Alice's sent: her round starts over, Bob's as it was, and a
-    # photo no longer in the library is forgotten
+    # photo no longer in the library is forgotten; the library's round, as
+    # the daily post's, keeps every photo it has had
     assert photos.random_photo_message(track_sent=True, album="Alice")
-    [bob, alice] = sent_names()
+    [bob, alice] = album_round_names()
     assert bob == "Bob/c.jpg"
     assert alice in ("Alice/a.jpg", "Alice/b.jpg")
+    assert sorted(sent_names()) == library
+
+
+def test_an_albums_round_never_repeats_the_librarys(photos_dir: Path) -> None:
+    library = {"a1.jpg": "A/a1.jpg", "a2.jpg": "A/a2.jpg", "b.jpg": "B/b.jpg"}
+    make_photos(photos_dir, *library.values(), "c.jpg")
+    library["c.jpg"] = "c.jpg"
+
+    def pick(album: str | None = None) -> str:
+        message = photos.random_photo_message(track_sent=True, album=album)
+        assert message is not None and message.text
+        return library[message.text.rsplit("🖼️ ", 1)[1]]
+
+    # The library's round, as the daily post's, while A's round goes round
+    # again and again in between: no photo twice until every one has come
+    this_round: set[str] = set()
+    for _ in range(30):
+        picked = pick()
+        if this_round == set(library.values()):
+            this_round = set()  # over, so a new one starts
+        assert picked not in this_round
+        this_round |= {picked, pick("A")}
 
 
 def test_the_librarys_round_counts_every_albums(photos_dir: Path) -> None:
@@ -559,3 +583,34 @@ async def test_the_cache_of_an_album(
     assert bob == "There's no album Bob: /albums lists them."
     assert library.startswith("📂 Photo cache contains 3 photos (")
     assert library.endswith("📚 In 1 album")
+
+
+async def test_a_simple_photo_has_no_text(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "Alice/a.jpg", taken="2024:06:01 14:52:00")
+    make_photos(photos_dir, "Bob/b.jpg")
+    # As /photo picks it, by album and by date, but the photo alone: no
+    # caption, nor a heading saying how near it is
+    await send("/sphoto alice")
+    await send("/sphoto 2024-06-01 15:00")
+    await send("/sphoto bob")
+    assert [(answer.text, answer.text_mode) for answer in answers] == [(None, None)] * 3
+    assert all(answer.base64_attachments for answer in answers)
+    # Nor does it count toward the rounds
+    assert not get_settings().sent_photos_file.exists()
+    # What isn't a photo is said as /photo says it
+    answers.clear()
+    await send("/sphoto Carol")
+    assert [answer.text for answer in answers] == [
+        "There's no album Carol: /albums lists them."
+    ]
+
+
+async def test_photo_message_without_its_caption(
+    photos_dir: Path, answers: list[SendMessage]
+) -> None:
+    make_photos(photos_dir, "a.jpg")
+    message = await photos.photo_message("", caption=False)
+    assert isinstance(message, SendMessage)
+    assert message.text is None and message.base64_attachments

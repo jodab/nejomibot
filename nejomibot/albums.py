@@ -9,12 +9,14 @@ shows one, and sets those:
                                         born then
   /album Alice -                        none of its own: photos_birth_date,
                                         if set
-  /album Alice shortcuts /alice alice   other names for /photo Alice, so
-                                        alice 2024 is /photo Alice 2024
+  /album Alice shortcuts /alice /al     other names for /photo Alice, so
+                                        /alice 2024 is /photo Alice 2024
   /album Alice shortcuts -              none
 
-An album is named as /photo names it, in any case. A shortcut can't be a
-name the bot answers to already. What albums have of their own is kept in
+An album is named as /photo names it, in any case. A shortcut starts with a
+/ or a ., as a plain word would make every message that starts with it a
+command, so alice is taken as /alice; and it can't be a name the bot answers
+to already. What albums have of their own is kept in
 data_dir/albums.txt, a line each (photos.album_settings), which can be
 changed by hand.
 """
@@ -35,7 +37,7 @@ from .commands import (
     shortcut_clash,
     undo_with,
 )
-from .config import get_settings, slashed
+from .config import as_command, get_settings
 from .i18n import _, every_word, ngettext, prefixed
 from .messages import escape
 from .photos import (
@@ -73,7 +75,7 @@ def size_text(photos: list[Path], found: dict[Path, datetime]) -> str:
 
 
 def album_line(name: str, photos: list[Path], found: dict[Path, datetime]) -> str:
-    """E.g. '1234 photos · 2019–2026 · 🎂 2019-06-15 · 🏷️ /alice alice'."""
+    """E.g. '1234 photos · 2019–2026 · 🎂 2019-06-15 · 🏷️ /alice /al'."""
     text = size_text(photos, found)
     if born := birth_date(name):
         text += f" · {get_settings().photos_age_emoji} {born:%Y-%m-%d}"
@@ -114,7 +116,7 @@ def album_usage() -> str:
     return _(
         "/album <album>: the album. /album <album> 2019-06-15: the birth date "
         "its captions count an age from; /album <album> -: none of its own. "
-        "/album <album> shortcuts /alice alice: other names for /photo "
+        "/album <album> shortcuts /alice: other names for /photo "
         "<album>; /album <album> shortcuts -: none. /albums lists the albums."
     )
 
@@ -206,7 +208,7 @@ def set_shortcuts(name: str, words: list[str]) -> str:
             return _("{album} has no shortcuts.").format(album=name)
         keep(replace(own, album=name, shortcuts=()))
         return _("✅ {album}: no shortcuts.").format(album=name)
-    shortcuts = tuple(dict.fromkeys(map(slashed, words)))
+    shortcuts = tuple(dict.fromkeys(map(as_command, words)))
     if len(shortcuts) > MAX_SHORTCUTS:
         return _("An album has at most {count} shortcuts.").format(count=MAX_SHORTCUTS)
     for shortcut in shortcuts:

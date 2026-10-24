@@ -247,13 +247,25 @@ async def test_only_the_configs_admins_add_and_remove_admins(chat: Chat) -> None
 
 
 async def test_an_edit_takes_the_place_of_what_it_edits(chat: Chat) -> None:
-    await chat.send("/admin add CA401000")
+    # An add that welcomed no one, as it found no one
+    await chat.send("/admin add Nobody")
     await chat.send(f"/admin add {BOB}", edit=True)
     assert added() == [BOB_ID]
     await chat.send("/admin remove 1", at=10)
     await chat.send("/admin remove 2", at=10, edit=True)
     assert chat.replies[-1] == "There's no 2 in /admins."
     assert added() == [BOB_ID]
+
+
+async def test_an_edit_of_an_add_that_welcomed_is_not_run(chat: Chat) -> None:
+    await chat.send("/admin add CA401000")
+    await chat.send(f"/admin add {BOB}", edit=True)
+    # The welcome has gone out, and can't be taken back
+    assert chat.replies[-1] == (
+        "✏️ An edit of /admin add isn't run, as what it did can't be undone. "
+        "Send it as a new message instead."
+    )
+    assert added() == [CAROL_ID]
 
 
 async def test_an_edit_of_a_message_from_before_a_start(chat: Chat) -> None:
@@ -329,6 +341,8 @@ async def test_a_welcome_that_waits_or_cant_be_sent(chat: Chat) -> None:
 
 
 async def test_an_edit_undoes_the_language_too(chat: Chat) -> None:
+    # A welcome that couldn't be sent leaves the add to an edit
+    chat.outcome = Outcome.GIVE_UP
     await chat.send(f"/admin add {BOB} sv")
     await chat.send("/admin add CA401000", edit=True)
     assert added() == [CAROL_ID]

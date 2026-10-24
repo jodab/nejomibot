@@ -10,6 +10,7 @@ name = "Deutsch"
 [commands]
 "/photo" = ["/foto", "/bild"]
 "/uniquephoto" = ["/neuesfoto"]
+"/sphoto" = ["/einfachesfoto"]
 "/albums" = ["/alben"]
 "/weather" = ["/wetter"]
 "/info" = ["/zeit"]

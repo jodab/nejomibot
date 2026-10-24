@@ -99,6 +99,13 @@ COPY --from=build /app/.venv .venv
 COPY config.example.toml ./
 COPY tools/signal-account.sh tools/nejomibot-help.sh tools/
 COPY tools/nejomibot-profile.sh /etc/profile.d/nejomibot.sh
+# The bytecode of the standard library's modules that the bot and its tools
+# import: the base image has none, and PYTHONDONTWRITEBYTECODE keeps it from
+# being written as they run, so each run compiled them anew. On a Raspberry
+# Pi 4, nejomibot-timers imported in 4.7 s without it, 2.4 s with it. 5.5 MB,
+# of the whole library's 21 MB.
+RUN env -u PYTHONDONTWRITEBYTECODE python -c 'import concurrent.futures.thread, \
+        nejomibot.bot, nejomibot.healthcheck, nejomibot.timers_cli'
 
 # The photos go in /photos, which the bot only reads, and config.toml in
 # /data, where the bot keeps what it's told. By number, so a runtime can see

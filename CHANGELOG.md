@@ -4,6 +4,71 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- Aliases and shortcuts start with `/` or `.`. A plain word made every
+  message that starts with it a command, in groups too, so it is now taken
+  with a `/`: `pic` is `/pic`, in the configuration's `aliases`, in
+  `albums.txt` and in `specials.txt`, and the log says so at startup for
+  the configuration's. Nothing needs editing, but type `.pic` or `/pic`
+  where `pic` worked before. A plain word that is then a command's name,
+  such as `photo` as an alias for `/weather`, stops the bot at startup, as
+  any alias that is a command does, and the message names it.
+- The albums' rounds of `/uniquephoto` are kept in
+  `data_dir/album-rounds.txt`, apart from the library's in
+  `sent-photos.txt`. The first `/uniquephoto` after the update starts the
+  new file from what `sent-photos.txt` has of albums, so every round goes
+  on where it was.
+- Phone numbers are checked as E.164 numbers: a `+`, a country code that
+  doesn't start with 0, and 7 to 15 digits in all. One outside that, which
+  can't be a Signal number, stops the bot at startup in `account` or
+  `admins`, and is an unreadable line on the allowed list.
+
+### Added
+
+- `/sphoto` (`/enkelbild` in Swedish): a simple photo, picked as `/photo`
+  picks it, from every album or the one named, at random or by date, and
+  sent alone, without its caption or heading.
+- `signal_service` may be an IPv6 address in brackets, such as
+  `[::1]:8080`, and the commands in `aliases` may start with `.`.
+
+### Changed
+
+- `/uniquephoto`'s rounds no longer disturb each other: when an album's
+  round starts over, the library's round, as the daily post's
+  `/uniquephoto` runs it, keeps the photos it has sent, so it never sends a
+  photo twice before it has sent every one.
+- The bot works out a message's aliases once, rather than in each of its 38
+  handlers: on a Raspberry Pi 4, that saves 23 ms of CPU for each message
+  it receives.
+- The image has the bytecode of the standard library's modules that the
+  bot imports, which the base image leaves out: on a Raspberry Pi 4, the
+  bot starts and `nejomibot-timers` answers about 2 s sooner (its imports
+  took 4.7 s, now 2.4 s), for 5.5 MB more in the image.
+- A special's commands run as the admin who ran it, as `/run` runs its
+  commands: numbers from lists, as in `/incoming 4`, are that admin's.
+- An edit of `/admin add` isn't run once the welcome has gone out, which
+  can't be taken back, and says so; the new admin was welcomed twice.
+- `/status` reads the Signal groups once, not twice.
+- The notice of a changed safety number names the person as `/contacts`
+  finds them: by signal-cli's name, else by number or ID.
+- `nejomibot-timers` stops after 60 s without an answer from
+  signal-cli-rest-api, rather than after aiohttp's 5 minutes.
+- The container's guide, `nejomibot-help.sh`, is shorter, and the account
+  tool's help on containers more concise.
+
+### Fixed
+
+- `/cache` failed when a photo was removed while it counted them.
+- `/photo <date> <time>` answered that no photo said when it was taken when
+  the nearest photo couldn't be read; it now tries the next nearest.
+- An empty photo library logged that no valid photo was found in 5
+  attempts, when none was attempted.
+- `config.example.toml` lists `/album`, `/incoming` and `/delivery` among
+  the admin commands.
+
 ## 0.99.19 - 2026-10-24
 
 ### Added

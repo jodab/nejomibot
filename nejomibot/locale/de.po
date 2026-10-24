@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 16:14+0300\n"
+"POT-Creation-Date: 2026-10-24 19:02+0300\n"
 "Language-Team: German\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -261,13 +261,13 @@ msgstr[1] "📷 {count} Fotos in keinem Album"
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
 "captions count an age from; /album <album> -: none of its own. /album "
-"<album> shortcuts /alice alice: other names for /photo <album>; /album "
-"<album> shortcuts -: none. /albums lists the albums."
+"<album> shortcuts /alice: other names for /photo <album>; /album <album> "
+"shortcuts -: none. /albums lists the albums."
 msgstr ""
 "/album <album>: das Album. /album <album> 2019-06-15: das Geburtsdatum, ab "
 "dem die Bildunterschriften ein Alter zählen; /album <album> -: kein "
-"eigenes. /album <album> kürzel /alice alice: andere Namen für /foto "
-"<album>; /album <album> kürzel -: keine. /alben listet die Alben auf."
+"eigenes. /album <album> kürzel /alice: andere Namen für /foto <album>; /"
+"album <album> kürzel -: keine. /alben listet die Alben auf."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -692,6 +692,16 @@ msgid "{name} is a command already."
 msgstr "{name} ist bereits ein Befehl."
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
+"a new message instead."
+msgstr ""
+"✏️ Eine Bearbeitung von {command} wird nicht ausgeführt, da sich seine "
+"Wirkung nicht rückgängig machen lässt. Sende es stattdessen als neue "
+"Nachricht."
+
+#: nejomibot/commands.py
 msgid ""
 "✏️ That edit isn't run: the bot has started again since the message it edits, "
 "so it can't tell what that did. Send it as a new message instead."
@@ -707,16 +717,6 @@ msgid ""
 msgstr ""
 "✏️ Diese Bearbeitung wird nicht ausgeführt: Das Rückgängigmachen der "
 "bearbeiteten Nachricht ist fehlgeschlagen. Sende sie stattdessen als neue "
-"Nachricht."
-
-#: nejomibot/commands.py
-#, python-brace-format
-msgid ""
-"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
-"a new message instead."
-msgstr ""
-"✏️ Eine Bearbeitung von {command} wird nicht ausgeführt, da sich seine "
-"Wirkung nicht rückgängig machen lässt. Sende es stattdessen als neue "
 "Nachricht."
 
 #: nejomibot/contacts.py
@@ -1139,6 +1139,14 @@ msgid "[<album>] <date>"
 msgstr "[<album>] <datum>"
 
 #: nejomibot/help.py
+msgid "a photo alone, without its caption"
+msgstr "nur das Foto, ohne Bildunterschrift"
+
+#: nejomibot/help.py
+msgid "[<album>] [<date>]"
+msgstr "[<album>] [<datum>]"
+
+#: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr "ein noch nicht gesendetes Foto"
 
@@ -1508,10 +1516,10 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own, and shortcuts as /alice alice, or - for none"
+"for none of its own, and shortcuts as /alice, or - for none"
 msgstr ""
 "<album> – eines aus /alben, über den Namen; /album nimmt ein <datum> mit "
-"Jahr, oder - für keines, und Kürzel wie /alice alice, oder - für keine"
+"Jahr, oder - für keines, und Kürzel wie /alice, oder - für keine"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"

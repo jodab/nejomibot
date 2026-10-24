@@ -85,7 +85,9 @@ def test_every_languages_names_in_any_language() -> None:
     [
         ("/pic", "/photo"),
         ("/PIC", "/photo"),
-        ("pic", "/photo"),
+        # The config's plain Pic is /Pic: a plain word is no command
+        ("pic", "pic"),
+        ("pic of the cat", "pic of the cat"),
         ("/f startrek", "/fortune startrek"),
         ("/f\nstartrek  ", "/fortune\nstartrek  "),
         # Not an alias at the start: as it is
@@ -206,7 +208,16 @@ def context_of(
 @pytest.mark.usefixtures("pic")
 async def test_a_command_is_the_whole_text() -> None:
     handler = Seen()
-    for text in ["/photo", "/Cache", "Pic", "/pic now", "/photo now", None, "/f"]:
+    for text in [
+        "/photo",
+        "/Cache",
+        "Pic",
+        "/pic",
+        "/pic now",
+        "/photo now",
+        None,
+        "/f",
+    ]:
         await handler.handle_data_message(context_of(text))
     assert handler.seen == [
         ("/photo", "/photo"),

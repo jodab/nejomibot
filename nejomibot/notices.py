@@ -35,7 +35,7 @@ from pydantic import BaseModel, ValidationError
 from signalbot import About, SendMessage, SignalBot, TextMode
 
 from . import access, birthdays, lists, photos, reminders, rest, system
-from .account import IDENTITIES, UNTRUSTED
+from .account import IDENTITIES, UNTRUSTED, by_ids, fetch_recipients, find_by_ids
 from .config import get_settings
 from .files import write_privately
 from .health import (
@@ -414,11 +414,17 @@ class Notices:
         ]
         if not changed:
             return
-        names = await access.names(bot)
+        # Named as /contacts finds them, which the notice says to use: by
+        # signal-cli's name, else by number or ID
+        try:
+            known = by_ids(await fetch_recipients())
+        except Exception as e:
+            logger.warning("Could not look up the names: %s", describe(e))
+            known = {}
         for identity in changed:
+            contact = find_by_ids(known, identity.number, identity.uuid)
             name = (
-                names.get(identity.uuid or "")
-                or names.get(identity.number or "")
+                (contact.real_name if contact else None)
                 or identity.number
                 or identity.uuid
                 or "?"

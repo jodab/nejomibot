@@ -22,7 +22,6 @@ from .account import (
     account_lines,
     device_lines,
     fetch_account,
-    fetch_groups,
 )
 from .commands import Command, Handler, answer
 from .config import get_settings
@@ -53,9 +52,12 @@ type Section = tuple[str, str, list[str]]  # an icon, a title, and its lines
 # Checks
 
 
-async def check_groups(bot: SignalBot) -> str:
-    """The bot is still in every group on the allowed list."""
-    member_of = {group.id for group in await fetch_groups(bot) if group.member}
+async def check_groups(account: Awaitable[Account | Exception]) -> str:
+    """The bot is still in every group on the allowed list, by the groups of
+    the account, which /status reads once for all its checks."""
+    if isinstance(found := await account, Exception):
+        raise found
+    member_of = {group.id for group in found.groups if group.member}
     allowed = {
         entry.id
         for entry in access.allowed_list.current().entries
@@ -342,15 +344,19 @@ async def account_or_error(bot: SignalBot) -> Account | Exception:
 
 
 async def status_messages(bot: SignalBot, message_delay: float) -> list[str]:
+    # Read once, for the account's checks and lines and the groups check,
+    # which a timeout of its own doesn't cancel (shield)
+    account_read = asyncio.ensure_future(account_or_error(bot))
     # gather() starts both groups at once
     info = asyncio.gather(
-        account_or_error(bot),
         publicip.internet_lines(),
         asyncio.to_thread(container_lines),
         asyncio.to_thread(host_lines),
     )
     remote: list[Awaitable[Check]] = [
-        run_check(_("Signal groups"), lambda: check_groups(bot)),
+        run_check(
+            _("Signal groups"), lambda: check_groups(asyncio.shield(account_read))
+        ),
         run_check("OpenWeatherMap", check_weather),
     ]
     if pair := get_settings().exchange_rate:
@@ -359,7 +365,8 @@ async def status_messages(bot: SignalBot, message_delay: float) -> list[str]:
     health, others, local = await asyncio.gather(
         check_health(bot), asyncio.gather(*remote), asyncio.to_thread(system_checks)
     )
-    account, internet, container, host = await info
+    internet, container, host = await info
+    account = await account_read
     checks = [*health.checks, *account_checks(account), *others, *local]
     signal_lines = [
         *([] if isinstance(account, Exception) else account_lines(account)),

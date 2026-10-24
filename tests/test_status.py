@@ -74,7 +74,9 @@ def allow(*chats: str) -> None:
 async def test_check_groups(bot: SignalBot, signal_api: FakeApi) -> None:
     signal_api.responses[f"/v1/groups/{ME}"].append(group_entry(GROUP_B, "B"))
     allow(GROUP, GROUP_B)
-    assert await status.check_groups(bot) == "member of 2, all 2 allowed"
+    # By the account's groups, which /status reads once
+    account = status.account_or_error(bot)
+    assert await status.check_groups(account) == "member of 2, all 2 allowed"
 
 
 async def test_check_groups_names_missing_group(bot: SignalBot) -> None:
@@ -84,7 +86,15 @@ async def test_check_groups_names_missing_group(bot: SignalBot) -> None:
         status.CheckFailed,
         match=r"not a member of group.b2xk…, group\.bbbbbbbb…",
     ):
-        await status.check_groups(bot)
+        await status.check_groups(status.account_or_error(bot))
+
+
+async def test_check_groups_fails_as_the_account_did() -> None:
+    async def failed() -> Exception:
+        return RuntimeError("no answer")
+
+    with pytest.raises(RuntimeError, match="no answer"):
+        await status.check_groups(failed())
 
 
 def test_checks_text_when_all_pass() -> None:

@@ -6,7 +6,9 @@ subfolders part of it; photos right in photos_dir are in none, but among all
 photos. A command names an album in any case, as the longest start of what
 follows it, so names may have spaces: /photo Alice and Bob.
 
-/photo picks a photo at random, from every album or from the one named.
+/photo picks a photo at random, from every album or from the one named;
+/sphoto, a simple photo, picks as /photo does, and sends the photo alone,
+without its caption or heading.
 With a date, as exact as it's given, it picks one taken then: in 2017, in
 2017-05, on 2017-05-14 or at 15 that day, as /photo 2017-05-14 15, or else
 in the nearest year, month, day or hour that has some; to the minute, as
@@ -18,13 +20,15 @@ bytes a photo, so the first /photo with a date after a start takes longer.
 /uniquephoto picks among the photos not sent yet in this round, and counts
 toward it: none twice until every photo has been sent, then a new round
 starts. Each album has a round of its own: /uniquephoto Alice picks among
-Alice's, and once all of hers have been sent, her round starts over, the
-others' as they were. A timer that runs /uniquephoto every day posts each
-photo once, round after round. /photo and /onthisday don't count toward it.
+Alice's, and once all of hers have been sent, her round starts over. A photo
+sent in either round counts in both, and a round that starts over leaves the
+others as they are, so none sends a photo twice in its round. A timer that
+runs /uniquephoto every day posts each photo once, round after round.
+/photo and /onthisday don't count toward the rounds.
 
 With a birth date, captions show the age of who's in the photos on the day:
 the album's own, which /album sets (albums.py), or else photos_birth_date.
-An album can have shortcuts, too, other names for /photo with it, as alice
+An album can have shortcuts, too, other names for /photo with it, as /alice
 for /photo Alice.
 
 HEIC and HEIF photos are sent as JPEG, with photos_heif; without it they're
@@ -33,6 +37,7 @@ left out, which saves the memory of pillow-heif, which opens them.
 
 import asyncio
 import base64
+import contextlib
 import io
 import logging
 import math
@@ -51,7 +56,7 @@ from PIL import ExifTags, Image
 from signalbot import DataMessageContext, SendMessage, TextMode
 
 from .commands import Command, Handler, answer, argument, built_in
-from .config import get_settings
+from .config import as_command, get_settings
 from .files import KeptLines, append_privately, write_privately
 from .i18n import _, format_duration, format_file_size, ngettext
 from .messages import chance, drawn, error_text, escape, log_failure
@@ -181,17 +186,17 @@ class AlbumSettings:
 
     album: str  # as its folder is named
     born: date | None = None
-    shortcuts: tuple[str, ...] = ()  # each a word, with or without a / first
+    shortcuts: tuple[str, ...] = ()  # each a word with a / first (as_command)
 
 
 ALBUMS_HEADER = (
     "# nejomibot's albums, one per line:",
-    "#   album | 2019-06-15 | /alice alice",
+    "#   album | 2019-06-15 | /alice /al",
     "# The album is a folder right in photos_dir, by its name. Its photos'",
     "# captions show the age of who's in them, born on that day; an album",
     "# without one takes photos_birth_date, if the config has one. Each",
-    "# shortcut, a word with or without a / first, is another name for /photo",
-    "# with the album: alice is /photo Alice, and alice 2024 /photo Alice 2024.",
+    "# shortcut, a word that starts with /, is another name for /photo with",
+    "# the album: /alice is /photo Alice, and /alice 2024 /photo Alice 2024.",
     "# Either may be left out.",
     "# Changed with /album in Signal, or by hand: the bot reads it again when",
     "# it changes, and leaves comments and lines it can't read as they are.",
@@ -199,10 +204,11 @@ ALBUMS_HEADER = (
 
 
 def parse_album_settings(line: str) -> AlbumSettings:
-    """A line of the file; one without shortcuts may end at the date. Raises
+    """A line of the file; one without shortcuts may end at the date. A
+    shortcut without its / is read with one, as as_command() has it. Raises
     ValueError."""
     album, born, *names = (part.strip() for part in line.rsplit("|", 2))
-    shortcuts = tuple(names[0].split()) if names else ()
+    shortcuts = tuple(dict.fromkeys(map(as_command, names[0].split()))) if names else ()
     if not album:
         raise ValueError("no album")
     if commands := [name for name in shortcuts if built_in(name)]:
@@ -246,28 +252,56 @@ def birth_date(album: str | None) -> date | None:
     return get_settings().photos_birth_date
 
 
-# The round
+# The rounds
+
+
+def sent_lines(path: Path) -> list[str]:
+    """The photos a round's file lists, by their paths in the library; none
+    if it isn't there, or can't be read."""
+    try:
+        return path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return []
+    except (OSError, UnicodeError) as e:
+        logger.warning("Could not read %s: %r", path.name, e)
+        return []
+
+
+def keep_album_rounds(lines: list[str]) -> None:
+    """Make album-rounds.txt list the lines. Raises OSError."""
+    path = get_settings().album_rounds_file
+    write_privately(path, "".join(f"{line}\n" for line in lines))
+
+
+def album_rounds() -> list[str]:
+    """The photos sent in their albums' rounds, as album-rounds.txt lists
+    them. Before 0.99.20, sent-photos.txt kept them with the library's, so
+    the file starts as what that has of albums."""
+    settings = get_settings()
+    if settings.album_rounds_file.exists():
+        return sent_lines(settings.album_rounds_file)
+    lines = [line for line in sent_lines(settings.sent_photos_file) if "/" in line]
+    try:
+        keep_album_rounds(lines)
+    except OSError as e:
+        logger.warning("Could not write %s: %r", settings.album_rounds_file.name, e)
+    return lines
 
 
 def unsent_photos(photos: list[Path], album: str | None = None) -> list[Path]:
-    """The photos not yet sent in this round, of the album's if one is
-    named; all of them once every one has been, as a new round starts: the
-    library's, or the album's alone, its photos taken off the list of those
-    sent, the others' left on it.
+    """The photos not sent yet in this round: the library's, or with an
+    album, the album's; all of them once every one has been, as its new
+    round starts.
 
-    The sent ones are listed in a file, by their paths in the library, one
-    per line, so the rounds survive restarts. Photos added later join the
-    current round, removed ones are ignored, and the file never lists more
-    than the library holds (plus removed photos) before it starts over.
+    Each round is listed in a file, by the photos' paths in the library, a
+    line each, so the rounds survive restarts: the library's in
+    sent-photos.txt, the albums' in album-rounds.txt. A photo sent in either
+    counts in both, so neither sends it again in its round, and a round that
+    starts over leaves the others as they are. Photos added later join the
+    current rounds, and removed ones are ignored.
     """
-    sent_file = get_settings().sent_photos_file
-    try:
-        lines = sent_file.read_text(encoding="utf-8").splitlines()
-    except FileNotFoundError:
-        lines = []
-    except (OSError, UnicodeError) as e:
-        logger.warning("Could not read the list of sent photos: %r", e)
-        lines = []
+    albums = album_rounds()
+    lines = sent_lines(get_settings().sent_photos_file) if album is None else albums
     sent = set(lines)
     if draw := drawn.get():
         # Its run in another language marked it sent: this one picks it too
@@ -279,33 +313,40 @@ def unsent_photos(photos: list[Path], album: str | None = None) -> list[Path]:
     logger.info("All %d photos have been sent, starting over", len(photos))
     try:
         if album is None:
-            sent_file.unlink(missing_ok=True)
+            get_settings().sent_photos_file.unlink(missing_ok=True)
         else:
             # Its photos off the list, and those no longer in the library
             present = {library_name(path) for path in scan_photos()}
-            others = [
-                line
-                for line in lines
-                if line in present and not line.startswith(f"{album}/")
-            ]
-            write_privately(sent_file, "".join(f"{line}\n" for line in others))
+            keep_album_rounds(
+                [
+                    line
+                    for line in albums
+                    if line in present and not line.startswith(f"{album}/")
+                ]
+            )
     except OSError as e:
         logger.warning("Could not start the round over: %r", e)
     return photos
 
 
 def mark_sent(path: Path) -> None:
-    """Add the photo to those sent in this round: once, in whichever language
-    its command runs first."""
+    """Add the photo to those sent in its rounds, the library's and its
+    album's: once, in whichever language its command runs first."""
     name = library_name(path)
     if draw := drawn.get():
         if name in draw.used:
             return
         draw.used.add(name)
-    try:
-        append_privately(get_settings().sent_photos_file, name)
-    except OSError as e:
-        logger.warning("Could not add %s to the sent photos: %r", path, e)
+    settings = get_settings()
+    rounds = [settings.sent_photos_file]
+    if album_of(path) is not None:
+        rounds.append(settings.album_rounds_file)
+    for kept in rounds:
+        try:
+            if name not in sent_lines(kept):
+                append_privately(kept, name)
+        except OSError as e:
+            logger.warning("Could not add %s to %s: %r", name, kept.name, e)
 
 
 # Reading a photo
@@ -543,10 +584,13 @@ def random_photo_message(
     if not photos:
         logger.warning("No photos found in %s", get_settings().photos_dir)
         return None
-    if not track_sent:
-        return pick(photos, heading)
-    with picking:
-        return pick(unsent_photos(photos, album), heading, track_sent=True)
+    with picking if track_sent else contextlib.nullcontext():
+        candidates = unsent_photos(photos, album) if track_sent else photos
+        message = pick(candidates, heading, track_sent=track_sent)
+    if message is None:
+        tries = min(MAX_ATTEMPTS, len(candidates))
+        logger.error("Found no valid photo in %d attempts", tries)
+    return message
 
 
 def pick(
@@ -581,16 +625,19 @@ def nearest_heading(asked: str, off: str, after: bool) -> str:
 
 def nearest_moment(wanted: datetime, found: dict[Path, datetime]) -> SendMessage | None:
     """The photo taken nearest the moment, under how far off it is, unless
-    it's that minute; None if no photo's time is known. Blocking."""
-    if not found:
-        return None
-    path = min(found, key=lambda path: (abs(found[path] - wanted), found[path]))
-    off = found[path] - wanted
-    heading = ""
-    if abs(off) >= timedelta(minutes=1):
-        asked = f"{wanted:%Y-%m-%d %H:%M}"
-        heading = nearest_heading(asked, format_duration(abs(off)), off > timedelta())
-    return pick([path], heading)
+    it's that minute, or if it can't be read, the next nearest; None if no
+    photo's time is known. Blocking."""
+    nearest = sorted(found, key=lambda path: (abs(found[path] - wanted), found[path]))
+    for path in nearest[:MAX_ATTEMPTS]:
+        off = found[path] - wanted
+        heading = ""
+        if abs(off) >= timedelta(minutes=1):
+            asked = f"{wanted:%Y-%m-%d %H:%M}"
+            off_text = format_duration(abs(off))
+            heading = nearest_heading(asked, off_text, off > timedelta())
+        if message := pick([path], heading):
+            return message
+    return None
 
 
 # How exactly /photo's date says when: a year, a month, a day or an hour,
@@ -724,18 +771,23 @@ def unique_photo_for(text: str) -> SendMessage | str:
 
 
 def no_photo() -> str:
-    logger.error("Found no valid photo in %d attempts", MAX_ATTEMPTS)
     return error_text(_("found no photo that could be sent"))
 
 
-async def photo_message(text: str = "", *, unique: bool = False) -> SendMessage | str:
+async def photo_message(
+    text: str = "", *, unique: bool = False, caption: bool = True
+) -> SendMessage | str:
     """The photo that /photo, or /uniquephoto, followed by text asks for, or
-    what to say instead, as what went wrong."""
+    what to say instead, as what went wrong; without caption, as /sphoto
+    has it, the photo alone, without its caption or heading."""
     try:
-        return await asyncio.to_thread(unique_photo_for if unique else photo_for, text)
+        found = await asyncio.to_thread(unique_photo_for if unique else photo_for, text)
     except Exception as e:
         log_failure(logger, "Picking a photo", e)
         return error_text(e)
+    if not caption and isinstance(found, SendMessage):
+        return found.model_copy(update={"text": None, "text_mode": None})
+    return found
 
 
 # The library's size
@@ -749,9 +801,13 @@ def photo_stats(album: str | None = None) -> str:
     library = scan_photos()
     photos = library if album is None else by_album(library).get(album, [])
     for path in photos:
+        try:
+            size = path.stat().st_size
+        except FileNotFoundError:
+            continue  # gone since the scan
         ext = path.suffix.lower()
         counts[ext] += 1
-        sizes[ext] += path.stat().st_size
+        sizes[ext] += size
 
     total = counts.total()
     size = format_file_size(sizes.total())
@@ -809,6 +865,7 @@ async def cache_message(text: str = "") -> str:
 class Photo(Handler):
     commands = (
         Command("/photo", more=True),
+        Command("/sphoto", more=True),
         Command("/uniquephoto", more=True),
         Command("/cache", more=True),
     )
@@ -828,4 +885,9 @@ class Photo(Handler):
             await answer(context, lambda: cache_message(text))
             return
         unique = command.name == "/uniquephoto"
-        await answer(context, lambda: photo_message(text, unique=unique), slow=True)
+        caption = command.name != "/sphoto"
+        await answer(
+            context,
+            lambda: photo_message(text, unique=unique, caption=caption),
+            slow=True,
+        )

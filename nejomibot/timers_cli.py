@@ -37,6 +37,10 @@ from .timers import (
     split_commands,
 )
 
+# How long the tool waits for signal-cli-rest-api, its requests together:
+# signalbot's own wait is aiohttp's, up to 5 minutes
+ASK_TIMEOUT = 60  # seconds
+
 
 class Refused(Exception):
     """What's wrong with what was asked: said, and the tool stops."""
@@ -60,7 +64,13 @@ async def asking(work: Work) -> str:
     )
     logging.getLogger(LOGGER_NAME).handlers.clear()  # as the bot does
     try:
-        return await work(bot)
+        async with asyncio.timeout(ASK_TIMEOUT):
+            return await work(bot)
+    except TimeoutError:
+        raise Refused(
+            f"No answer from signal-cli-rest-api at {settings.signal_service} "
+            f"in {ASK_TIMEOUT} s."
+        ) from None
     finally:
         await bot.close()
         await client.close()

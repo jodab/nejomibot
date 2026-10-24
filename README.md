@@ -291,7 +291,8 @@ Everyday commands, for everyone the bot may talk to:
 |---|---|
 | `/photo`, `/photo <album>` | A random photo from all albums, or from the album named, with the date it was taken, an age if one is set, and a map link (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/photo [<album>] <date>` | A photo taken at the time given, as precisely as you like: in `2017`, in `2017-05`, on `2017-05-14`, or between 15:00 and 16:00 that day with `2017-05-14 15`. It picks one at random, or if there is none, one from the nearest year, month, day or hour that has photos, and says how far off it is. Given to the minute, as in `/photo 2024-06-01 15:00`, it shows the photo taken closest to that moment |
-| `/uniquephoto`, `/uniquephoto <album>` | A photo not yet sent in the current round, with the same caption as `/photo`: no photo is sent twice until every photo has been sent, and then a new round starts. Each album has its own round (see [Photos and the daily post](#photos-and-the-daily-post)) |
+| `/sphoto`, `/sphoto <album>`, `/sphoto [<album>] <date>` | A simple photo: picked as `/photo` picks it, and sent alone, without its caption or heading |
+| `/uniquephoto`, `/uniquephoto <album>` | A photo not yet sent in the current round, with the same caption as `/photo`: no photo is sent twice until every photo has been sent, and then a new round starts. Each album has its own round, independent of the others (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/albums` | The albums, which are the folders of the photo library: how many photos each one has, the years they were taken, the birth date its captions count an age from, and its shortcuts |
 | `/onthisday`, `/onthisday <album>` | A photo taken on this day in an earlier year, or failing that, within three days of it, from all albums or the album named, with the same caption as `/photo`, under a heading that says how many years ago (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/cache`, `/cache <album>` | The number and total size of the photos in the library, by file type, and how many albums there are; with an album, that album's photos |
@@ -314,7 +315,7 @@ For admins, in a direct chat with the bot:
 |---|---|
 | `/status`, `/test` | A health check in two messages: first the checks, failed ones first, then the details: the bot and its versions, Signal, the public IP addresses and ASN, the container, and the host |
 | `/album <album>`, `/album <album> <date>`, `/album <album> -` | An album: how many photos it has, the years they were taken, the birth date its captions count an age from, and its shortcuts. With a date, such as `2019-06-15`, it sets that birth date; `-` removes it, so that `photos_birth_date` applies again (see [Photos and the daily post](#photos-and-the-daily-post)) |
-| `/album <album> shortcuts <names>`, `/album <album> shortcuts -` | Other names for `/photo <album>`: `/album Alice shortcuts /alice alice` makes `alice` mean `/photo Alice`, and `alice 2017` mean `/photo Alice 2017`; `-` removes them |
+| `/album <album> shortcuts <names>`, `/album <album> shortcuts -` | Other names for `/photo <album>`: `/album Alice shortcuts /alice` makes `/alice` mean `/photo Alice`, and `/alice 2017` mean `/photo Alice 2017`; `-` removes them. A shortcut starts with `/` or `.`: a plain word, which would make every message that starts with it a command, is taken with a `/` |
 | `/today preview [<date>]` | What `/today` will say on a given day, such as `10-25`, `2026-10-25` or `tomorrow`, or today if no day is given, in each group the bot is in and in a direct chat |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, in two short lines each, with whether they are verified; with `<who>`, one person in full, with their safety number. `<who>` is the person's number in the list you were shown last by `/contacts` or `/trust`, their phone number, their Signal ID or its beginning, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
 | `/contacts add <who> <name>` | Saves someone as a contact under that name, or renames them. `<who>` is as for `/contacts`; when it is a name, the longest beginning of the message that names someone is used. Someone the bot doesn't know yet can be added by phone number, or by Signal username, as `u:alice.42` or `@alice.42` |
@@ -337,7 +338,7 @@ For admins, in a direct chat with the bot:
 | `/timer remove <n>`, `/timer run <n>` | Removes a timer, or runs it now |
 | `/specials` | Your own [specials](#specials): commands that post text and the answers of other commands |
 | `/special add <name> <parts>` | Adds a special or changes one, for example `/special add /morning Good morning! /today + /weather; /uniquephoto` |
-| `/special shortcuts <name> <names>`, `/special shortcuts <name> -` | Other names for a special: `/special shortcuts /morning /gm gm` makes `/gm` and `gm` post the same as `/morning`; `-` removes them |
+| `/special shortcuts <name> <names>`, `/special shortcuts <name> -` | Other names for a special: `/special shortcuts /morning /gm` makes `/gm` post the same as `/morning`; `-` removes them |
 | `/special remove <name>` | Removes a special, unless a timer runs it |
 | `/msg <chats> <text>` | Posts the text to other chats, for example `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Runs commands and posts their answers to other chats, for example `/run 1 /status` |
@@ -611,23 +612,31 @@ albums. A command names an album in any letter case, by the longest album
 name that the text after the command starts with, so names may contain
 spaces: `/photo Alice and Bob`. Admins can give an album shortcuts, which
 are other names for `/photo` with that album: `/album Alice shortcuts /alice
-alice` makes `/alice` and `alice` mean `/photo Alice`, so `alice 2017` means
+/al` makes `/alice` and `/al` mean `/photo Alice`, so `/alice 2017` means
 `/photo Alice 2017`, and `/album Alice shortcuts -` removes them. A shortcut
-is a single word, with or without a leading `/`, but it can't be a name the
-bot already responds to: a command, an alias or a special. A shortcut
-without a `/` is recognized in any message that starts with it, in groups
-too, just like an alias in the configuration.
+is a single word that starts with `/` or `.`, and can't be a name the bot
+already responds to: a command, an alias or a special. A plain word, which
+would make every message that starts with it a command, is taken with a
+`/`: `alice` becomes `/alice`, also in `albums.txt` from before 0.99.20.
 
 `/uniquephoto` picks a random photo among those not yet sent in the current
 round, and records it as sent; once every photo has been sent, a new round
 begins. Each album has its own round: `/uniquephoto Alice` picks among
 Alice's photos not yet sent, and once all of hers have been sent, her round
-starts over, while the other rounds continue as they were. Anyone allowed
-may use it, and each use takes up a photo of the round. `/photo` picks from
-all photos, or from the album's, and neither it nor `/onthisday` counts
-toward the round. The sent photos are listed in `data_dir/sent-photos.txt`
-(a temporary file in debug mode), by their paths within the library, so
-rounds survive restarts; deleting the file starts every round over.
+starts over. A photo sent in one round counts in the others too, and a
+round that starts over leaves the others as they are, so no round sends a
+photo twice: the daily post's `/uniquephoto` sends every photo once before
+it starts over, whatever album rounds run in between. Anyone allowed may
+use it, and each use takes up a photo of the round. `/photo` picks from all
+photos, or from the album's, and neither it nor `/sphoto` nor `/onthisday`
+counts toward the rounds. `/sphoto` picks as `/photo` does, and sends the
+photo alone, without its caption or heading.
+
+The library's round is listed in `data_dir/sent-photos.txt`, and the
+albums' rounds in `data_dir/album-rounds.txt` (temporary files in debug
+mode), by the photos' paths within the library, so rounds survive restarts.
+Deleting `sent-photos.txt` starts the library's round over; removing an
+album's lines from `album-rounds.txt` starts its round over.
 
 `/photo 2017` shows a random photo taken in 2017, and you can be as precise
 as you like: `/photo 2017-05` shows one taken in May 2017, `/photo
@@ -1124,13 +1133,12 @@ already a command or an alias; `/special add` with the name of one of your
 specials changes it. A special has at most five parts.
 
 Admins can give a special shortcuts, which are other names for it:
-`/special shortcuts /morning /gm gm` makes `/gm` and `gm` post the same as
-`/morning`, and `/special shortcuts /morning -` removes them. A special has
-at most five shortcuts, each a single word, with or without a leading `/`,
-that the bot doesn't already respond to. They stay with the special when it
-changes, go when it is removed, and are listed after it in `/specials`. A
-shortcut without a `/` is recognized in any message that starts with it, in
-groups too, just like an alias in the configuration.
+`/special shortcuts /morning /gm` makes `/gm` post the same as `/morning`,
+and `/special shortcuts /morning -` removes them. A special has at most five
+shortcuts, each a single word that starts with `/` or `.` (a plain word is
+taken with a `/`), that the bot doesn't already respond to. They stay with
+the special when it changes, go when it is removed, and are listed after it
+in `/specials`.
 
 Text keeps the formatting you give it in Signal, as in any message: select
 the words, then choose bold, italic, strikethrough, monospace or spoiler.
@@ -1261,20 +1269,21 @@ Other names for commands go in the configuration, as a table at its end:
 
 ```toml
 [aliases]
-"/photo" = ["/pic", "pic"]
+"/photo" = ["/pic"]
 "/weather" = ["/w"]
 ```
 
 A message that starts with an alias is treated as if it started with the
-command: `pic` sends a photo, and with `"/fortune" = ["/f"]`, `/f startrek`
-sends a Star Trek fortune. An alias is a single word, with or without a `/`
-(or a `.` in its place, as for any command); an alias without one, like
-`pic`, is recognized from anyone allowed who sends just that word. The
-bot's own command names, in English and in its other languages, all start
-with `/`. An alias can't be a command's own name, and the bot won't start
-with an alias for a command it doesn't have. Aliases in the configuration
-take precedence over the language's names, and over the bot's own other
-names: `/test`, `/time`, `/safety` and `/day`.
+command: `/pic` sends a photo, and with `"/fortune" = ["/f"]`, `/f startrek`
+sends a Star Trek fortune. An alias is a single word that starts with `/`
+(or a `.` in its place, as for any command). A plain word, such as `pic`,
+would make every message that starts with it a command, so it is taken with
+a `/`, as `/pic`, and the log says so at startup. The bot's own command
+names, in English and in its other languages, all start with `/`. An alias
+can't be a command's own name, and the bot won't start with an alias for a
+command it doesn't have. Aliases in the configuration take precedence over
+the language's names, and over the bot's own other names: `/test`, `/time`,
+`/safety` and `/day`.
 
 ## The bot's profile
 
@@ -1593,7 +1602,7 @@ matches `config.example.toml`.
 
 The bot only reads the photo library. What it is told and what it does (the
 timers, the specials, the allowed list, the added admins, the reminders, the
-lists, the birthdays and name days, the photos sent in the current round, the
+lists, the birthdays and name days, the photos sent in the current rounds, the
 messages waiting to be sent, and the version that ran last) it stores in
 `data_dir` (`/data` in the container, next to the configuration file),
 which must exist at startup. These files contain phone numbers, so only the

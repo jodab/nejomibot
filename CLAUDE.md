@@ -104,10 +104,11 @@ posted where and when. When unsure whether a change is user-facing, ask.
   signal-cli-rest-api runs with `JSON_RPC_IGNORE_ATTACHMENTS=true`, so
   `/avatar` can't receive a picture; anyone who wants it enables attachments
   themselves. `/avatar` stays as it is.
-- `TODO.md` holds what remains of the 2026-10-17 review, the owner's open
-  decisions, what upstream projects lack (no issues filed, the owner's
-  decision, 2026-10-24), and plans that are waiting, such as accounts
-  without a phone number.
+- `TODO.md` holds only the open work (the owner's request, 2026-10-24): the
+  owner's open decisions, plans that are waiting, such as accounts without a
+  phone number, what upstream projects lack (no issues filed, the owner's
+  decision, 2026-10-24), and what waits on them. What is done leaves it, for
+  the changelog.
 
 ## Development commands
 
@@ -137,7 +138,10 @@ shell starts with (not scripts or `sh -c`), and `nejomibot-profile.sh`, as
 `/etc/profile.d/nejomibot.sh`, which shows it: bash reads it from
 `/etc/bash.bashrc`, a login shell from `/etc/profile` (whose PATH lacks the
 tools, which it adds), and `sh` through `ENV`. A new file for the image
-also needs a line in `.dockerignore`, an allowlist. Before pushing, the script
+also needs a line in `.dockerignore`, an allowlist. The base image has no
+bytecode for the standard library, and `PYTHONDONTWRITEBYTECODE` keeps it
+from being written at run time, so the final stage imports the bot's entry
+points once to write it for what they use. Before pushing, the script
 runs each platform's image and stops unless Python there reports that
 platform's machine: Podman 4.9 built 0.94.0's images all for amd64, because
 the uv stage names its own platform (`$BUILDPLATFORM`), so the image jobs
@@ -244,13 +248,19 @@ leaves out the bot's own safety number.
 **Commands and aliases** (`commands.py`): every handler is a
 `commands.Handler` that lists its `Command`s: the English name, whether more
 text may follow it, and whether timers and `/run` may run it. Every name the
-bot comes with, the languages' names included, starts with `/` (the tests
-check this); only the configuration's aliases and the albums' shortcuts may
-be plain words. The base class replaces an alias with the English command
+bot answers to starts with `/` (the tests check the bot's own, the
+languages' names included): a plain word in the configuration's aliases or
+in an album's or special's shortcuts is taken with a `/`
+(`config.as_command()`, the owner's decision of 2026-10-24), as it would
+make every message that starts with it a command. The base class replaces
+an alias with the English command
 (the albums' shortcuts, through `Handler.shortcuts()`, see Photos; the bot's
 own aliases, `commands.ALIASES`: `/test`, `/time`, `/safety` and `/day`; the
 language's names in `locale/<language>.toml`; and the configuration's
-`aliases`, each taking precedence over those before it) and calls
+`aliases`, each taking precedence over those before it), once for each
+message (`commands.resolved_message()`, kept by the message, as signalbot
+hands every handler the same message: 23 ms of the Pi's CPU per message
+when each of the 38 handlers resolved it), and calls
 `handle()`, which mostly calls `answer()`: logging, the read receipt, the
 typing indicator for slow commands, a plain or styled reply, failures as
 `error_text()`, and edits ignored where running again would do something
@@ -332,7 +342,8 @@ add|remove|shortcuts`, `/specials`), a line each: the name and its
 shortcuts (`Specials.shortcuts()`, as an album's, at most five, checked by
 `commands.shortcut_clash()`), a `|`, then parts made of text and a command,
 each run through
-`Timekeeper.answers_to` as a timer's command is, with the text heading the
+`Timekeeper.answers_to` as a timer's command is, as the admin who ran the
+special (as `/run` runs its commands), with the text heading the
 command's first answer. Parts are separated by `;` or line breaks, or joined
 by a `+` standing on its own (`SEPARATOR`, `Part.joined`), which posts
 everything the joined parts answer in one message (`by_message()`, and
@@ -355,9 +366,15 @@ subfolders, which belong to it), named in any letter case by the longest
 album name that the text after a command starts with (`album_named`).
 `/uniquephoto [<album>]` is the round, which replaced `/photo new` (the
 owner's decision, 2026-10-23; the timers and specials that ran it are the
-owner's to change, as the changelog says): `sent-photos.txt` lists the sent
-photos by their paths in the library, and an album's round starts over when
-its lines are removed. `library_name()` and `album_of()` strip the prefix as
+owner's to change, as the changelog says). The rounds are independent (the
+owner's request, 2026-10-24: the daily post never repeats a photo before it
+has sent every one): `sent-photos.txt` lists the library's round, and
+`album-rounds.txt` the albums' rounds, by the photos' paths in the library;
+a pick counts in both, and a round that starts over leaves the other file
+alone (an album's, by taking its lines out). Before 0.99.20 one file kept
+both, so `album_rounds()` starts `album-rounds.txt` from what
+`sent-photos.txt` has of albums. `/sphoto` (the owner's request,
+2026-10-24) is `/photo` without the caption or a heading. `library_name()` and `album_of()` strip the prefix as
 text, because pathlib's `relative_to()` made a pick take 53 ms longer for
 7,641 photos, and `scan_photos()` lists through `iterdir()`, whose paths
 keep their text, because `str()` of paths joined from `walk()`'s names
@@ -464,7 +481,8 @@ aren't on disk yet), and not while the bot waits for the account.
 
 **Files the bot keeps**: `allowed.txt`, `admins.txt`, `timers.txt`,
 `specials.txt`, `reminders.txt`, `lists.txt`, `birthdays.txt`, `albums.txt`,
-`languages.txt`, `sent-photos.txt`, `run.json` and `outbox/` in `data_dir`,
+`languages.txt`, `sent-photos.txt`, `album-rounds.txt`, `run.json` and
+`outbox/` in `data_dir`,
 written through `files.write_privately` (mode 0600, a `mkstemp` temporary
 file, fsync, replace, then an fsync of the folder; `replace_privately` for
 any writer) or `files.append_privately`. In the line-based files, hand
@@ -621,3 +639,10 @@ in the bot's languages (`weather.Place.names`).
   loads only once a chat speaks its language. On the owner's Raspberry Pi 4
   (arm64), the bot's RSS was 90 MB, and signal-cli-rest-api's, in `json-rpc`
   mode, about 360 MB (signal-cli on Java 321 MB, the REST API 42 MB).
+- **2026-10-24, start and messages:** on the Pi 4, importing
+  `nejomibot.timers_cli` (as the bot's start and `nejomibot-timers` do) took
+  4.7 s, as the standard library was compiled at each run; with its
+  bytecode in the image, 2.4 s, for 5.5 MB of the image (204 files; the
+  whole library's would be 21 MB). Resolving aliases once per message
+  rather than in each handler: 0.1 ms per message on a desktop, 4 ms
+  before.

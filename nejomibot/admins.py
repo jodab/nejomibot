@@ -28,7 +28,15 @@ from . import access, contacts
 from .access import Entry, admin_list, allowed_list, is_group
 from .account import Account, Contact, fetch_account, find_by_ids
 from .allowed import entry_text, find_listed, name_of, typed_chat_id
-from .commands import Command, Edits, Handler, answer, undo_with
+from .commands import (
+    Command,
+    Edits,
+    Handler,
+    answer,
+    cannot_undo,
+    not_run_text,
+    undo_with,
+)
 from .config import SIGNAL_ID, get_settings
 from .help import ADMIN, EVERYDAY, command_line, shown_name
 from .i18n import _, chat_language, speaking
@@ -148,6 +156,9 @@ async def welcome(
     outcome = await send(
         context.bot, uuid, SendMessage(text=text, text_mode=TextMode.STYLED)
     )
+    if outcome is Outcome.SENT or outcome.waits:
+        # A welcome can't be taken back, so an edit of the command isn't run
+        cannot_undo(not_run_text("/admin add"))
     language = named(code)
     if outcome is Outcome.SENT:
         return _("A welcome went to them, in {language}.").format(language=language)

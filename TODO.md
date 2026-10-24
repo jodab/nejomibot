@@ -1,109 +1,76 @@
 # TODO
 
-This file tracks what remains from the review of all the code, tests,
-tools, image and deployment examples carried out on 2026-10-17 (nejomibot
-0.92.0) and worked through the same day. [Open](#open) lists what still
-needs the owner or someone upstream, along with plans that are waiting on
-them, such as accounts without a phone number; [Done](#done) records what
-was changed, and how. The changes themselves are described in
-[CHANGELOG.md](CHANGELOG.md), under 0.93.0 and later.
+The open work, as of 0.99.20: decisions for the owner, plans that wait on
+them or on upstream projects, and what those projects lack. What has been
+done is in [CHANGELOG.md](CHANGELOG.md).
 
-All of the project's own checks pass: ruff, ruff format, strict pyright,
-the tests, ShellCheck, and actionlint on the workflows.
+## Decisions for you
 
-## Open
-
-### Decisions for you
-
-These would change what people see in Signal, or how the bot is run, so
-they wait for the owner.
-
-- [ ] **When to move to 1.0** (2026-10-19; asked again on 2026-10-24: not
-  yet): until you decide, nejomibot stays on 0.99.x, with patch releases
-  only. `tools/release.sh` stops on minor and major releases; remove its
-  guard (after the usage check) when the time comes.
+- [ ] **When to move to 1.0.** Until then, every release is a patch release
+  on 0.99.x, and `tools/release.sh` stops on minor and major releases:
+  remove its guard (after the usage check) when the time comes.
 - [ ] **An account to try without a phone number**: see the plan below,
-  step 2.
+  step 1.
 
-### Accounts without a phone number
+## Accounts without a phone number
 
-A plan, written on 2026-10-18 and brought up to date on 2026-10-24, when
-its first code changes were made. The bot should run on an account without
-a phone number, such as one created with Signal Login, and work with people
-who have no phone number.
+The bot should run on an account without a phone number, such as one
+created with Signal Login, and work with people who have none.
 
-**Where things stand** (2026-10-24):
+**Where things stand:**
 
-- *Signal:* Signal Login, in Signal Android's beta since 8.28 (September
-  2026), creates an account without a phone number for a one-time fee of $3
-  through Google Play. Signal Android shows its Account Key, which is the
-  account's ACI, a UUID such as `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, and
-  a Recovery Key: nothing else can restore the account. Existing accounts
-  can't drop their number, and without a username, nobody can find the
-  account.
-- *signal-cli:* accepts an ACI wherever it accepts the account (`-a`, or
-  JSON-RPC's `account`) since 0.14.6. Since 0.14.9, it can link to an
-  account without a number (signal-cli#2123), and restore one as its primary
-  device: `register --recovery-key KEY -a ACI`, with `--totp` when Signal
-  asks for it. It can't create such an account, because the payment happens
-  in the app store (signal-cli#2124, open). `listAccounts` returns
-  `{"number": null, "aci": "..."}` (in text mode, `ACI: ...`), and what it
-  receives carries the ACI as its `account`.
-- *signal-cli-rest-api:* supported since 787d204e of 2026-10-22 (#896,
-  which closed #889), in the CI build `1792710189-ci` that [deploy/](deploy)
-  pins, but not yet in a release. Its paths take an ACI where they take
-  `{number}`; `/v1/accounts` lists `{"number", "aci"}`, with an empty
-  number for an account without one; it receives for such an account by its
-  ACI; and the QR code for linking takes the smallest version that fits.
-  Still missing: `register` can't take a Recovery Key (or a `totp`).
-- *signalbot:* `Config.phone_number` can be any string, used in the paths
-  and as the sender, so an ACI should work. This remains to be tried.
+- *Signal:* Signal Login, in Signal Android's beta since 8.28, creates an
+  account without a phone number for a one-time fee of $3 through Google
+  Play. Signal Android shows its Account Key, the account's ACI, a UUID such
+  as `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, and a Recovery Key: nothing else
+  can restore the account. Existing accounts can't drop their number, and
+  without a username, nobody can find the account.
+- *signal-cli* (0.14.9): accepts an ACI wherever it accepts the account,
+  can link to an account without a number (signal-cli#2123), and can restore
+  one as its primary device: `register --recovery-key KEY -a ACI`, with
+  `--totp` when Signal asks for it. It can't create such an account, as the
+  payment happens in the app store (signal-cli#2124).
+- *signal-cli-rest-api:* supports such accounts in the CI build that
+  [deploy/](deploy) pins, not yet in a release: its paths take an ACI where
+  they take `{number}`, and `/v1/accounts` lists `{"number", "aci"}`. Its
+  `register` can't take a Recovery Key (or a `totp`), so until it can, an
+  account can only be linked.
+- *signalbot:* `Config.phone_number` can be any string, used in the paths and
+  as the sender, so an ACI should work; still to be tried.
+- *The bot:* `account` takes a Signal ID, and finds the account by it; what
+  remains is below.
 
 **Steps:**
 
-1. Done, but for one thing: signal-cli-rest-api supports such accounts in a
-   CI build, which the examples pin. Ask upstream for `register` with
-   `recovery_key` (and `totp`), so that an account can be restored into
-   signal-cli; until then, it can only be linked.
-2. For you to decide: an account to try it with ($3, and an Android phone
+1. For you to decide: an account to try it with ($3, and an Android phone
    with Google Play and the beta), and how the bot takes it over. Restored
    with its Recovery Key, signal-cli becomes its primary device, the phone
-   gives it up, and the bot is the account's only device: this is the way to
-   go. If linked instead, the phone keeps the account, and what is typed
-   there in a direct chat reaches the bot as if the other person had sent
-   it, just as with a number (see Who may use what in the README).
-3. Make the remaining code changes below, with tests.
-4. Try it with the account on a signal-cli-rest-api of its own, posting
-   only to the test group, then update the documentation.
+   gives it up, and the bot is the account's only device: the way to go.
+   Linked instead, the phone keeps the account, and what is typed there in a
+   direct chat reaches the bot as if the other person had sent it, as with
+   a number (see Who may use what in the README).
+2. Make the code changes below, with tests.
+3. Try it with the account on a signal-cli-rest-api of its own, posting only
+   to the test group, then update the documentation.
 
-**Code changes done** (2026-10-24, tested against `FakeApi` only):
-`account` takes a Signal ID, also as 32 hexadecimal digits without dashes,
-kept lowercase with dashes, the form signal-cli's messages carry;
-`wait_for_account()` and `rest.accounts()` find the account by its ACI
-(since 0.99.10); `fetch_me()` falls back to `Contact(uuid=...)`; `/profile`
-shows the Signal ID when there is no number, and `/status` shows the
-account's ID and username already; `Account.id`, `is_me()` and the check
-that the bot can't allow itself compare IDs, so they work as they are;
-`signal-account.sh --account` takes a Signal ID, with or without dashes, for
-everything but `register` and `verify`; and `/contacts add` takes a
-username, `u:name.42`, for someone the bot doesn't know yet.
-
-**Code changes remaining:**
+**Code changes:**
 
 - `rest.py`: every `account_path()` request tried with an ACI: devices,
   contacts, identities, trust, profiles, username and avatars.
+- `delivery.expected()` takes the bot out of a group's members by its phone
+  number only; without a number, it has to by its Signal ID.
 - `/profile` and `/status`: warn when an account without a number has no
-  username, since nobody can find it then. Check how Signal Android
-  displays the Account Key, in case it is in another form still.
+  username, since nobody can find it then. Check how Signal Android shows
+  the Account Key, in case it is in another form.
 - `tools/signal-account.sh`: `setup` and `register` should offer restoring
   with the Account Key and the Recovery Key, once signal-cli-rest-api can,
   asked for the way PINs are and kept out of the shell history, and say that
   the phone will give the account up. `link` for an account without a
   number. `status` and `identities` should show the ACI; `privacy` and
   `search` are about numbers, so they should say so; `rate-limit --to`
-  should accept an ACI or `u:username`; and `unregister` should warn that an
-  account without a number can only be restored with its Recovery Key. Find
-  out what `pin`, the registration lock, means without a number.
+  should accept an ACI or `u:username`; and `unregister` should warn that
+  an account without a number can only be restored with its Recovery Key.
+  Find out what `pin`, the registration lock, means without a number.
 - Tests: `/status`'s lines, and `FakeApi` answering for an account without a
   number throughout.
 - Documentation: the README (Who may use what, Getting started,
@@ -112,491 +79,49 @@ username, `u:name.42`, for someone the bot doesn't know yet.
   account of its own, either a number registered for it or a Signal Login
   account restored into signal-cli, and without a number, a username.
 
-### Upstream
+## Upstream
 
-- [ ] **signal-cli-rest-api is pinned to a CI build.** [deploy/](deploy)
-  uses `1792710189-ci` (2026-10-22, upstream's 787d204e; before that,
-  `1792271041-ci` and `1791633879-ci`), by digest, because 0.101 is broken
-  for the bot (#885, #892, signal-cli#2119); 0.101 was still the latest
-  release on 2026-10-24. Move to the next release once it is out, then
-  revisit `LAST_TOO_OLD` in [health.py](nejomibot/health.py).
-- [ ] **signalbot drops receipts** (2.1.3, 2026-10-21): its parser knows no
-  receipt message (`UnknownMessageFormatError`, skipped), so
+No issues are filed for these (the owner's decision): check each new release
+of signalbot and signal-cli-rest-api for them.
+
+- [ ] **signal-cli-rest-api's next release.** 0.101, the latest, is broken
+  for the bot (#885, #892, signal-cli#2119), so [deploy/](deploy) pins the
+  CI build `1792710189-ci` by digest; the owner's Raspberry Pi stays on
+  0.101, as the CI builds have issues of their own. Once a release is out,
+  move to it and revisit `LAST_TOO_OLD` in [health.py](nejomibot/health.py).
+  It will also give each websocket a buffer (68ca0107), so a burst of
+  receipts is no longer cut short: then remove the note on that in
+  delivery.py's docstring and in the README.
+- [ ] **signalbot drops receipts**: its parser knows no receipt message
+  (`UnknownMessageFormatError`, skipped), so
   [delivery.py](nejomibot/delivery.py) receives them on a websocket of its
   own, `rest.received()`. Once signalbot has a receipt message type and a
   handler for it, use those, and remove the second websocket.
-- [ ] **What else signalbot lacks** (2.1.3): no issues are filed for these
-  (the owner's decision, 2026-10-24), so check each new release for them.
-  It puts a sync message's destination in a `DataMessage`'s source fields,
-  so a command typed on a linked phone looks as if the other person had sent
-  it (the bot warns against linking instead); `SendError` keeps only the
-  HTTP status, not signal-cli-rest-api's error text (`messages.describe()`);
-  `SQLiteStorage` has no `close()` (the tests filter the ResourceWarning);
-  `MessageActions._log_send_errors` names the recipient at WARNING level;
-  and it depends on phonenumbers, 41 MB, where phonenumberslite would do
-  (uv's `exclude-dependencies` swaps them). Nor does signal-cli-rest-api's
-  `/v1/about` give signal-cli's version, so `/status` and the health check
-  pings can't show it.
-- [ ] **signal-cli-rest-api drops what a websocket can't take at once:** in
-  0.101 and builds from before 2026-10-13, each websocket gets an unbuffered
-  channel, and a message is dropped while the previous one is still being
-  written (`default:` in `JsonRpc2Client.ReceiveData`). Of a burst of
-  receipts, some can be lost, so `/delivery`'s counts can come out too low,
-  and in rare cases, a message meant for signalbot can be lost too. This was
-  fixed on 2026-10-13 by 68ca0107 (a channel of 64), which the pinned
-  `1792710189-ci` includes. Once a release includes it too, remove the note
-  in delivery.py's docstring and in the README.
+- [ ] **What else signalbot lacks:** it puts a sync message's destination in
+  a `DataMessage`'s source fields, so a command typed on a linked phone looks
+  as if the other person had sent it (the bot warns against linking
+  instead); `SendError` keeps only the HTTP status, not signal-cli-rest-api's
+  error text (`messages.describe()`); `SQLiteStorage` has no `close()` (the
+  tests filter the ResourceWarning); `MessageActions._log_send_errors` names
+  the recipient at WARNING level; and it depends on phonenumbers, 41 MB,
+  where phonenumberslite would do (uv's `exclude-dependencies` swaps them).
+  Nor does signal-cli-rest-api's `/v1/about` give signal-cli's version, so
+  `/status` and the health check pings can't show it.
 
-## Done
+## Waiting
 
-### P1
-
-- [x] **Linked-device mode lets the phone's owner act as anyone they chat
-  with, admins included.** `signal-account.sh` warns, and asks for
-  confirmation, before it links (in `setup` and `link`, and in its help);
-  the README says that the bot needs a number of its own, registered for it,
-  under Who may use what, Running it, and the account tool's section. The
-  real fix needs signalbot: see What else signalbot lacks, above.
-- [x] **OpenWeatherMap's requests by city name are deprecated.** The bot
-  asks OpenWeatherMap's geocoding once where `weather_city` is, keeps the
-  coordinates in memory, and requests the weather by `lat` and `lon`. The
-  post and the settings are the same; an unknown city now says so.
-- [x] **The exchange rate endpoint is a legacy one.** `/info` uses
-  `open.er-api.com/v6/latest/{base}`, checks the HTTP status and `result`,
-  and says what went wrong. No attribution, as the owner decided.
-
-### P2
-
-- [x] **The logs contain phone numbers and message text.** Commands are
-  logged by name and kind of chat (`commands.answer`), and sends by kind of
-  chat; who sent a command, what followed its name and whom a message goes
-  to are logged only at DEBUG level, with the new `log_level` setting.
-  Unreadable lines in the data files are logged by line number, not by
-  content, and network errors through `describe()`. Remaining: signalbot's
-  own warning that a group message didn't reach someone names them (see
-  What else signalbot lacks, above).
-- [x] **The OpenWeatherMap key can end up in a chat and in the log.**
-  aiohttp errors are worded by status, or by kind (`messages.web_error`):
-  besides `ClientResponseError`, the text of `ConnectionTimeoutError`
-  contains the URL too.
-- [x] **The deployment examples don't harden the bot's container.**
-  `DropCapability=ALL`, `NoNewPrivileges=true`, `ReadOnly=true` and
-  `RunInit=true` in the Quadlet, and the same in Compose, with a tmpfs on
-  `/tmp`. `signal-account.sh` and `nejomibot-timers` work in it.
-- [x] **`/contacts` can fire off hundreds of requests at once.** Now four at
-  a time, and at most fifty per command.
-- [x] **A rate-limited bot keeps retrying every two minutes.** After a 429,
-  waiting messages are retried every half hour, until a message goes
-  through.
-- [x] **Scheduled jobs are skipped when the event loop is a second late.**
-  `misfire_grace_time=None` for the health check rounds and the timers'
-  reread.
-- [x] **Contact lookups grow with the cube of the account's size.**
-  `Account` indexes people, safety numbers and groups by ID once.
-- [x] **Atomic writes aren't durable.** `files.write_privately` syncs the
-  file before it replaces the old one, then syncs the folder.
-- [x] **The runtime image carries uv and a second copy of the code.** The
-  virtual environment is built in a stage of its own: 275 MB instead of
-  323 MB (amd64).
-- [x] **A new aiohttp session for every request.** Now a single one,
-  `client.py`, closed when the bot stops.
-- [x] **Most handlers repeat the same steps.** `commands.answer()` does
-  them.
-- [x] **Unexpected errors are logged without a traceback.**
-  `messages.log_failure()` logs expected failures in a single line, and
-  bugs with their traceback. (Ruff's TRY400 now flags only expected
-  failures, which are logged in a single line on purpose, so it isn't
-  enabled.)
-- [x] **Every command is listed in seven places.** Each handler declares its
-  `Command`s, from which timers, `/run` and the alias checks work; tests
-  catch a command missing from `bot.handlers()`, `/help` or the README.
-- [x] **tools/timers.sh reimplements timers.py, and has drifted from it.**
-  Replaced by `nejomibot-timers` (`timers_cli.py`), which reuses timers.py.
-- [x] **No CI.** [CI](.github/workflows/ci.yml) and
-  [Dependabot](.github/dependabot.yml) (for uv, the Dockerfile's images and
-  the actions), with actions pinned by commit.
-- [x] **The image's group is 999, not 1001.** `groupadd --gid 1001` and
-  `USER 1001:1001`.
-- [x] **Dependencies are out of date.** signalbot 2.1.0, Pillow 13.0.0,
-  pydantic-settings 2.16.0 and pydantic 2.14.1.
-
-### P3
-
-- [x] **Shutdown leaves the bot's own background work running.**
-  `bot.shutdown()` cancels it, keeps the waiting messages, and closes the
-  session and the event loop.
-- [x] **A new timer can take the number of a line the bot couldn't read.**
-- [x] **Two daily posts at the same moment can pick the same photo.** Fixed
-  with a lock.
-- [x] **The sent-photos file is the odd one out.** It is now UTF-8, with
-  mode 0600.
-- [x] **Debug mode uses fixed names in the shared temporary folder.** Now a
-  private folder per run, with temporary files created through `mkstemp`.
-- [x] **Log timestamps show an extra zero.** Python's usual format, with
-  the date; signalbot's lines go through the same handler; and there is a
-  `log_level` setting. Found along the way: APScheduler logged every job run
-  at INFO level, two lines every 30 seconds for the timers' reread alone;
-  libraries now log warnings only.
-- [x] **exifread does what Pillow already does.** Pillow reads the EXIF
-  data with the header, which saves one file open per photo; the captions
-  are the same.
-- [x] **All fortune libraries stay in memory once `/fortune` has been
-  used.** Only the counts are kept; a library is read when it is needed,
-  and each fortune is as likely to be picked as before.
-- [x] **Unused and leftover code.** `aliases_of`, the `TRIGGERS` and
-  `COMMANDS` tables, `timers.names_of` and the allowed list's watch on its
-  path are gone, as is ruff's `extend-exclude`; `.gitignore` no longer has
-  setuptools' entries, and has `dist/`. The personal entries are in this
-  clone's `.git/info/exclude`.
-- [x] **profile.py imports photos.py for a side effect.** `format_file_size`
-  is in i18n.py, and HEIF support is registered by `photos.open_image` when
-  first used.
-- [x] **What timers can't run is decided in three places.** Now in one:
-  `Command.timers`.
-- [x] **`timers.card()` builds the date by hand.** It uses `day_and_time()`.
-- [x] **`/info` doesn't check the HTTP status.** Fixed with the endpoint
-  move.
-- [x] **No init process in the container.** `RunInit=true` and
-  `init: true`; the SIGTERM handler remains for runs without one.
-- [x] **Image pinning and labels.** The base images are pinned by digest
-  and kept current by Dependabot, and `build-image.sh --source` adds
-  `org.opencontainers.image.source` and the commit.
-- [x] **The tests import from conftest and from signalbot's internals.**
-  They now use `tests/helpers.py` and signalbot's public names.
-- [x] **111 ResourceWarnings in the test run.** Filtered; deprecation
-  warnings now fail the tests.
-- [x] **Shared shell code is duplicated.** timers.sh is gone.
-- [x] **Local editor settings use other tools.** See Requested by the owner,
-  2026-10-18.
-- [x] **No changelog.** [CHANGELOG.md](CHANGELOG.md).
-- [x] **tidy-photos.sh's help is out of date.**
-
-### Decided by the owner, 2026-10-17
-
-- [x] `/avatar` stays as it is: anyone who wants it can enable attachments
-  in signal-cli-rest-api.
-- [x] `/msg` and `/run` say which chats only got the message queued, or may
-  not have received it (`Outbox.send` returns the outcome).
-- [x] Error replies keep showing what went wrong, in every chat.
-- [x] Captions keep their Google Maps links; `photos_map = "openstreetmap"`
-  gives OpenStreetMap's short links (`https://osm.org/go/...?m=`).
-- [x] No attribution for the exchange rates, for now.
-- [x] Timers and `/run` may still run `/delete`.
-- [x] The example date doesn't age: the next Christmas Eve in `/help` and in
-  the `/timer` usage text, and a format in the README.
-- [x] Swedish month names stay capitalized, and `/info`'s currency emojis
-  stay.
-- [x] HEIF support is a setting, `photos_heif`, on by default.
-- [x] Photos are still sent at full size.
-- [x] Waiting messages are kept in `data_dir/outbox`: a message waiting for
-  half a minute gets a file of its own, and every waiting message gets one
-  at shutdown, so brief outages write nothing to disk.
-
-### Requested by the owner, 2026-10-18
-
-- [x] Translations are compiled when the image is built, not at every start:
-  the Dockerfile's `translations` stage makes a `.mo` file from each `.po`
-  file with polib, installed from the lock file, and the image gets the
-  `.mo` files alone, which the bot reads with Python's gettext. No apt and
-  no gettext tools are needed, just a 21 kB wheel. From a source checkout,
-  without `.mo` files, the bot reads the `.po` files with polib, which is
-  now a development dependency only. Measured in the image: Swedish loads in
-  2 ms instead of 9, without polib's import; memory use is the same, within
-  a megabyte.
-- [x] Specials (`specials.py`): `/dailypost`, moved from photos.py, the new
-  `/dailyquote`, and the admins' own, created with `/special add` and stored
-  in `data_dir/specials.txt`. They run their commands through the timers'
-  `answers_to`, in order.
-- [x] The bot's own command names all start with `/`: the plain words
-  `info`, `weather`, `väder` and `vader` are gone, and the tests keep it
-  that way. Aliases in the configuration can still be plain words.
-- [x] Version 0.93.0, with its CHANGELOG section dated, before the
-  deployment.
-- [x] A smaller image: phonenumberslite in place of phonenumbers (see
-  What else signalbot lacks, above). The fortunes, 2.8 MB, stay as they are:
-  compressed, they would save 2 MB on disk and nothing in a registry, which
-  compresses the layers anyway.
-- [x] The containers' health checks run every minute, not every 20 seconds
-  (the owner's change): about 2,900 runs a day for both containers instead
-  of 8,600, each also a journal event, in exchange for recovery in about
-  three minutes instead of a minute and a half. `healthcheck_events = false`
-  in the host's containers.conf would drop the journal events too.
-- [x] The health check pings say what is running, as `/status` does: the
-  versions, the uptime and the memory use. signal-cli's version isn't
-  available: see What else signalbot lacks, above.
-- [x] A step-by-step setup guide: the README's Getting started, and
-  [DOCKERHUB.md](DOCKERHUB.md) for Docker Hub. It was tested with the
-  published images, up to the registration, including two likely mistakes.
-- [x] The Docker Hub page is updated by each release: DOCKERHUB.md as of
-  the release, and the repository's description, through
-  `peter-evans/dockerhub-description`, once the images have been pushed,
-  with a token that is allowed to delete (see below). First done by
-  0.94.0's release.
-- [x] Signed build provenance for every image a release pushes, keyless:
-  `build-image.sh --digests` records what was pushed, by digest, and
-  `actions/attest-build-provenance` attests it, for
-  `gh attestation verify oci://IMAGE --repo jodab/nejomibot`. The digests
-  were tested against a registry of our own. First done by 0.94.0's
-  release: `gh attestation verify` accepts both registries' images, each
-  by its own digest, as built by release.yml at the tag, from its commit.
-- [x] A configuration file the bot can't read, or a `data_dir` it can't
-  write to, stops it with a message that says so, and as which user it
-  runs. Previously, it said the file didn't exist and carried on without
-  it.
-- [x] `fortunes_svenska`'s source and terms: recorded in the README's
-  License section since the public release. It is the bot's own, proverbs
-  and quotes from writers long dead in its own translations, so it comes
-  under the bot's license.
-- [x] The Ruff extension is installed in VS Code (`charliermarsh.ruff`,
-  2026-10-18), so this folder's settings format Python with it on save.
-- [x] 0.94.0's images were all amd64, labeled for the three platforms,
-  each with arm/v7's variant: ubuntu-24.04's Podman 4.9 mixes up platforms
-  when a build stage names its own platform, as the uv stage does
-  (`--platform=$BUILDPLATFORM`; podman#22730, buildah#4742). This was
-  reproduced with a small Containerfile: Podman 4.9.3 builds every platform
-  as x86_64, while 5.7.0, on ubuntu-26.04, and 6.1.4 build each one
-  correctly. The image jobs now run on `ubuntu-26.04`, the release installs
-  `qemu-user-binfmt` there (what `qemu-user-static` has become, with the F
-  flag) and checks it, and `build-image.sh` stops before pushing unless each
-  image runs as its platform, which catches both the 4.9.3 build and the
-  labels. 0.94.1, released with this the same day, came out right: on both
-  registries, each platform's image is its own (the arm/v7 build kept the
-  release under ten minutes), pulls for amd64, arm64 and arm/v7 find their
-  own image, `latest` is the same manifest list as `0.94.1`, and both
-  verify as attested.
-- [x] A Docker Hub token that is allowed to read, write and delete, as
-  `DOCKERHUB_TOKEN`: the 0.94.0 release's page job published DOCKERHUB.md
-  and the repository's description on Docker Hub with it.
-- [x] Text styles in the posts (2026-10-18). "Photo of the day!" and
-  "Proverb or quote of the day:" are in bold: the caption and the quote are
-  styled, with everything but the heading escaped, so a `~` in an
-  OpenStreetMap link or a file name shows as it is. Your own specials keep
-  the formatting the admin gives their text in Signal, which signalbot
-  provides as `DataMessage.text_styles`: `styles.marked()` writes it as
-  signal-cli-rest-api's marks, which `specials.txt` stores, and reads them
-  back the way its `textstyleparser.go` does (`unmarked()`, tested against
-  its own tests), so a combination the marks can't express is rejected
-  rather than garbled. Stars are read up to three at a time there, so
-  `*a **b***` closes neither style; spaces between bold and italic text take
-  neither style, which keeps their stars apart and leaves only the cases
-  where they meet inside a word. `***` requires signal-cli-rest-api 0.101 or
-  later, which the bot requires anyway. Aliases move the styles along with
-  the text (`commands.resolved()`).
-
-### Requested by the owner, 2026-10-19
-
-- [x] The names that commands have always had, `/test`, `/time` and
-  `/safety`, are aliases, in `commands.ALIASES`, together with the
-  language's and the configuration's, in a single mechanism; `/help` shows
-  them, and the configuration's, on each command's first line. `/timer
-  delete` remains a word that `/timer` accepts, while `/help` shows
-  `remove`.
-- [x] More text styles in the posts: "Weather in {city}" in bold, in
-  `/weather` and the daily post; the explanation of a proverb in
-  `fortunes_svenska` in italics, in `/fortune` and `/dailyquote`, with its
-  source as before. Italics, the convention for a gloss, rather than a
-  spoiler, which would hide it behind a tap. All 1,000 entries in
-  `fortunes_svenska` were checked: the 299 explanations come out in
-  italics, through `styles.marked()`, and every fortune in every library
-  reads back unchanged.
-- [x] `/delete list` and `/delete <n>`: the bot's latest messages, wherever
-  it sent them, and deleting one by its number; since 0.97.1, the 50
-  latest, and several at once, `/delete 2,5,11`, one after the other,
-  stopping at the first one that fails, as the rest would likely fail too.
-  The numbers refer to the list each admin was shown last, since anything
-  the bot sends, the list included, would shift numbers counted from the
-  newest. In memory only, as before (the owner's choice), and in direct
-  chats only, as the list shows what was sent to every chat.
-- [x] `/incoming` (`/inkorg`): the latest messages, 50 since 0.97.1, that
-  anyone other than the admins sent the bot in a direct chat, commands
-  included (the owner's choice), and `/incoming 4,9` forwards those
-  messages in full to the admin who asks. Text only, since attachments stay
-  ignored. In memory only; a sender's deletion for everyone and
-  disappearing messages are honored, and edits replace the original.
-  Timers and `/run` can't run it, since they would post what people wrote
-  to others. Tested with signal-cli-rest-api's own envelopes, through
-  signalbot's parsing and dispatch: a message, an edit, its sender's
-  deletion (someone else's deletion leaves it alone), a group message, a
-  new disappearing-message timer, and an admin's message (neither of the
-  last two kept).
-
-### Requested by the owner, 2026-10-23
-
-- [x] Photo albums and photos by date, as planned: each folder directly
-  inside `photos_dir` is an album (the owner's choice: not its subfolders,
-  which are part of it), `/albums` lists them, and `/photo [<album>]
-  [<date> [<time>]]`, `/onthisday [<album>]` and `/cache [<album>]` accept
-  one; without an album, every photo is used (the owner's choice). The
-  round is kept per album, as `/uniquephoto [<album>]` (in Swedish
-  `/unikbild`), which replaced `/photo new`; timers and specials that ran
-  `/photo new` are changed by hand, as the changelog says (the owner's
-  choice, over rewriting them at startup). Each album's birth date, which
-  `/album <album> <date>` sets and `/album <album> -` removes, is stored in
-  `data_dir/albums.txt`, with `photos_birth_date` for albums without one
-  (the owner's choice, over the bot writing config.toml). Albums visible to
-  only some chats weren't requested. Measured: see Resource budget in
-  CLAUDE.md.
-- [x] A language for each person and each group, as planned: `/language`
-  (in Swedish `/språk`), stored in `data_dir/languages.txt`. In a direct
-  chat, it is for whoever sends it, everyone allowed included; a group's
-  language, set there, is an admin's to change (the owner's choice); and an
-  admin can set other chats' languages by their numbers in `/chats`, as in
-  `/language 3,1 sv` (the owner's choice). Everything the bot says in a
-  chat, and posts to it, is in its language, including the timers' and
-  `/run`'s posts, reminders, the greeting, the notices and the outbox's
-  notes. A timer runs its commands once per language, with one random draw,
-  so every chat gets the same photo and the round uses up only one. Every
-  language's command names and words are accepted from anyone, and `/help`
-  shows the chat's. The weather's descriptions were already the bot's own,
-  so only the names of places needed to vary by language. Measured: see
-  Resource budget in CLAUDE.md.
-- [x] `/today` without the weather, so that a special or a timer posts it
-  with `/weather`: `/day` is another name for it (the owner's choice), and
-  in posts, it is empty on a day with nothing (the owner's choice), so
-  `/today; /weather` then posts just the weather. Timers and specials that
-  ran `/today` alone are changed by hand, as the changelog says.
-- [x] `/photo <date>` as precise as it is given: `2017`, `2017-05`,
-  `2017-05-14` or `2017-05-14 15` at random, or else the nearest period of
-  the same size that has photos; to the minute, the photo taken closest.
-- [x] An album's own shortcuts for `/photo <album>`, in place of the
-  configuration's aliases for `/photo`: `/album <album> shortcuts <names>`
-  and `/album <album> shortcuts -`, stored in `albums.txt` with the birth
-  dates. Measured: 10 µs more per alias lookup, about 26 µs in all, as each
-  handler looks them up for each message.
-
-### Requested by the owner, 2026-10-24
-
-- [x] A `+` standing on its own joins a special's parts into one message,
-  in place of a `;`: `/today + /weather` posts the day with the weather
-  below it, as `/today` did before 0.99.14. Chosen over the `|` that the
-  owner suggested, because `|` separates the name from the parts in the
-  specials file and appears doubled in its spoiler marks. Everything the
-  joined parts post goes into the one message, including both answers of a
-  command that gives two, such as `/status`; a part on its own keeps its
-  answers separate, as before. A `+` inside a word, as in `C++` or a phone
-  number, remains text.
-- [x] `/today` and `/day` say "Nothing special today." only when asked in a
-  direct chat; in a group, and in what timers, specials and `/run` post,
-  they say nothing on a day with nothing special. Later that day replaced:
-  they always post, the date and time first, in bold, and `/weather` no
-  longer shows them.
-- [x] Shortcuts for specials, `/special shortcuts /dailypost /dagenspost`,
-  as an album has.
-- [x] Danish, German, Spanish, Finnish, French and Norwegian, and the
-  templates that make a new language two files and no code.
-- [x] Commands may start with a `.`, which the bot shows by default.
-- [x] A birthday or name day of someone not on Signal, given again on the
-  same day, changes its groups; the reply says how to choose them.
-- [x] A shell in the container starts with a guide to the bot's tools.
-- [x] The README and Docker Hub page say that 32-bit ARM works, and the
-  examples run signal-cli-rest-api in `json-rpc` mode, as `json-rpc-native`
-  has had odd bugs.
-
-### Decided by the owner, 2026-10-24
-
-- [x] The choices made where the owner didn't specify stay as they are:
-  - For the features of 2026-10-19: the Swedish names `/dennadag`
-    (`/onthisday`), `/prognos`, `/påminn`, `/lista`, `/födelsedag`,
-    `/födelsedagar`, `/namnsdag` and `/namnsdagar`; reminders posted once
-    (a weekly reminder is an admin's timer), at most 20 per chat and a year
-    ahead, and dropped when more than a day late; `/forecast` for today and
-    tomorrow; no holidays whose dates are set anew each time, such as the
-    European Parliament election, nor commercial days, such as Kanelbullens
-    dag; Greece's 26 December shown as Boxing Day, sharing a line with
-    Sweden's; and notices of changed safety numbers that aren't trusted,
-    not of new people.
-  - For admins, numbering, backups and holidays (later on 2026-10-19):
-    `/admins` lists those in the configuration first, unnumbered, then the
-    added ones, numbered for `/admin remove`; only the configuration's
-    admins (all of them) add and remove admins, and the notices, the timers'
-    commands and the greeting remain theirs; added admins are stored by
-    Signal ID alone. `/contacts` and `/trust` share one numbering, with
-    everyone in `/trust`, so that the numbers match; numbers work in
-    `/allow` and `/admin add`, but not in `/birthday add`, where they refer
-    to chats. Backups in Zstandard rather than xz (about 94 MB of memory to
-    compress at its default level), at 04:00 unless `backups_at` says
-    otherwise, none when the files match the latest, 30 kept by number
-    rather than age, named like `nejomibot-2026-10-19_0400.tar.zst`, with
-    every file in `data_dir` but `run.json`, the outbox and files over
-    10 MB; a failed backup fails `/status`'s check, not the health check
-    ping. The holidays of the 27 EU member states, Norway, Iceland,
-    Switzerland (those that most cantons observe), the United Kingdom
-    (England and Wales), the United States, Canada (federal), Australia and
-    New Zealand; no Mother's Day or Father's Day for Luxembourg and
-    Bulgaria; and 26 December as Boxing Day everywhere.
-  - For the requests of 2026-10-24: commands may start with `.`, which the
-    bot shows by default, but not with `#`, which hashtags start, and a `.`
-    counts only before a letter; the messages stay in English in the code,
-    as gettext's msgids, with templates and `tools/translations.sh <code>`
-    to start a language; the holidays of countries other than Sweden and
-    Greece stay in English in every language; someone not on Signal, given
-    again on the same day by the same name, counts as the same person; and
-    the examples run signal-cli-rest-api in `json-rpc` mode.
-- [x] nejomibot stays on 0.99.x for now (see When to move to 1.0, above).
-- [x] A typed `|` in `/special add` is kept, as `\|` in `specials.txt`,
-  instead of being refused: only the first `|` on a line of the file
-  separates the name from the parts, and the `\` keeps it from reading as a
-  spoiler mark. A `|` in a special's command is still refused, as a timer's
-  is.
-- [x] The first code changes for accounts without a phone number, those
-  that change nothing for an account with one (see the plan above).
-- [x] [deploy/](deploy) pins signal-cli-rest-api's `1792710189-ci`, with
-  numberless support, in place of `1792271041-ci`. Checked locally in
-  `json-rpc` mode, without an account: it starts, `/v1/about` reports
-  `unset`, which the health check doesn't take for 0.101 or older, and the
-  bot reads its `/v1/accounts`.
-- [x] No issues are filed upstream for the drafts that asked signalbot and
-  signal-cli-rest-api for what the bot lacks; the workarounds stay, and
-  What else signalbot lacks, above, lists them for each new release.
-- [x] 0.94.0's release page stays as it is, without a note that its images
-  are broken; 0.94.1 came out the same day.
-- [x] A stop no longer logs an error with a traceback, seen on the owner's
-  Pi: the scheduler logged the cancelling of the job that listened for
-  delivery receipts, which now runs as a task of its own.
-- [x] Done on the server by 2026-10-24: `holidays = ["SE", "GR"]`, the
-  birthdays and name days, the `/photo` aliases replaced by the album's
-  shortcuts, and the daily post's special as `/today + /weather;` then the
-  photo of the day, with its heading in bold.
-
-### The day the images went to ghcr.io (done, 2026-10-18)
-
-Releases since 0.93.2 are on ghcr.io, and since 0.93.5 on Docker Hub, both
-public; the documentation and [deploy/](deploy) use
-`docker.io/jodab/nejomibot:latest`, and each release attests its images
-(step 5). How it was set up:
-
-1. Raise the version, date the CHANGELOG, and push to GitHub. CI runs the
-   checks and builds the image, without pushing it. On a private
-   repository, that uses Actions minutes; on a public one, it is free.
-2. Publish a release on GitHub, tagged `v` followed by the version, such as
-   `v0.93.0`. The [release workflow](.github/workflows/release.yml) checks
-   the tag against pyproject.toml, runs `tools/build-image.sh --source ...
-   --push ghcr.io/OWNER/nejomibot`, and so pushes `:VERSION` and `:latest`
-   for amd64, arm64 and arm/v7, labeled with the repository.
-   [tools/release.sh](tools/release.sh) now does all of this.
-3. On GitHub, make the package public (packages start out private).
-4. Point the documentation and examples at it, instead of
-   `localhost/nejomibot`.
-5. Add build provenance, so that users can check where an image came from.
-
-## Checked and fine
-
-- No time bombs in the tests: they use fixed clocks, the one date in 2030
-  isn't compared with today, and the example date is computed.
-- signal-cli-rest-api isn't published in the examples; the admin commands
-  rely on signalbot's contact filter, which checks both the number and the
-  Signal ID; `/delete` checks for an admin itself in groups; and the allowed
-  list is checked for every message.
-- The container check can't put the bot in a restart loop while
-  signal-cli-rest-api is down or misconfigured: the interval rounds record
-  a result even before signalbot is ready.
-- The image runs read-only, without capabilities and with an init process:
-  it stops in a fraction of a second, and the tools work.
-- Memory, measured on 2026-10-17: about 74 MB RSS after the imports and one
-  picture opened, or 71 MB with `photos_heif = false`; mostly signalbot,
-  aiohttp and pydantic.
-- signalbot 2.1.3, still the latest version on 2026-10-24, has nothing that
-  would replace a function in rest.py, and doesn't mark sync messages:
-  since 2.1.0, it has only fixed a few things the bot doesn't use (copying
-  a message, the order of a few fields' types, and a storage setting the
-  bot doesn't use).
+- [ ] **A typed command waits about 0.4 s before it runs.** `answer()` sends
+  the read receipt, then shows the bot typing, each a request of about 0.2 s
+  on the Pi, before the command starts. They could go out while the command
+  runs, as long as the reply waits for them, once signal-cli-rest-api no
+  longer crashes on overlapping requests (#885).
+- [ ] **A message that signal-cli-rest-api always refuses holds up its
+  chat.** An HTTP 400 counts as surely not sent, so the message is tried
+  again every 2 minutes for `send_retry_hours` (3 by default), and every
+  later message to that chat waits behind it. A message refused for a
+  changed safety number should wait until an admin trusts it, and the bot
+  can't tell that refusal from one that never passes until signalbot passes
+  signal-cli-rest-api's error text on (see above).
+- [ ] **The calendar needs upkeep**: Sweden's flag days for the royal family
+  are tied to the people who have them now (förordning 1982:270), and change
+  with a new monarch; New Zealand's Matariki dates are listed up to 2052.

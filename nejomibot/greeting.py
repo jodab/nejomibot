@@ -24,7 +24,7 @@ from signalbot import (
 )
 
 from . import access
-from .commands import canonical, known
+from .commands import known, resolved_message
 from .config import get_settings
 from .help import shown_name
 from .i18n import _, speaking
@@ -83,7 +83,7 @@ class Greeter(DataMessageHandler):
             or access.is_admin(message)
             or not access.permits(bot, message)
             or not (message.text or attachments_of(message))
-            or known(canonical(message.text or ""))
+            or known(resolved_message(message).text or "")
         ):
             return False
         now = self._clock()

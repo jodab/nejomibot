@@ -158,35 +158,35 @@ async def test_an_edit_takes_the_place_of_a_birth_date(
 
 @pytest.mark.usefixtures("library")
 async def test_an_albums_shortcuts(answers: list[SendMessage]) -> None:
-    await send(Album(), "/album alice shortcuts /alice alice")
-    assert albums_file().endswith("\nAlice |  | /alice alice\n")
+    await send(Album(), "/album alice shortcuts /alice .al")
+    assert albums_file().endswith("\nAlice |  | /alice /al\n")
     # Each another name for /photo with the album, and what follows it
-    assert aliases()["alice"] == "/photo Alice"
+    assert aliases()["/al"] == "/photo Alice"
     assert canonical("/ALICE") == "/photo Alice"
-    assert canonical("Alice 2021") == "/photo Alice 2021"
-    await send(Photo(), "alice 2021")
+    assert canonical(".alice 2021") == "/photo Alice 2021"
+    await send(Photo(), "/al 2021")
     # A birth date keeps them
     await send(Album(), "/album Alice 2019-06-15")
     assert album_settings.current().entries == [
-        AlbumSettings("Alice", date(2019, 6, 15), ("/alice", "alice"))
+        AlbumSettings("Alice", date(2019, 6, 15), ("/alice", "/al"))
     ]
     await send(Album(), "/album Alice")
     await send(Albums(), "/albums")
     shortcuts, photo, _born, album, listed = texts(answers)
-    assert shortcuts == "✅ Shortcuts for /photo Alice: /alice, alice."
+    assert shortcuts == "✅ Shortcuts for /photo Alice: /alice, /al."
     assert (photo or "").startswith("📅 2021-01-01")
     assert album == (
         "📖 **Alice**\n3 photos · 2019–2021\n🎂 Born 2019-06-15\n🏷️ Shortcuts: "
-        "/alice, alice"
+        "/alice, /al"
     )
     assert (listed or "").splitlines()[1] == (
-        "**Alice** · 3 photos · 2019–2021 · 🎂 2019-06-15 · 🏷️ /alice alice"
+        "**Alice** · 3 photos · 2019–2021 · 🎂 2019-06-15 · 🏷️ /alice /al"
     )
     answers.clear()
     await send(Album(), "/album Alice shortcuts -")
     await send(Album(), "/album Alice shortcuts -")
     assert albums_file().endswith("\nAlice | 2019-06-15 |\n")
-    assert "alice" not in aliases()
+    assert "/al" not in aliases()
     # With nothing of its own left, no line
     await send(Album(), "/album Alice -")
     assert album_settings.current().entries == []
@@ -263,14 +263,30 @@ async def test_an_edit_takes_the_place_of_shortcuts() -> None:
 def test_the_file_of_albums() -> None:
     get_settings().data_file("albums.txt").write_text(
         "Alice | 2019-06-15\n"  # as 0.99.13 wrote it
-        "Bob |  | /bob bob\n"
+        "Bob |  | /bob bob .bo\n"  # a plain word as before 0.99.20
         "Carol | | /photo\n"  # a command, which the shortcut would hide
         "Dave |\n"  # nothing
     )
     kept = album_settings.current()
     assert kept.entries == [
         AlbumSettings("Alice", date(2019, 6, 15)),
-        AlbumSettings("Bob", None, ("/bob", "bob")),
+        # The plain word with its /, once
+        AlbumSettings("Bob", None, ("/bob", "/bo")),
     ]
     assert kept.broken == ["Carol | | /photo", "Dave |"]
-    assert canonical("bob") == "/photo Bob"
+    assert canonical("/bob") == canonical(".BOB") == "/photo Bob"
+    assert canonical("bob") == "bob"
+
+
+@pytest.mark.usefixtures("library")
+async def test_a_plain_word_shortcut_is_taken_with_a_slash(
+    answers: list[SendMessage],
+) -> None:
+    await send(Album(), "/album Alice shortcuts alice")
+    assert albums_file().endswith("\nAlice |  | /alice\n")
+    answers.clear()
+    # A message that starts with the word is no command, as it was before
+    await send(Photo(), "Alice slept all day")
+    assert answers == []
+    await send(Photo(), ".alice 2021")
+    assert (texts(answers)[0] or "").startswith("📅 2021-01-01")

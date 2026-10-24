@@ -38,6 +38,7 @@ class Chat:
     def __init__(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self.replies: list[SendMessage] = []
         self.ran: list[str] = []
+        self.ran_as: list[str | None] = []  # whose message each ran as
         self.keeper = Timekeeper()
         monkeypatch.setattr(commands, "reply", self.reply)
         monkeypatch.setattr(commands, "mark_read", self.nothing)
@@ -51,10 +52,13 @@ class Chat:
     async def nothing(self, context: DataMessageContext) -> None:
         pass
 
-    async def answers_to(self, command: str) -> list[SendMessage]:
+    async def answers_to(
+        self, command: str, admin: DataMessage | None = None
+    ) -> list[SendMessage]:
         """Two answers to /status, as it has; none to /today, as on a day
         with nothing special; one to the rest."""
         self.ran.append(command)
+        self.ran_as.append(admin.source_number if admin else None)
         if command == "/status":
             return [SendMessage(text="checks"), SendMessage(text="details")]
         if command == "/today":
@@ -266,6 +270,8 @@ async def test_a_special_posts_its_parts_in_order(chat: Chat) -> None:
         "/ping!",
     ]
     assert chat.ran == ["/status", "/ping"]
+    # As the admin who ran it, as /run runs commands
+    assert chat.ran_as == [ADMIN, ADMIN]
 
 
 async def test_parts_joined_by_a_plus_post_in_one_message(chat: Chat) -> None:
@@ -294,20 +300,20 @@ async def test_parts_joined_by_a_plus_post_in_one_message(chat: Chat) -> None:
 
 async def test_shortcuts_are_other_names_for_a_special(chat: Chat) -> None:
     await chat.send("/special add /morning /ping")
-    assert await chat.send("/special shortcuts /morning /gm gm") == [
-        "✅ Shortcuts for /morning: /gm, gm."
+    assert await chat.send("/special shortcuts /morning /gm /good") == [
+        "✅ Shortcuts for /morning: /gm, /good."
     ]
     # Taken as its name is, in any case
     assert await chat.send("/GM") == ["/ping!"]
-    assert await chat.send("gm") == ["/ping!"]
+    assert await chat.send("/good") == ["/ping!"]
     assert check_commands(["/gm"]) is None
     assert canonical("/gm") == "/morning"
     # Kept with it, also when it changes, and listed with it
     await chat.send("/special add /morning /weather")
     lines = get_settings().specials_file.read_text().splitlines()
-    assert lines[-1] == "/morning /gm gm | /weather"
+    assert lines[-1] == "/morning /gm /good | /weather"
     assert await chat.send("/specials") == [
-        "**✨ 1 special**\n**/morning** · /weather · 🏷️ /gm gm"
+        "**✨ 1 special**\n**/morning** · /weather · 🏷️ /gm /good"
     ]
     # Taken away
     assert await chat.send("/special shortcuts /morning -") == [
@@ -599,3 +605,18 @@ async def test_lines_it_can_t_read_are_left_as_they_are(
         "no bar",
         "/bins | New!",
     ]
+
+
+async def test_a_plain_word_shortcut_is_taken_with_a_slash(chat: Chat) -> None:
+    await chat.send("/special add /morning /ping")
+    # A plain word would make every message that starts with it a command
+    assert await chat.send("/special shortcuts /morning gm") == [
+        "✅ Shortcuts for /morning: /gm."
+    ]
+    assert await chat.send("gm, everyone!") == []
+    assert await chat.send(".gm") == ["/ping!"]
+    # One in the file from before is read with its / too
+    get_settings().specials_file.write_text("/evening ge /ge | /ping\n")
+    assert own_specials.current().shortcuts == {"/evening": ("/ge",)}
+    assert canonical("ge") == "ge"
+    assert canonical("/ge") == "/evening"

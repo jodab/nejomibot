@@ -10,6 +10,7 @@ name = "Norsk"
 [commands]
 "/photo" = ["/bilde", "/foto"]
 "/uniquephoto" = ["/nyttbilde"]
+"/sphoto" = ["/enkeltbilde"]
 "/weather" = ["/vær", "/vaer"]
 "/info" = ["/tid"]
 "/fortune" = ["/spådom", "/spadom"]

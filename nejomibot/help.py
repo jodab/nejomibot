@@ -37,6 +37,12 @@ EVERYDAY = [
         N_("one from then: 2017, 2017-05 or 2017-05-14 15:30"),
         N_("[<album>] <date>"),
     ),
+    Line(
+        "🏞️",
+        "/sphoto",
+        N_("a photo alone, without its caption"),
+        N_("[<album>] [<date>]"),
+    ),
     Line("🆕", "/uniquephoto", N_("a photo not sent yet"), N_("[<album>]")),
     Line("📚", "/albums", N_("the albums")),
     Line("🎞️", "/onthisday", N_("a photo from this day, years ago"), N_("[<album>]")),
@@ -139,8 +145,10 @@ def other_names(command: str) -> list[str]:
     """The command's aliases: the bot's own, then the config's, but those the
     config gives another command."""
     table = aliases()
-    names = [*ALIASES.get(command, []), *get_settings().aliases.get(command, [])]
-    return [prefixed(name) for name in names if table[name.casefold()] == command]
+    names: dict[str, str] = {}  # each once, in any case
+    for name in [*ALIASES.get(command, []), *get_settings().aliases.get(command, [])]:
+        names.setdefault(name.casefold(), name)
+    return [prefixed(name) for key, name in names.items() if table.get(key) == command]
 
 
 def command_line(command: Line) -> str:
@@ -190,8 +198,8 @@ def notes() -> list[str]:
         ),
         _(
             "<album> – one of /albums, by name; /album takes a <date> with its "
-            "year, or - for none of its own, and shortcuts as /alice alice, or - "
-            "for none"
+            "year, or - for none of its own, and shortcuts as /alice, or - for "
+            "none"
         ),
         _("remove – after /about, /avatar or /username, takes it away"),
         _(

@@ -9,6 +9,7 @@ name = "Français"
 # starting with /. The bot answers the English names too.
 [commands]
 "/uniquephoto" = ["/nouvellephoto"]
+"/sphoto" = ["/photosimple"]
 "/weather" = ["/météo", "/meteo"]
 "/info" = ["/heure"]
 "/fortune" = ["/citation"]

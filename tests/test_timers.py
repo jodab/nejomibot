@@ -611,7 +611,9 @@ async def test_a_daily_post_sends_everyone_the_same(
     async def weather_message(city: str = "") -> str:
         return "Vädret"
 
-    async def photo_message(text: str = "", *, unique: bool = False) -> SendMessage:
+    async def photo_message(
+        text: str = "", *, unique: bool = False, caption: bool = True
+    ) -> SendMessage:
         photos_picked.append(unique)
         return SendMessage(text="📷", text_mode=TextMode.STYLED)
 

@@ -10,6 +10,7 @@ name = "Suomi"
 [commands]
 "/photo" = ["/kuva"]
 "/uniquephoto" = ["/uusikuva"]
+"/sphoto" = ["/pelkkäkuva", "/pelkkakuva"]
 "/albums" = ["/albumit"]
 "/weather" = ["/sää", "/saa"]
 "/info" = ["/aika"]

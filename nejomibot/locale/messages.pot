@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 16:14+0300\n"
+"POT-Creation-Date: 2026-10-24 19:02+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -252,8 +252,8 @@ msgstr[1] ""
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
 "captions count an age from; /album <album> -: none of its own. /album "
-"<album> shortcuts /alice alice: other names for /photo <album>; /album "
-"<album> shortcuts -: none. /albums lists the albums."
+"<album> shortcuts /alice: other names for /photo <album>; /album <album> "
+"shortcuts -: none. /albums lists the albums."
 msgstr ""
 
 #: nejomibot/albums.py
@@ -652,6 +652,13 @@ msgid "{name} is a command already."
 msgstr ""
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
+"a new message instead."
+msgstr ""
+
+#: nejomibot/commands.py
 msgid ""
 "✏️ That edit isn't run: the bot has started again since the message it edits, "
 "so it can't tell what that did. Send it as a new message instead."
@@ -661,13 +668,6 @@ msgstr ""
 msgid ""
 "✏️ That edit isn't run: undoing what the message it edits did failed. Send it "
 "as a new message instead."
-msgstr ""
-
-#: nejomibot/commands.py
-#, python-brace-format
-msgid ""
-"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
-"a new message instead."
 msgstr ""
 
 #: nejomibot/contacts.py
@@ -1055,6 +1055,14 @@ msgid "[<album>] <date>"
 msgstr ""
 
 #: nejomibot/help.py
+msgid "a photo alone, without its caption"
+msgstr ""
+
+#: nejomibot/help.py
+msgid "[<album>] [<date>]"
+msgstr ""
+
+#: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr ""
 
@@ -1413,7 +1421,7 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own, and shortcuts as /alice alice, or - for none"
+"for none of its own, and shortcuts as /alice, or - for none"
 msgstr ""
 
 #: nejomibot/help.py

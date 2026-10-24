@@ -15,6 +15,7 @@ name = ""
 [commands]
 "/photo" = []
 "/uniquephoto" = []
+"/sphoto" = []
 "/albums" = []
 "/onthisday" = []
 "/cache" = []

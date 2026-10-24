@@ -19,7 +19,8 @@
 #     Byte-identical copies are pointed out.
 #
 # Nothing is changed until every question is answered and you confirm the plan.
-# Running it again on a tidy folder changes nothing.
+# Running it again on a tidy folder changes nothing. TIFF and BMP files are
+# renamed too, but the bot sends only JPEG, PNG, GIF, WebP, AVIF and HEIC.
 #
 # Usage: tidy-photos.sh [options] [DIR]      (DIR defaults to .)
 #

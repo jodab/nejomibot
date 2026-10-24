@@ -10,6 +10,7 @@ name = "Español"
 [commands]
 "/photo" = ["/foto"]
 "/uniquephoto" = ["/fotonueva"]
+"/sphoto" = ["/fotosimple"]
 "/albums" = ["/álbumes", "/albumes"]
 "/weather" = ["/clima"]
 "/info" = ["/hora"]

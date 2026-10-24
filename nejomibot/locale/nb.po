@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 16:14+0300\n"
+"POT-Creation-Date: 2026-10-24 19:02+0300\n"
 "Language-Team: Norwegian Bokmål\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
@@ -259,13 +259,13 @@ msgstr[1] "📷 {count} bilder uten album"
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
 "captions count an age from; /album <album> -: none of its own. /album "
-"<album> shortcuts /alice alice: other names for /photo <album>; /album "
-"<album> shortcuts -: none. /albums lists the albums."
+"<album> shortcuts /alice: other names for /photo <album>; /album <album> "
+"shortcuts -: none. /albums lists the albums."
 msgstr ""
 "/album <album>: albumet. /album <album> 2019-06-15: fødselsdatoen "
 "bildetekstene regner en alder fra; /album <album> -: ingen egen. /album "
-"<album> snarveier /alice alice: andre navn for /bilde <album>; /album "
-"<album> snarveier -: ingen. /albums viser albumene."
+"<album> snarveier /alice: andre navn for /bilde <album>; /album <album> "
+"snarveier -: ingen. /albums viser albumene."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -681,6 +681,15 @@ msgid "{name} is a command already."
 msgstr "{name} er allerede en kommando."
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
+"a new message instead."
+msgstr ""
+"✏️ En redigering av {command} kjøres ikke, siden det den gjorde ikke kan "
+"angres. Send den som en ny melding i stedet."
+
+#: nejomibot/commands.py
 msgid ""
 "✏️ That edit isn't run: the bot has started again since the message it edits, "
 "so it can't tell what that did. Send it as a new message instead."
@@ -696,15 +705,6 @@ msgid ""
 msgstr ""
 "✏️ Den redigeringen kjøres ikke: det mislyktes å angre det meldingen den "
 "redigerer gjorde. Send den som en ny melding i stedet."
-
-#: nejomibot/commands.py
-#, python-brace-format
-msgid ""
-"✏️ An edit of {command} isn't run, as what it did can't be undone. Send it as "
-"a new message instead."
-msgstr ""
-"✏️ En redigering av {command} kjøres ikke, siden det den gjorde ikke kan "
-"angres. Send den som en ny melding i stedet."
 
 #: nejomibot/contacts.py
 msgid ""
@@ -1118,6 +1118,14 @@ msgid "[<album>] <date>"
 msgstr "[<album>] <dato>"
 
 #: nejomibot/help.py
+msgid "a photo alone, without its caption"
+msgstr "bare bildet, uten bildetekst"
+
+#: nejomibot/help.py
+msgid "[<album>] [<date>]"
+msgstr "[<album>] [<dato>]"
+
+#: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr "et bilde som ikke er sendt ennå"
 
@@ -1487,10 +1495,10 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own, and shortcuts as /alice alice, or - for none"
+"for none of its own, and shortcuts as /alice, or - for none"
 msgstr ""
 "<album> – ett av /albums, med navn; /album tar en <dato> med år, eller - for "
-"ingen egen, og snarveier som /alice alice, eller - for ingen"
+"ingen egen, og snarveier som /alice, eller - for ingen"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"

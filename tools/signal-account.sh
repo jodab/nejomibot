@@ -103,22 +103,18 @@
 #   signal-account.sh username mybot
 #
 # In the bot's container
-#   The tool is in the bot's image, where it finds signal-cli-rest-api and the
-#   account in the bot's settings, so it needs no options:
+#   The image includes the tool, which takes signal-cli-rest-api's address
+#   and the account from the bot's settings:
 #     podman exec -it nejomibot signal-account.sh setup
-#   (docker compose exec nejomibot ... with Compose.) Without the bot, as when
-#   it doesn't run yet, it runs in a container of its own on
-#   signal-cli-rest-api's network, where it finds it at 127.0.0.1:8080, and
-#   setup asks for the number; --no-healthcheck, as the bot isn't there:
+#   Without a running bot, in a container of its own on signal-cli-rest-api's
+#   network (127.0.0.1:8080; setup asks for the number):
 #     podman run --rm -it --no-healthcheck --network container:signal \
 #       docker.io/jodab/nejomibot signal-account.sh setup
-#   (docker compose run --rm nejomibot ... with Compose, which gives it the
-#   bot's settings too.) The container can't see your files, so a picture for
-#   the avatar goes in on standard input, with --avatar -, and podman exec -i
-#   rather than -it, as the picture comes in where a terminal would:
+#   With Compose: docker compose exec nejomibot ..., or without a running bot,
+#   docker compose run --rm nejomibot ...
+#   An avatar comes from standard input, with --avatar - and -i (not -it):
 #     podman exec -i nejomibot signal-account.sh profile --avatar - < logo.png
-#   With no terminal it can't ask anything, so where it would, it stops and
-#   says to give --yes.
+#   Without a terminal, questions stop the tool; --yes answers them.
 #
 # Needs curl and jq. qrencode shows link's QR code in the terminal (else it is
 # saved as a PNG). Avatars are made square like the bot's /avatar makes them,
