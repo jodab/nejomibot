@@ -49,6 +49,12 @@ conflict, rule 10 prevails:
     releases, so that it can be removed once it is no longer needed.
 12. **Reuse and refactoring.** Reuse existing code wherever possible, and
     refactor wherever doing so improves the code.
+13. **Latest stable releases.** Follow the latest stable release of Python
+    itself and of every library, image and tool the project uses (uv.lock,
+    uv, the base images, the GitHub Actions and their runners, and
+    signal-cli-rest-api in `deploy/`): move to each one once it is out, but
+    not to pre-releases. An upgrade that can't be made yet without breaking
+    something waits (rule 10), and TODO.md says what it waits on.
 
 User-facing means anything people see or can do in Signal: the commands and
 their names, the replies and their wording, who may use what, and what is
@@ -118,7 +124,7 @@ ask.
 ## Development commands
 
 ```sh
-uv sync                                    # .venv with all dependencies (Python 3.14)
+uv sync                                    # .venv with all dependencies (Python 3.15)
 uv run pytest                              # every test, about 6 s; none reaches a real service
 uv run pytest tests/test_timers.py         # one file
 uv run pytest tests/test_timers.py::test_parse_when   # one test (or -k PATTERN)
@@ -486,7 +492,7 @@ alongside each run's start and clean stop. The admins are also told when
 Signal starts rate-limiting the bot (tried once, `Outbox.try_once`), and of
 changed safety numbers, which are checked every `healthcheck_minutes`.
 
-**Delivery** (`delivery.py`): signalbot drops receipts (2.1.3), so
+**Delivery** (`delivery.py`): signalbot drops receipts (2.2.0), so
 `rest.received()` opens a websocket of the bot's own alongside signalbot's,
 since signal-cli-rest-api sends everything to every websocket in json-rpc
 mode; `receipt_in()` parses only what contains `"receiptMessage"`. A receipt
@@ -602,8 +608,9 @@ in the bot's languages (`weather.Place.names`).
   registers its undo; `KeptLines` changes provide one (`revert`).
 - signalbot's logger stays at WARNING: at INFO, it logs every message the
   bot receives, in full.
-- Python 3.14 only: the code uses `except A, B:` without parentheses
-  (PEP 758) and `type` aliases.
+- Python 3.15 only, the latest (rule 13), so the code may use anything it
+  has, as it does `except A, B:` without parentheses (PEP 758) and `type`
+  aliases.
 - Tests: `tests/conftest.py` gives each test fresh settings
   (`get_settings.cache_clear()`), a fresh allowed list, specials, reminders,
   lists, birthdays and debug folder, points `signal_service` at
@@ -681,3 +688,24 @@ in the bot's languages (`weather.Place.names`).
   running bot now takes 1.9 MB less. The image loses 0.17 MB: tarfile's
   bytecode (135 KB), `backups.py` with its own (32 KB), and 3.6 KB of `.mo`
   files.
+- **2026-10-25, Python 3.15 and the latest dependencies** (3.15.1, from
+  3.14.9, with signalbot 2.2.0 and multidict 7.2.1; both amd64 images
+  measured alike on a desktop): peak RSS after the imports, every
+  language's names, the Swedish catalog and a 1024×768 picture, 76.3 MB
+  against 74.7 MB, the median of nine runs each (74.9 to 76.7 MB, and 73.8
+  to 75.7 MB). Python's allocations after the same, without the picture,
+  37.6 MB against 36.7 MB (tracemalloc): the modules' code objects take
+  1.4 MB more (importlib's `_bootstrap_external`, 18.7 to 20.1 MB), while
+  the standard library and each package allocate slightly less. A start of
+  `nejomibot-timers` takes 470 to 472 ms against 481 to 485 ms (medians of
+  15 runs). Images: amd64 241.3 MB (241.4 before), arm64 258.4 MB (258.6),
+  arm/v7 218.7 MB (211.0), where Python takes 4.1 MB more and aiohttp's
+  HTTP parser 3.6 MB more, as its armv7l wheel for 3.15 carries 5.6 MB of
+  debug information against 2.2 MB for 3.14; the sizes are the sums of
+  `podman history`, as `podman image inspect` also counts the ID-mapped
+  copy of the top layer that an image run with `--userns keep-id` gets
+  (5.4 MB here). The compiled modules in the virtual environment carry
+  about 10 MB of debug information on each platform. The standard
+  library's bytecode in the image: 5.7 MB (205 files) of the whole
+  library's 22 MB (du). PyYAML, built from its source, and frozenlist run
+  as pure Python (see TODO.md), at no measurable cost.

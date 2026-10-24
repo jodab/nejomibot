@@ -107,6 +107,12 @@ of signalbot and signal-cli-rest-api for them.
   signalbot passes the tokens on and can submit a solved captcha, decide
   whether an admin should be able to send the bot the `signalcaptcha://`
   link in a direct chat instead, which would be a new command.
+- [ ] **Wheels for Python 3.15.** PyYAML, which signalbot needs, has none
+  as of 6.0.3, so uv builds it from its source as the image is built: pure
+  Python, without libyaml, in a few seconds, with the latest setuptools and
+  Cython, which uv.lock doesn't pin. frozenlist, which aiohttp needs, has
+  none as of 1.8.0, and runs as pure Python. Once a release of each has
+  them, move to it.
 - [ ] **What else signalbot lacks:** it puts a sync message's destination in
   a `DataMessage`'s source fields, so a command typed on a linked phone looks
   as if the other person had sent it (the bot warns against linking

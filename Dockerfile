@@ -4,7 +4,7 @@
 # natively, even where the rest is emulated.
 FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
 
-FROM docker.io/library/python:3.14-slim@sha256:0514bc76712d64f8bb48adcb95b1ab0d88c69fee95d62fe4c18ee948bee9b1e1 AS base
+FROM docker.io/library/python:3.15-slim@sha256:533b0b2f9b5d46fd097091cf826f27902f1d6c3bca714b6dc74551356aa97a51 AS base
 
 # tzdata lets TZ give local log timestamps; curl, jq and qrencode are for
 # signal-account.sh. On 32-bit ARM, where Pillow and pillow-heif have no
@@ -107,8 +107,8 @@ COPY tools/nejomibot-profile.sh /etc/profile.d/nejomibot.sh
 # The bytecode of the standard library's modules that the bot and its tools
 # import: the base image has none, and PYTHONDONTWRITEBYTECODE keeps it from
 # being written as they run, so each run compiled them anew. On a Raspberry
-# Pi 4, nejomibot-timers imported in 4.7 s without it, 2.4 s with it. 5.5 MB,
-# of the whole library's 21 MB.
+# Pi 4, nejomibot-timers imported in 4.7 s without it, 2.4 s with it. 5.7 MB,
+# of the whole library's 22 MB.
 RUN env -u PYTHONDONTWRITEBYTECODE python -c 'import concurrent.futures.thread, \
         nejomibot.bot, nejomibot.healthcheck, nejomibot.timers_cli'
 

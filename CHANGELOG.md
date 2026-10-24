@@ -4,6 +4,16 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- The image now uses Python 3.15.1 instead of 3.14.9, and running the bot
+  from a checkout takes Python 3.15, which uv installs. The bot starts as
+  fast as before and uses about 1.5 MB more memory. The images for amd64
+  and arm64 are slightly smaller, and the one for arm/v7 is 7.7 MB larger.
+- Dependencies: signalbot 2.2.0 and multidict 7.2.1.
+
 ## 0.99.23 - 2026-10-25
 
 ### Updating

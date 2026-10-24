@@ -10,10 +10,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    ignore:
-      # The bot is written for Python 3.14 (.python-version, requires-python)
-      - dependency-name: python
-        update-types: [version-update:semver-major, version-update:semver-minor]
+    # Including a new Python, such as python:3.16-slim (AGENTS.md, rule 13):
+    # .python-version and requires-python change with it, and until
+    # .python-version does, the image build fails, as uv finds no Python of
+    # the version it names
   - package-ecosystem: github-actions
     directory: /
     schedule:

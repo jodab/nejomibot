@@ -220,7 +220,7 @@ async def received() -> AsyncGenerator[aiohttp.ClientWebSocketResponse]:
     """A websocket of the bot's own, beside signalbot's, with everything
     signal-cli-rest-api receives, each as its JSON: in json-rpc mode it sends
     every message to every websocket. For the receipts for the bot's
-    messages, which signalbot drops: its parser knows none, as of 2.1.3.
+    messages, which signalbot drops: its parser knows none, as of 2.2.0.
     Raises aiohttp.ClientError if it can't be opened."""
     url = f"ws://{get_settings().signal_service}{account_path('/v1/receive')}"
     async with client.session().ws_connect(url, heartbeat=HEARTBEAT) as websocket:
