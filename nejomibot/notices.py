@@ -57,7 +57,7 @@ from .i18n import (
     speaking,
     when_text,
 )
-from .messages import describe, escape, outbox, send
+from .messages import RATE_LIMITED_FIRST, describe, escape, outbox, send
 from .specials import own_specials
 from .status import backups_check, check_photos, clock_check
 from .timers import timekeeper
@@ -278,10 +278,16 @@ async def start_text(
 
 
 def rate_limited_text() -> str:
+    longest = timedelta(minutes=get_settings().rate_limit_retry_minutes)
     return _(
-        "⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and "
-        "retried every 30 minutes. To lift the limit, run signal-account.sh "
-        "rate-limit --to <your number> on the server and solve the captcha."
+        "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot "
+        "tries one again after {first}, then less and less often, every "
+        "{longest} at most, and sends the rest once one goes out. To lift the "
+        "limit, run signal-account.sh rate-limit --to <your number> on the "
+        "server and solve the captcha, then send the bot any command: it tries "
+        "again at once."
+    ).format(
+        first=format_duration(RATE_LIMITED_FIRST), longest=format_duration(longest)
     )
 
 

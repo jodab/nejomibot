@@ -105,6 +105,12 @@ of signalbot and signal-cli-rest-api for them.
   tests filter the ResourceWarning); `MessageActions._log_send_errors` names
   the recipient at WARNING level; and it depends on phonenumbers, 41 MB,
   where phonenumberslite would do (uv's `exclude-dependencies` swaps them).
+  A received message its models can't validate (pydantic's
+  `ValidationError`, which its receiving doesn't catch, unlike
+  `UnknownMessageFormatError`), or a failed group refresh, ends its
+  receiving: `rerun_on_exception` starts it again after 1 second, doubling
+  up to 5 minutes, and prints the traceback to stderr, outside the bot's
+  log; what arrives meanwhile may not reach the bot.
   Nor does signal-cli-rest-api's `/v1/about` give signal-cli's version, so
   `/status` and the health check pings can't show it.
 

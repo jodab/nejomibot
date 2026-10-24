@@ -27,7 +27,7 @@ Signal.
   the whole family.
 - ⏰ **Timers and commands of your own:** any command on a schedule, posted to
   the chats you choose, and your own commands that combine texts and other
-  commands, such as a morning greeting.
+  commands, such as a morning greeting, for the admins or for everyone.
 - 🌍 **Nine languages:** English, Danish, Finnish, French, German, Greek,
   Norwegian, Spanish and Swedish, with each chat in its own language, and
   room for more: a new language takes two files and no code.
@@ -120,16 +120,17 @@ used by `/info`: change them, or delete those two lines.
 
 ### Step 3: Set the folder ownership
 
-The bot runs as user 1001 and signal-cli-rest-api as user 1000, so each must
-own its folder:
+The bot and signal-cli-rest-api both run as user 1000, so that user must own
+both folders:
 
 ```sh
-sudo chown -R 1001:1001 data && sudo chmod 700 data
-sudo chown -R 1000:1000 signal
+sudo chown -R 1000:1000 data signal && sudo chmod 700 data
 ```
 
 With rootless Podman, use `podman unshare chown ...` and `podman unshare
-chmod ...` instead. From now on, edit the settings with `sudo nano
+chmod ...` instead. To run the bot as another user, give its user and group
+in `compose.yaml`, as `user: "1001:1001"`, and have that user own `data`
+instead. From now on, edit the settings with `sudo nano
 data/config.toml` (or `podman unshare nano data/config.toml`). The bot only
 reads the photos, but they must be readable by everyone (`chmod -R a+rX
 photos`).
@@ -307,7 +308,11 @@ Everyday commands, for everyone the bot may talk to:
 | `/birthdays` | In a group, the birthdays for that group, upcoming ones first; for admins in a direct chat, all birthdays, numbered (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/namedays` | The name days, listed the same way as `/birthdays` lists the birthdays |
 | `/language`, `/language <language>`, `/language default` | The languages the bot speaks, and the one it speaks in this chat. Given a language, by its code or its own name, such as `sv` or `Svenska`, the bot speaks that language in this chat; `default` returns to the `language` setting. In a direct chat, the language is the sender's own choice; in a group, only an admin can change it (see [Languages](#languages)) |
-| `/help` | The commands the sender may use, one per line |
+| `/help` | The commands the sender may use, one per line, and the [specials](#specials) the admins let everyone use |
+
+Everyone the bot may talk to can also use the specials that the admins let
+everyone use, with `/special everyone`: they are listed under Specials in
+`/help`.
 
 For admins, in a direct chat with the bot:
 
@@ -339,6 +344,7 @@ For admins, in a direct chat with the bot:
 | `/specials` | Your own [specials](#specials): commands that post text and the answers of other commands |
 | `/special add <name> <parts>` | Adds a special or changes one, for example `/special add /morning Good morning! /today + /weather; /uniquephoto` |
 | `/special shortcuts <name> <names>`, `/special shortcuts <name> -` | Other names for a special: `/special shortcuts /morning /gm` makes `/gm` post the same as `/morning`; `-` removes them |
+| `/special everyone <name>`, `/special admins <name>` | Lets everyone the bot may talk to use the special, in direct chats and in groups, where `/help` lists it; or the admins alone again (see [Specials](#specials)) |
 | `/special remove <name>` | Removes a special, unless a timer runs it |
 | `/msg <chats> <text>` | Posts the text to other chats, for example `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Runs commands and posts their answers to other chats, for example `/run 1 /status` |
@@ -372,8 +378,9 @@ The words that follow a command to say what it should do, its subcommands,
 have names in each language too. In Swedish, `lägg till` is `add`, `ta bort`
 or `radera` is `remove`, `lista` is `list`, `töm` is `clear`, `kör` is
 `run`, `alla` is `all`, `förhandsvisa` is `preview`, `standard` is
-`default`, and `genvägar` is `shortcuts`, as in `/lista lägg till mjölk` or
-`/timer ta bort 3`. The English words work too, in any language.
+`default`, `genvägar` is `shortcuts`, and `för alla` and `för admins` are
+`everyone` and `admins`, as in `/lista lägg till mjölk` or `/timer ta bort
+3`. The English words work too, in any language.
 
 ### Who may use what
 
@@ -384,8 +391,16 @@ commands show phone numbers and the server's addresses, or change the bot.
 An admin is given by phone number, or by Signal ID if they don't share their
 number. Everyone else may use the everyday commands only if they are on the
 [allowed list](#the-allowed-list): as a contact, in a direct chat with the
-bot, or as a member of an allowed group, in that group. The bot doesn't
-reply to anyone else.
+bot, or as a member of an allowed group, in that group, together with the
+[specials](#specials) the admins let everyone use. The bot doesn't reply to
+anyone else.
+
+So that nobody can run the bot into Signal's rate limits, the bot answers
+each person at most `command_limit` commands (20 by default) in
+`command_limit_minutes` (10): past that, it says once when it will answer
+them again, and leaves their other commands unanswered until then. The
+admins aren't limited, nor are the commands that timers, `/run` and
+specials run (see [Signal's rate limits](#signals-rate-limits)).
 
 When someone on the allowed list writes to the bot in a direct chat with
 something that isn't a command, the bot greets them: "Hi, I'm Mybot, a bot.
@@ -493,8 +508,14 @@ server has no internet connection, the bot retries it for
 It retries after 10 seconds, then less and less often, at most every two
 minutes, and immediately whenever another message goes to the same chat,
 since that usually means Signal is back. While Signal rate-limits the bot,
-waiting messages are retried every half hour instead, because retrying more
-often can keep the limit in place, until a message goes through. Each chat
+it sends nothing at once, since every attempt would meet the limit, and many
+could keep it in place: new messages wait too, as do read receipts and the
+typing indicator, which aren't sent. The bot tries only the message that has
+waited longest, after 2 minutes, then twice as long after each attempt, at
+most `rate_limit_retry_minutes` (30) apart, and right away when an admin
+sends a command, a minute after the last attempt at the soonest, since the
+admin may just have lifted the limit. Once that message goes through, the
+rest follow (see [Signal's rate limits](#signals-rate-limits)). Each chat
 receives its messages in order. Messages older than the retry period are
 dropped, and the chat is told how many once sending works again. Only
 failures where the message was certainly not sent are retried:
@@ -671,16 +692,21 @@ DateTimeOriginal in UTC and CreateDate in local time, whatever offset they
 record: a CreateDate that is a whole time zone away gives this away, and
 tidy-photos.sh relies on the same sign. (tidy-photos.sh names files after
 the local time, so a caption can differ from the file name by an hour or
-two.) With `photos_birth_date` set, the caption also gives the age, on the
-day the photo was taken, of the person in the photos, after
-`photos_age_emoji`. An album can have a birth date of its own, for the
-person it is about: `/album Alice 2019-06-15` sets it, `/album Alice -`
-removes it, and `/album Alice` shows the album. Birth dates are stored with
-the shortcuts in `data_dir/albums.txt`, one album per line, and the file can
-be edited by hand: the bot reads it again when it changes. An album without
-a birth date of its own uses `photos_birth_date`. A photo with a GPS
-position links to where it was taken: on Google Maps, or with
-`photos_map = "openstreetmap"`, as an OpenStreetMap short link, such as
+two.)
+
+A caption can also give an age. For an album of one child or pet growing
+up, each photo can show how old they were when it was taken: give the album
+their birth date, and the bot counts from it to the day the photo was
+taken, as in "🎂 1 year, 2 months and 3 days", after `photos_age_emoji` (🎂
+by default). `/album Alice 2019-06-15` sets an album's birth date, `/album
+Alice -` removes it, and `/album Alice` shows the album. `photos_birth_date`
+is the birth date for the albums without one of their own, and for the
+photos in no album; without a birth date, captions show no age. Birth dates
+are stored with the shortcuts in `data_dir/albums.txt`, one album per line,
+and the file can be edited by hand: the bot reads it again when it changes.
+
+A photo with a GPS position links to where it was taken: on Google Maps, or
+with `photos_map = "openstreetmap"`, as an OpenStreetMap short link, such as
 `https://osm.org/go/0bC2KJ9q?m=`, which shows a marker at the spot.
 
 `/onthisday` shows a photo taken on this day in an earlier year, with the
@@ -1060,8 +1086,12 @@ each with its `/`, are separated by `;`.
 A timer runs each command once, as an admin would in a direct chat with the
 bot. It can therefore run any command except those that change timers,
 specials, birthdays, albums or who may use the bot, those that post to other
-chats themselves (`/msg`, `/run`), and those that belong to each chat
-(`/remind`, `/list`, `/birthdays`, `/namedays`). It posts each command's
+chats themselves (`/msg`, `/run`), those that belong to each chat
+(`/remind`, `/list`, `/birthdays`, `/namedays`), and `/delete` and
+`/contacts add`: run from a timer, `/delete` would delete the bot's latest
+message in the first admin's direct chat, and a number, as in `/delete 3`
+or `/contacts add 3 Bob`, would name whatever has it by the time the timer
+runs. It posts each command's
 answers to all the timer's chats before the next command runs: every chat
 gets the same photo, and each group its own birthdays. Commands that only
 show something can run, wherever the timer posts: `/delivery` at 08:15 to
@@ -1098,7 +1128,9 @@ IDs. It reads the bot's configuration the same way the bot does; outside the
 container, run `uv run nejomibot-timers` in the bot's folder.
 
 A line the bot can't read, such as one with an unknown command, is left as
-it is, and logged. A run that fell due while the bot was down is made when
+it is, where it is, and logged, and so are comments. A line that runs a
+special the bot can't read at the time, as after a mistake in
+`specials.txt`, is read again once the special can be read. A run that fell due while the bot was down is made when
 the bot starts again, up to an hour late, provided that it is later than the
 timer's last run; a timer for a single date is removed once it has run.
 Without a timers file, the bot starts with no timers.
@@ -1115,6 +1147,8 @@ with the bot, mostly for timers:
 /special add /bins The bins go out tonight!
 /specials                                  your own specials
 /timer add tue 18:00 1 /bins               a reminder, every Tuesday
+/special everyone /morning                 for everyone allowed, groups too
+/special admins /morning                   for the admins alone again
 /special remove /bins
 ```
 
@@ -1159,25 +1193,40 @@ it:
 /special add /dailyquote Proverb or quote of the day: /fortune fortunes_svenska
 ```
 
-A special runs its commands the way a timer does, as an admin would in a
-direct chat with the bot, and posts their answers one after the other: it
-can contain any command a timer can, but not another of your specials.
-Specials are for timers, `/run`, and admins in a direct chat. Editing the
-message that ran one of your specials runs it again, since its commands
-change nothing; an edit of `/special add` or `remove` replaces what the
+A special runs its commands the way a timer does, as whoever sent it would
+send them, and posts their answers one after the other: it can contain any
+command a timer can, but not another of your specials. Specials are for
+timers, `/run`, and admins in a direct chat. Editing the message that ran
+one of your specials runs it again, since its commands change nothing; an
+edit of `/special add`, `remove`, `everyone` or `admins` replaces what the
 original did. A special that a timer runs can be changed, but not removed:
 remove the timer first.
 
+### Specials for everyone
+
+`/special everyone /morning` lets everyone the bot may talk to use
+`/morning`, wherever they may use the everyday commands, in direct chats and
+in allowed groups; `/help` lists it for them under Specials, with what it
+posts and its shortcuts. `/special admins /morning` makes it the admins'
+alone again. A special for everyone runs its commands for whoever uses it,
+as they would send them where they send it: `/today` in a group shows that
+group's birthdays, and `/help` the everyday commands. An admin command in
+it, such as `/contacts` or `/status`, would show what only the admins should
+see, phone numbers and the server's addresses among them, or change the bot,
+so the bot names those commands when you make the special one for everyone,
+and when you change it while it is. Each use counts as one command toward
+the sender's `command_limit` ([Who may use what](#who-may-use-what)).
+
 Your specials are stored in `data_dir/specials.txt`, one per line: the name
-and its shortcuts, a `|`, and the parts, separated by `;` or joined by `+`,
-with the commands by their English names and the texts in
-signal-cli-rest-api's formatting
-marks: `**bold**`, `*italic*`, `***both***`, `~strikethrough~`,
-`` `monospace` `` and `||spoiler||`, with a `\` before any `*`, `~`, `` ` ``
-or `|` that should show as it is:
+and its shortcuts, then `(everyone)` for one that everyone may use, a `|`,
+and the parts, separated by `;` or joined by `+`, with the commands by their
+English names and the texts in signal-cli-rest-api's formatting marks:
+`**bold**`, `*italic*`, `***both***`, `~strikethrough~`, `` `monospace` ``
+and `||spoiler||`, with a `\` before any `*`, `~`, `` ` `` or `|` that
+should show as it is:
 
 ```
-/morning /gm | **Good morning!** /today + /weather; /uniquephoto
+/morning /gm (everyone) | **Good morning!** /today + /weather; /uniquephoto
 ```
 
 The bot reads the file again when it changes, so it can also be edited by
@@ -1401,8 +1450,9 @@ with each of them, about things they would otherwise find out too late:
   and when it stops.
 - **Signal rate-limits the bot.** When this begins, the notice says how to
   lift the limit: `signal-account.sh rate-limit --to <your number>`,
-  followed by a captcha. It is sent at most once every six hours, and tried
-  only once, because while Signal rate-limits the bot, the notice may not get
+  followed by a captcha, and then any command to the bot, which has it try
+  again at once. It is sent at most once every six hours, and tried only
+  once, because while Signal rate-limits the bot, the notice may not get
   through either; the health check reports the limit too while messages are
   waiting, and so does the ping, if `healthcheck_url` is set.
 - **A safety number changes.** signal-cli won't send messages to someone
@@ -1574,6 +1624,55 @@ and it doesn't exist on 32-bit ARM, which has no native build. In `json-rpc`
 mode, signal-cli-rest-api uses about 360 MB of memory on a Raspberry Pi 4,
 and the bot about 90 MB.
 
+### Signal's rate limits
+
+Signal limits what an account may do in a given time, to fight spam, and
+doesn't publish the limits it applies. Most are buckets: so many requests
+at once, refilled at a steady rate. The defaults in Signal's server code
+([RateLimiters.java](https://github.com/signalapp/Signal-Server/blob/main/service/src/main/java/org/whispersystems/textsecuregcm/limits/RateLimiters.java),
+as of October 2026), which Signal can change for most of them while its
+servers run, include:
+
+| Requests | At once | Then |
+|---|---|---|
+| Messages to one person, unless sent with sealed sender | 60 | one more each second |
+| Attachments uploaded, such as photos | 50, and 1 GiB | one more every 1.2 seconds, and about 1 MB a second |
+| Profiles fetched | 4,320 | one more every 20 seconds |
+| Keys fetched, to start a session with a new person or device | 6 | one more every 10 minutes |
+| Usernames looked up | 100 | one more every 15 minutes |
+| Captcha attempts, to lift a limit | 10 | one more every 144 minutes |
+| Captchas solved | 2 | one more every 12 hours |
+
+What bots meet most often is none of these, but Signal's spam checks, whose
+rules aren't public: an account that sends a lot, in bursts, or to people
+who haven't written to it, has to solve a captcha before it may send more.
+signal-cli-rest-api then answers a send with 429, which the bot takes as a
+rate limit. Waiting rarely lifts it; solving the captcha does
+([how](#setting-up-and-managing-the-signal-account)).
+
+The bot keeps well below these limits:
+
+- It answers each person at most `command_limit` commands in
+  `command_limit_minutes` (20 in 10 minutes), so that nobody can make it
+  send in bulk. The admins aren't limited.
+- While Signal rate-limits it, it sends nothing at once: messages wait,
+  read receipts and the typing indicator aren't sent, and only the message
+  that has waited longest is tried, after 2 minutes, then twice as long
+  after each attempt, at most `rate_limit_retry_minutes` (30) apart. An
+  admin's command has it try again at once, a minute after the last attempt
+  at the soonest.
+- It looks up each phone number at most once a run, asks again for the
+  profile of someone without a name at most every six hours, and asks
+  Signal's servers for the account's linked devices only for the health
+  check, every `healthcheck_minutes` (5).
+
+If you know more about the limits your account meets, you can tune the bot
+with these settings: a lower `command_limit` or a longer
+`command_limit_minutes` for a busy bot, a longer `rate_limit_retry_minutes`
+for fewer attempts while it is limited, and a longer `healthcheck_minutes`
+for fewer requests to Signal's servers. `send_retry_hours` (3) sets how long
+a waiting message is kept before it is dropped.
+
 ## Configuration
 
 Settings are read from `config.toml`, or from the file named by
@@ -1656,8 +1755,10 @@ controls the Signal account: don't publish its port beyond the machine. The
 examples in [deploy/](deploy) run the two containers side by side, without
 publishing it at all.
 
-The bot runs as UID and GID 1001, needs no capabilities, and writes only to
-`/data`, while its tools write to `/tmp`. The examples run it that way: with
+The bot runs as UID and GID 1000, or as the user and group the container
+is given (`--user`; `User=` and `Group=` in a Quadlet; `user:` in Compose),
+needs no capabilities, and writes only to `/data`, while its tools write to
+`/tmp`. The examples run it that way: with
 no capabilities, no new privileges and a read-only file system
 (`DropCapability=ALL`, `NoNewPrivileges=true` and `ReadOnly=true` in the
 Quadlet), and with an init process, which forwards SIGTERM and reaps what
@@ -1667,7 +1768,7 @@ the tools leave behind (`RunInit=true`). It uses two folders:
   readable by everyone.
 - `/data`: `config.toml` and everything the bot stores. It must belong to
   the bot's user: Podman's `:U` option sees to that; otherwise, run
-  `chown 1001` on it.
+  `chown 1000` on it, or with the bot's user, if you give it another.
 
 Every interactive shell in the container, such as `podman exec -it nejomibot
 sh` or `bash` (with Compose, `docker compose exec nejomibot sh`), starts with
@@ -1695,7 +1796,7 @@ starts, with the tool in a container of its own
 two containers. They go in `/etc/containers/systemd/`, or for a rootless
 setup under a user account, in `~/.config/containers/systemd/`. Adjust the
 folders to suit (`%h` is the user's home directory), and in a rootless
-setup, give the bot `UserNS=keep-id:uid=1001,gid=1001` instead of `:U`, so
+setup, give the bot `UserNS=keep-id:uid=1000,gid=1000` instead of `:U`, so
 that the files in the data folder stay the user's. Then:
 
 ```sh
@@ -1722,8 +1823,9 @@ running when the user isn't logged in.
 [deploy/compose.yaml](deploy/compose.yaml) runs both containers, with the
 bot reaching signal-cli-rest-api as `signal:8080`, next to the folders
 `data`, `photos` and `signal`; [Getting started](#getting-started) uses it,
-step by step. signal-cli-rest-api runs as UID 1000, so its folder must
-belong to that user, just as the bot's must belong to UID 1001. Docker
+step by step. The bot and signal-cli-rest-api run as UID 1000, so their
+folders must belong to that user, or the bot's to the user it's given
+(`user:`). Docker
 restarts a container that stops, but not one whose health check fails.
 
 ### podman run, docker run

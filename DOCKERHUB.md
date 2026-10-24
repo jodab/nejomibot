@@ -27,7 +27,7 @@ Signal.
   the whole family.
 - ⏰ **Timers and commands of your own:** any command on a schedule, posted to
   the chats you choose, and your own commands that combine texts and other
-  commands, such as a morning greeting.
+  commands, such as a morning greeting, for the admins or for everyone.
 - 🌍 **Nine languages:** English, Danish, Finnish, French, German, Greek,
   Norwegian, Spanish and Swedish, with each chat in its own language.
 - 🔐 **Private by design:** only the people and groups you allow may use it,
@@ -132,20 +132,21 @@ those two lines. The file explains every setting.
 
 ## Step 3: Set the folder ownership
 
-The bot runs as user 1001 and signal-cli-rest-api as user 1000, so each must
-own its folder:
+The bot and signal-cli-rest-api both run as user 1000, so that user must own
+both folders:
 
 ```sh
-sudo chown -R 1001:1001 data && sudo chmod 700 data
-sudo chown -R 1000:1000 signal
+sudo chown -R 1000:1000 data signal && sudo chmod 700 data
 ```
 
 With rootless Podman, use `podman unshare` instead of `sudo`:
 
 ```sh
-podman unshare chown -R 1001:1001 data && podman unshare chmod 700 data
-podman unshare chown -R 1000:1000 signal
+podman unshare chown -R 1000:1000 data signal && podman unshare chmod 700 data
 ```
+
+To run the bot as another user, give its user and group in `compose.yaml`,
+as `user: "1001:1001"`, and have that user own `data` instead.
 
 From now on, edit the settings with `sudo nano data/config.toml` (with
 Podman, `podman unshare nano data/config.toml`).
@@ -286,6 +287,8 @@ That's it: the bot is up and running. 🎉
   the day and the weather in one message, then the photo under a heading;
   run it from the timer with `/timer add 08:00 1 /dailypost`, and give it a
   shorter name with `/special shortcuts /dailypost /daily`.
+  `/special everyone /dailypost` lets everyone you have allowed use it too,
+  in groups as well, and `/help` lists it for them.
 - **Birthdays, name days and holidays for `/today`:** `/birthday add
   1990-03-14 Alice` adds a contact's birthday, shown in the groups they are
   in, `/nameday add 08-08 1,2 Grandma` the name day of someone not on Signal,

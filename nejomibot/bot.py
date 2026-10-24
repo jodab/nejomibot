@@ -40,7 +40,7 @@ from .ping import Ping
 from .profile import About, Avatar, Name, Profile, Username
 from .relay import Msg, Run
 from .reminders import Remind
-from .specials import Specials
+from .specials import Specials, SpecialsForEveryone
 from .status import Status
 from .timers import Chats, Timers, timekeeper
 from .today import Today, TodayPreview
@@ -62,69 +62,68 @@ type Registration = tuple[Handler, list[str] | bool, list[str] | bool, Check | N
 
 
 def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
-    """Every handler, with who it answers."""
+    """Every handler, with who it answers, as it says (Handler.everyday)."""
 
     def allowed(message: object) -> bool:
         return access.permits(bot, message)
 
-    # The everyday commands: for the admins and the allowed list, which is
-    # checked for each message, as /allow and /disallow change it
-    everyday: list[Registration] = [
+    every: list[Handler] = [
+        # The everyday commands, the admins' specials for everyone too
+        Ping(),
+        Photo(),
+        Albums(),
+        OnThisDay(),
+        Today(),
+        Weather(),
+        Forecast(),
+        Info(),
+        Fortune(),
+        Remind(),
+        Lists(),
+        Birthdays(),
+        Language(),
+        Help(),
+        SpecialsForEveryone(),
+        # The admins' commands: they show what only the admins should see,
+        # or change the bot, who may use it, or its timers, or post to other
+        # chats
+        Status(),
+        TodayPreview(),
+        Album(),
+        Specials(),
+        Contacts(),
+        Trust(),
+        Allowed(),
+        Allow(),
+        Disallow(),
+        Admins(),
+        Admin(),
+        Profile(),
+        Name(),
+        About(),
+        Avatar(),
+        Username(),
+        Chats(),
+        Timers(),
+        Msg(),
+        Run(),
+        Incoming(),
+        Birthday(),
+        Delivery(),
+    ]
+    # The everyday commands for the admins and the allowed list, checked for
+    # each message, as /allow and /disallow change it; the admins' in direct
+    # chats only, also checked for each message, as /admin changes who they
+    # are
+    registrations: list[Registration] = [
         (handler, True, True, allowed)
-        for handler in (
-            Ping(),
-            Photo(),
-            Albums(),
-            OnThisDay(),
-            Today(),
-            Weather(),
-            Forecast(),
-            Info(),
-            Fortune(),
-            Remind(),
-            Lists(),
-            Birthdays(),
-            Language(),
-            Help(),
-        )
+        if handler.everyday
+        else (handler, True, False, access.from_admin)
+        for handler in every
     ]
-    # For the admins only, in direct chats: they show what only the admins
-    # should see, or change the bot, who may use it, or its timers, or post
-    # to other chats. Checked for each message, as /admin changes who they are.
-    admins: list[Registration] = [
-        (handler, True, False, access.from_admin)
-        for handler in (
-            Status(),
-            TodayPreview(),
-            Album(),
-            Specials(),
-            Contacts(),
-            Trust(),
-            Allowed(),
-            Allow(),
-            Disallow(),
-            Admins(),
-            Admin(),
-            Profile(),
-            Name(),
-            About(),
-            Avatar(),
-            Username(),
-            Chats(),
-            Timers(),
-            Msg(),
-            Run(),
-            Incoming(),
-            Birthday(),
-            Delivery(),
-        )
-    ]
-    return [
-        *everyday,
-        *admins,
-        # For the admins only, in every chat
-        (Delete(), True, settings.delete_groups, access.from_admin),
-    ]
+    # For the admins only, in every chat
+    registrations.append((Delete(), True, settings.delete_groups, access.from_admin))
+    return registrations
 
 
 def check_aliases() -> None:

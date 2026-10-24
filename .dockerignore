@@ -3,6 +3,7 @@
 !uv.lock
 !.python-version
 !README.md
+!DOCKERHUB.md
 !LICENSE
 !LICENSES/
 !config.example.toml

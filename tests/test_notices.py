@@ -296,9 +296,12 @@ async def test_rate_limited(bot: SignalBot, outbox: Outbox) -> None:
     assert outbox.tried == [
         (
             ADMIN,
-            "⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and "
-            "retried every 30 minutes. To lift the limit, run signal-account.sh "
-            "rate-limit --to <your number> on the server and solve the captcha.",
+            "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot "
+            "tries one again after 2 min, then less and less often, every 30 min "
+            "at most, and sends the rest once one goes out. To lift the limit, "
+            "run signal-account.sh rate-limit --to <your number> on the server "
+            "and solve the captcha, then send the bot any command: it tries "
+            "again at once.",
         )
     ]
     await keeper.rate_limited(bot)

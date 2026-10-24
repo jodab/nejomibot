@@ -4,6 +4,73 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- The image runs as user and group 1000, rather than 1001. With the Quadlet
+  examples, whose data folder has `:U`, Podman hands the folder to the new
+  user by itself. Otherwise, before updating, run `sudo chown -R 1000:1000
+  data` (with rootless Podman, `podman unshare chown -R 1000:1000 data`), or
+  keep the bot as 1001 with `user: "1001:1001"` in Compose, `User=1001` and
+  `Group=1001` in a Quadlet, or `--user 1001:1001`. A rootless Quadlet with
+  `UserNS=keep-id:uid=1001,gid=1001` takes `uid=1000,gid=1000` instead.
+- Timers, `/run` and specials can't run `/delete`, other than `/delete
+  list`, nor `/contacts add`. A timer or special with one of them is an
+  unreadable line of its file from now on, left as it is, which the notice
+  at the start names.
+
+### Added
+
+- Specials for everyone: `/special everyone <name>` lets everyone the bot
+  may talk to use a special, in direct chats and in allowed groups, and
+  `/help` lists it for them under Specials; `/special admins <name>` makes
+  it the admins' alone again. Its commands run for whoever uses it, where
+  they use it, and when it has admin commands, such as `/contacts`, the
+  bot names them, as everyone who uses it then sees what they show.
+  `specials.txt` marks such a special with `(everyone)` after its names.
+- A limit on how many commands the bot answers each person: at most
+  `command_limit` (20) in `command_limit_minutes` (10). Past that, the bot
+  says once when it answers them again, and leaves their other commands
+  unanswered until then. The admins aren't limited, nor what timers, `/run`
+  and specials run.
+- The README's "Signal's rate limits" describes what Signal limits, as far
+  as its server's code tells, how the bot keeps below it, and which
+  settings tune that.
+
+### Changed
+
+- While Signal rate-limits the bot, it sends nothing at once: new messages
+  wait, read receipts and the typing indicator aren't sent, and only the
+  message that has waited longest is tried, after 2 minutes, then twice as
+  long after each try, at most `rate_limit_retry_minutes` (30) apart. A
+  command from an admin, who may have just lifted the limit, has it try
+  again at once, a minute after the last try at the soonest. Before, every
+  new message was tried at once, and every half hour a message to each chat
+  with messages waiting.
+- `/contacts` asks again for the profile of someone without a name at most
+  every six hours, rather than each time, as each asks Signal's servers.
+- `/info` keeps the exchange rate until the exchange rate API's next daily
+  update, so it answers at once; `/status` still asks the API.
+- `/photo`, `/uniquephoto`, `/cache` and `/onthisday` list the photo library
+  once rather than twice: `/uniquephoto` with an album takes 20 ms rather
+  than 32 ms for 7,641 photos on a desktop. `/help` takes a tenth of the time
+  it took.
+- The bot's own websocket, for the delivery receipts, pings
+  signal-cli-rest-api every 30 seconds, so a connection that died unnoticed
+  is opened again.
+- The log has the photos' paths at DEBUG, rather than INFO: an album is
+  often named after someone.
+
+### Fixed
+
+- A timer that runs a special stayed off after a mistake in `specials.txt`
+  was set right, until the timers file changed or the bot restarted. It is
+  read again as soon as the special can be read.
+- The timers file lost the comments written in it by hand, and moved the
+  lines the bot couldn't read to its end, as each timer ran. Both stay as
+  they are, where they are.
+
 ## 0.99.20 - 2026-10-24
 
 ### Updating

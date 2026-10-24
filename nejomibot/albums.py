@@ -268,6 +268,7 @@ def album_answer(text: str) -> str:
 
 
 class Albums(Handler):
+    everyday = True
     commands = (Command("/albums"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

@@ -166,6 +166,7 @@ async def language_answer(context: DataMessageContext, words: list[str]) -> str:
 
 
 class Language(Handler):
+    everyday = True
     commands = (
         Command("/language"),
         # With more after it, it changes what chats get: timers mayn't

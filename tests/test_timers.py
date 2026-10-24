@@ -10,7 +10,16 @@ import pytest
 from apscheduler.schedulers.asyncio import (  # pyright: ignore[reportMissingTypeStubs]
     AsyncIOScheduler,
 )
-from helpers import ALICE, BOB, EDIT_FROM_BEFORE, GROUP, ME, FakeApi, make_jpeg
+from helpers import (
+    ALICE,
+    BOB,
+    EDIT_FROM_BEFORE,
+    GROUP,
+    ME,
+    FakeApi,
+    make_jpeg,
+    message_from,
+)
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -345,9 +354,10 @@ def test_check_commands_by_their_other_names(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_what_timers_mayn_t_run() -> None:
     # What changes timers, specials, birthdays, albums or who may use the bot,
-    # posts
-    # to chats of its own, or is a chat's own, as reminders and lists are:
-    # /timers and /specials with more after them, which change them too
+    # posts to chats of its own, or is a chat's own, as reminders and lists
+    # are: /timers and /specials with more after them, which change them too;
+    # and what takes a number that would name whoever has it by the next run,
+    # or deletes, in the admin's direct chat, the bot's latest message there
     assert {
         command.name
         for handler in commands.handlers()
@@ -371,7 +381,16 @@ def test_what_timers_mayn_t_run() -> None:
         "/language",
         "/remind",
         "/list",
+        "/contacts add",
+        "/delete",
     }
+
+
+def test_timers_may_list_but_not_delete_nor_add_contacts() -> None:
+    assert check_commands(["/delete list", "/contacts", "/contacts 3"]) is None
+    for command in ("/delete", "/delete 2,5", "/contacts add 3 Bob"):
+        typed = " ".join(command.split()[:2]) if "add" in command else "/delete"
+        assert check_commands([command]) == CANT.format(typed)
 
 
 def test_timers_may_run_what_only_lists() -> None:
@@ -407,6 +426,13 @@ def test_timers_may_run_what_only_lists() -> None:
 async def test_a_timer_doesn_t_run_what_it_mayn_t(keeper: Timekeeper) -> None:
     # Even from a file changed by hand: check_commands keeps them out
     assert await keeper.answers_to("/msg 1 Hi") == []
+
+
+async def test_a_command_runs_where_its_sender_sent_it(keeper: Timekeeper) -> None:
+    # As one of a special for everyone, which Alice sent in a group
+    sent_there = message_from(ALICE, "/morning", in_group=True)
+    [answer] = await keeper.answers_to("/ping", sent_there)
+    assert answer.text == f"/ping from {ALICE}, private False"
 
 
 # Running timers
@@ -572,13 +598,69 @@ def test_changes_to_the_file_are_taken_in(keeper: Timekeeper) -> None:
     keeper.reread()
     assert set(keeper.timers) == {1, 7}
     assert bot.job_ids() == ["timer-1-0", "timer-7-0", "timers-reread"]
-    # The line it can't read stays as it is, after the timers
+    # The line it can't read stays as it is, where it is
     keeper.remove(1)
     lines = [line for line in path.read_text().splitlines() if not line.startswith("#")]
     assert lines == [
         f"7 | every 2h | {ALICE} | /weather | 2026-10-12 08:00:00+02:00",
         "8 | soon | nobody | /ping | never",
     ]
+
+
+async def test_comments_and_lines_stay_where_they_are(
+    keeper: Timekeeper, sent: Sent
+) -> None:
+    path = get_settings().timers_file
+    timer = f"1 | daily 08:00 | {ALICE} | /ping | 2026-10-12 08:00:00+02:00"
+    other = f"2 | daily 09:00 | {ALICE} | /ping | 2026-10-12 09:00:00+02:00"
+    path.write_text(f"# The daily post: keep it!\n{timer}\n# Bob's\n{other}\n")
+    keeper.reread()
+    # A run writes the time it ran in its own line
+    await keeper.run(1)
+    lines = path.read_text().splitlines()
+    assert lines[0] == "# The daily post: keep it!"
+    assert lines[1].startswith(f"1 | daily 08:00 | {ALICE} | /ping | ")
+    assert lines[1] != timer
+    assert lines[2:] == ["# Bob's", other]
+    # So does a second timer of the same number, which is left alone
+    path.write_text(f"{timer}\n{timer}\n")
+    keeper.reread()
+    assert list(keeper.timers) == [1]
+    assert keeper.broken == [timer]
+
+
+def test_timers_on_dates_long_past_go_at_a_start() -> None:
+    path = get_settings().timers_file
+    last = "2019-12-01 08:00:00+01:00"
+    path.write_text(
+        "# Ours\n"
+        f"1 | 2020-01-01 08:00 | {ALICE} | /ping | {last}\n"
+        f"2 | weekdays 08:00 | {ALICE} | /ping | {last}\n"
+        f"3 | 2020-01-02 08:00 | {ALICE} | /ping | {last}\n"
+    )
+    keeper = Timekeeper()
+    keeper.start(cast(SignalBot, FakeBot()), [])
+    # Both of them, each too late to make up for
+    assert list(keeper.timers) == [2]
+    lines = path.read_text().splitlines()
+    assert lines == ["# Ours", f"2 | weekdays 08:00 | {ALICE} | /ping | {last}"]
+
+
+def test_a_timer_comes_back_as_its_special_does(keeper: Timekeeper) -> None:
+    # As when specials.txt was set wrong by hand while the bot was down
+    get_settings().specials_file.write_text("/dailypost /today\n")
+    path = get_settings().timers_file
+    timer = f"1 | daily 08:00 | {GROUP} | /dailypost | 2026-10-12 08:00:00+02:00"
+    path.write_text(f"{timer}\n")
+    keeper.reread()
+    assert keeper.timers == {}
+    assert keeper.broken == [timer]
+    # Set right, by hand or with /special add: the timers file is as it was
+    get_settings().specials_file.write_text("/dailypost | /today\n")
+    keeper.reread()
+    assert list(keeper.timers) == [1]
+    assert keeper.broken == []
+    assert cast(FakeBot, keeper.bot).job_ids() == ["timer-1-0", "timers-reread"]
 
 
 def test_a_new_timer_takes_a_number_no_line_has(keeper: Timekeeper) -> None:

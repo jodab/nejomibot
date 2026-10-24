@@ -35,15 +35,17 @@ from nejomibot.messages import (
 
 
 class FakePost:
-    """Answers with the given outcomes in turn, then SENT; records what it
-    sent, and to whom. Sent ones get the time as their timestamp, as from
-    signal-cli."""
+    """Answers with the given outcomes in turn, then SENT; records whom it
+    was asked to send to, and what it sent, and to whom. Sent ones get the
+    time as their timestamp, as from signal-cli."""
 
     def __init__(self, *outcomes: Outcome) -> None:
         self.outcomes = list(outcomes)
+        self.tried: list[str] = []
         self.sent: list[tuple[str, str]] = []
 
     async def __call__(self, recipient: str, message: SendMessage) -> Posted:
+        self.tried.append(recipient)
         outcome = self.outcomes.pop(0) if self.outcomes else Outcome.SENT
         if outcome is not Outcome.SENT:
             return Posted(outcome)
@@ -342,24 +344,74 @@ async def test_started_outbox_sends_through_the_bot(
     assert outbox.sent.pop({ALICE}) == Sent(signal_api.timestamp, ALICE)
 
 
-async def test_a_rate_limit_waits_long_until_a_message_goes_out(
+async def test_while_rate_limited_one_is_tried_at_a_time(
     monkeypatch: pytest.MonkeyPatch, new_outbox: NewOutbox
 ) -> None:
-    # Trying while Signal rate-limits the bot can keep the limit in place
-    monkeypatch.setattr(messages, "FIRST_RETRY", timedelta(milliseconds=10))
-    monkeypatch.setattr(messages, "RATE_LIMITED_RETRY", timedelta(hours=1))
+    # Trying while Signal rate-limits the bot only meets the limit, and can
+    # keep it in place: new messages wait, and the oldest is tried alone, less
+    # and less often
+    monkeypatch.setattr(messages, "RATE_LIMITED_FIRST", timedelta(milliseconds=20))
+    clock = Clock()
+    post = FakePost(Outcome.RATE_LIMITED, Outcome.RATE_LIMITED)
+    outbox = new_outbox(post, clock)
+    assert await outbox.send(GROUP, text("one")) is Outcome.RATE_LIMITED
+    clock.now += timedelta(seconds=1)
+    assert await outbox.send(ALICE, text("two")) is Outcome.RATE_LIMITED
+    assert await outbox.send(GROUP, text("three")) is Outcome.RATE_LIMITED
+    assert post.tried == [GROUP]  # the new ones wait, untried
+    retrying = outbox._retrying  # pyright: ignore[reportPrivateUsage]
+    assert retrying is not None
+    # The first try meets the limit, the second goes out: the rest follow,
+    # each chat's in order
+    await asyncio.wait_for(retrying, 1)
+    assert post.tried == [GROUP, GROUP, GROUP, GROUP, ALICE]
+    assert [t.split("\n")[0] for t in post.texts()] == ["one", "three", "two"]
+    assert len(outbox) == 0
+    assert not outbox.rate_limited
+
+
+def test_tries_while_rate_limited_come_less_and_less_often(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_RATE_LIMIT_RETRY_MINUTES", "20")
+    get_settings.cache_clear()
+    delays = itertools.islice(messages.rate_limited_delays(), 6)
+    assert [d.total_seconds() / 60 for d in delays] == [2, 4, 8, 16, 20, 20]
+
+
+async def test_a_round_of_retries_stops_at_a_rate_limit(new_outbox: NewOutbox) -> None:
+    # The other chats' would meet the limit too
+    post = FakePost(Outcome.NOT_SENT, Outcome.NOT_SENT, Outcome.RATE_LIMITED)
+    outbox = new_outbox(post, Clock())
+    await outbox.send(GROUP, text("one"))
+    await outbox.send(ALICE, text("two"))
+    await outbox.flush()
+    assert post.tried == [GROUP, ALICE, GROUP]
+    assert outbox.rate_limited
+    assert len(outbox) == 2
+
+
+async def test_an_admins_command_has_it_try_again_at_once(
+    monkeypatch: pytest.MonkeyPatch, new_outbox: NewOutbox
+) -> None:
+    # An admin who has just lifted the limit needn't wait for the next try,
+    # but tries come a minute apart at the soonest
     post = FakePost(Outcome.RATE_LIMITED)
     outbox = new_outbox(post, Clock())
-    assert await outbox.send(GROUP, text("one")) is Outcome.RATE_LIMITED
+    await outbox.send(GROUP, text("one"))
+    outbox.nudge()
     await asyncio.sleep(0.05)
-    assert len(outbox) == 1  # no round for the hour, not after FIRST_RETRY
-    # A message that goes out means the limit is lifted: the rest go too
-    assert await outbox.send(ALICE, text("two")) is Outcome.SENT
+    assert post.tried == [GROUP]
+    monkeypatch.setattr(messages, "NUDGE_AFTER", timedelta())
+    outbox.nudge()
     retrying = outbox._retrying  # pyright: ignore[reportPrivateUsage]
     assert retrying is not None
     await asyncio.wait_for(retrying, 1)
-    assert len(outbox) == 0
-    assert [t.split("\n")[0] for t in post.texts()] == ["two", "one"]
+    assert post.tried == [GROUP, GROUP]
+    assert not outbox.rate_limited
+    # Without a limit, a nudge does nothing
+    outbox.nudge()
+    assert outbox._retrying is None  # pyright: ignore[reportPrivateUsage]
 
 
 def kept_files() -> list[Path]:
@@ -489,16 +541,37 @@ async def test_tried_once(new_outbox: NewOutbox) -> None:
 
 
 async def test_says_when_signal_starts_rate_limiting(new_outbox: NewOutbox) -> None:
-    outbox = new_outbox(FakePost(Outcome.RATE_LIMITED, Outcome.RATE_LIMITED))
+    post = FakePost(Outcome.RATE_LIMITED, Outcome.RATE_LIMITED)
+    outbox = new_outbox(post)
     started: list[bool] = []
     outbox.on_rate_limited = lambda: started.append(True)
     await outbox.send(ALICE, text("one"))
-    await outbox.send(GROUP, text("two"))
+    await outbox.try_once(GROUP, text("two"))
     # Once, as it starts
     assert started == [True]
     assert outbox.rate_limited
-    await outbox.flush()
+    # Gone out, it's lifted
+    await outbox.probe()
     assert not outbox.rate_limited
+    assert post.tried == [ALICE, GROUP, ALICE]
+
+
+def test_the_delay_note_shows_as_it_is_in_a_styled_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def translated(message: str) -> str:
+        """As a translation with a mark in it would have it."""
+        return "⏳ *Late*: due at {time}"
+
+    monkeypatch.setattr(messages, "_", translated)
+    queued_at = Clock().now
+    styled = SendMessage(text="**Hej**", text_mode=TextMode.STYLED)
+    assert messages.delayed(styled, queued_at).text == (
+        "**Hej**\n\n⏳ \\*Late\\*: due at 08:00"
+    )
+    assert messages.delayed(text("Hej"), queued_at).text == (
+        "Hej\n\n⏳ *Late*: due at 08:00"
+    )
 
 
 async def test_the_delay_note_is_in_the_chats_language(new_outbox: NewOutbox) -> None:

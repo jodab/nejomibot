@@ -55,6 +55,8 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Birthdays": EVERYONE_ALLOWED,
         "Language": EVERYONE_ALLOWED,
         "Help": EVERYONE_ALLOWED,
+        # The admins' specials that they let everyone allowed use
+        "SpecialsForEveryone": EVERYONE_ALLOWED,
         # The admins, in direct chats only
         "Status": admins,
         # As it shows every group's birthdays

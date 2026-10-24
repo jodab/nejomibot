@@ -19,12 +19,16 @@ every group gets the same photo; one with a text for some chats, as
 /today's with birthdays, gets it there.
 
 Timers are kept in data_dir/timers.txt, one per line, which
-nejomibot-timers edits too: the bot rereads the file when it changes. In debug
-mode it's a temp file, empty at each start. A run due while the bot was down
-is made when it starts again, up to an hour late.
+nejomibot-timers edits too: the bot rereads the file when it changes, and
+leaves comments and lines it can't read as they are, where they are. A line
+that names a command the bot doesn't know, as a special that can't be read,
+is read again once the bot knows it. In debug mode it's a temp file, empty at
+each start. A run due while the bot was down is made when it starts again,
+up to an hour late.
 """
 
 import contextlib
+import dataclasses
 import logging
 import re
 from collections.abc import Callable, Iterable
@@ -52,7 +56,7 @@ from .commands import (
     undo_with,
 )
 from .config import SIGNAL_ID, get_settings, slashed
-from .files import write_privately
+from .files import KeptLines
 from .i18n import (
     _,
     by_language,
@@ -81,6 +85,7 @@ HEADER = (
     "# Changed with /timer in Signal, or nejomibot-timers; the bot rereads it",
     "# within a minute of a change. The last run is when it last ran, or was",
     "# added. Chats are group IDs and phone numbers, separated by spaces.",
+    "# Comments and lines the bot can't read are left as they are.",
 )
 
 # The words of <when>, as the timers file keeps them. The language may have
@@ -334,74 +339,78 @@ def missed_run(timer: Timer, schedule: Schedule, now: datetime) -> datetime | No
     return max(due, default=None)
 
 
+def read_line(line: str) -> Timer:
+    """A line of the file, now. Raises ValueError."""
+    return parse_line(line, datetime.now(get_settings().tz))
+
+
 class Timekeeper:
     """The timers: kept in the file, scheduled with the bot's scheduler, and
     run through its handlers."""
 
     def __init__(self) -> None:
-        self.timers: dict[int, Timer] = {}
+        self.kept = KeptLines("timers.txt", HEADER, read_line, line_of)
+        self.timers: dict[int, Timer] = {}  # by number, from the file's lines
         self.broken: list[str] = []  # lines that can't be read, kept as they are
-        self.seen: tuple[int, int] | None = None  # the file's mtime and size
         self.bot: SignalBot | None = None
         self.handlers: list[DataMessageHandler] = []
 
     def read(self) -> None:
         """Read the file; if it can't be read, the timers stay as they were."""
-        path = get_settings().timers_file
-        now = datetime.now(get_settings().tz)
-        try:
-            stat = path.stat()  # first, so a change while reading shows next time
-            lines = path.read_text(encoding="utf-8").splitlines()
-        except FileNotFoundError:
-            self.timers, self.broken, self.seen = {}, [], None
-            return
-        except (OSError, UnicodeError) as e:
-            logger.error("Could not read %s, the timers stay as they were: %r", path, e)
-            with contextlib.suppress(OSError):  # so it's logged once a change
-                stat = path.stat()
-                self.seen = (stat.st_mtime_ns, stat.st_size)
-            return
+        self.kept.current()
+        self.take()
+
+    def take(self) -> None:
+        """The timers of the file's lines, each number once: a line with a
+        number another line has already can't be read either."""
         timers: dict[int, Timer] = {}
-        broken: list[str] = []
-        for number, line in enumerate(lines, start=1):
-            if not line.strip() or line.lstrip().startswith("#"):
-                continue
-            try:
-                timer = parse_line(line, now)
-                if timer.id in timers:
-                    raise ValueError(f"a second timer {timer.id}")
-            except ValueError as e:
-                logger.error("Line %d left alone, as it can't be read: %s", number, e)
-                broken.append(line)
-                continue
-            timers[timer.id] = timer
+        broken = list(self.kept.broken)
+        for index, timer in self.kept.found:
+            if timer.id in timers:
+                logger.error(
+                    "%s line %d left alone, as timer %d is there already",
+                    self.kept.name,
+                    index + 1,
+                    timer.id,
+                )
+                broken.append(self.kept.lines[index])
+            else:
+                timers[timer.id] = timer
         self.timers, self.broken = timers, broken
-        self.seen = (stat.st_mtime_ns, stat.st_size)
 
-    def write(self) -> None:
-        """Through a temp file, so a failed write loses nothing."""
-        path = get_settings().timers_file
-        timers = sorted(self.timers.values(), key=lambda timer: timer.id)
-        lines = [*HEADER, *map(line_of, timers), *self.broken]
-        write_privately(path, "\n".join(lines) + "\n")
-        stat = path.stat()
-        self.seen = (stat.st_mtime_ns, stat.st_size)
-
-    def changed(self) -> bool:
-        try:
-            stat = get_settings().timers_file.stat()
-        except FileNotFoundError:
-            return self.seen is not None
-        except OSError:
-            return False  # can't tell: the timers stay as they are
-        return (stat.st_mtime_ns, stat.st_size) != self.seen
+    def readable_now(self) -> bool:
+        """Whether a line that couldn't be read can now, as a timer's whose
+        special has been set right since: commands come and go."""
+        now = datetime.now(get_settings().tz)
+        for line in self.kept.broken:
+            with contextlib.suppress(ValueError):
+                parse_line(line, now)
+                return True
+        return False
 
     def reread(self) -> None:
-        """Take in changes made to the file elsewhere, e.g. by nejomibot-timers."""
-        if self.changed():
-            self.read()
-            self.schedule_all()
-            logger.info("The timers file changed: %d timers", len(self.timers))
+        """Take in changes made to the file elsewhere, e.g. by
+        nejomibot-timers, and lines that can be read now."""
+        seen = self.kept.seen
+        if self.kept.current().seen != seen:
+            why = "The timers file changed"
+        elif self.readable_now():
+            why = "A line of the timers file can be read now"
+            self.kept.take(self.kept.lines)
+        else:
+            return
+        self.take()
+        self.schedule_all()
+        logger.info("%s: %d timers", why, len(self.timers))
+
+    def keep(self, change: Callable[[], object]) -> None:
+        """Make the change to the file, if it can be made, and take it in.
+        The bot's own change, as after a run, which a failure only logs."""
+        try:
+            change()
+        except OSError as e:
+            logger.error("Could not save the timers: %r", e)
+        self.take()
 
     async def look_for_changes(self) -> None:
         """reread, on the event loop: the scheduler would run a plain function
@@ -417,10 +426,10 @@ class Timekeeper:
         if settings.timers_file.exists():
             self.read()
         else:
-            self.timers = {}
-            self.write_quietly()
+            self.keep(lambda: self.kept.save(list(HEADER)))
         now = datetime.now(settings.tz)
-        for timer in list(self.timers.values()):
+        gone: list[Timer] = []
+        for timer in self.timers.values():
             schedule = self.schedule_of(timer)
             if due := missed_run(timer, schedule, now):
                 logger.warning("Timer %d was due at %s, running it now", timer.id, due)
@@ -429,8 +438,9 @@ class Timekeeper:
                 logger.warning(
                     "Timer %d was due at %s: too long ago", timer.id, timer.when
                 )
-                del self.timers[timer.id]
-                self.write_quietly()
+                gone.append(timer)
+        if gone:  # in one change: each makes the timers anew
+            self.keep(lambda: self.kept.remove(gone))
         self.schedule_all()
         bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
             self.look_for_changes,
@@ -442,12 +452,6 @@ class Timekeeper:
             coalesce=True,
             replace_existing=True,
         )
-
-    def write_quietly(self) -> None:
-        try:
-            self.write()
-        except OSError as e:
-            logger.error("Could not save the timers: %r", e)
 
     def schedule_of(self, timer: Timer) -> Schedule:
         schedule = parse_when(timer.when, datetime.now(get_settings().tz))
@@ -532,15 +536,12 @@ class Timekeeper:
         return Timer(max(taken, default=0) + 1, when, chats, commands, just_now())
 
     def add(self, when: str, chats: list[str], commands: list[str]) -> Timer:
+        """Add the timer, last. Raises OSError, and then adds none."""
         timer = self.new(when, chats, commands)
-        self.timers[timer.id] = timer
-        try:
-            self.write()
-        except OSError:
-            del self.timers[timer.id]
-            raise
+        self.kept.add(timer)
+        self.take()
         self.schedule(timer)
-        return timer
+        return self.timers.get(timer.id, timer)
 
     def restore(self, timer: Timer) -> None:
         """Put a timer that was removed back, with its number, unless another
@@ -548,23 +549,18 @@ class Timekeeper:
         self.reread()
         if timer.id in self.timers:
             return
-        self.timers[timer.id] = timer
-        try:
-            self.write()
-        except OSError:
-            del self.timers[timer.id]
-            raise
+        self.kept.add(timer)
+        self.take()
         self.schedule(timer)
 
     def remove(self, timer_id: int) -> Timer | None:
+        """Take the timer out of the file. Raises OSError, and then leaves it
+        there."""
         self.reread()
-        if (timer := self.timers.pop(timer_id, None)) is None:
+        if (timer := self.timers.get(timer_id)) is None:
             return None
-        try:
-            self.write()
-        except OSError:
-            self.timers[timer_id] = timer
-            raise
+        self.kept.remove([timer])
+        self.take()
         for job in self.jobs(timer_id):
             job.remove()
         return timer
@@ -588,14 +584,16 @@ class Timekeeper:
         await self.post(timer.commands, chats)
         if on_schedule:
             self.reread()
-            if (timer := self.timers.get(timer_id)) is not None:
-                timer.last = just_now()
-                if self.schedule_of(timer).once:
-                    del self.timers[timer_id]
-                self.write_quietly()
+            if (ran := self.timers.get(timer_id)) is None:
+                return
+            if self.schedule_of(ran).once:  # it has run its once
+                self.keep(lambda: self.kept.remove([ran]))
+            else:
+                last = dataclasses.replace(ran, last=just_now())
+                self.keep(lambda: self.kept.replace(ran, last))
 
     async def post(
-        self, commands: list[str], chats: list[str], admin: DataMessage | None = None
+        self, commands: list[str], chats: list[str], sender: DataMessage | None = None
     ) -> dict[str, list[Outcome]]:
         """Run each command, as answers_to() does, and post its answers to
         every chat before the next runs: once for each language the chats
@@ -612,7 +610,7 @@ class Timekeeper:
                 for code, its_chats in languages.items():
                     draw.again()
                     with speaking(code):
-                        answers = await self.answers_to(command, admin)
+                        answers = await self.answers_to(command, sender)
                     for message in answers:
                         for chat in its_chats:
                             outcomes[chat].append(await send(self.bot, chat, message))
@@ -621,26 +619,30 @@ class Timekeeper:
         return outcomes
 
     async def answers_to(
-        self, command: str, admin: DataMessage | None = None
+        self, command: str, sender: DataMessage | None = None
     ) -> list[SendMessage]:
-        """Run the command as the admin who sent the message would in a direct
-        chat with the bot, with their numbers in lists, or else as the first
-        admin, and collect its answers; none for a command timers mayn't run,
-        which check_commands keeps out anyway, or one that's gone, as a
-        special taken out of its file by hand."""
+        """Run the command as whoever sent the message would, where they sent
+        it, with their numbers in lists: an admin who sent /run or a special,
+        or anyone allowed who sent a special for everyone, in a group too; or
+        else as the first admin would in a direct chat with the bot. Collect
+        its answers; none for a command timers mayn't run, which
+        check_commands keeps out anyway, or one that's gone, as a special
+        taken out of its file by hand."""
         assert self.bot is not None
         if (found := known(canonical(command))) is None or not found.timers:
             logger.error(
                 "Not run, as timers mayn't, or it's gone: %s", command.split()[0]
             )
             return []
-        if admin is not None:
-            number, uuid = admin.source_number, admin.source_uuid
+        group = None
+        if sender is not None:
+            number, uuid = sender.source_number, sender.source_uuid
+            group = sender.group_info
         else:
             settings = get_settings()
-            sender = (settings.admins or [settings.account])[0]
-            by_id = bool(re.match(SIGNAL_ID, sender))
-            number, uuid = (None, sender) if by_id else (sender, None)
+            first = (settings.admins or [settings.account])[0]
+            by_id = bool(re.match(SIGNAL_ID, first))
+            number, uuid = (None, first) if by_id else (first, None)
         ms = int(datetime.now(UTC).timestamp() * 1000)
         message = DataMessage(
             server_delivered_timestamp=ms,
@@ -648,6 +650,7 @@ class Timekeeper:
             timestamp=ms,
             source_number=number,
             source_uuid=uuid,
+            group_info=group,
             text=command,
         )
         answers: list[SendMessage] = []

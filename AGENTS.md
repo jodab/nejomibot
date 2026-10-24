@@ -1,6 +1,7 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents, such as Claude Code, when
+working with code in this repository. CLAUDE.md imports it.
 
 nejomibot is a self-hosted Signal bot for a family or a group of friends: a
 daily post (the day's holidays, birthdays and name days, the weather, and a
@@ -11,44 +12,48 @@ signal-cli-rest-api in json-rpc mode, and it ships as a container image.
 
 ## The owner's instructions
 
-From the owner of the project, in no particular order of priority:
+The owner's requirements for the project, in no particular order; where they
+conflict, rule 10 prevails:
 
-1. Never change any of the bot's user-facing functionality unless
-   specifically asked to. If a change becomes necessary, ask what to do.
-2. Keep the code easy to understand and maintain, and reliable, stable,
-   secure and privacy-respecting. Keep this in mind for any code or function
-   written or considered. Bonus points for less and smaller code, and for
-   reusing code and functions as much as possible, as long as that doesn't
-   come at the cost of the other instructions.
-3. Always follow the best known practices and standards in every decision
-   for this project. That includes bot behavior, container maintenance,
-   startup, restarts and shutdown, error reports, health checks, logging,
-   Python, linting, unit tests, Podman and systemd interactions: essentially
-   everything this project does.
-4. Keep memory and resource use low: light enough that the project can be
-   hosted on free or essentially free services online.
-5. Do our very best not to hit rate limits on Signal's servers.
-6. Make the bot as performant as possible, reducing latency wherever we can.
-   Performance and low resource use (4, 7) are both highly important; when
-   they pull against each other, performance is slightly favored.
-7. Keep the final image as small and light (RAM, CPU, disk) as possible:
-   only what is strictly necessary goes into it.
-8. Use minimal resources to build the images as well.
-9. Measure, test and verify every change, for accuracy and for future
-   improvements.
-10. Uptime and availability are everything. Whenever something is modified,
-    changed or pushed, or an image is built, it must always work and be 100%
-    stable and reliable. This rule trumps all others.
-11. Any workaround added to our code to get around bugs or issues in
-    signal-cli-rest-api should be documented as such, and checked again in
-    the future in case the bug or problem no longer exists, so that we can
-    remove the workaround.
-12. Always reuse code whenever possible, and refactor whenever it will
-    benefit us.
+1. **No unrequested changes to user-facing behavior.** Change what the bot
+   does in Signal only when explicitly asked to. If such a change becomes
+   necessary, ask the owner how to proceed.
+2. **Maintainable, reliable and secure code.** Write code that is easy to
+   understand and maintain, reliable, stable, secure and respectful of
+   privacy, and weigh every change against these qualities. Less code,
+   smaller functions and reuse of existing code are preferred, provided they
+   cost nothing against the other requirements.
+3. **Established practices.** Follow established best practices and
+   standards in every decision: the bot's behavior, container maintenance,
+   startup, restarts and shutdown, error reporting, health checks, logging,
+   Python, linting, unit tests, and the interaction with Podman and systemd;
+   in short, everything the project does.
+4. **Low resource use.** Keep memory and other resource use low enough that
+   the bot can run on free or nearly free hosting.
+5. **Signal's rate limits.** Make every effort to stay within the rate limits
+   of Signal's servers.
+6. **Performance.** Make the bot as fast as possible, and reduce latency
+   wherever practical. Performance and low resource use (rules 4 and 7) are
+   both important; where they conflict, performance takes slight precedence.
+7. **A minimal image.** Keep the final image as small and light as possible
+   in memory, CPU and disk: it contains only what is strictly necessary.
+8. **Lean builds.** Keep the resources needed to build the images to a
+   minimum as well.
+9. **Measurement and verification.** Measure, test and verify every change,
+   for correctness and as a baseline for later improvements.
+10. **Availability above all.** Uptime and availability come first: every
+    change, push and image build must leave the bot working, stable and
+    fully reliable. This rule overrides all others.
+11. **Documented workarounds.** Document every workaround for a bug or
+    limitation of signal-cli-rest-api as such, and check it again with later
+    releases, so that it can be removed once it is no longer needed.
+12. **Reuse and refactoring.** Reuse existing code wherever possible, and
+    refactor wherever doing so improves the code.
 
 User-facing means anything people see or can do in Signal: the commands and
 their names, the replies and their wording, who may use what, and what is
-posted where and when. When unsure whether a change is user-facing, ask.
+posted where and when. When it is unclear whether a change is user-facing,
+ask.
 
 ## Working agreements
 
@@ -194,10 +199,12 @@ nothing bound to a loop (the HTTP session, locks, tasks) may pass from
 `wait_for_account()`'s loop to signalbot's, which is why the wait closes the
 session it used.
 
-**Who may use what** (`bot.handlers`, `access.py`): everyday commands are
-registered for every chat with `access.permits` as their filter, checked for
-each message (admins and allowed contacts in direct chats; groups on the
-allowed list). Admin commands are registered for direct chats only, with
+**Who may use what** (`bot.handlers`, `access.py`): everyday commands, the
+handlers that say `everyday = True` (`Handler.everyday`, which
+`bot.handlers()` registers by), are registered for every chat with
+`access.permits` as their filter, checked for each message (admins and
+allowed contacts in direct chats; groups on the allowed list). Admin
+commands are registered for direct chats only, with
 `access.from_admin` as their filter, also checked for each message: the
 configuration's `admins`, plus those they add with `/admin add`
 (`admins.py`), which `access.admin_list` keeps in `data_dir/admins.txt` as
@@ -219,6 +226,16 @@ list who write anything that `commands.known()` doesn't recognize, once a
 day each, naming the bot and the first admin. The allowed list is
 `data_dir/allowed.txt`, and the added admins are in `data_dir/admins.txt`;
 each file is reread when it changes, at most every 2 seconds.
+
+The bot answers each person at most `command_limit` commands in
+`command_limit_minutes` (the owner's request, 2026-10-24, so nobody can run
+it into Signal's rate limits): `commands.admitted()`, called by
+`Handler.handle_data_message` once a handler takes the command, counts each
+command once (`CommandLimit`, a `limits.Window` per sender, which the
+weather's limit on calls uses too), tells the sender once when it answers
+them again (`limit_text`), and leaves the rest unanswered. The admins aren't
+limited, nor what runs under `collected`; an admin's command also nudges the
+outbox (see Sending).
 
 `/contacts` and `/trust` share one numbering (`contacts.sections`), and keep
 the order each admin was shown last (`contacts.shown`: phone numbers and
@@ -301,9 +318,16 @@ and each translation with as many as its message.
 **Sending** (`messages.py`): handlers answer through `reply()`, which goes
 through `send()` to the `Outbox`. Each chat's messages go out in order;
 sends that certainly failed are retried for `send_retry_hours`, with a note
-that they are late (every half hour while Signal rate-limits the bot); and a
-`SentLog` keeps the sent messages for `/delete`, with how each one begins,
-for `/delete list`. A message that has waited 30 seconds gets a file of its
+that they are late; and a `SentLog` keeps the sent messages for `/delete`,
+with how each one begins, for `/delete list`. While Signal rate-limits the
+bot (signal-cli-rest-api's 429, which comes with a captcha's challenge
+tokens), nothing is tried at once (the owner's request, 2026-10-24): new
+messages wait, `mark_read` and `show_typing` do nothing, and the retry loop
+tries only the message that has waited longest (`Outbox.probe`), after
+`RATE_LIMITED_FIRST`, doubling to `rate_limit_retry_minutes`; `nudge()`, for
+an admin's command, has it try at once, `NUDGE_AFTER` after the last 429 at
+the soonest. A round of retries stops at a 429 (`flush`), as the limit is
+the account's. A message that has waited 30 seconds gets a file of its
 own in `data_dir/outbox` (deleted once it is sent or dropped), every waiting
 message gets one at shutdown, and the files are loaded at startup. `send()`
 returns the `Outcome`, which `/msg` and `/run` report. While a timer, `/run`
@@ -319,32 +343,48 @@ bytes as Signal's apps do, with its beginning as the body and the whole text
 as a text attachment, and (0.14.0 and later) hands the bot the whole of a
 long message it receives, whether attachments are ignored or not.
 
-**Timers** (`timers.py`): stored in `data_dir/timers.txt`, which
+**Timers** (`timers.py`): stored in `data_dir/timers.txt`, a `KeptLines`
+(`Timekeeper.kept`, so comments and unreadable lines stay where they are,
+and a run writes its time in its own line, `KeptLines.replace`), which
 `nejomibot-timers` (`timers_cli.py`, reusing timers.py) also edits; reread
-every 30 seconds and before each change. A run passes each command through
+every 30 seconds and before each change, and also when a line that couldn't
+be read can be now (`readable_now`), as a timer whose special was unreadable
+at a start. A run passes each command through
 the real handlers as a made-up direct message from the first admin, or from
 the bot's own account if there are no admins (`Timekeeper.answers_to`; for
-`/run`, from the admin who sent it, so its numbers are that admin's), then
+`/run` and specials, from whoever sent it, where they sent it, so its
+numbers are theirs), then
 posts the collected answers to every chat of the timer. Commands that change
 timers, specials, birthdays, albums or who may use the bot, that post
 elsewhere (`/msg`, `/run`), or that answer for their own chat can't run from
-timers (`Command.timers`); commands that only list something can, wherever
+timers (`Command.timers`), nor `/delete` and `/contacts add` (the owner left
+it to Claude, 2026-10-24: the first deletes in the first admin's direct
+chat, and their numbers would name whatever has them by the next run);
+commands that only list something can, wherever
 the admins post them (the owner's decision, 2026-10-21). `/timers` and
 `/specials` on their own only list, while with more after them they change
-things, so each has a second `Command` of the same name with `timers=False`.
+things, so each has a second `Command` of the same name with `timers=False`,
+and `/delete list` and `/contacts add` are commands of their own.
 A list shown under `collected` doesn't change the numbers that an admin's
 `/incoming 4` or `/delete 3` uses (their `shown`); the same holds for
 `contacts.remember()`.
 
 **Specials** (`specials.py`): the admins' own commands that post several
 things in order, stored in `data_dir/specials.txt` (`/special
-add|remove|shortcuts`, `/specials`), a line each: the name and its
-shortcuts (`Specials.shortcuts()`, as an album's, at most five, checked by
-`commands.shortcut_clash()`), a `|`, then parts made of text and a command,
-each run through
-`Timekeeper.answers_to` as a timer's command is, as the admin who ran the
-special (as `/run` runs its commands), with the text heading the
-command's first answer. Parts are separated by `;` or line breaks, or joined
+add|remove|shortcuts|everyone|admins`, `/specials`), a line each: the name
+and its shortcuts (`Specials.shortcuts()`, as an album's, at most five,
+checked by `commands.shortcut_clash()`), `(everyone)` for one that everyone
+allowed may use (the owner's request, 2026-10-24), a `|`, then parts made of
+text and a command, each run through
+`Timekeeper.answers_to` as a timer's command is, as whoever ran the special,
+where they ran it (as `/run` runs its commands for an admin), with the text
+heading the command's first answer. `Specials` takes the admins' alone
+(`OwnSpecials.command(everyone=False)`), and `SpecialsForEveryone`, an
+everyday handler, those for everyone, which `/help` lists
+(`help.specials_section`, `summary()`); making one for everyone, or
+changing one that is, names its admin commands (`admin_commands()`: those
+of handlers that aren't `everyday`), as everyone who uses it gets their
+answers. Parts are separated by `;` or line breaks, or joined
 by a `+` standing on its own (`SEPARATOR`, `Part.joined`), which posts
 everything the joined parts answer in one message (`by_message()`, and
 `joined()`, which also heads an answer with its text). The `+` was chosen

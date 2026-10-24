@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 19:02+0300\n"
+"POT-Creation-Date: 2026-10-24 20:44+0300\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -689,6 +689,21 @@ msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Supprimé : {what}"
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"⏳ The bot answers each person at most {count} command in {period}. It "
+"answers you again in {wait}."
+msgid_plural ""
+"⏳ The bot answers each person at most {count} commands in {period}. It "
+"answers you again in {wait}."
+msgstr[0] ""
+"⏳ Le bot répond au plus à {count} commande de chaque personne en {period}. "
+"Il vous répond à nouveau dans {wait}."
+msgstr[1] ""
+"⏳ Le bot répond au plus à {count} commandes de chaque personne en {period}. "
+"Il vous répond à nouveau dans {wait}."
+
+#: nejomibot/commands.py
 msgid "A shortcut can't have a | or a ;."
 msgstr "Un raccourci ne peut contenir ni | ni ;."
 
@@ -1288,8 +1303,8 @@ msgid "who the bot knows"
 msgstr "qui le bot connaît"
 
 #: nejomibot/help.py
-msgid "add <who> <name>"
-msgstr "ajouter <qui> <nom>"
+msgid "<who> <name>"
+msgstr "<qui> <nom>"
 
 #: nejomibot/help.py
 msgid "add a contact, or rename"
@@ -1420,6 +1435,14 @@ msgid "remove one"
 msgstr "en supprimer une"
 
 #: nejomibot/help.py
+msgid "for everyone allowed, or the admins alone"
+msgstr "pour toutes les personnes autorisées, ou les administrateurs seuls"
+
+#: nejomibot/help.py
+msgid "everyone <name> · admins <name>"
+msgstr "pour tous <nom> · pour les administrateurs <nom>"
+
+#: nejomibot/help.py
 msgid "<chats> <text>"
 msgstr "<conversations> <texte>"
 
@@ -1468,8 +1491,8 @@ msgid "its latest messages anywhere; delete some"
 msgstr "ses derniers messages partout ; en supprimer"
 
 #: nejomibot/help.py
-msgid "list · <n>,…"
-msgstr "liste · <n>,…"
+msgid "· <n>,…"
+msgstr "· <n>,…"
 
 #: nejomibot/help.py
 msgid "whether its latest messages arrived"
@@ -1478,6 +1501,10 @@ msgstr "si ses derniers messages sont arrivés"
 #: nejomibot/help.py
 msgid "delete its latest message here"
 msgstr "supprimer son dernier message ici"
+
+#: nejomibot/help.py
+msgid "Specials"
+msgstr "Commandes spéciales"
 
 #: nejomibot/help.py
 msgid ""
@@ -2207,15 +2234,20 @@ msgid "Debug mode: communicating with {group} only"
 msgstr "Mode débogage : communique uniquement avec {group}"
 
 #: nejomibot/notices.py
+#, python-brace-format
 msgid ""
-"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
-"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
-"<your number> on the server and solve the captcha."
+"⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
+"again after {first}, then less and less often, every {longest} at most, and "
+"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"rate-limit --to <your number> on the server and solve the captcha, then send "
+"the bot any command: it tries again at once."
 msgstr ""
-"⚠️ Signal limite les envois du bot. Les messages sortants sont mis en attente "
-"et réessayés toutes les 30 minutes. Pour lever la limite, exécutez signal-"
-"account.sh rate-limit --to <votre numéro> sur le serveur et résolvez le "
-"captcha."
+"⚠️ Signal limite les envois du bot. Les messages sortants attendent : le bot "
+"réessaie d'en envoyer un après {first}, puis de moins en moins souvent, au "
+"plus toutes les {longest}, et envoie le reste dès qu'un passe. Pour lever la "
+"limite, exécutez signal-account.sh rate-limit --to <votre numéro> sur le "
+"serveur, résolvez le captcha, puis envoyez au bot n'importe quelle "
+"commande : il réessaie aussitôt."
 
 #: nejomibot/notices.py
 #, python-brace-format
@@ -2692,6 +2724,18 @@ msgid "A special has at most {count} parts."
 msgstr "Une commande spéciale a au plus {count} parties."
 
 #: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"⚠️ It runs admin commands: {commands}. Everyone allowed who uses it, in a "
+"group too, now sees what they show, and has them do what they do; /special "
+"admins {name} takes that back."
+msgstr ""
+"⚠️ Elle exécute des commandes d'administrateur : {commands}. Toute personne "
+"autorisée qui l'utilise, même dans un groupe, voit désormais ce qu'elles "
+"affichent et leur fait faire ce qu'elles font ; /special pour les "
+"administrateurs {name} annule cela."
+
+#: nejomibot/specials.py
 msgid "/specials: commands of your own, of text and other commands"
 msgstr ""
 "/specials : vos propres commandes, faites de texte et d'autres commandes"
@@ -2738,8 +2782,21 @@ msgstr ""
 "special raccourcis /matin /bj ; avec -, aucun"
 
 #: nejomibot/specials.py
+msgid ""
+"/special everyone <name>: everyone allowed may use it, in groups too, and /"
+"help lists it; /special admins <name>: the admins alone again"
+msgstr ""
+"/special pour tous <nom> : toutes les personnes autorisées peuvent "
+"l'utiliser, même dans les groupes, et /aide la liste ; /special pour les "
+"administrateurs <nom> : à nouveau les administrateurs seuls"
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
 msgstr "/special supprimer <nom> : en supprimer une"
+
+#: nejomibot/specials.py
+msgid "for everyone"
+msgstr "pour tous"
 
 #: nejomibot/specials.py
 msgid "No specials of your own yet."
@@ -2803,6 +2860,29 @@ msgstr "Une commande spéciale a au plus {count} raccourcis."
 #, python-brace-format
 msgid "✅ Shortcuts for {name}: {shortcuts}."
 msgstr "✅ Raccourcis pour {name} : {shortcuts}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Everyone allowed may use {name} already."
+msgstr "{name} est déjà pour toutes les personnes autorisées."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Only the admins may use {name} already."
+msgstr "{name} est déjà pour les administrateurs seuls."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Only the admins may use {name} now."
+msgstr "✅ Seuls les administrateurs peuvent désormais utiliser {name}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"✅ Everyone allowed may use {name} now, in groups too, and /help lists it."
+msgstr ""
+"✅ Toutes les personnes autorisées peuvent désormais utiliser {name}, même "
+"dans les groupes, et /aide la liste."
 
 #: nejomibot/status.py
 #, python-brace-format

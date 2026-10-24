@@ -3,7 +3,7 @@ from collections.abc import Callable
 from typing import Any, cast
 
 import pytest
-from helpers import ALICE, EDIT_FROM_BEFORE
+from helpers import ALICE, EDIT_FROM_BEFORE, Clock
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -264,6 +264,58 @@ async def test_the_message_received_is_left_as_it_is() -> None:
     context = context_of("/pic")
     await Seen().handle_data_message(context)
     assert context.message.text == "/pic"
+
+
+@pytest.fixture
+def limited(monkeypatch: pytest.MonkeyPatch) -> Clock:
+    """Three commands a person in ten minutes, on a clock of the test's own."""
+    monkeypatch.setenv("NEJOMIBOT_COMMAND_LIMIT", "3")
+    get_settings.cache_clear()
+    clock = Clock()
+    monkeypatch.setattr(commands.command_limit, "clock", clock)
+    return clock
+
+
+async def test_each_person_has_so_many_commands_answered(
+    limited: Clock, replies: Replies, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.INFO, "nejomibot")
+    handler = Seen()
+    for _ in range(5):
+        await handler.handle_data_message(context_of("/photo"))
+        limited.now += 60
+    # The fourth is told when the bot answers again, once; the fifth isn't
+    assert len(handler.seen) == 3
+    assert [message.text for message in replies.sent] == [
+        "⏳ The bot answers each person at most 3 commands in 10 min. It "
+        "answers you again in 7 min."
+    ]
+    assert "Ignored /photo in a direct chat: past the command limit" in caplog.text
+    assert ALICE not in caplog.text
+    # Ten minutes after the first, one more, and told again past that
+    limited.now += 5 * 60
+    await handler.handle_data_message(context_of("/photo"))
+    await handler.handle_data_message(context_of("/photo"))
+    assert len(handler.seen) == 4
+    assert len(replies.sent) == 2
+
+
+async def test_the_admins_and_timers_arent_limited(
+    limited: Clock, replies: Replies, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    handler = Seen()
+    token = collected.set([])
+    try:
+        for _ in range(4):
+            await handler.handle_data_message(context_of("/photo"))
+    finally:
+        collected.reset(token)
+    monkeypatch.setenv("NEJOMIBOT_ADMINS", f'["{ALICE}"]')
+    get_settings.cache_clear()
+    for _ in range(4):
+        await handler.handle_data_message(context_of("/photo"))
+    assert len(handler.seen) == 8
+    assert replies.sent == []
 
 
 def test_known_commands() -> None:

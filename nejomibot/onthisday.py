@@ -69,11 +69,13 @@ def heading(days: int, years: int) -> str:
     return text.format(count=years)
 
 
-def photo_on(today: date, album: str | None = None) -> SendMessage | None:
+def photo_on(
+    today: date, album: str | None = None, library: list[Path] | None = None
+) -> SendMessage | None:
     """A photo taken on this day in an earlier year, or else the nearest
-    days around it, of the album's if one is named, captioned; None if
-    there's none. Blocking."""
-    library = scan_photos()
+    days around it, of the album's if one is named, from the library given
+    or listed now, captioned; None if there's none. Blocking."""
+    library = scan_photos() if library is None else library
     found = moments(library)
     if album is not None:
         found = {p: found[p] for p in by_album(library).get(album, []) if p in found}
@@ -94,11 +96,12 @@ def photo_on(today: date, album: str | None = None) -> SendMessage | None:
 
 def on_this_day_for(text: str) -> SendMessage | str:
     """What /onthisday answers what follows it with. Blocking."""
+    library = scan_photos()
     album = None
-    if text and (album := album_alone(text)) is None:
+    if text and (album := album_alone(text, library)) is None:
         return no_album(text)
     today = datetime.now(get_settings().tz).date()
-    return photo_on(today, album) or _(
+    return photo_on(today, album, library) or _(
         "No photos from this day, or the days around it, in earlier years."
     )
 
@@ -113,6 +116,7 @@ async def on_this_day(text: str = "") -> SendMessage | str:
 
 
 class OnThisDay(Handler):
+    everyday = True
     commands = (Command("/onthisday", more=True),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

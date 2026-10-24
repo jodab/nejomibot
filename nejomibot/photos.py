@@ -166,9 +166,10 @@ def album_named(text: str, names: Iterable[str | None]) -> tuple[str, str] | Non
     return None
 
 
-def album_alone(text: str) -> str | None:
-    """The album the whole text names, in any case, if one does."""
-    found = album_named(text, by_album(scan_photos()))
+def album_alone(text: str, library: list[Path]) -> str | None:
+    """The album of the library that the whole text names, in any case, if
+    one does."""
+    found = album_named(text, by_album(library))
     return found[0] if found and not found[1] else None
 
 
@@ -288,10 +289,12 @@ def album_rounds() -> list[str]:
     return lines
 
 
-def unsent_photos(photos: list[Path], album: str | None = None) -> list[Path]:
+def unsent_photos(
+    photos: list[Path], album: str | None = None, library: list[Path] | None = None
+) -> list[Path]:
     """The photos not sent yet in this round: the library's, or with an
-    album, the album's; all of them once every one has been, as its new
-    round starts.
+    album, the album's, of the library given or listed now; all of them once
+    every one has been, as its new round starts.
 
     Each round is listed in a file, by the photos' paths in the library, a
     line each, so the rounds survive restarts: the library's in
@@ -316,7 +319,8 @@ def unsent_photos(photos: list[Path], album: str | None = None) -> list[Path]:
             get_settings().sent_photos_file.unlink(missing_ok=True)
         else:
             # Its photos off the list, and those no longer in the library
-            present = {library_name(path) for path in scan_photos()}
+            listed = scan_photos() if library is None else library
+            present = {library_name(path) for path in listed}
             keep_album_rounds(
                 [
                     line
@@ -570,22 +574,27 @@ def photo_caption(path: Path, exif: Image.Exif, heading: str = "") -> str:
 
 
 def random_photo_message(
-    heading: str = "", *, track_sent: bool = False, album: str | None = None
+    heading: str = "",
+    *,
+    track_sent: bool = False,
+    album: str | None = None,
+    library: list[Path] | None = None,
 ) -> SendMessage | None:
-    """Pick a random valid photo, of the album's if one is named, and build
-    its message. Blocking.
+    """Pick a random valid photo, of the album's if one is named, from the
+    library given or listed now, and build its message. Blocking.
 
     With track_sent (/uniquephoto), only photos not sent yet in this round
     are picked, and the pick is added to the sent ones.
     """
-    photos = scan_photos()
+    library = scan_photos() if library is None else library
+    photos = library
     if album is not None:
-        photos = [path for path in photos if album_of(path) == album]
+        photos = [path for path in library if album_of(path) == album]
     if not photos:
         logger.warning("No photos found in %s", get_settings().photos_dir)
         return None
     with picking if track_sent else contextlib.nullcontext():
-        candidates = unsent_photos(photos, album) if track_sent else photos
+        candidates = unsent_photos(photos, album, library) if track_sent else photos
         message = pick(candidates, heading, track_sent=track_sent)
     if message is None:
         tries = min(MAX_ATTEMPTS, len(candidates))
@@ -598,7 +607,8 @@ def pick(
 ) -> SendMessage | None:
     tries = chance().sample(candidates, min(MAX_ATTEMPTS, len(candidates)))
     for attempt, path in enumerate(tries, start=1):
-        logger.info("Attempt %d: %s", attempt, path)
+        # The path at DEBUG: an album is often named after someone
+        logger.debug("Attempt %d: %s", attempt, path)
         if track_sent:
             # Marked before sending, and also when broken, so every round ends
             mark_sent(path)
@@ -745,7 +755,7 @@ def photo_for(text: str) -> SendMessage | str:
     if found := album_named(text, groups):
         album, rest = found
     if not rest:
-        return random_photo_message(album=album) or no_photo()
+        return random_photo_message(album=album, library=library) or no_photo()
     if (wanted := when_wanted(rest)) is None:
         if album is None and not re.match(r"^\d", rest):
             if rest.casefold() == "new":
@@ -764,10 +774,12 @@ def photo_for(text: str) -> SendMessage | str:
 
 def unique_photo_for(text: str) -> SendMessage | str:
     """What /uniquephoto answers what follows it with. Blocking."""
+    library = scan_photos()
     album = None
-    if text and (album := album_alone(text)) is None:
+    if text and (album := album_alone(text, library)) is None:
         return no_album(text)
-    return random_photo_message(track_sent=True, album=album) or no_photo()
+    message = random_photo_message(track_sent=True, album=album, library=library)
+    return message or no_photo()
 
 
 def no_photo() -> str:
@@ -793,12 +805,13 @@ async def photo_message(
 # The library's size
 
 
-def photo_stats(album: str | None = None) -> str:
-    """How many photos the library has, or the album, and how big they are,
-    by type; and how many albums the library has. Blocking."""
+def photo_stats(album: str | None = None, library: list[Path] | None = None) -> str:
+    """How many photos the library has, as given or listed now, or the
+    album, and how big they are, by type; and how many albums the library
+    has. Blocking."""
     counts: Counter[str] = Counter()
     sizes: Counter[str] = Counter()
-    library = scan_photos()
+    library = scan_photos() if library is None else library
     photos = library if album is None else by_album(library).get(album, [])
     for path in photos:
         try:
@@ -846,10 +859,11 @@ def photo_stats(album: str | None = None) -> str:
 def cache_for(text: str) -> str:
     """What /cache answers what follows it with: the library's photos, or
     the album's. Blocking."""
+    library = scan_photos()
     album = None
-    if text and (album := album_alone(text)) is None:
+    if text and (album := album_alone(text, library)) is None:
         return no_album(text)
-    return photo_stats(album)
+    return photo_stats(album, library)
 
 
 async def cache_message(text: str = "") -> str:
@@ -863,6 +877,7 @@ async def cache_message(text: str = "") -> str:
 
 
 class Photo(Handler):
+    everyday = True
     commands = (
         Command("/photo", more=True),
         Command("/sphoto", more=True),

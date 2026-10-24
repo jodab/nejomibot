@@ -75,6 +75,18 @@ def test_a_line_per_command() -> None:
     assert lines[14] == "🔔 `/remind <when> <text>` – a reminder, here"
 
 
+def test_the_specials_for_everyone_are_listed() -> None:
+    get_settings().specials_file.write_text(
+        "/morning /gm (everyone) | **Good morning!** /today + /weather; /uniquephoto\n"
+        "/bins | Bins!\n"
+    )
+    line = "✨ `/morning` – Good morning! /today + /weather; /uniquephoto (/gm)"
+    for admin in (False, True):
+        text = help_message(admin=admin)
+        assert f"**Specials**\n{line}\n" in text
+        assert "/bins" not in text
+
+
 def test_aliases_are_listed(monkeypatch: pytest.MonkeyPatch) -> None:
     # A plain word with a /, and each once
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic", "snap", "PIC"]}')
@@ -125,3 +137,13 @@ def test_in_swedish() -> None:
     assert "⏰ `/timers` – det boten kör på schema" in text
     assert "enligt tiden i Stockholm" in text
     assert text.endswith("Alla kommandon fungerar också med sina engelska namn.")
+
+
+def test_the_docker_hub_page_fits_and_links_in_full() -> None:
+    # Docker Hub takes 25,000 bytes at most, and can't follow the repository's
+    # relative links
+    page = (Path(__file__).parent.parent / "DOCKERHUB.md").read_text()
+    assert len(page.encode()) < 25_000
+    links = re.findall(r"\]\(([^)\s]+)\)", page)
+    assert links
+    assert [link for link in links if not link.startswith("https://")] == []

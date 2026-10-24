@@ -81,7 +81,8 @@ async def check_weather() -> str:
 
 
 async def check_rates(base: str, quote: str) -> str:
-    return f"1 {base} = {await fetch_rate(base, quote):.2f} {quote}"
+    """The rate as the API gives it now, as a check of whether it answers."""
+    return f"1 {base} = {await fetch_rate(base, quote, fresh=True):.2f} {quote}"
 
 
 async def check_photos() -> str:

@@ -238,7 +238,7 @@ def test_photo_stats(photos_dir: Path) -> None:
 
 
 async def test_cache_message_reports_errors(monkeypatch: pytest.MonkeyPatch) -> None:
-    def photo_stats(album: str | None = None) -> str:
+    def photo_stats(album: str | None = None, library: list[Path] | None = None) -> str:
         raise FileNotFoundError("a.jpg")
 
     monkeypatch.setattr(photos, "photo_stats", photo_stats)

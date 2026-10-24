@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 19:02+0300\n"
+"POT-Creation-Date: 2026-10-24 20:44+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -638,6 +638,17 @@ msgid "🗑️ Removed: {what}"
 msgstr ""
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"⏳ The bot answers each person at most {count} command in {period}. It "
+"answers you again in {wait}."
+msgid_plural ""
+"⏳ The bot answers each person at most {count} commands in {period}. It "
+"answers you again in {wait}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: nejomibot/commands.py
 msgid "A shortcut can't have a | or a ;."
 msgstr ""
 
@@ -1191,7 +1202,7 @@ msgid "who the bot knows"
 msgstr ""
 
 #: nejomibot/help.py
-msgid "add <who> <name>"
+msgid "<who> <name>"
 msgstr ""
 
 #: nejomibot/help.py
@@ -1323,6 +1334,14 @@ msgid "remove one"
 msgstr ""
 
 #: nejomibot/help.py
+msgid "for everyone allowed, or the admins alone"
+msgstr ""
+
+#: nejomibot/help.py
+msgid "everyone <name> · admins <name>"
+msgstr ""
+
+#: nejomibot/help.py
 msgid "<chats> <text>"
 msgstr ""
 
@@ -1371,7 +1390,7 @@ msgid "its latest messages anywhere; delete some"
 msgstr ""
 
 #: nejomibot/help.py
-msgid "list · <n>,…"
+msgid "· <n>,…"
 msgstr ""
 
 #: nejomibot/help.py
@@ -1380,6 +1399,10 @@ msgstr ""
 
 #: nejomibot/help.py
 msgid "delete its latest message here"
+msgstr ""
+
+#: nejomibot/help.py
+msgid "Specials"
 msgstr ""
 
 #: nejomibot/help.py
@@ -2070,10 +2093,13 @@ msgid "Debug mode: communicating with {group} only"
 msgstr ""
 
 #: nejomibot/notices.py
+#, python-brace-format
 msgid ""
-"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
-"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
-"<your number> on the server and solve the captcha."
+"⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
+"again after {first}, then less and less often, every {longest} at most, and "
+"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"rate-limit --to <your number> on the server and solve the captcha, then send "
+"the bot any command: it tries again at once."
 msgstr ""
 
 #: nejomibot/notices.py
@@ -2509,6 +2535,14 @@ msgid "A special has at most {count} parts."
 msgstr ""
 
 #: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"⚠️ It runs admin commands: {commands}. Everyone allowed who uses it, in a "
+"group too, now sees what they show, and has them do what they do; /special "
+"admins {name} takes that back."
+msgstr ""
+
+#: nejomibot/specials.py
 msgid "/specials: commands of your own, of text and other commands"
 msgstr ""
 
@@ -2543,7 +2577,17 @@ msgid ""
 msgstr ""
 
 #: nejomibot/specials.py
+msgid ""
+"/special everyone <name>: everyone allowed may use it, in groups too, and /"
+"help lists it; /special admins <name>: the admins alone again"
+msgstr ""
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
+msgstr ""
+
+#: nejomibot/specials.py
+msgid "for everyone"
 msgstr ""
 
 #: nejomibot/specials.py
@@ -2602,6 +2646,27 @@ msgstr ""
 #: nejomibot/specials.py
 #, python-brace-format
 msgid "✅ Shortcuts for {name}: {shortcuts}."
+msgstr ""
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Everyone allowed may use {name} already."
+msgstr ""
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Only the admins may use {name} already."
+msgstr ""
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Only the admins may use {name} now."
+msgstr ""
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"✅ Everyone allowed may use {name} now, in groups too, and /help lists it."
 msgstr ""
 
 #: nejomibot/status.py

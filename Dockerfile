@@ -9,7 +9,9 @@ FROM docker.io/library/python:3.14-slim@sha256:0514bc76712d64f8bb48adcb95b1ab0d8
 # tzdata lets TZ give local log timestamps; curl, jq and qrencode are for
 # signal-account.sh. On 32-bit ARM, where Pillow and pillow-heif have no
 # wheels, the libraries they're built against (the wheels bring their own).
-# The bot's user and group are 1001 both. Every interactive shell, as in
+# The bot's user and group are 1000 both, unless the container is given
+# others (--user; User= and Group= in a Quadlet; user: in Compose), which
+# need no entry of their own here. Every interactive shell, as in
 # podman exec -it nejomibot sh, or bash, starts with a short guide
 # (tools/nejomibot-help.sh), through /etc/profile.d/nejomibot.sh, which the
 # image gets below: bash reads it from /etc/bash.bashrc, and sh as $ENV.
@@ -21,8 +23,8 @@ RUN apt-get update \
             libwebpmux3 libwebpdemux2 libavif16 libheif1 libheif-plugin-libde265; \
     fi \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd --system --gid 1001 nejomibot \
-    && useradd --system --uid 1001 --gid 1001 --no-create-home nejomibot \
+    && groupadd --gid 1000 nejomibot \
+    && useradd --uid 1000 --gid 1000 --no-create-home nejomibot \
     && echo '. /etc/profile.d/nejomibot.sh' >> /etc/bash.bashrc
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -81,6 +83,9 @@ FROM uv-base AS test
 RUN uv sync --locked --no-install-project
 COPY nejomibot/ nejomibot/
 COPY tests/ tests/
+# What the tests check besides the code: the sample config and the image's
+# page on Docker Hub
+COPY config.example.toml DOCKERHUB.md ./
 RUN uv sync --locked \
     && ruff check \
     && ruff format --check \
@@ -110,7 +115,7 @@ RUN env -u PYTHONDONTWRITEBYTECODE python -c 'import concurrent.futures.thread, 
 # The photos go in /photos, which the bot only reads, and config.toml in
 # /data, where the bot keeps what it's told. By number, so a runtime can see
 # it isn't root.
-USER 1001:1001
+USER 1000:1000
 CMD ["nejomibot"]
 
 # Whether the bot works, so whether restarting it could help (see README).

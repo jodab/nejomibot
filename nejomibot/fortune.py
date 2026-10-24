@@ -128,6 +128,7 @@ def fortune_answer(library: str) -> str:
 
 
 class Fortune(Handler):
+    everyday = True
     commands = (Command("/fortune", more=True, subcommands=(LIST, ALL)),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

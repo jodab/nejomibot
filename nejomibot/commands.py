@@ -16,6 +16,12 @@ more may follow its name and whether timers and /run may run it. answer()
 does what every command does: logs it, marks it read, shows the bot typing
 for a slow one, and replies with what it says, or with what went wrong.
 
+The bot answers each person at most command_limit commands in
+command_limit_minutes, so nobody can run it into Signal's rate limits: past
+that it says once when it answers them again, and leaves the rest
+unanswered. The admins aren't limited, nor what timers, /run and specials
+run.
+
 Signal lets a message be edited for a day, and the bot gets the edit as a
 message of its own, naming the one it edits. What answer() does with it
 depends on the command (Edits): one that shows something, or sets a value,
@@ -31,7 +37,9 @@ import time
 from collections.abc import Awaitable, Callable, Sequence
 from contextvars import ContextVar
 from dataclasses import dataclass, field
+from datetime import timedelta
 from enum import Enum, auto
+from math import ceil
 from typing import ClassVar
 
 from signalbot import (
@@ -43,9 +51,27 @@ from signalbot import (
     TextMode,
 )
 
+from .access import is_admin
 from .config import DOT, get_settings, slashed
-from .i18n import _, every_language, prefixed, speaking, speaking_now
-from .messages import collected, error_text, escape, language_here, log_failure, reply
+from .i18n import (
+    _,
+    every_language,
+    format_duration,
+    ngettext,
+    prefixed,
+    speaking,
+    speaking_now,
+)
+from .limits import Window
+from .messages import (
+    collected,
+    error_text,
+    escape,
+    language_here,
+    log_failure,
+    outbox,
+    reply,
+)
 from .receipts import mark_read, show_typing
 from .styles import utf16_length
 
@@ -202,9 +228,12 @@ class Command:
 
 class Handler(DataMessageHandler):
     """A handler of commands: a message that is one of them, once its alias
-    is replaced, goes to handle()."""
+    is replaced, goes to handle(), unless its sender is past the command
+    limit."""
 
     commands: ClassVar[tuple[Command, ...]] = ()
+    # For everyone allowed, rather than for the admins alone (bot.handlers())
+    everyday: ClassVar[bool] = False
 
     @classmethod
     def takes(cls, text: str) -> Command | None:
@@ -222,7 +251,8 @@ class Handler(DataMessageHandler):
             # In the chat's language, but for a timer's or /run's, which
             # speaks that of the chats it posts to
             with speaking(speaking_now.get() or language_here(context)):
-                await self.handle(context, command)
+                if await admitted(context):
+                    await self.handle(context, command)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         raise NotImplementedError
@@ -240,6 +270,100 @@ def known(text: str) -> Command | None:
     """The command the text is, if any: one a handler lists, or one it takes
     besides, as the admins' own specials (specials.py)."""
     return next((command for h in handlers() if (command := h.takes(text))), None)
+
+
+# How many commands each person sent lately
+
+
+class CommandLimit:
+    """The commands each person sent lately, so that the bot answers each of
+    them at most command_limit in command_limit_minutes; and who has been
+    told they've sent too many, until the bot answers them again."""
+
+    def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
+        self.clock = clock
+        self.sent: dict[str, Window] = {}  # by who sent them
+        self.told: set[str] = set()
+
+    def wait(self, who: str) -> float:
+        """Seconds until the bot answers who again; 0 if it answers them now,
+        and their command counts."""
+        settings = get_settings()
+        period = settings.command_limit_minutes * 60
+        if who not in self.sent:
+            self.forget_old(period)
+        window = self.sent.setdefault(who, Window(self.clock))
+        if wait := window.wait(settings.command_limit, period):
+            return wait
+        window.take()
+        self.told.discard(who)
+        return 0.0
+
+    def tell(self, who: str) -> bool:
+        """Whether to tell who that they've sent too many: once, until the
+        bot answers them again."""
+        if who in self.told:
+            return False
+        self.told.add(who)
+        return True
+
+    def forget_old(self, period: float) -> None:
+        """Forget those whose latest command is older than the period."""
+        now = self.clock()
+        for who in [
+            who
+            for who, window in self.sent.items()
+            if not window.times or now - window.times[-1] >= period
+        ]:
+            del self.sent[who]
+            self.told.discard(who)
+
+    def clear(self) -> None:
+        self.sent.clear()
+        self.told.clear()
+
+
+command_limit = CommandLimit()
+
+
+def limit_text(wait: float) -> str:
+    """For someone past the command limit: what it is, and when the bot
+    answers them again, in whole minutes."""
+    settings = get_settings()
+    count = settings.command_limit
+    return ngettext(
+        "⏳ The bot answers each person at most {count} command in {period}. "
+        "It answers you again in {wait}.",
+        "⏳ The bot answers each person at most {count} commands in {period}. "
+        "It answers you again in {wait}.",
+        count,
+    ).format(
+        count=count,
+        period=format_duration(timedelta(minutes=settings.command_limit_minutes)),
+        wait=format_duration(timedelta(minutes=ceil(wait / 60))),
+    )
+
+
+async def admitted(context: DataMessageContext) -> bool:
+    """Whether to run the command: not if its sender is past the command
+    limit, who is then told, once, when the bot answers them again. An
+    admin's always runs, and while Signal rate-limits the bot, has it try
+    sending again soon, as they may have just lifted the limit; as do the
+    commands timers, /run and specials run."""
+    message = context.message
+    if collected.get() is not None:
+        return True
+    if is_admin(message):
+        outbox.nudge()
+        return True
+    who = message.source_uuid or message.source_number or ""
+    if not (wait := command_limit.wait(who)):
+        return True
+    name = ((message.text or "").split() or ["?"])[0].lower()
+    logger.info("Ignored %s %s: past the command limit", name, chat_kind(message))
+    if command_limit.tell(who):
+        await reply(context, SendMessage(text=limit_text(wait)))
+    return False
 
 
 def built_in(text: str) -> Command | None:

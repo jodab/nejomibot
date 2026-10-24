@@ -21,9 +21,13 @@ Timezone=local
 # The photo library, which the bot only reads: it must be readable by all
 Volume=/srv/nejomibot/photos:/photos:ro
 # config.toml, and what the bot keeps: :U hands it to the bot's user. For a
-# user (rootless), use UserNS=keep-id:uid=1001,gid=1001 instead of :U, so
+# user (rootless), use UserNS=keep-id:uid=1000,gid=1000 instead of :U, so
 # the files stay yours.
 Volume=/srv/nejomibot/data:/data:U
+# The bot's user and group are 1000 both; others can be given here, which
+# :U then hands the data folder to:
+#User=1001
+#Group=1001
 # When its health check (the image's) fails three times running, Podman
 # kills it, and systemd starts it again (Restart= below)
 HealthOnFailure=kill

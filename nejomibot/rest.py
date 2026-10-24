@@ -22,6 +22,10 @@ from .config import get_settings
 TIMEOUT = aiohttp.ClientTimeout(total=30)
 # A profile change waits for Signal's servers, and an avatar for its upload too
 SLOW_TIMEOUT = aiohttp.ClientTimeout(total=60)
+# Seconds between pings on the bot's websocket, which close it when no pong
+# comes, so a connection that died unnoticed is opened again: signalbot's
+# own pings every 20 seconds
+HEARTBEAT = 30
 
 
 class RestError(Exception):
@@ -219,5 +223,5 @@ async def received() -> AsyncGenerator[aiohttp.ClientWebSocketResponse]:
     messages, which signalbot drops: its parser knows none, as of 2.1.3.
     Raises aiohttp.ClientError if it can't be opened."""
     url = f"ws://{get_settings().signal_service}{account_path('/v1/receive')}"
-    async with client.session().ws_connect(url) as websocket:
+    async with client.session().ws_connect(url, heartbeat=HEARTBEAT) as websocket:
         yield websocket

@@ -167,6 +167,16 @@ class KeptLines[T]:
         self.save([*(kept if self.lines else self.header), *new])
         return Change(new, removed)
 
+    def replace(self, old: T, new: T) -> None:
+        """Write new's line in the place of old's, as entries last gave it.
+        Raises OSError, and ValueError if old isn't among them."""
+        index = next((i for i, entry in self.found if entry is old), None)
+        if index is None:
+            raise ValueError("not among the entries")
+        lines = list(self.lines)
+        lines[index] = self.line_of(new)
+        self.save(lines)
+
     def revert(self, change: Change) -> None:
         """Undo the change, as far as the file still has it: take out the
         lines it added, the last of each, and put those it took out back

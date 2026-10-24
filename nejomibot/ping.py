@@ -14,6 +14,7 @@ def pong_text(delay: float) -> str:
 
 
 class Ping(Handler):
+    everyday = True
     commands = (Command("/ping"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

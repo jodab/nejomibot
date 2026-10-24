@@ -1,7 +1,7 @@
 from typing import Any, cast
 
 import pytest
-from helpers import ALICE, GROUP, text_styles
+from helpers import ALICE, GROUP, message_from, text_styles
 from signalbot import (
     DataMessage,
     DataMessageContext,
@@ -12,13 +12,15 @@ from signalbot import (
 )
 
 from nejomibot import commands, specials
-from nejomibot.commands import aliases, canonical, known
+from nejomibot.commands import Command, aliases, canonical, known
 from nejomibot.config import get_settings
 from nejomibot.messages import PerChat, for_chat
 from nejomibot.specials import (
     HEADER,
     Part,
+    Special,
     Specials,
+    SpecialsForEveryone,
     check_name,
     joined,
     own_specials,
@@ -31,6 +33,17 @@ from nejomibot.timers import Timekeeper, check_commands
 ADMIN = "+46700000009"
 
 
+class Groups:
+    """As the bot's groups resolve a group's: to GROUP."""
+
+    def resolve(self, group: str) -> str:
+        return GROUP
+
+
+class Bot:
+    groups = Groups()
+
+
 class Chat:
     """An admin's direct chat with the bot: what it answers there, and the
     commands the specials run, which answer as below."""
@@ -39,6 +52,7 @@ class Chat:
         self.replies: list[SendMessage] = []
         self.ran: list[str] = []
         self.ran_as: list[str | None] = []  # whose message each ran as
+        self.ran_in_group: list[bool] = []  # and whether as in a group
         self.keeper = Timekeeper()
         monkeypatch.setattr(commands, "reply", self.reply)
         monkeypatch.setattr(commands, "mark_read", self.nothing)
@@ -59,11 +73,22 @@ class Chat:
         with nothing special; one to the rest."""
         self.ran.append(command)
         self.ran_as.append(admin.source_number if admin else None)
+        self.ran_in_group.append(bool(admin and admin.is_group()))
         if command == "/status":
             return [SendMessage(text="checks"), SendMessage(text="details")]
         if command == "/today":
             return []
         return [SendMessage(text=f"{command}!")]
+
+    async def send_as(self, sender: str, text: str) -> list[str]:
+        """What the bot answers someone allowed who sends the text in a
+        group, as everyone allowed's specials have it."""
+        message = message_from(sender, text, in_group=True)
+        self.replies.clear()
+        await SpecialsForEveryone().handle_data_message(
+            DataMessageContext(cast(SignalBot, Bot()), message)
+        )
+        return [reply.text or "" for reply in self.replies]
 
     async def send(
         self, text: str, *styled: tuple[str, str], edit: bool = False
@@ -620,3 +645,106 @@ async def test_a_plain_word_shortcut_is_taken_with_a_slash(chat: Chat) -> None:
     assert own_specials.current().shortcuts == {"/evening": ("/ge",)}
     assert canonical("ge") == "ge"
     assert canonical("/ge") == "/evening"
+
+
+# Specials for everyone allowed
+
+
+async def test_one_for_everyone(chat: Chat) -> None:
+    await chat.send("/special add /morning Good morning! /weather; /today")
+    assert await chat.send("/special everyone /morning") == [
+        "✅ Everyone allowed may use /morning now, in groups too, and /help lists it."
+    ]
+    lines = get_settings().specials_file.read_text().splitlines()
+    assert lines[-1] == "/morning (everyone) | Good morning! /weather; /today"
+    # Still so as it changes, or gets shortcuts
+    await chat.send("/special add /morning Hi! /weather")
+    await chat.send("/special shortcuts /morning /gm")
+    lines = get_settings().specials_file.read_text().splitlines()
+    assert lines[-1] == "/morning /gm (everyone) | Hi! /weather"
+    assert await chat.send("/specials") == [
+        "**✨ 1 special**\n**/morning** · Hi! /weather · 🏷️ /gm · 👥 for everyone"
+    ]
+    # Taken by the everyday commands' handler, not the admins'
+    assert Specials.takes("/morning") is None
+    assert SpecialsForEveryone.takes("/Morning") == Command("/morning")
+    assert await chat.send("/special everyone /morning") == [
+        "Everyone allowed may use /morning already."
+    ]
+    assert await chat.send("/special admins morning") == [
+        "✅ Only the admins may use /morning now."
+    ]
+    assert await chat.send("/special admins /morning") == [
+        "Only the admins may use /morning already."
+    ]
+    assert get_settings().specials_file.read_text().splitlines()[-1] == (
+        "/morning /gm | Hi! /weather"
+    )
+    assert SpecialsForEveryone.takes("/morning") is None
+
+
+async def test_one_for_everyone_runs_as_whoever_sends_it(chat: Chat) -> None:
+    await chat.send("/special add /morning Morning! /weather + /ping")
+    await chat.send("/special everyone /morning")
+    # Alice, who isn't an admin, in a group: its commands run as hers, there
+    assert await chat.send_as(ALICE, "/morning") == ["Morning!\n\n/weather!\n\n/ping!"]
+    assert chat.ran_as[-2:] == [ALICE, ALICE]
+    assert chat.ran_in_group[-2:] == [True, True]
+
+
+async def test_admin_commands_in_one_for_everyone_are_named(chat: Chat) -> None:
+    await chat.send("/special add /peek /status; /contacts 3; /weather")
+    assert await chat.send("/special everyone /peek") == [
+        "✅ Everyone allowed may use /peek now, in groups too, and /help lists it.\n"
+        "⚠️ It runs admin commands: /status, /contacts. Everyone allowed who uses "
+        "it, in a group too, now sees what they show, and has them do what they "
+        "do; /special admins /peek takes that back."
+    ]
+    # And as it changes
+    [changed] = await chat.send("/special add /peek /today preview; /weather")
+    assert changed.endswith(
+        "\n⚠️ It runs admin commands: /today preview. "
+        "Everyone allowed who uses it, in a group too, now sees what they show, "
+        "and has them do what they do; /special admins /peek takes that back."
+    )
+    # Not for one of everyday commands, nor once it's for the admins alone
+    await chat.send("/special add /peek /weather")
+    [plain] = await chat.send("/special add /peek /weather")
+    assert "⚠️" not in plain
+    await chat.send("/special admins /peek")
+    [alone] = await chat.send("/special add /peek /status")
+    assert "⚠️" not in alone
+
+
+async def test_an_edit_takes_the_place_of_who_may_use_one(chat: Chat) -> None:
+    await chat.send("/special add /morning /ping")
+    await chat.send("/special add /bins Bins!")
+    await chat.send("/special everyone /morning")
+    await chat.send("/special everyone /bins", edit=True)
+    assert own_specials.current().everyone == {"/bins"}
+    # A removal undone puts it back for everyone, as it was
+    await chat.send("/special remove /bins")
+    await chat.send("/special remove /nope", edit=True)
+    assert own_specials.current().everyone == {"/bins"}
+
+
+def test_a_line_for_everyone_reads_back() -> None:
+    line = "/morning /gm (Everyone) | Hi! /weather"
+    assert parse_line(line, set()) == Special(
+        "/morning", (Part("Hi!", "/weather"),), ("/gm",), everyone=True
+    )
+    # Wherever it is among the names
+    assert parse_line("(everyone) /morning | /ping", set()).everyone
+    assert not parse_line("/morning | /ping", set()).everyone
+
+
+@pytest.mark.usefixtures("swedish")
+async def test_one_for_everyone_in_swedish(chat: Chat) -> None:
+    await chat.send("/special lägg till /morgon /ping")
+    assert await chat.send("/special för alla /morgon") == [
+        "✅ Alla tillåtna får använda /morgon nu, även i grupper, och /hjälp "
+        "listar det."
+    ]
+    assert await chat.send("/special för admins /morgon") == [
+        "✅ Bara admins får använda /morgon nu."
+    ]

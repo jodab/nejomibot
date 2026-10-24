@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 19:02+0300\n"
+"POT-Creation-Date: 2026-10-24 20:44+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -663,6 +663,21 @@ msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Borttaget: {what}"
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"⏳ The bot answers each person at most {count} command in {period}. It "
+"answers you again in {wait}."
+msgid_plural ""
+"⏳ The bot answers each person at most {count} commands in {period}. It "
+"answers you again in {wait}."
+msgstr[0] ""
+"⏳ Boten svarar på högst {count} kommando från varje person på {period}. Den "
+"svarar dig igen om {wait}."
+msgstr[1] ""
+"⏳ Boten svarar på högst {count} kommandon från varje person på {period}. "
+"Den svarar dig igen om {wait}."
+
+#: nejomibot/commands.py
 msgid "A shortcut can't have a | or a ;."
 msgstr "En genväg kan inte innehålla | eller ;."
 
@@ -1248,8 +1263,8 @@ msgid "who the bot knows"
 msgstr "vilka boten känner till"
 
 #: nejomibot/help.py
-msgid "add <who> <name>"
-msgstr "lägg till <vem> <namn>"
+msgid "<who> <name>"
+msgstr "<vem> <namn>"
 
 #: nejomibot/help.py
 msgid "add a contact, or rename"
@@ -1380,6 +1395,14 @@ msgid "remove one"
 msgstr "ta bort ett"
 
 #: nejomibot/help.py
+msgid "for everyone allowed, or the admins alone"
+msgstr "för alla tillåtna, eller bara admins"
+
+#: nejomibot/help.py
+msgid "everyone <name> · admins <name>"
+msgstr "för alla <namn> · för admins <namn>"
+
+#: nejomibot/help.py
 msgid "<chats> <text>"
 msgstr "<chattar> <text>"
 
@@ -1428,8 +1451,8 @@ msgid "its latest messages anywhere; delete some"
 msgstr "botens senaste meddelanden överallt; radera några"
 
 #: nejomibot/help.py
-msgid "list · <n>,…"
-msgstr "lista · <n>,…"
+msgid "· <n>,…"
+msgstr "· <n>,…"
 
 #: nejomibot/help.py
 msgid "whether its latest messages arrived"
@@ -1438,6 +1461,10 @@ msgstr "om botens senaste meddelanden kom fram"
 #: nejomibot/help.py
 msgid "delete its latest message here"
 msgstr "radera botens senaste meddelande här"
+
+#: nejomibot/help.py
+msgid "Specials"
+msgstr "Specialkommandon"
 
 #: nejomibot/help.py
 msgid ""
@@ -2159,14 +2186,20 @@ msgid "Debug mode: communicating with {group} only"
 msgstr "Felsökningsläge: kommunicerar endast med {group}"
 
 #: nejomibot/notices.py
+#, python-brace-format
 msgid ""
-"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
-"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
-"<your number> on the server and solve the captcha."
+"⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
+"again after {first}, then less and less often, every {longest} at most, and "
+"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"rate-limit --to <your number> on the server and solve the captcha, then send "
+"the bot any command: it tries again at once."
 msgstr ""
-"⚠️ Signal begränsar botens sändningar. Utgående meddelanden köas och skickas "
-"på nytt var 30:e minut. För att häva begränsningen, kör signal-account.sh "
-"rate-limit --to <ditt nummer> på servern och lös captcha-uppgiften."
+"⚠️ Signal begränsar botens sändningar. Utgående meddelanden väntar: boten "
+"försöker skicka ett igen efter {first}, sedan allt mer sällan, som mest med "
+"{longest} mellanrum, och skickar resten när ett går fram. För att häva "
+"begränsningen, kör signal-account.sh rate-limit --to <ditt nummer> på "
+"servern, lös captcha-uppgiften och skicka sedan valfritt kommando till "
+"boten: då försöker den igen direkt."
 
 #: nejomibot/notices.py
 #, python-brace-format
@@ -2636,6 +2669,17 @@ msgid "A special has at most {count} parts."
 msgstr "Ett specialkommando har högst {count} delar."
 
 #: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"⚠️ It runs admin commands: {commands}. Everyone allowed who uses it, in a "
+"group too, now sees what they show, and has them do what they do; /special "
+"admins {name} takes that back."
+msgstr ""
+"⚠️ Det kör adminkommandon: {commands}. Alla tillåtna som använder det, även i "
+"en grupp, ser nu vad de visar och får dem att göra det de gör; /special för "
+"admins {name} tar tillbaka det."
+
+#: nejomibot/specials.py
 msgid "/specials: commands of your own, of text and other commands"
 msgstr "/specials: dina egna kommandon, av text och andra kommandon"
 
@@ -2676,8 +2720,20 @@ msgstr ""
 "genvägar /morgon /gm; med -, inga"
 
 #: nejomibot/specials.py
+msgid ""
+"/special everyone <name>: everyone allowed may use it, in groups too, and /"
+"help lists it; /special admins <name>: the admins alone again"
+msgstr ""
+"/special för alla <namn>: alla tillåtna får använda det, även i grupper, "
+"och /hjälp listar det; /special för admins <namn>: bara admins igen"
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
 msgstr "/special ta bort <namn>: ta bort ett"
+
+#: nejomibot/specials.py
+msgid "for everyone"
+msgstr "för alla"
 
 #: nejomibot/specials.py
 msgid "No specials of your own yet."
@@ -2738,6 +2794,29 @@ msgstr "Ett specialkommando har högst {count} genvägar."
 #, python-brace-format
 msgid "✅ Shortcuts for {name}: {shortcuts}."
 msgstr "✅ Genvägar för {name}: {shortcuts}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Everyone allowed may use {name} already."
+msgstr "{name} är redan för alla tillåtna."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Only the admins may use {name} already."
+msgstr "{name} är redan bara för admins."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Only the admins may use {name} now."
+msgstr "✅ Bara admins får använda {name} nu."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"✅ Everyone allowed may use {name} now, in groups too, and /help lists it."
+msgstr ""
+"✅ Alla tillåtna får använda {name} nu, även i grupper, och /hjälp listar "
+"det."
 
 #: nejomibot/status.py
 #, python-brace-format

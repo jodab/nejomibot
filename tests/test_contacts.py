@@ -325,6 +325,25 @@ async def test_with_fresh_profiles_asks_a_few_at_a_time(
     assert len(asked) == 10
 
 
+async def test_a_profile_asked_for_isnt_again_for_six_hours(
+    account: Account, signal_api: FakeApi
+) -> None:
+    # As signal-cli keeps it that long itself, and each asks Signal's servers
+    def asked() -> int:
+        return sum(
+            r.path == f"/v1/contacts/{ME}/{CAROL_ID}" for r in signal_api.requests
+        )
+
+    await with_fresh_profiles(account)
+    await with_fresh_profiles(account)
+    assert asked() == 1
+    # Six hours on
+    for uuid in account_module.refetched:
+        account_module.refetched[uuid] -= account_module.REFETCH_AFTER
+    await with_fresh_profiles(account)
+    assert asked() == 2
+
+
 def test_a_big_account_is_quick(account: Account) -> None:
     # Lookups by ID go through indexes, so a few thousand people take moments
     people = [Contact(number=f"+4670{n:07}", uuid=uuid_of(n)) for n in range(3000)]

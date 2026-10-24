@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 19:02+0300\n"
+"POT-Creation-Date: 2026-10-24 20:44+0300\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -665,6 +665,21 @@ msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Poistettu: {what}"
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"⏳ The bot answers each person at most {count} command in {period}. It "
+"answers you again in {wait}."
+msgid_plural ""
+"⏳ The bot answers each person at most {count} commands in {period}. It "
+"answers you again in {wait}."
+msgstr[0] ""
+"⏳ Botti vastaa kultakin henkilöltä enintään {count} komentoon {period} "
+"aikana. Se vastaa sinulle taas {wait} kuluttua."
+msgstr[1] ""
+"⏳ Botti vastaa kultakin henkilöltä enintään {count} komentoon {period} "
+"aikana. Se vastaa sinulle taas {wait} kuluttua."
+
+#: nejomibot/commands.py
 msgid "A shortcut can't have a | or a ;."
 msgstr "Oikopolussa ei voi olla merkkiä | tai ;."
 
@@ -1253,8 +1268,8 @@ msgid "who the bot knows"
 msgstr "ketä botti tuntee"
 
 #: nejomibot/help.py
-msgid "add <who> <name>"
-msgstr "lisää <kuka> <nimi>"
+msgid "<who> <name>"
+msgstr "<kuka> <nimi>"
 
 #: nejomibot/help.py
 msgid "add a contact, or rename"
@@ -1385,6 +1400,14 @@ msgid "remove one"
 msgstr "poista yksi"
 
 #: nejomibot/help.py
+msgid "for everyone allowed, or the admins alone"
+msgstr "kaikille sallituille, tai vain ylläpitäjille"
+
+#: nejomibot/help.py
+msgid "everyone <name> · admins <name>"
+msgstr "kaikille <nimi> · ylläpitäjille <nimi>"
+
+#: nejomibot/help.py
 msgid "<chats> <text>"
 msgstr "<keskustelut> <teksti>"
 
@@ -1433,8 +1456,8 @@ msgid "its latest messages anywhere; delete some"
 msgstr "sen viimeisimmät viestit missä tahansa; poista joitakin"
 
 #: nejomibot/help.py
-msgid "list · <n>,…"
-msgstr "lista · <n>,…"
+msgid "· <n>,…"
+msgstr "· <n>,…"
 
 #: nejomibot/help.py
 msgid "whether its latest messages arrived"
@@ -1443,6 +1466,10 @@ msgstr "tulivatko sen viimeisimmät viestit perille"
 #: nejomibot/help.py
 msgid "delete its latest message here"
 msgstr "poista sen viimeisin viesti täältä"
+
+#: nejomibot/help.py
+msgid "Specials"
+msgstr "Erikoiskomennot"
 
 #: nejomibot/help.py
 msgid ""
@@ -2171,15 +2198,20 @@ msgid "Debug mode: communicating with {group} only"
 msgstr "Virheenjäljitystila: viestii vain ryhmän {group} kanssa"
 
 #: nejomibot/notices.py
+#, python-brace-format
 msgid ""
-"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
-"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
-"<your number> on the server and solve the captcha."
+"⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
+"again after {first}, then less and less often, every {longest} at most, and "
+"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"rate-limit --to <your number> on the server and solve the captcha, then send "
+"the bot any command: it tries again at once."
 msgstr ""
-"⚠️ Signal rajoittaa botin lähetyksiä. Lähtevät viestit laitetaan jonoon, ja "
-"niitä yritetään uudelleen 30 minuutin välein. Poista rajoitus suorittamalla "
-"palvelimella signal-account.sh rate-limit --to <numerosi> ja ratkaisemalla "
-"captcha."
+"⚠️ Signal rajoittaa botin lähetyksiä. Lähtevät viestit odottavat: botti "
+"yrittää lähettää yhtä uudelleen {first} kuluttua, sitten yhä harvemmin, "
+"enintään {longest} välein, ja lähettää loput, kun yksi menee perille. Poista "
+"rajoitus suorittamalla palvelimella signal-account.sh rate-limit --to "
+"<numerosi> ja ratkaisemalla captcha, ja lähetä sitten botille mikä tahansa "
+"komento: se yrittää uudelleen heti."
 
 #: nejomibot/notices.py
 #, python-brace-format
@@ -2655,6 +2687,17 @@ msgid "A special has at most {count} parts."
 msgstr "Erikoiskomennossa voi olla enintään {count} osaa."
 
 #: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"⚠️ It runs admin commands: {commands}. Everyone allowed who uses it, in a "
+"group too, now sees what they show, and has them do what they do; /special "
+"admins {name} takes that back."
+msgstr ""
+"⚠️ Se suorittaa ylläpitäjän komentoja: {commands}. Jokainen sallittu, joka "
+"käyttää sitä, myös ryhmässä, näkee nyt, mitä ne näyttävät, ja saa ne "
+"tekemään sen, mitä ne tekevät; /special ylläpitäjille {name} peruu sen."
+
+#: nejomibot/specials.py
 msgid "/specials: commands of your own, of text and other commands"
 msgstr "/specials: omat komennot, tekstistä ja muista komennoista"
 
@@ -2696,8 +2739,21 @@ msgstr ""
 "oikopolut /aamu /hm; merkillä - ei yhtään"
 
 #: nejomibot/specials.py
+msgid ""
+"/special everyone <name>: everyone allowed may use it, in groups too, and /"
+"help lists it; /special admins <name>: the admins alone again"
+msgstr ""
+"/special kaikille <nimi>: kaikki sallitut saavat käyttää sitä, myös "
+"ryhmissä, ja /apu näyttää sen; /special ylläpitäjille <nimi>: taas vain "
+"ylläpitäjät"
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
 msgstr "/special poista <nimi>: poista yksi"
+
+#: nejomibot/specials.py
+msgid "for everyone"
+msgstr "kaikille"
 
 #: nejomibot/specials.py
 msgid "No specials of your own yet."
@@ -2759,6 +2815,29 @@ msgstr "Erikoiskomennolla voi olla enintään {count} oikopolkua."
 #, python-brace-format
 msgid "✅ Shortcuts for {name}: {shortcuts}."
 msgstr "✅ Oikopolut kohteelle {name}: {shortcuts}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Everyone allowed may use {name} already."
+msgstr "{name} on jo kaikille sallituille."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Only the admins may use {name} already."
+msgstr "{name} on jo vain ylläpitäjille."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Only the admins may use {name} now."
+msgstr "✅ Vain ylläpitäjät saavat nyt käyttää komentoa {name}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"✅ Everyone allowed may use {name} now, in groups too, and /help lists it."
+msgstr ""
+"✅ Kaikki sallitut saavat nyt käyttää komentoa {name}, myös ryhmissä, ja /"
+"apu näyttää sen."
 
 #: nejomibot/status.py
 #, python-brace-format

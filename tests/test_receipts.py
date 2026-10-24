@@ -7,7 +7,7 @@ from helpers import ALICE, ALICE_ID, GROUP, ME, FakeApi
 from signalbot import DataMessage, DataMessageContext, GroupInfo, SignalBot
 
 from nejomibot import receipts
-from nejomibot.messages import collected
+from nejomibot.messages import Outbox, collected
 from nejomibot.receipts import mark_read, show_typing
 
 RECEIPTS = f"/v1/receipts/{ME}"
@@ -64,6 +64,18 @@ async def test_mark_read_not_for_a_timer(bot: SignalBot, signal_api: FakeApi) ->
         await mark_read(context(bot, ALICE, ALICE_ID, 1))
     finally:
         collected.reset(token)
+    assert signal_api.requests == []
+
+
+async def test_neither_while_signal_rate_limits_the_bot(
+    bot: SignalBot, signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Each is a message, which would only meet the limit
+    limited = Outbox()
+    limited._rate_limited = True  # pyright: ignore[reportPrivateUsage]
+    monkeypatch.setattr(receipts, "outbox", limited)
+    await mark_read(context(bot, ALICE, ALICE_ID, 1))
+    await show_typing(context(bot, ALICE, ALICE_ID, 1, GROUP_INTERNAL_ID))
     assert signal_api.requests == []
 
 

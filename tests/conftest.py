@@ -25,6 +25,7 @@ from nejomibot import (
     contacts,
     healthcheck,
     i18n,
+    info,
     lists,
     photos,
     reminders,
@@ -36,7 +37,7 @@ from nejomibot import (
 # bot imports every handler, as it does when the bot runs: commands.known()
 # knows the commands of those Python has read
 from nejomibot import bot as _bot  # noqa: F401  # pyright: ignore[reportUnusedImport]
-from nejomibot.account import Account, fetch_account
+from nejomibot.account import Account, fetch_account, refetched
 from nejomibot.client import client
 from nejomibot.config import debug_folder, get_settings
 
@@ -94,13 +95,16 @@ def fresh_lists() -> None:
     contacts.shown.clear()
     # Nor any backup made, or failed
     backups.last_failure = backups.unchanged_at = None
-    # Nor what commands did, for edits of them
+    # Nor what commands did, for edits of them, nor who sent how many
     commands.done.clear()
+    commands.command_limit.clear()
     weather.places.clear()
     weather.latest.clear()
     weather.forecasts.clear()
     weather.calls.clear()
+    info.kept.clear()
     photos.taken.clear()
+    refetched.clear()
 
 
 @pytest.fixture(autouse=True)

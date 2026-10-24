@@ -147,6 +147,7 @@ def list_answer(context: DataMessageContext, text: str) -> str:
 
 
 class Lists(Handler):
+    everyday = True
     commands = (
         Command(
             "/list",

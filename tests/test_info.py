@@ -1,3 +1,4 @@
+import time
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from typing import Any
@@ -106,6 +107,23 @@ async def test_fetch_rate(rates_api: dict[str, Any]) -> None:
     rates_api["body"] = {"result": "success", "base_code": "EUR", "rates": RATES}
     assert await info.fetch_rate("EUR", "SEK") == 11.19
     assert rates_api["base"] == "EUR"
+
+
+async def test_rates_are_kept_till_the_next_update(rates_api: dict[str, Any]) -> None:
+    rates_api["body"] = {
+        "result": "success",
+        "rates": RATES,
+        "time_next_update_unix": time.time() + 3600,
+    }
+    assert await info.fetch_rate("EUR", "SEK") == 11.19
+    rates_api["body"] = {"result": "success", "rates": {"SEK": 12.0}}
+    assert await info.fetch_rate("EUR", "SEK") == 11.19
+    assert await info.fetch_rate("EUR", "USD") == 1.16
+    # Asked anew, as /status checks the API
+    assert await info.fetch_rate("EUR", "SEK", fresh=True) == 12.0
+    # Without a next update, ten minutes
+    until, _rates = info.kept["EUR"]
+    assert time.time() + info.KEPT_AT_LEAST - until < 5
 
 
 @pytest.mark.parametrize(

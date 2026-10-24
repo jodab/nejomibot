@@ -50,10 +50,13 @@ photos_dir = "/photos"  # only read
 data_dir = "/data"
 # Where photos that don't say their time zone were taken, if not in timezone
 # photos_timezone = "Europe/Helsinki"
-# With a birth date, a photo's caption shows the age of who's in the photos
-# that day, after the emoji. An album (a folder right in photos_dir) can have
-# one of its own, which /album sets: this is for the albums that don't, and
-# the photos in none.
+# Ages in captions: for an album of one child or pet growing up, each
+# photo's caption can show how old they were when it was taken, counted from
+# their birth date to the day of the photo, as "🎂 1 year, 2 months and 3
+# days". An album (a folder directly in photos_dir) can have a birth date of
+# its own, set with /album; this one is for the albums without one, and the
+# photos in no album. Without a birth date, captions show no age.
+# photos_age_emoji goes before the age.
 # photos_birth_date = 2020-01-31
 # photos_age_emoji = "🎂"
 # A photo's caption links to where it was taken: "google" (Google Maps) or
@@ -76,6 +79,19 @@ exchange_rate = ["EUR", "SEK"]
 # tried again for this many hours, then dropped. Kept in data_dir meanwhile,
 # they outlast a restart.
 send_retry_hours = 3
+# While Signal rate-limits the bot, it sends nothing at once, as each try
+# would only meet the limit: messages wait, and the one that has waited
+# longest is tried alone, after 2 minutes, then twice as long after each
+# try, at most this many minutes apart. A command from an admin has it try
+# again at once. See "Signal's rate limits" in the README.
+# rate_limit_retry_minutes = 30
+
+# How many commands the bot answers each person, at most, in
+# command_limit_minutes. Past that, it says once when it answers them again,
+# and leaves the rest unanswered, so that nobody can run the bot into
+# Signal's rate limits. The admins aren't limited, nor timers and /run.
+# command_limit = 20
+# command_limit_minutes = 10
 
 # /delivery, for the admins, shows this many of the bot's latest messages, of
 # those it sent in the last day, and how many phones confirmed each with a

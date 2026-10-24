@@ -8,6 +8,7 @@ straight from signal-cli-rest-api (rest.py).
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from functools import cached_property
@@ -28,6 +29,9 @@ FETCH_TIMEOUT = 30  # seconds
 # signal-cli ask Signal's servers, which rate-limit a burst
 PROFILES_AT_ONCE = 4
 MAX_PROFILES = 50
+# A profile asked for again isn't again this soon, as signal-cli keeps one
+# that long itself
+REFETCH_AFTER = 6 * 60 * 60  # seconds
 RECENT = timedelta(days=7)  # safety numbers new or changed this recently are named
 
 UNTRUSTED = "UNTRUSTED"
@@ -259,12 +263,24 @@ async def fetch_devices() -> list[Device]:
     return DEVICES.validate_python(await rest.devices())
 
 
+# When each profile was asked for again last, by Signal ID, by time.monotonic
+refetched: dict[str, float] = {}
+
+
 async def with_fresh_profiles(account: Account) -> Account:
     """Ask again for the nameless by ID, which makes signal-cli fetch their
     profile now instead of after its six-hour cache, e.g. for someone who just
-    joined a group. Whoever can't be fetched stays as they were."""
-
-    nameless = [c for c in account.recipients if c.uuid and not c.real_name]
+    joined a group; but not one asked for in the last six hours. Whoever
+    can't be fetched stays as they were."""
+    now = time.monotonic()
+    for uuid in [u for u, at in refetched.items() if now - at >= REFETCH_AFTER]:
+        del refetched[uuid]
+    nameless = [
+        c
+        for c in account.recipients
+        if c.uuid and not c.real_name and c.uuid not in refetched
+    ][:MAX_PROFILES]
+    refetched.update((c.uuid or "", now) for c in nameless)
     turns = asyncio.Semaphore(PROFILES_AT_ONCE)
     failed: list[Exception] = []
 
@@ -276,12 +292,12 @@ async def with_fresh_profiles(account: Account) -> Account:
             failed.append(e)
             return contact
 
-    fresh = await asyncio.gather(*map(refetch, nameless[:MAX_PROFILES]))
+    fresh = await asyncio.gather(*map(refetch, nameless))
     if failed:
         logger.warning(
             "Could not refresh %d profiles: %s", len(failed), describe(failed[0])
         )
-    changed = {id(old): new for old, new in zip(nameless, fresh, strict=False)}
+    changed = {id(old): new for old, new in zip(nameless, fresh, strict=True)}
     recipients = [changed.get(id(c), c) for c in account.recipients]
     return replace(account, recipients=recipients)
 

@@ -1,7 +1,9 @@
 """The time in the places set in clocks, and the exchange rate set in
-exchange_rate."""
+exchange_rate. The rates change once a day, when the API says it has new
+ones: until then, the bot takes those it has."""
 
 import logging
+import time
 from datetime import UTC, datetime, timedelta
 
 import aiohttp
@@ -19,6 +21,10 @@ logger = logging.getLogger(__name__)
 # ExchangeRate-API's open access endpoint, updated daily
 RATES_URL = "https://open.er-api.com/v6/latest/{}"
 TIMEOUT = aiohttp.ClientTimeout(total=5)
+# Rates are kept till the API's next update, this long at least, should
+# that be due already, and a day at most
+KEPT_AT_LEAST = 10 * 60  # seconds
+KEPT_AT_MOST = 24 * 60 * 60
 
 
 def season(local: datetime) -> str:
@@ -68,10 +74,16 @@ class Rates(BaseModel):
     result: str  # success or error
     error_type: str | None = Field(default=None, alias="error-type")
     rates: dict[str, float] = {}
+    # When it has the next rates, in seconds since the epoch
+    next_update: float | None = Field(default=None, alias="time_next_update_unix")
 
 
-async def fetch_rate(base: str, quote: str) -> float:
-    """What one base costs in quote. Raises RatesError, or aiohttp's error."""
+# The rates by the currency they're for, and until when, by time.time()
+kept: dict[str, tuple[float, dict[str, float]]] = {}
+
+
+async def fetch_rates(base: str) -> Rates:
+    """What the API says of base. Raises RatesError, or aiohttp's error."""
     async with client.session().get(
         RATES_URL.format(base), timeout=TIMEOUT
     ) as response:
@@ -87,11 +99,25 @@ async def fetch_rate(base: str, quote: str) -> float:
                 error=answer.error_type
             )
         )
-    if quote not in answer.rates:
+    return answer
+
+
+async def fetch_rate(base: str, quote: str, *, fresh: bool = False) -> float:
+    """What one base costs in quote, as the API said last, until it has
+    newer rates; fresh, as it says now. Raises RatesError, or aiohttp's
+    error."""
+    now = time.time()
+    if fresh or (found := kept.get(base)) is None or now >= found[0]:
+        answer = await fetch_rates(base)
+        until = min(
+            max(answer.next_update or 0, now + KEPT_AT_LEAST), now + KEPT_AT_MOST
+        )
+        found = kept[base] = (until, answer.rates)
+    if quote not in found[1]:
         raise RatesError(
             _("the exchange rate API has no rate for {currency}").format(currency=quote)
         )
-    return answer.rates[quote]
+    return found[1][quote]
 
 
 async def info_message() -> str:
@@ -108,6 +134,7 @@ async def info_message() -> str:
 
 
 class Info(Handler):
+    everyday = True
     commands = (Command("/info"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

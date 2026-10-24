@@ -567,7 +567,14 @@ def listed_for(context: DataMessageContext) -> Listed | None:
 
 
 class Contacts(Handler):
-    commands = (Command("/contacts", more=True, subcommands=("add",)),)
+    """Timers, /run and specials may list everyone, or show one, but not add
+    or rename someone: run again and again, a number would name whoever has
+    it by then."""
+
+    commands = (
+        Command("/contacts add", more=True, timers=False),
+        Command("/contacts", more=True),
+    )
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         bot, words = context.bot, (context.message.text or "").split()

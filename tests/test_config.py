@@ -1,3 +1,6 @@
+import os
+import re
+import tomllib
 from datetime import date
 from pathlib import Path
 
@@ -173,3 +176,24 @@ def test_rejects_unknown_file_settings(
     write_config(tmp_path, monkeypatch, f'account = "+46700000002"\n{setting}\n')
     with pytest.raises(ValidationError, match=setting.split()[0]):
         Settings()  # type: ignore[call-arg]
+
+
+ROOT = Path(__file__).parent.parent
+
+
+def test_the_example_has_every_setting_as_it_reads(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Copied to config.toml with every setting it shows given, commented out
+    # or not, it reads; only debug is told of as NEJOMIBOT_DEBUG
+    example = (ROOT / "config.example.toml").read_text()
+    given = re.sub(r"(?m)^# ([a-z_]+ = )", r"\1", example)
+    for name in os.environ:
+        if name.startswith("NEJOMIBOT_"):
+            monkeypatch.delenv(name)
+    path = tmp_path / "config.toml"
+    path.write_text(given)
+    monkeypatch.setenv("NEJOMIBOT_CONFIG", str(path))
+    settings = Settings()  # type: ignore[call-arg]
+    assert set(Settings.model_fields) - set(tomllib.loads(given)) == {"debug"}
+    assert settings.command_limit == 20

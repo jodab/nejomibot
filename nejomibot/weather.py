@@ -28,7 +28,6 @@ try again past that. weather_city's weather and forecast, as /weather and
 """
 
 import logging
-from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
@@ -51,6 +50,7 @@ from .i18n import (
     spoken,
     weekday_name,
 )
+from .limits import Window
 from .messages import ServiceError, error_text, escape, log_failure, web_error
 from .styles import bold
 
@@ -242,20 +242,18 @@ def format_weather(data: dict[str, Any], city: str, units: str = "metric") -> st
     return f"{bold(heading)}\n" + escape("\n".join(lines))
 
 
-# When OpenWeatherMap was asked about places named, in the past hour
-calls: deque[float] = deque()
+# When OpenWeatherMap was asked about places named, in the past hour, by the
+# clock the weather kept goes by
+calls = Window(lambda: monotonic())
 
 
 def count_call() -> None:
     """Count a call for a place named, unless the past hour has had
     weather_calls_per_hour of them: then raise TooOften, saying when the
     first of them is an hour old."""
-    now = monotonic()
-    while calls and now - calls[0] >= HOUR:
-        calls.popleft()
     limit = get_settings().weather_calls_per_hour
-    if len(calls) >= limit:
-        minutes = ceil((calls[0] + HOUR - now) / 60)
+    if wait := calls.wait(limit, HOUR):
+        minutes = ceil(wait / 60)
         raise TooOften(
             ngettext(
                 "⏳ The bot asks OpenWeatherMap about places at most {count} time "
@@ -271,7 +269,7 @@ def count_call() -> None:
                 minutes,
             ).format(minutes=minutes)
         )
-    calls.append(now)
+    calls.take()
 
 
 async def ask(url: str, *, counted: bool = False, **params: str) -> Any:
@@ -429,6 +427,7 @@ async def weather_message(city: str = "") -> str:
 
 
 class Weather(Handler):
+    everyday = True
     commands = (Command("/weather", more=True),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
@@ -551,6 +550,7 @@ async def forecast_message(city: str = "") -> str:
 
 
 class Forecast(Handler):
+    everyday = True
     commands = (Command("/forecast", more=True),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

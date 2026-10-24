@@ -191,6 +191,16 @@ class Settings(BaseSettings):
     # Messages that couldn't be sent (Signal down, no internet) are tried
     # again for this long, then dropped
     send_retry_hours: PositiveFloat = 3
+    # While Signal rate-limits the bot, the waiting messages are tried one at
+    # a time, less and less often, at most this many minutes apart
+    rate_limit_retry_minutes: Annotated[int, Field(ge=1)] = 30
+
+    # How many commands the bot answers each person, at most, in
+    # command_limit_minutes: past that it says when it answers them again,
+    # once, so nobody can run the bot into Signal's rate limits. The admins
+    # aren't limited.
+    command_limit: Annotated[int, Field(ge=1)] = 20
+    command_limit_minutes: Annotated[int, Field(ge=1)] = 10
 
     # /delivery shows this many of the bot's latest messages, of those it sent
     # in the last day, and how many phones confirmed each (delivery.py)

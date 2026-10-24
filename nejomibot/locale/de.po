@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 19:02+0300\n"
+"POT-Creation-Date: 2026-10-24 20:44+0300\n"
 "Language-Team: German\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -678,6 +678,21 @@ msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Entfernt: {what}"
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"⏳ The bot answers each person at most {count} command in {period}. It "
+"answers you again in {wait}."
+msgid_plural ""
+"⏳ The bot answers each person at most {count} commands in {period}. It "
+"answers you again in {wait}."
+msgstr[0] ""
+"⏳ Der Bot beantwortet höchstens {count} Befehl pro Person in {period}. Er "
+"antwortet dir wieder in {wait}."
+msgstr[1] ""
+"⏳ Der Bot beantwortet höchstens {count} Befehle pro Person in {period}. Er "
+"antwortet dir wieder in {wait}."
+
+#: nejomibot/commands.py
 msgid "A shortcut can't have a | or a ;."
 msgstr "Ein Kürzel darf kein | und kein ; enthalten."
 
@@ -1275,8 +1290,8 @@ msgid "who the bot knows"
 msgstr "wen der Bot kennt"
 
 #: nejomibot/help.py
-msgid "add <who> <name>"
-msgstr "hinzufügen <wer> <name>"
+msgid "<who> <name>"
+msgstr "<wer> <name>"
 
 #: nejomibot/help.py
 msgid "add a contact, or rename"
@@ -1407,6 +1422,14 @@ msgid "remove one"
 msgstr "einen entfernen"
 
 #: nejomibot/help.py
+msgid "for everyone allowed, or the admins alone"
+msgstr "für alle Erlaubten, oder nur die Admins"
+
+#: nejomibot/help.py
+msgid "everyone <name> · admins <name>"
+msgstr "für alle <name> · für admins <name>"
+
+#: nejomibot/help.py
 msgid "<chats> <text>"
 msgstr "<chats> <text>"
 
@@ -1455,8 +1478,8 @@ msgid "its latest messages anywhere; delete some"
 msgstr "seine neuesten Nachrichten überall; einige löschen"
 
 #: nejomibot/help.py
-msgid "list · <n>,…"
-msgstr "liste · <n>,…"
+msgid "· <n>,…"
+msgstr "· <n>,…"
 
 #: nejomibot/help.py
 msgid "whether its latest messages arrived"
@@ -1465,6 +1488,10 @@ msgstr "ob seine neuesten Nachrichten angekommen sind"
 #: nejomibot/help.py
 msgid "delete its latest message here"
 msgstr "seine neueste Nachricht hier löschen"
+
+#: nejomibot/help.py
+msgid "Specials"
+msgstr "Spezialbefehle"
 
 #: nejomibot/help.py
 msgid ""
@@ -2192,15 +2219,20 @@ msgid "Debug mode: communicating with {group} only"
 msgstr "Debug-Modus: kommuniziert nur mit {group}"
 
 #: nejomibot/notices.py
+#, python-brace-format
 msgid ""
-"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
-"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
-"<your number> on the server and solve the captcha."
+"⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
+"again after {first}, then less and less often, every {longest} at most, and "
+"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"rate-limit --to <your number> on the server and solve the captcha, then send "
+"the bot any command: it tries again at once."
 msgstr ""
-"⚠️ Signal drosselt den Bot. Ausgehende Nachrichten werden in die "
-"Warteschlange gestellt und alle 30 Minuten erneut versucht. Um die "
-"Drosselung aufzuheben, führe signal-account.sh rate-limit --to <deine "
-"Nummer> auf dem Server aus und löse das Captcha."
+"⚠️ Signal drosselt den Bot. Ausgehende Nachrichten warten: Der Bot versucht "
+"nach {first} erneut, eine zu senden, dann immer seltener, höchstens alle "
+"{longest}, und sendet den Rest, sobald eine durchgeht. Um die Drosselung "
+"aufzuheben, führe signal-account.sh rate-limit --to <deine Nummer> auf dem "
+"Server aus, löse das Captcha und schicke dem Bot dann einen beliebigen "
+"Befehl: Er versucht es sofort erneut."
 
 #: nejomibot/notices.py
 #, python-brace-format
@@ -2678,6 +2710,17 @@ msgid "A special has at most {count} parts."
 msgstr "Ein Spezialbefehl hat höchstens {count} Teile."
 
 #: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"⚠️ It runs admin commands: {commands}. Everyone allowed who uses it, in a "
+"group too, now sees what they show, and has them do what they do; /special "
+"admins {name} takes that back."
+msgstr ""
+"⚠️ Er führt Admin-Befehle aus: {commands}. Alle Erlaubten, die ihn nutzen, "
+"auch in einer Gruppe, sehen jetzt, was diese zeigen, und lassen sie tun, was "
+"sie tun; /special für admins {name} nimmt das zurück."
+
+#: nejomibot/specials.py
 msgid "/specials: commands of your own, of text and other commands"
 msgstr "/specials: eigene Befehle, aus Text und anderen Befehlen"
 
@@ -2719,8 +2762,20 @@ msgstr ""
 "kürzel /morgen /gm; mit - keine"
 
 #: nejomibot/specials.py
+msgid ""
+"/special everyone <name>: everyone allowed may use it, in groups too, and /"
+"help lists it; /special admins <name>: the admins alone again"
+msgstr ""
+"/special für alle <name>: alle Erlaubten dürfen ihn nutzen, auch in Gruppen, "
+"und /hilfe listet ihn auf; /special für admins <name>: wieder nur die Admins"
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
 msgstr "/special entfernen <name>: einen entfernen"
+
+#: nejomibot/specials.py
+msgid "for everyone"
+msgstr "für alle"
 
 #: nejomibot/specials.py
 msgid "No specials of your own yet."
@@ -2783,6 +2838,29 @@ msgstr "Ein Spezialbefehl hat höchstens {count} Kürzel."
 #, python-brace-format
 msgid "✅ Shortcuts for {name}: {shortcuts}."
 msgstr "✅ Kürzel für {name}: {shortcuts}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Everyone allowed may use {name} already."
+msgstr "{name} ist bereits für alle Erlaubten."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Only the admins may use {name} already."
+msgstr "{name} ist bereits nur für die Admins."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Only the admins may use {name} now."
+msgstr "✅ Nur die Admins dürfen {name} jetzt nutzen."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"✅ Everyone allowed may use {name} now, in groups too, and /help lists it."
+msgstr ""
+"✅ Alle Erlaubten dürfen {name} jetzt nutzen, auch in Gruppen, und /hilfe "
+"listet ihn auf."
 
 #: nejomibot/status.py
 #, python-brace-format

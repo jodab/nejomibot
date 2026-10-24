@@ -1,6 +1,7 @@
 """/help: the commands the asker may use, a short line each, with an icon to
 find them by, as Signal's bubbles are narrow. Everyone allowed sees the
-everyday commands; an admin, in a direct chat, all of them.
+everyday commands, and the admins' specials for everyone; an admin, in a
+direct chat, all of them.
 
 A command shows by its name in the bot's language, if it has one, and with
 its aliases: those the bot comes with, and those the config gives it; its
@@ -16,6 +17,7 @@ from .commands import ALIASES, Command, Handler, aliases, answer
 from .config import get_settings
 from .i18n import N_, SOURCE_LANGUAGE, _, language, prefixed, spoken
 from .messages import escape
+from .specials import own_specials, summary
 from .timers import example_date
 
 
@@ -82,7 +84,7 @@ ADMIN = [
         N_("<album> shortcuts <names>|-"),
     ),
     Line("👥", "/contacts", N_("who the bot knows"), N_("[<who>]")),
-    Line("📇", "/contacts", N_("add a contact, or rename"), N_("add <who> <name>")),
+    Line("📇", "/contacts add", N_("add a contact, or rename"), N_("<who> <name>")),
     Line("🔢", "/trust", N_("the safety numbers, or one's"), N_("[<who>]")),
     Line("🔐", "/trust", N_("mark as verified"), N_("<who> <safety number>")),
     Line("📋", "/allowed", N_("who may use the bot")),
@@ -113,6 +115,12 @@ ADMIN = [
         N_("shortcuts <name> <names>|-"),
     ),
     Line("🗑️", "/special", N_("remove one"), N_("remove <name>")),
+    Line(
+        "👥",
+        "/special",
+        N_("for everyone allowed, or the admins alone"),
+        N_("everyone <name> · admins <name>"),
+    ),
     Line("✉️", "/msg", N_("post a message to chats"), N_("<chats> <text>")),
     Line("▶️", "/run", N_("post commands' answers to chats"), N_("<chats> <commands>")),
     Line("📥", "/incoming", N_("messages people sent it; forward some"), N_("[<n>,…]")),
@@ -121,9 +129,9 @@ ADMIN = [
     Line("🗑️", "/birthday", N_("remove one; /nameday too"), N_("remove <n>")),
     Line(
         "📤",
-        "/delete",
+        "/delete list",
         N_("its latest messages anywhere; delete some"),
-        N_("list · <n>,…"),
+        N_("· <n>,…"),
     ),
     Line("📬", "/delivery", N_("whether its latest messages arrived")),
 ]
@@ -141,32 +149,49 @@ def shown_name(command: str) -> str:
     return prefixed(name + space + next(iter(language().words.get(second, [])), second))
 
 
-def other_names(command: str) -> list[str]:
+def other_names(command: str, table: dict[str, str]) -> list[str]:
     """The command's aliases: the bot's own, then the config's, but those the
-    config gives another command."""
-    table = aliases()
+    config gives another command, as table, aliases()'s, has them."""
     names: dict[str, str] = {}  # each once, in any case
     for name in [*ALIASES.get(command, []), *get_settings().aliases.get(command, [])]:
         names.setdefault(name.casefold(), name)
     return [prefixed(name) for key, name in names.items() if table.get(key) == command]
 
 
-def command_line(command: Line) -> str:
+def command_line(command: Line, table: dict[str, str] | None = None) -> str:
     """E.g. '📷 `/photo` – a random photo (/pic)': the aliases on the
-    command's first line only. Styled."""
+    command's first line only, by table, aliases()'s, which a list of lines
+    makes once. Styled."""
     usage = shown_name(command.name)
     if command.args:
         usage += f" {_(command.args)}"
     line = f"{command.icon} `{usage}` – {escape(_(command.what))}"
     lines = EVERYDAY + ADMIN + ANYWHERE
     first = next(each for each in lines if each.name == command.name)
-    if first is command and (names := other_names(command.name)):
+    if first is command and (
+        names := other_names(command.name, aliases() if table is None else table)
+    ):
         line += f" ({escape(', '.join(names))})"
     return line
 
 
-def section(title: str, commands: list[Line]) -> str:
-    return "\n".join([f"**{escape(title)}**", *map(command_line, commands)])
+def section(title: str, commands: list[Line], table: dict[str, str]) -> str:
+    lines = [command_line(command, table) for command in commands]
+    return "\n".join([f"**{escape(title)}**", *lines])
+
+
+def specials_section() -> str | None:
+    """The admins' specials that everyone allowed may use, if any, a line
+    each: what it posts, in short, and its shortcuts. Styled."""
+    found = own_specials.current()
+    lines: list[str] = []
+    for name, parts in sorted(found.specials.items()):
+        if name in found.everyone:
+            line = f"✨ `{prefixed(name)}` – {escape(summary(parts))}"
+            if shortcuts := found.shortcuts.get(name):
+                line += f" ({escape(', '.join(map(prefixed, shortcuts)))})"
+            lines.append(line)
+    return "\n".join([f"**{escape(_('Specials'))}**", *lines]) if lines else None
 
 
 def notes() -> list[str]:
@@ -212,19 +237,21 @@ def notes() -> list[str]:
 
 def help_message(admin: bool) -> str:
     """The commands an admin may use in a direct chat, or else those anyone
-    allowed may. Styled."""
+    allowed may, the admins' specials for everyone too. Styled."""
+    table = aliases()
+    specials = [found] if (found := specials_section()) else []
     if admin:
         allowed = len(access.allowed_list.current().entries)
+        title = _("For everyone allowed ({count})").format(count=allowed)
         parts = [
-            section(
-                _("For everyone allowed ({count})").format(count=allowed), EVERYDAY
-            ),
-            section(_("Admins, in a direct chat"), ADMIN),
-            section(_("Admins, in any chat"), ANYWHERE),
+            section(title, EVERYDAY, table),
+            *specials,
+            section(_("Admins, in a direct chat"), ADMIN, table),
+            section(_("Admins, in any chat"), ANYWHERE, table),
             escape("\n".join(notes())),
         ]
     else:
-        parts = [section(_("Commands"), EVERYDAY)]
+        parts = [section(_("Commands"), EVERYDAY, table), *specials]
     hints = [_("Commands start with . or /, whichever is easier to type.")]
     if spoken() != SOURCE_LANGUAGE:
         hints.append(_("Every command takes its English name too."))
@@ -233,6 +260,7 @@ def help_message(admin: bool) -> str:
 
 
 class Help(Handler):
+    everyday = True
     commands = (Command("/help"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 19:02+0300\n"
+"POT-Creation-Date: 2026-10-24 20:44+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -677,6 +677,21 @@ msgid "🗑️ Removed: {what}"
 msgstr "🗑️ Αφαιρέθηκε: {what}"
 
 #: nejomibot/commands.py
+#, python-brace-format
+msgid ""
+"⏳ The bot answers each person at most {count} command in {period}. It "
+"answers you again in {wait}."
+msgid_plural ""
+"⏳ The bot answers each person at most {count} commands in {period}. It "
+"answers you again in {wait}."
+msgstr[0] ""
+"⏳ Το bot απαντά σε έως {count} εντολή από κάθε άτομο ανά {period}. Θα σας "
+"απαντήσει ξανά σε {wait}."
+msgstr[1] ""
+"⏳ Το bot απαντά σε έως {count} εντολές από κάθε άτομο ανά {period}. Θα σας "
+"απαντήσει ξανά σε {wait}."
+
+#: nejomibot/commands.py
 msgid "A shortcut can't have a | or a ;."
 msgstr "Μια συντόμευση δεν μπορεί να περιέχει | ή ;."
 
@@ -1273,8 +1288,8 @@ msgid "who the bot knows"
 msgstr "ποιους γνωρίζει το bot"
 
 #: nejomibot/help.py
-msgid "add <who> <name>"
-msgstr "πρόσθεσε <ποιος> <όνομα>"
+msgid "<who> <name>"
+msgstr "<ποιος> <όνομα>"
 
 #: nejomibot/help.py
 msgid "add a contact, or rename"
@@ -1405,6 +1420,14 @@ msgid "remove one"
 msgstr "αφαίρεση μίας"
 
 #: nejomibot/help.py
+msgid "for everyone allowed, or the admins alone"
+msgstr "για όλους τους επιτρεπόμενους, ή μόνο για τους διαχειριστές"
+
+#: nejomibot/help.py
+msgid "everyone <name> · admins <name>"
+msgstr "για όλους <όνομα> · για διαχειριστές <όνομα>"
+
+#: nejomibot/help.py
 msgid "<chats> <text>"
 msgstr "<συνομιλίες> <κείμενο>"
 
@@ -1453,8 +1476,8 @@ msgid "its latest messages anywhere; delete some"
 msgstr "τα τελευταία του μηνύματα παντού· διαγραφή ορισμένων"
 
 #: nejomibot/help.py
-msgid "list · <n>,…"
-msgstr "λίστα · <n>,…"
+msgid "· <n>,…"
+msgstr "· <n>,…"
 
 #: nejomibot/help.py
 msgid "whether its latest messages arrived"
@@ -1463,6 +1486,10 @@ msgstr "αν παραδόθηκαν τα τελευταία του μηνύμα�
 #: nejomibot/help.py
 msgid "delete its latest message here"
 msgstr "διαγραφή του τελευταίου του μηνύματος εδώ"
+
+#: nejomibot/help.py
+msgid "Specials"
+msgstr "Ειδικές εντολές"
 
 #: nejomibot/help.py
 msgid ""
@@ -2192,15 +2219,20 @@ msgid "Debug mode: communicating with {group} only"
 msgstr "Λειτουργία αποσφαλμάτωσης: επικοινωνία μόνο με {group}"
 
 #: nejomibot/notices.py
+#, python-brace-format
 msgid ""
-"⚠️ Signal is rate-limiting the bot. Outgoing messages are queued and retried "
-"every 30 minutes. To lift the limit, run signal-account.sh rate-limit --to "
-"<your number> on the server and solve the captcha."
+"⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
+"again after {first}, then less and less often, every {longest} at most, and "
+"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"rate-limit --to <your number> on the server and solve the captcha, then send "
+"the bot any command: it tries again at once."
 msgstr ""
 "⚠️ Το Signal περιορίζει τις αποστολές του bot. Τα εξερχόμενα μηνύματα "
-"μπαίνουν σε αναμονή και επιχειρούνται ξανά κάθε 30 λεπτά. Για να αρθεί ο "
-"περιορισμός, εκτελέστε signal-account.sh rate-limit --to <ο αριθμός σας> "
-"στον διακομιστή και λύστε το captcha."
+"περιμένουν: το bot επιχειρεί ξανά να στείλει ένα μετά από {first}, έπειτα "
+"όλο και πιο αραιά, το πολύ κάθε {longest}, και στέλνει τα υπόλοιπα μόλις "
+"περάσει ένα. Για να αρθεί ο περιορισμός, εκτελέστε signal-account.sh rate-"
+"limit --to <ο αριθμός σας> στον διακομιστή, λύστε το captcha και στείλτε "
+"έπειτα οποιαδήποτε εντολή στο bot: θα επιχειρήσει ξανά αμέσως."
 
 #: nejomibot/notices.py
 #, python-brace-format
@@ -2675,6 +2707,17 @@ msgid "A special has at most {count} parts."
 msgstr "Μια ειδική εντολή έχει έως {count} μέρη."
 
 #: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"⚠️ It runs admin commands: {commands}. Everyone allowed who uses it, in a "
+"group too, now sees what they show, and has them do what they do; /special "
+"admins {name} takes that back."
+msgstr ""
+"⚠️ Εκτελεί εντολές διαχειριστή: {commands}. Όποιος επιτρέπεται και τη "
+"χρησιμοποιεί, και σε ομάδα, βλέπει πλέον ό,τι δείχνουν αυτές και τις βάζει "
+"να κάνουν ό,τι κάνουν· το /special για διαχειριστές {name} το αναιρεί."
+
+#: nejomibot/specials.py
 msgid "/specials: commands of your own, of text and other commands"
 msgstr "/specials: δικές σας εντολές, από κείμενο και άλλες εντολές"
 
@@ -2716,8 +2759,21 @@ msgstr ""
 "συντομεύσεις /πρωί /gm· με -, καμία"
 
 #: nejomibot/specials.py
+msgid ""
+"/special everyone <name>: everyone allowed may use it, in groups too, and /"
+"help lists it; /special admins <name>: the admins alone again"
+msgstr ""
+"/special για όλους <όνομα>: όλοι οι επιτρεπόμενοι μπορούν να τη "
+"χρησιμοποιούν, και σε ομάδες, και το /βοήθεια την αναφέρει· /special για "
+"διαχειριστές <όνομα>: ξανά μόνο οι διαχειριστές"
+
+#: nejomibot/specials.py
 msgid "/special remove <name>: remove one"
 msgstr "/special αφαίρεσε <όνομα>: αφαίρεση μίας"
+
+#: nejomibot/specials.py
+msgid "for everyone"
+msgstr "για όλους"
 
 #: nejomibot/specials.py
 msgid "No specials of your own yet."
@@ -2780,6 +2836,31 @@ msgstr "Μια ειδική εντολή έχει έως {count} συντομε�
 #, python-brace-format
 msgid "✅ Shortcuts for {name}: {shortcuts}."
 msgstr "✅ Συντομεύσεις για το {name}: {shortcuts}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Everyone allowed may use {name} already."
+msgstr "Η ειδική εντολή {name} είναι ήδη για όλους τους επιτρεπόμενους."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "Only the admins may use {name} already."
+msgstr "Η ειδική εντολή {name} είναι ήδη μόνο για τους διαχειριστές."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid "✅ Only the admins may use {name} now."
+msgstr ""
+"✅ Μόνο οι διαχειριστές μπορούν πλέον να χρησιμοποιούν την ειδική εντολή "
+"{name}."
+
+#: nejomibot/specials.py
+#, python-brace-format
+msgid ""
+"✅ Everyone allowed may use {name} now, in groups too, and /help lists it."
+msgstr ""
+"✅ Όλοι οι επιτρεπόμενοι μπορούν πλέον να χρησιμοποιούν την ειδική εντολή "
+"{name}, και σε ομάδες, και το /βοήθεια την αναφέρει."
 
 #: nejomibot/status.py
 #, python-brace-format

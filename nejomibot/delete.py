@@ -193,7 +193,15 @@ def usage() -> str:
 
 
 class Delete(Handler):
-    commands = (Command("/delete", more=True, subcommands=("list",)),)
+    """Timers, /run and specials may list the bot's messages, but not delete
+    any: they run commands as an admin in a direct chat, so the latest
+    message there would go, and a number would name whatever has it by
+    then."""
+
+    commands = (
+        Command("/delete list"),
+        Command("/delete", more=True, timers=False, subcommands=("list",)),
+    )
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         message = context.message

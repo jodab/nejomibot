@@ -501,6 +501,7 @@ class Birthdays(Handler):
     """The lists, for everyone allowed. Not for timers, as what they show
     depends on the chat."""
 
+    everyday = True
     commands = (Command("/birthdays", timers=False), Command("/namedays", timers=False))
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

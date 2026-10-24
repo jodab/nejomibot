@@ -105,6 +105,7 @@ class Today(Handler):
     """For everyone allowed, and for timers, which post them to every chat
     at once, each group with its own birthdays."""
 
+    everyday = True
     commands = (Command("/today"),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:

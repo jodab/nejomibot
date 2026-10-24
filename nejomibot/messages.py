@@ -12,8 +12,15 @@ outbox and is tried again, for up to send_retry_hours. Surely not sent:
 A timeout or a dropped connection may come after Signal got the message, and a
 retry is a new message that would show up twice, so those aren't retried.
 
-While Signal rate-limits the bot, waiting messages are tried every half hour,
-as trying more often can keep the limit in place, until a message goes out.
+While Signal rate-limits the bot (signal-cli-rest-api says 429: Signal wants
+a captcha solved first), nothing is sent at once, as each try would meet the
+limit, and many could keep it in place: new messages wait behind the others.
+The one that has waited longest is tried alone, after two minutes, then
+twice as long after each try, rate_limit_retry_minutes apart at most; and at
+once, a minute after the last try at the soonest, when an admin sends a
+command, as they may have just lifted the limit. Once it goes out, the limit
+is lifted, and the rest follow.
+
 A message that has waited half a minute is kept in data_dir/outbox, a file
 each, until it's sent or dropped, and all of them are as the bot stops: the
 bot sends them once it's started again. A short wait, as while
@@ -67,8 +74,11 @@ SEND_TIMEOUT = 120  # seconds
 # internet outage can last for hours
 FIRST_RETRY = timedelta(seconds=10)
 RETRY_INTERVAL = timedelta(minutes=2)
-# While Signal rate-limits the bot, as trying more often can keep the limit
-RATE_LIMITED_RETRY = timedelta(minutes=30)
+# While Signal rate-limits the bot, one is tried this soon, then twice as
+# long after each try, up to rate_limit_retry_minutes; and as an admin sends
+# a command, this long after the last try at the soonest
+RATE_LIMITED_FIRST = timedelta(minutes=2)
+NUDGE_AFTER = timedelta(minutes=1)
 TOO_MANY_REQUESTS = 429
 # A message waiting this long is kept on disk, so a restart doesn't lose it
 KEEP_AFTER = timedelta(seconds=30)
@@ -342,13 +352,24 @@ def retry_delays() -> Iterator[timedelta]:
         delay = min(delay * 2, RETRY_INTERVAL)
 
 
+def rate_limited_delays() -> Iterator[timedelta]:
+    """How long to wait before each try while Signal rate-limits the bot:
+    2 min, 4 min, 8 min... then every rate_limit_retry_minutes."""
+    longest = timedelta(minutes=get_settings().rate_limit_retry_minutes)
+    delay = RATE_LIMITED_FIRST
+    while True:
+        yield min(delay, longest)
+        delay = min(delay * 2, longest)
+
+
 class Outbox:
     """Sends messages, keeping the ones that surely weren't sent to try again.
 
     Each recipient's messages go out in order: a new one waits behind any that
-    are waiting, which are tried first. Messages older than send_retry_hours
-    are dropped, and the recipient is told how many once sending works again.
-    Sent ones are kept in the sent log, for /delete.
+    are waiting, which are tried first. While Signal rate-limits the bot, all
+    wait, and one at a time is tried (probe()). Messages older than
+    send_retry_hours are dropped, and the recipient is told how many once
+    sending works again. Sent ones are kept in the sent log, for /delete.
     """
 
     def __init__(
@@ -363,6 +384,8 @@ class Outbox:
         self._dropped: Counter[str] = Counter()
         self._retrying: asyncio.Task[None] | None = None
         self._rate_limited = False
+        # When a try last met Signal's rate limit, by time.monotonic
+        self._limited_at: float | None = None
         self._wake: asyncio.Event | None = None  # wakes the retries early
         self._numbers = itertools.count()  # for the files' names
         self.sent = SentLog(now)
@@ -411,17 +434,20 @@ class Outbox:
 
         Messages waiting for the recipient go first, tried right away: a new
         one, like the answer to a command that just came in, often means
-        Signal is back.
+        Signal is back. While Signal rate-limits the bot, it isn't tried: it
+        waits behind the others, as a try would only meet the limit.
         """
         async with self._locks[recipient]:
-            if recipient in self._queues:
+            if not self._rate_limited and recipient in self._queues:
                 await self._flush(recipient)
-            outcome = Outcome.NOT_SENT  # unless tried: it waits behind others
-            if recipient not in self._queues:
-                outcome = await self._try(recipient, message)
-                if not outcome.waits:
-                    return outcome
-            self._queue(recipient, message)
+            if self._rate_limited:
+                self._queue(recipient, message)
+                return Outcome.RATE_LIMITED
+            if recipient in self._queues:  # some still wait: it goes behind them
+                self._queue(recipient, message)
+                return Outcome.NOT_SENT
+            if (outcome := await self._try(recipient, message)).waits:
+                self._queue(recipient, message)
             return outcome
 
     async def try_once(self, recipient: str, message: SendMessage) -> Outcome:
@@ -480,10 +506,45 @@ class Outbox:
             logger.info("%d messages waiting to be sent, from before", len(found))
 
     async def flush(self) -> None:
-        """Try the waiting messages again, oldest first, and drop expired ones."""
+        """Try the waiting messages again, oldest first in each chat, and drop
+        expired ones; but no more once Signal rate-limits the bot, as the
+        rest would meet the limit too."""
         for recipient in list(self._queues):
             async with self._locks[recipient]:
+                if recipient in self._queues:
+                    await self._flush(recipient)
+            if self._rate_limited:
+                return
+
+    async def probe(self) -> None:
+        """While Signal rate-limits the bot: drop what has waited too long,
+        then try the message that has waited longest, alone. Once it goes
+        out, the limit is lifted, and the rest follow."""
+        for recipient in list(self._queues):
+            async with self._locks[recipient]:
+                if (queue := self._queues.get(recipient)) is not None:
+                    self._expire(recipient, queue)
+                    if not queue:
+                        del self._queues[recipient]
+        waiting = [(q[0].queued_at, chat) for chat, q in self._queues.items() if q]
+        if not waiting:
+            return
+        _at, recipient = min(waiting)
+        async with self._locks[recipient]:
+            if recipient in self._queues:
                 await self._flush(recipient)
+        if not self._rate_limited:
+            await self.flush()
+
+    def nudge(self) -> None:
+        """Try again now, while Signal rate-limits the bot, as for an admin's
+        command: they may have just lifted the limit. Not sooner than
+        NUDGE_AFTER after the last try met it."""
+        if not self._rate_limited or self._wake is None:
+            return
+        since = time.monotonic() - (self._limited_at or 0)
+        if since >= NUDGE_AFTER.total_seconds():
+            self._wake.set()
 
     async def _flush(self, recipient: str) -> None:
         queue = self._queues[recipient]
@@ -517,11 +578,13 @@ class Outbox:
             if not self._rate_limited and self.on_rate_limited is not None:
                 self.on_rate_limited()
             self._rate_limited = True
+            self._limited_at = time.monotonic()
         if outcome is not Outcome.SENT:
             return outcome
         logger.debug("Sent a message to %s", recipient)
         if self._rate_limited:
-            # The limit is lifted: the others needn't wait their half hour
+            # The limit is lifted: the others go now too
+            logger.info("Signal no longer rate-limits the bot")
             self._rate_limited = False
             if self._wake is not None:
                 self._wake.set()
@@ -539,19 +602,25 @@ class Outbox:
 
     def _start_retrying(self) -> None:
         if self._retrying is None or self._retrying.done():
-            self._retrying = asyncio.create_task(self._retry_loop())
+            # Before the loop runs, so a nudge meanwhile wakes it
+            self._wake = asyncio.Event()
+            self._retrying = asyncio.create_task(self._retry_loop(self._wake))
 
-    async def _retry_loop(self) -> None:
+    async def _retry_loop(self, wake: asyncio.Event) -> None:
         delays = retry_delays()
-        self._wake = asyncio.Event()
+        limited = rate_limited_delays()
         while self._queues:
-            delay = RATE_LIMITED_RETRY if self._rate_limited else next(delays)
+            if self._rate_limited:
+                delay = next(limited)
+            else:
+                delay = next(delays)
+                limited = rate_limited_delays()  # a new limit starts afresh
             with contextlib.suppress(TimeoutError):
                 async with asyncio.timeout(delay.total_seconds()):
-                    await self._wake.wait()
-            self._wake.clear()
+                    await wake.wait()
+            wake.clear()
             try:
-                await self.flush()
+                await (self.probe() if self._rate_limited else self.flush())
             except Exception:
                 logger.exception("Retrying queued messages failed")
         # No await between the last check and this, so nothing queued since
@@ -560,9 +629,11 @@ class Outbox:
 
 def delayed(message: SendMessage, queued_at: datetime) -> SendMessage:
     """The message with a note that it's late. Added last, so that mention
-    positions in the text still hold."""
+    positions in the text still hold; in a styled message, as it shows."""
     at = queued_at.astimezone(get_settings().tz)
     note = _("⏳ Delayed: this message was due at {time}").format(time=f"{at:%H:%M}")
+    if message.text_mode == TextMode.STYLED:
+        note = escape(note)
     text = f"{message.text}\n\n{note}" if message.text else note
     return message.model_copy(update={"text": text})
 

@@ -235,6 +235,7 @@ def remind_answer(context: DataMessageContext, words: list[str]) -> str:
 
 
 class Remind(Handler):
+    everyday = True
     commands = (
         Command("/remind", more=True, timers=False, subcommands=("remove", "delete")),
     )
