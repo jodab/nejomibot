@@ -97,6 +97,16 @@ of signalbot and signal-cli-rest-api for them.
   [delivery.py](nejomibot/delivery.py) receives them on a websocket of its
   own, `rest.received()`. Once signalbot has a receipt message type and a
   handler for it, use those, and remove the second websocket.
+- [ ] **signalbot can't lift a rate limit**: a failed send's `SendError`
+  keeps only the HTTP status, not the `challenge_tokens` that come with
+  signal-cli-rest-api's 429, and signalbot makes no request to
+  `/v1/accounts/{number}/rate-limit-challenge` (as of 2.2.0, its
+  `RateLimitChallengeRequest` is only a model generated from
+  signal-cli-rest-api's swagger.json). So the admins lift a limit on the
+  server, with `signal-account.sh rate-limit --to <your number>`. Once
+  signalbot passes the tokens on and can submit a solved captcha, decide
+  whether an admin should be able to send the bot the `signalcaptcha://`
+  link in a direct chat instead, which would be a new command.
 - [ ] **What else signalbot lacks:** it puts a sync message's destination in
   a `DataMessage`'s source fields, so a command typed on a linked phone looks
   as if the other person had sent it (the bot warns against linking
