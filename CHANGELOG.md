@@ -1,7 +1,7 @@
 # Changelog
 
-What changed from one version of nejomibot to the next, newest first, and
-what to do when updating. The format follows
+All notable changes to nejomibot are documented in this file, newest first,
+together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Unreleased
@@ -10,151 +10,161 @@ what to do when updating. The format follows
 
 - A `+` standing on its own in a special now joins the parts on either side
   of it (see Added). If one of your specials has such a `+` in its text, or
-  in what follows a command, such as an album's name, the special posts
-  differently from this release on: put the `+` next to a word, or write it
-  out.
+  in what follows a command, such as an album name, the special posts
+  differently from this release on: attach the `+` to a word, or write
+  "plus" instead.
 
 ### Added
 
-- A `+` in place of a `;` puts a special's parts on either side of it in one
-  message, a blank line between them: `/special add /dailypost /today +
-  /weather; Photo of the day! /uniquephoto` posts the day's holidays, and in
-  a group its birthdays and name days, with the weather under them in one
-  message, as `/today` had them before 0.99.14, then the photo. Text can be
-  joined too: `/weather + Have a nice day!` puts a line under the weather.
-  A `+` inside a word, as in `C++`, is text.
+- In a special, a `+` in place of a `;` puts the parts on either side of it
+  in one message, separated by a blank line. For example, `/special add
+  /dailypost /today + /weather; Photo of the day! /uniquephoto` posts the
+  day's holidays, and in a group its birthdays and name days, with the
+  weather below them in one message, as `/today` showed them before 0.99.14,
+  followed by the photo. Text can be joined too: `/weather + Have a nice
+  day!` adds a line below the weather. A `+` inside a word, as in `C++`,
+  remains text.
 
 ### Changed
 
-- `/today` and `/day`, asked in a group on a day with nothing special, no
-  longer answer; in a direct chat they still say "Nothing special today.".
+- `/today` and `/day` no longer reply in a group on a day with nothing
+  special; in a direct chat, they still say "Nothing special today.".
+- The documentation has been rewritten to be clearer and easier to follow:
+  the README, the Docker Hub page, this changelog and the to-do list.
 
 ## 0.99.15 - 2026-10-23
 
 ### Added
 
-- A welcome for someone made an admin: `/admin add` sends them, in a direct
-  chat with the bot, who made them an admin, that `/help` lists every
-  command, and a few to start with. `/admin add <who> <language>`, such as
-  `/admin add 3 sv`, gives them that language, which the bot speaks with
-  them from then on, and welcomes them in it; without one, the welcome is in
-  their own language, or the bot's. The reply says whether the welcome went.
+- A welcome message for new admins: `/admin add` sends the new admin, in a
+  direct chat with the bot, a message saying who made them an admin, that
+  `/help` lists every command, and a few commands to start with.
+  `/admin add <who> <language>`, such as `/admin add 3 sv`, sets that
+  language for them, which the bot then uses with them, and sends the
+  welcome in it; without a language, the welcome is in their own language,
+  or the bot's. The reply says whether the welcome was sent.
 
 ### Changed
 
-- nejomibot is under the MIT License from this release on, in place of the
-  GNU General Public License, version 3 or later, which 0.99.14 and the
-  releases before it keep. The fortune libraries from fortune-mod keep their
-  BSD license. The package, and so the image, carries both licenses' texts
-  now, as they ask.
+- From this release on, nejomibot is licensed under the MIT License instead
+  of the GNU General Public License, version 3 or later, which still applies
+  to 0.99.14 and earlier releases. The fortune libraries from fortune-mod
+  keep their BSD license. The package, and therefore the image, now includes
+  the text of both licenses, as both licenses require.
 - Dependencies: signalbot 2.1.3, python-dateutil 3.0.0, pydantic-settings
-  2.16.1, websockets 17.3 and tzlocal 5.4.5. The image is on Python 3.14.9,
-  and is built with uv 0.13.5.
+  2.16.1, websockets 17.3 and tzlocal 5.4.5. The image now uses Python
+  3.14.9 and is built with uv 0.13.5.
 
 ## 0.99.14 - 2026-10-23
 
 ### Updating
 
-- `/today` no longer posts the weather; `/weather` does. Add it after
-  `/today` in your timers and specials, such as the daily post's: `/today;
-  /weather; /uniquephoto`. Right after updating, send `/special add` with
-  the special's name and its new parts, or remove the timer and add it
-  again; or edit `timers.txt` and `specials.txt` in `data_dir` by hand while
-  the bot is stopped for the update. Until then, the daily post has no
-  weather; before the update, `/weather` there would post it twice.
-- An alias for `/photo` in the config that stands for an album, such as
-  `"/photo" = ["/alice"]` for a library that was all Alice's, can be the
-  album's shortcut now (see Added): take it out of the config first, as
-  `/album` doesn't take a name the bot answers to already.
+- `/today` no longer posts the weather; `/weather` does. Add `/weather`
+  after `/today` in your timers and specials, such as the daily post:
+  `/today; /weather; /uniquephoto`. Right after updating, send `/special
+  add` with the special's name and its new parts, or remove the timer and
+  add it again; alternatively, edit `timers.txt` and `specials.txt` in
+  `data_dir` by hand while the bot is stopped for the update. Until then,
+  the daily post has no weather; adding `/weather` before the update would
+  post the weather twice.
+- An alias for `/photo` in the configuration that stands for an album, such
+  as `"/photo" = ["/alice"]` for a library that was all Alice's, can now be
+  the album's shortcut instead (see Added): remove it from the configuration
+  first, because `/album` doesn't accept a name the bot already responds to.
 
 ### Added
 
-- Shortcuts for an album, for the admins to give it: `/album Alice
-  shortcuts /alice alice` makes `/alice` and `alice` other names for `/photo
-  Alice`, so `alice 2017` is `/photo Alice 2017`; `/album Alice shortcuts -`
-  takes them away. A shortcut is a word, with or without a `/` first, but not
-  a name the bot answers to already: a command, an alias or a special.
-  `/albums` and `/album Alice` show them. They're kept in
-  `data_dir/albums.txt`, with the birth dates. In Swedish `genvägar`, in
-  Greek `συντομεύσεις`.
-- `/photo` takes a date as exact as you like: `/photo 2017`, a photo taken
-  in 2017; `/photo 2017-05`, in May 2017; `/photo 2017-05-14 15`, from 15:00
-  to 16:00 that day. With none then, it picks from the nearest year, month
-  or hour that has some, as `/photo 2017-05-14` does with days, and says how
-  far off that is.
+- Album shortcuts, which admins can set: `/album Alice shortcuts /alice
+  alice` makes `/alice` and `alice` other names for `/photo Alice`, so
+  `alice 2017` means `/photo Alice 2017`; `/album Alice shortcuts -` removes
+  them. A shortcut is a single word, with or without a leading `/`, but not
+  a name the bot already responds to: a command, an alias or a special.
+  `/albums` and `/album Alice` show them. They are stored in
+  `data_dir/albums.txt`, with the birth dates. In Swedish, `genvägar`; in
+  Greek, `συντομεύσεις`.
+- `/photo` accepts a date as precise as you like: `/photo 2017` shows a
+  photo taken in 2017, `/photo 2017-05` one from May 2017, and `/photo
+  2017-05-14 15` one from between 15:00 and 16:00 that day. If there is none
+  in that period, it picks from the nearest year, month or hour that has
+  photos, as `/photo 2017-05-14` already did for days, and says how far off
+  that is.
 
 ### Changed
 
-- `/today` names the day's holidays, birthdays and name days alone, as
-  `/day` did, which is another name for it now (in Swedish `/dagen`, in
-  Greek `/ημέρα`). In what a timer, a special or `/run` posts, it's nothing
-  on a day with none of them, so `/today; /weather` is the weather alone
-  then; asked for, it still says "Nothing special today.".
+- `/today` lists only the day's holidays, birthdays and name days, as `/day`
+  did, and `/day` is now another name for it (in Swedish `/dagen`, in Greek
+  `/ημέρα`). In what a timer, a special or `/run` posts, it is empty on a
+  day with none of these, so `/today; /weather` then posts just the weather;
+  when asked directly, it still says "Nothing special today.".
 
 ## 0.99.13 - 2026-10-23
 
 ### Updating
 
-- `/photo new` is `/uniquephoto` now (in Swedish `/unikbild`, which was
+- `/photo new` is now `/uniquephoto` (in Swedish `/unikbild`, previously
   `/bild ny`). Before updating, change it in your timers and specials, such
-  as the daily post's: remove the timer or special and add it again with
+  as the daily post: remove the timer or special and add it again with
   `/uniquephoto`, or edit `timers.txt` and `specials.txt` in `data_dir` by
-  hand, while the bot is stopped. One left with `/photo new` asks `/photo`
-  for an album called "new", and posts that there's none, not a photo.
+  hand while the bot is stopped. A timer or special left with `/photo new`
+  asks `/photo` for an album called "new", and posts that there is no such
+  album instead of a photo.
 
 ### Added
 
-- Albums: each folder right in the photo library (`photos_dir`) is one,
-  named as the folder, its subfolders part of it. `/albums` lists them, with
-  how many photos each has, the years they were taken in, and its birth
-  date. `/photo Alice` picks from the album Alice, `/onthisday Alice` too,
-  and `/cache Alice` counts its photos; without an album, each takes every
-  photo, in an album or not, as before. A name is matched in any case, and
-  may have spaces.
-- `/uniquephoto`, the round of photos not sent yet, as `/photo new` was; and
-  each album has a round of its own: `/uniquephoto Alice` posts each of
-  Alice's photos once, round after round, whatever the other rounds do.
-- `/photo 2024-06-01 15:00`: the photo taken nearest that moment, under how
-  far off it is; `/photo 2024-06-01`, one taken that day, or else on the
-  nearest day that has some; `/photo Alice 2024-06-01`, from that album.
-- `/album <album> <date>`, for the admins: a birth date of the album's own,
-  which its captions count an age from, kept in `data_dir/albums.txt`.
-  `/album <album> -` takes it away, so `photos_birth_date` counts for it, as
-  for every album without one; `/album <album>` shows the album.
+- Albums: each folder directly inside the photo library (`photos_dir`) is an
+  album, named after the folder, with its subfolders included. `/albums`
+  lists them, with how many photos each one has, the years they were taken
+  and the album's birth date. `/photo Alice` picks from the album Alice, as
+  does `/onthisday Alice`, and `/cache Alice` counts its photos; without an
+  album, each command uses every photo, in an album or not, as before. Album
+  names are matched in any letter case, and may contain spaces.
+- `/uniquephoto`, the round of photos not yet sent, which replaces `/photo
+  new`; each album also has a round of its own: `/uniquephoto Alice` posts
+  each of Alice's photos once, round after round, independently of the other
+  rounds.
+- `/photo 2024-06-01 15:00` shows the photo taken closest to that moment,
+  under how far off it is; `/photo 2024-06-01` shows one taken that day, or
+  failing that, on the nearest day that has photos; `/photo Alice
+  2024-06-01` picks from that album.
+- `/album <album> <date>`, for admins: a birth date for the album, from which
+  its captions count an age, stored in `data_dir/albums.txt`. `/album
+  <album> -` removes it, so that `photos_birth_date` applies to the album, as
+  to every album without a birth date of its own; `/album <album>` shows the
+  album.
 - A language for each chat. `/language` (in Swedish `/språk`) lists the
-  languages the bot speaks, and the one it speaks there; `/language sv`, or
-  `/language svenska`, makes it speak Swedish in a direct chat with
-  whoever sends it, and in a group, from an admin, for everyone in it;
-  `/language default` goes back to `language` in the config. In a direct
-  chat, an admin gives chats of `/chats` theirs: `/language 3,1 sv`. Kept in
+  languages the bot speaks, and the one it speaks in the chat;
+  `/language sv`, or `/language svenska`, makes it speak Swedish in a direct
+  chat with the sender, and in a group, when an admin sends it, with
+  everyone in the group; `/language default` returns to the `language`
+  setting. In a direct chat, an admin can set the language of chats listed
+  in `/chats`: `/language 3,1 sv`. The languages are stored in
   `data_dir/languages.txt`.
-- The bot answers in each chat's language, and posts to it in it: the
-  timers' posts, `/run`'s, reminders, the greeting, the notices to each
-  admin, and the note on a late message. A timer that posts to chats of two
-  languages runs its commands once in each, with the same picks, so every
-  chat still gets the same photo, captioned in its language, and the round
-  uses up one.
-
+- The bot replies in each chat's language, and posts to the chat in that
+  language: the timers' posts, `/run`'s posts, reminders, the greeting, the
+  notices to each admin, and the note on a late message. A timer that posts
+  to chats in two languages runs its commands once in each, with the same
+  random picks, so every chat still gets the same photo, captioned in its
+  own language, and the round uses up only one photo.
 - Greek: `language = "el"`, or `/language el` for a chat, with Greek names
-  for the commands, such as `/καιρός` and `/φωτογραφία`, and words for days
-  and subcommands, such as `δευ-παρ` and `πρόσθεσε`.
+  for the commands, such as `/καιρός` and `/φωτογραφία`, and Greek words for
+  days and subcommands, such as `δευ-παρ` and `πρόσθεσε`.
 
 ### Changed
 
-- The bot takes every language's names for commands, and its words for
-  days, times and subcommands, from anyone, whatever the chat's language:
-  `/väder` works in an English bot too. `/help` shows the names of the
-  language spoken in the chat.
+- The bot accepts every language's command names, and its words for days,
+  times and subcommands, from anyone, whatever the chat's language:
+  `/väder` works in an English bot too. `/help` shows the names in the
+  chat's language.
 - The weather names a place in each chat's language, when OpenWeatherMap
-  has a name for it there.
-- `/status`, the start message and `/cache` say how many albums there are.
+  has a name for it in that language.
+- `/status`, the startup notice and `/cache` show how many albums there are.
 - The bot's notices and reports are worded more plainly and formally: the
-  start message, `/status`'s and the health checks' details, `/delivery`,
-  the notes on late and dropped messages, and the warnings of rate limits,
-  changed safety numbers and lines of its files it can't read, in English
-  and Swedish.
-- A `/uniquephoto` pick does its bookkeeping in a third of the time, 32 ms
-  for 7,641 photos on a desktop.
+  startup notice, the details of `/status` and the health checks,
+  `/delivery`, the notes on late and dropped messages, and the warnings
+  about rate limits, changed safety numbers and unreadable lines in its
+  files, in English and Swedish.
+- A `/uniquephoto` pick does its bookkeeping in a third of the time: 32 ms
+  for 7,641 photos on a desktop computer.
 
 ### Removed
 
@@ -164,404 +174,424 @@ what to do when updating. The format follows
 
 ### Fixed
 
-- Registering with `signal-account.sh` could get stuck at the code, as
-  Signal's first SMS sometimes never comes, and the tool had no way to ask
-  for another. Where it asks for the code, Enter now has Signal send it
-  again, or call with it.
+- Registering with `signal-account.sh` could get stuck at the code, because
+  Signal's first text message sometimes never arrives, and the tool had no
+  way to request another. When the tool asks for the code, pressing Enter
+  now asks Signal to send it again, or to call with it.
 
 ## 0.99.11 - 2026-10-23
 
 ### Added
 
-- The admins hear of each start, in one message: `🟢 nejomibot 0.99.11
-  started`, when, and how long it took to be ready; then what needs their
-  attention, such as an update, a stop that wasn't clean, lines of the
-  bot's files it can't read, which do nothing, a clock that isn't
-  synchronized, or messages still waiting to be sent; then how the bot is:
-  its timers and the next run, its groups, chats allowed and admins, the
-  photos, the backups, the clock, its memory, signal-cli-rest-api's version,
-  and where it runs. Once in ten minutes at most, but after an update, so a
-  crash loop can't flood them: a start sooner tells once the ten minutes
-  are up. In debug mode too, marked as such.
+- The admins are notified of each start, in a single message:
+  `🟢 nejomibot 0.99.11 started`, when, and how long the bot took to become
+  ready; then anything that needs their attention, such as an update, a
+  stop that wasn't clean, unreadable lines in the bot's files (which have no
+  effect), a clock that isn't synchronized, or messages still waiting to be
+  sent; then how the bot is doing: its timers and the next run, its groups,
+  allowed chats and admins, the photos, the backups, the clock, its memory
+  use, signal-cli-rest-api's version, and where it runs. The notice is sent
+  at most once every ten minutes, except after an update, so that a crash
+  loop can't flood the admins: a start within that time is reported once
+  the ten minutes are up. Debug mode sends it too, marked as such.
 
 ### Changed
 
-- The notices of an update and of a stop that wasn't clean are part of that
-  message now, rather than of their own.
+- The notices of an update and of a stop that wasn't clean are now part of
+  that message, instead of separate messages.
 
 ## 0.99.10 - 2026-10-23
 
 ### Updating
 
-- `/dailypost` and `/dailyquote` are gone: specials of your own post the
-  same, with their headings made bold in Signal: `/special add /dailypost
-  /today; Photo of the day! /photo new`, and `/special add /dailyquote
-  Proverb or quote of the day: /fortune fortunes_svenska`. Before updating,
-  remove the timers that run them, and add them again after; or name the
-  specials so, and restart the bot once you've added them. Until then the
-  bot can't read those timers, which post nothing, and `/timers` doesn't
-  list them.
-- A special of your own that runs `/dailypost` or `/dailyquote` can't be
-  read either, as specials can't run each other: give it their parts
+- `/dailypost` and `/dailyquote` have been removed: specials of your own can
+  post the same, with their headings formatted in bold in Signal:
+  `/special add /dailypost /today; Photo of the day! /photo new` and
+  `/special add /dailyquote Proverb or quote of the day: /fortune
+  fortunes_svenska`. Before updating, remove the timers that run them, and
+  add them again afterwards; or give the specials those names, and restart
+  the bot once you have added them. Until then, the bot can't read those
+  timers, which post nothing, and `/timers` doesn't list them.
+- A special of your own that runs `/dailypost` or `/dailyquote` can't be read
+  either, because specials can't run each other: give it their parts
   instead, before updating.
-- An alias of `/dailypost` or `/dailyquote` in the configuration's
-  `[aliases]` stops the bot from starting: take it out before updating.
+- An alias for `/dailypost` or `/dailyquote` in the configuration's
+  `[aliases]` prevents the bot from starting: remove it before updating.
 
 ### Added
 
-- `/today`, for everyone allowed: the weather, with the day's holidays atop
-  it, and in a group, the birthdays and name days of those in it, as the
-  daily post had them. `/day`: the same without the weather, or "Nothing
+- `/today`, for everyone allowed: the weather, with the day's holidays above
+  it, and in a group, the birthdays and name days of its members, as the
+  daily post showed them. `/day`: the same without the weather, or "Nothing
   special today."
-- `/photo new`, for everyone allowed: a photo not sent yet in this round,
-  as the daily post's was, none twice until every photo has been sent.
-  `/photo` stays as it was, and doesn't count toward the round.
-- In Swedish, `/idag`, `/dagen` and `/bild ny`.
+- `/photo new`, for everyone allowed: a photo not yet sent in the current
+  round, as the daily post's photo was, never the same photo twice until
+  every photo has been sent. `/photo` stays as it was, and doesn't count
+  toward the round.
+- In Swedish: `/idag`, `/dagen` and `/bild ny`.
 
 ### Changed
 
-- `/dailypost preview` is `/today preview`; in Swedish, `/idag
-  förhandsvisa`.
+- `/dailypost preview` is now `/today preview`; in Swedish,
+  `/idag förhandsvisa`.
 
 ### Removed
 
-- `/dailypost` and `/dailyquote`, which specials of your own do as well
+- `/dailypost` and `/dailyquote`, which specials of your own can replace
   (see Updating), and their Swedish names `/dagenspost`, `/dagensbild` and
   `/dagenscitat`.
 
 ### Fixed
 
-- With a signal-cli-rest-api build from 2026-10-22 on, the bot waited for
-  its account forever at start ("has no account … yet"), and
-  `signal-account.sh` took the account for unregistered: those builds list
-  the accounts with their Signal IDs, as `{"number": …, "aci": …}`, rather
-  than by number alone. Both read either now.
+- With a signal-cli-rest-api build from 2026-10-22 or later, the bot waited
+  forever for its account at startup ("has no account … yet"), and
+  `signal-account.sh` treated the account as unregistered: those builds list
+  the accounts with their Signal IDs, as `{"number": …, "aci": …}`, instead
+  of by number alone. Both now read either format.
 
 ## 0.99.9 - 2026-10-23
 
 ### Added
 
-- `/contacts add` takes a Signal username, as `u:alice.42` or `@alice.42`,
+- `/contacts add` accepts a Signal username, as `u:alice.42` or `@alice.42`,
   for someone the bot doesn't know yet: signal-cli finds them by it, and
-  knows their username from then on, so it shows. Signal shares usernames
-  with nobody, so this is how the bot learns one.
+  knows their username from then on, so it is shown. Signal doesn't share
+  usernames, so this is how the bot learns one.
 - `/contacts` and `/trust` show the name someone gave themselves in Signal,
-  their profile name, as `🪪 Alice Berg`, beside the one in the contacts
-  where they differ: naming someone in the contacts hid it.
+  their profile name, as `🪪 Alice Berg`, next to the one in the contacts
+  where the two differ: saving someone in the contacts under a name used to
+  hide it.
 
 ### Changed
 
-- `/contacts <n>` shows the profile name, username and number a line each,
-  as `/profile` shows the bot's: `🪪 Profile name: …`, `🔗 Username: @…`,
-  `📞 Number: …`.
+- `/contacts <n>` shows the profile name, username and number on separate
+  lines, as `/profile` shows the bot's: `🪪 Profile name: …`,
+  `🔗 Username: @…`, `📞 Number: …`.
 
 ## 0.99.8 - 2026-10-21
 
 ### Added
 
 - `/contacts` and `/trust` show each person's Signal username, as
-  `@alice.42`, where signal-cli knows it, as `/contacts <n>` did already;
-  elsewhere, a person without a known phone number shows by name and
+  `@alice.42`, where signal-cli knows it, as `/contacts <n>` already did;
+  elsewhere, a person without a known phone number is shown by name and
   username, as `Alice (@alice.42)`. Signal doesn't share usernames, so
-  signal-cli knows only those of people it found by them.
+  signal-cli knows only those of people it found by username.
 
 ## 0.99.7 - 2026-10-21
 
 ### Added
 
-- The bot looks up the phone numbers on its lists that signal-cli can't put
-  a Signal ID to, once each: at a start, and as `/allow` adds one. Someone
-  who doesn't share their number in Signal is known to signal-cli by their
-  Signal ID alone, so their number on the allowed list could neither name
-  them nor match their direct messages, which come without it: the bot
-  ignored those. Signal now says whose each number is, unless its owner
-  keeps it from being found by number, and signal-cli keeps the two
-  together.
-- Once it knows a name, the bot writes it after the `#` of the lines of
-  `allowed.txt` and `admins.txt` that have none, so the files say who's who.
+- The bot looks up the phone numbers on its lists that signal-cli can't
+  match to a Signal ID, once each: at startup, and when `/allow` adds one.
+  signal-cli knows someone who doesn't share their number in Signal only by
+  their Signal ID, so their number on the allowed list could neither show
+  their name nor match their direct messages, which arrive without it: the
+  bot ignored those messages. Signal now says whose each number is, unless
+  its owner has chosen not to be findable by number, and signal-cli keeps
+  the number and the ID together.
+- Once it knows a name, the bot writes it after the `#` of any line in
+  `allowed.txt` and `admins.txt` that has none, so the files show who is
+  who.
 
 ### Changed
 
-- People show by name and phone number together where both are known, as
-  `Alice (+46701234567)`, in `/allowed`, `/admins`, `/chats`, `/timers`,
-  `/delete list`, `/delivery`, `/incoming`, and what `/msg` and `/run`
-  answer; by the name the allowed list has after their `#` where signal-cli
-  has none, `/chats` too.
-- Timers, `/run` and specials can run what only shows something, wherever
-  the admins post it: `/delivery`, `/chats`, `/allowed`, `/admins`,
-  `/incoming`, `/dailypost preview`, and `/timers` and `/specials` alone. A
-  timer at 08:15 can post `/delivery` to your own chat, say. What changes
-  timers, specials, birthdays or who may use the bot, posts to other chats,
-  or is each chat's own, they still can't.
-- `/run` runs its commands as the admin who sent it, rather than as the
-  first admin in the config, so numbers in it are theirs: `/run 1 /incoming
-  4,9` forwards messages 4 and 9 of their own `/incoming` list to chat 1.
+- People are shown by name and phone number together where both are known,
+  as `Alice (+46701234567)`, in `/allowed`, `/admins`, `/chats`, `/timers`,
+  `/delete list`, `/delivery`, `/incoming`, and the replies of `/msg` and
+  `/run`; where signal-cli has no name, by the name the allowed list has
+  after their `#`, in `/chats` too.
+- Timers, `/run` and specials can run commands that only show something,
+  wherever the admins post them: `/delivery`, `/chats`, `/allowed`,
+  `/admins`, `/incoming`, `/dailypost preview`, and `/timers` and
+  `/specials` on their own. A timer at 08:15 can post `/delivery` to your
+  own chat, for example. They still can't run commands that change timers,
+  specials, birthdays or who may use the bot, that post to other chats, or
+  that belong to each chat.
+- `/run` runs its commands as the admin who sent it, instead of as the first
+  admin in the configuration, so numbers in it are that admin's:
+  `/run 1 /incoming 4,9` forwards messages 4 and 9 of their own `/incoming`
+  list to chat 1.
 
 ### Fixed
 
-- A `/delete list` that a timer, `/run` or a special posted replaced the
-  numbers of the list the first admin was shown last, so their next
-  `/delete 3` could delete another message than the one they saw as 3. Such
-  a list now leaves an admin's numbers as they were, for `/incoming` too.
-- `/contacts` listed the bot's own safety number, under Only a safety
-  number, and `/contacts`, `/trust` and `/status` counted it, verified.
+- A `/delete list` posted by a timer, `/run` or a special replaced the
+  numbers of the list that the first admin was shown last, so their next
+  `/delete 3` could delete a different message from the one they saw as
+  number 3. Such a list now leaves every admin's numbers as they were, and
+  the same applies to `/incoming`.
+- `/contacts` listed the bot's own safety number, under "Only a safety
+  number", and `/contacts`, `/trust` and `/status` counted it as verified.
 
 ## 0.99.6 - 2026-10-21
-
-### Added
-
-- `/delivery`, for the admins: whether the bot's latest messages arrived. It
-  shows the `delivery_messages` (30) latest of those it sent in the last
-  day, wherever they went, newest first, with how many in each chat got it
-  and read it, from the delivery and read receipts their phones send.
-- A warning in the log for a message nobody's phone confirmed in 10
-  minutes: Signal took it, but it may not have arrived. At DEBUG, the log
-  has how many each message reached by then.
 
 ### Updating
 
 - The examples in `deploy/` pin a newer CI build of signal-cli-rest-api,
   `1792271041-ci` from 2026-10-17, still with signal-cli 0.14.9. Unlike the
-  one before, it doesn't drop what reaches a websocket while it's busy with
-  the message before, so `/delivery`'s counts are whole: put its digest in
-  Quadlets or Compose files made from the examples.
+  previous build, it doesn't drop what reaches a websocket while it is busy
+  with the previous message, so `/delivery`'s counts are complete: put its
+  digest in any Quadlets or Compose files you made from the examples.
+
+### Added
+
+- `/delivery`, for admins: whether the bot's latest messages arrived. It
+  shows the `delivery_messages` (30) latest of the messages it sent in the
+  last day, wherever they went, newest first, with how many people in each
+  chat received and read each one, based on the delivery and read receipts
+  that their phones send.
+- A warning in the log for a message that nobody's phone has confirmed
+  within 10 minutes: Signal accepted it, but it may not have arrived. At the
+  DEBUG level, the log shows how many people each message had reached by
+  then.
 
 ## 0.99.5 - 2026-10-19
 
 ### Changed
 
 - `/status` names the bot's time zone, `timezone`, on a line of its own, and
-  its times go without it: the next timer run no longer says `CEST`.
+  its times are shown without it: the next timer run no longer says `CEST`.
 
 ## 0.99.4 - 2026-10-19
 
 ### Added
 
-- Admins besides those in the config: the config's admins make someone an
-  admin with `/admin add <who>`, and no longer with `/admin remove <n>`, by
-  their number in `/admins`, which lists every admin. Those added may use
-  every command but these two, and no command can take away what the
-  config's admins may do. They're kept by Signal ID, which can't change
-  hands as a phone number can, in `data_dir/admins.txt`, as the allowed
-  list is; the notices still go to the config's admins alone.
-- `/trust` alone lists everyone's safety numbers, numbered as `/contacts`
-  numbers them, as the Signal apps show them, and whether each is verified;
-  `/trust <who>` shows one's.
-- Backups: every day at `backups_at` (04:00), and at a start if the latest
-  is a day old, the bot backs up what it keeps in `data_dir`, with its
-  config and the sample config, as `nejomibot-2026-10-19_0400.tar.zst`, into
-  `data_dir/backups`, or `backups_dir`, keeping the newest `backups_kept`
-  (30); none when nothing in the files has changed since the latest, and
-  `backups = false` makes none at all. `/status` has a Backups check, and
-  the health check pings say how many there are, how old the newest and the
-  oldest are, and when the last was skipped as nothing changed.
-- The holidays of 33 more countries for the daily post, by their codes in
-  `holidays`, such as `GB` or `US`: the rest of the European Union, Norway,
-  Iceland, Switzerland, the United Kingdom, the United States, Canada,
-  Australia and New Zealand. Their public holidays, Valentine's Day, Easter
-  Sunday, Christmas Eve and New Year's Eve, Mother's Day and Father's Day
-  where they have one day for them, and some traditions of their own. Their
-  names are in English, in Swedish too, but those they share with Sweden or
-  Greece.
+- Admins in addition to those in the configuration: the configuration's
+  admins can make someone an admin with `/admin add <who>`, and remove them
+  with `/admin remove <n>`, by their number in `/admins`, which lists every
+  admin. Added admins can use every command except these two, and no command
+  can take away what the configuration's admins may do. They are stored by
+  Signal ID, which, unlike a phone number, can't change hands, in
+  `data_dir/admins.txt`, in the same way as the allowed list; the notices
+  still go only to the configuration's admins.
+- `/trust` on its own lists everyone's safety numbers, numbered as
+  `/contacts` numbers them and laid out as the Signal apps show them, with
+  whether each is verified; `/trust <who>` shows one person's.
+- Backups: every day at `backups_at` (04:00), and at startup if the latest
+  backup is a day old, the bot backs up what it stores in `data_dir`,
+  together with its configuration file and the sample configuration, as
+  `nejomibot-2026-10-19_0400.tar.zst`, into `data_dir/backups` or
+  `backups_dir`, keeping the newest `backups_kept` (30). It makes no backup
+  when nothing in the files has changed since the latest one, and
+  `backups = false` turns backups off entirely. `/status` has a Backups
+  check, and the health check pings say how many backups there are, how old
+  the newest and oldest are, and when the last one was skipped because
+  nothing had changed.
+- Holidays for 33 more countries, by their codes in `holidays`, such as `GB`
+  or `US`: the rest of the European Union, Norway, Iceland, Switzerland, the
+  United Kingdom, the United States, Canada, Australia and New Zealand.
+  These include their public holidays, Valentine's Day, Easter Sunday,
+  Christmas Eve and New Year's Eve, Mother's Day and Father's Day where the
+  whole country observes them on the same day, and some traditions of their
+  own. Their names are in English, even in Swedish, except for the days
+  they share with Sweden or Greece.
 
 ### Changed
 
 - `/contacts` numbers everyone, and a number from it, or from `/trust`,
   stands for that person in `/contacts <who>`, `/contacts add`, `/trust`,
-  `/allow` and `/admin add`: the number in the list you were shown last, as
-  with `/delete list`, until you ask for it again.
-- `/allowed` names every admin, and `/chats` offers the admins added.
+  `/allow` and `/admin add`: it refers to the list you were shown last, as
+  with `/delete list`, until you request the list again.
+- `/allowed` lists every admin, and `/chats` includes the added admins.
 
 ## 0.99.3 - 2026-10-19
 
 ### Changed
 
-- Subcommands in the bot's language: in Swedish, `lägg till` for `add`, `ta
-  bort` or `radera` for `remove`, `lista` for `list`, `töm` for `clear`,
+- Subcommands in the bot's language: in Swedish, `lägg till` for `add`,
+  `ta bort` or `radera` for `remove`, `lista` for `list`, `töm` for `clear`,
   `kör` for `run`, `alla` for `all` and `förhandsvisa` for `preview`, as in
   `/lista lägg till mjölk` or `/timer ta bort 3`. `/hjälp` and the Swedish
-  messages show them, and the English ones work too.
-- In Swedish, `/dailypost` is `/dagenspost`; `/dagensbild` still works.
+  messages show them, and the English words work too.
+- In Swedish, `/dailypost` is now `/dagenspost`; `/dagensbild` still works.
 
 ## 0.99.2 - 2026-10-19
 
 ### Added
 
-- `/dailypost preview`, for the admins in a direct chat: what the daily post
-  will say atop the weather on a day, such as `/dailypost preview 10-25`,
-  `2026-10-25` or `tomorrow`, today without one, in each group the bot is in
-  and in a direct chat, without posting anything else or using up a photo.
-  In Swedish, `/dagensbild preview`.
+- `/dailypost preview`, for admins in a direct chat: what the daily post
+  will say above the weather on a given day, such as `/dailypost preview
+  10-25`, `2026-10-25` or `tomorrow`, or today if no day is given, in each
+  group the bot is in and in a direct chat, without posting anything else or
+  using up a photo. In Swedish, `/dagensbild preview`.
 
 ### Changed
 
-- Edits of commands that add or remove something now work: the edit takes
-  the place of what it edits, which is undone first. Editing `/remind 18:00
-  Cake` to `/remind 19:00 Cake` leaves one reminder, at 19:00. That's
-  `/remind`, `/list`, `/birthday`, `/nameday`, `/timer add` and `remove`,
-  `/special add` and `remove`, `/allow`, `/disallow` and `/contacts add`.
-  Edits of `/msg`, `/run`, `/timer run` and `/delete <n>`, whose posts and
-  deletions can't be undone, aren't run, and the bot says so, as it does for
-  an edit of a message from before a restart. The admins' own specials run
-  again when edited, as `/dailypost` does.
+- Edits of commands that add or remove something now work: the edit
+  replaces what it edits, which is undone first. Editing `/remind 18:00
+  Cake` to `/remind 19:00 Cake` leaves a single reminder, at 19:00. This
+  applies to `/remind`, `/list`, `/birthday`, `/nameday`, `/timer add` and
+  `remove`, `/special add` and `remove`, `/allow`, `/disallow` and
+  `/contacts add`. Edits of `/msg`, `/run`, `/timer run` and `/delete <n>`,
+  whose posts and deletions can't be undone, aren't run, and the bot says
+  so, as it does for an edit of a message from before a restart. The
+  admins' own specials run again when edited, as `/dailypost` does.
 
 ## 0.99.1 - 2026-10-19
 
 ### Changed
 
-- `/birthdays` and `/namedays` number the admins' list as it's shown, the
-  coming ones first, from 1. `/birthday remove` and `/nameday remove` take
-  the numbers of the list the admin was shown last, as `/delete` and
-  `/incoming` do: after a restart, send the list again first.
-- `tools/release.sh` makes patch releases only, for now: nejomibot stays on
+- `/birthdays` and `/namedays` number the admins' list in the order shown,
+  upcoming ones first, starting from 1. `/birthday remove` and `/nameday
+  remove` use the numbers of the list the admin was shown last, as `/delete`
+  and `/incoming` do: after a restart, request the list again first.
+- `tools/release.sh` makes only patch releases for now: nejomibot stays on
   0.99.x until 1.0. A minor or major release stops with an error.
 
 ## 0.99.0 - 2026-10-19
 
+### Updating
+
+- For holidays in the daily post, set `holidays`, for example
+  `holidays = ["SE", "GR"]`; see config.example.toml.
+
 ### Added
 
-- Birthdays and name days in the daily post, atop the weather, in the groups
-  of those they're for: "🎂 Alice turns 36 today!", "🌸 Happy name day,
-  Bob!". The admins keep them, in a direct chat with the bot: `/birthday add
-  1990-03-14 Alice` for a contact, as `/contacts` finds them, saved by name,
-  shown in the groups they're in by their name in the contacts; `/birthday
-  add 1940-05-01 1 Grandma` for someone not on Signal, in the groups given by
-  their numbers in `/chats`, or without them, in every group; `/nameday add
-  08-08 Alice`; `/birthday remove 2`. Never in a direct chat. `/birthdays` and
-  `/namedays`, for everyone allowed, list them, the coming ones first: in a
-  group, its own; for the admins, in a direct chat, all of them, numbered.
-  Kept in `data_dir/birthdays.txt`. In Swedish, `/födelsedag`,
-  `/födelsedagar`, `/namnsdag`, `/namnsdagar`.
-- `holidays`, none by default: the daily post names the day's holidays, flag
-  days and traditions of these countries atop the weather, `SE` for Sweden
-  and `GR` for Greece, each after its flag: "🇸🇪 National Day of Sweden ·
-  flag day".
-- `/remind`, for everyone allowed: a reminder the bot posts in the chat when
-  it's due, once: `/remind 18:00 Take the cake out`, `/remind 30m Call Bob`,
-  `/remind tomorrow 08:00 Pick up Bob`, `/remind fri 17:00 Pizza!`.
-  `/remind` alone lists the chat's, and `/remind remove 2` removes one. Kept
-  in `data_dir/reminders.txt`. In Swedish, `/påminn`, and `om 30m`.
-- `/list`, for everyone allowed: a list for each chat, such as for shopping:
-  `/list add milk, eggs`, `/list remove 2,5`, `/list clear`. Kept in
-  `data_dir/lists.txt`. In Swedish, `/lista`.
-- `/forecast`, `/forecast <city>`: the weather today and tomorrow, from
-  OpenWeatherMap's forecast: each day's worst weather in the daytime, its
-  lowest and highest temperature, and its chance of rain or snow. Kept for
-  30 minutes; a place named counts toward `weather_calls_per_hour`. In
-  Swedish, `/prognos`.
-- `/onthisday`: a photo taken on this day in an earlier year, or else within
-  three days of it, under "3 years ago today". In Swedish, `/dennadag`.
+- Birthdays and name days in the daily post, above the weather, in the
+  groups of the people they belong to: "🎂 Alice turns 36 today!", "🌸 Happy
+  name day, Bob!". The admins manage them in a direct chat with the bot:
+  `/birthday add 1990-03-14 Alice` for a contact, found as `/contacts` finds
+  people and saved under a name, shown in the groups they are in under their
+  name in the contacts; `/birthday add 1940-05-01 1 Grandma` for someone not
+  on Signal, shown in the groups given by their numbers in `/chats`, or
+  without them, in every group; `/nameday add 08-08 Alice`; and
+  `/birthday remove 2`. They never show in a direct chat. `/birthdays` and
+  `/namedays`, for everyone allowed, list them, upcoming ones first: in a
+  group, that group's; for admins in a direct chat, all of them, numbered.
+  They are stored in `data_dir/birthdays.txt`. In Swedish: `/födelsedag`,
+  `/födelsedagar`, `/namnsdag` and `/namnsdagar`.
+- `holidays`, empty by default: the daily post lists the day's holidays,
+  flag days and traditions in these countries above the weather, `SE` for
+  Sweden and `GR` for Greece, each after its flag: "🇸🇪 National Day of
+  Sweden · flag day".
+- `/remind`, for everyone allowed: a reminder that the bot posts once, in
+  the chat, when it is due: `/remind 18:00 Take the cake out`,
+  `/remind 30m Call Bob`, `/remind tomorrow 08:00 Pick up Bob`,
+  `/remind fri 17:00 Pizza!`. `/remind` on its own lists the chat's
+  reminders, and `/remind remove 2` removes one. They are stored in
+  `data_dir/reminders.txt`. In Swedish, `/påminn`, and `om 30m`.
+- `/list`, for everyone allowed: a list for each chat, for example for
+  shopping: `/list add milk, eggs`, `/list remove 2,5`, `/list clear`. Lists
+  are stored in `data_dir/lists.txt`. In Swedish, `/lista`.
+- `/forecast` and `/forecast <city>`: the weather today and tomorrow, from
+  OpenWeatherMap's forecast: each day's worst daytime weather, its lowest
+  and highest temperatures, and its chance of rain or snow. Forecasts are
+  kept for 30 minutes, and a named place counts toward
+  `weather_calls_per_hour`. In Swedish, `/prognos`.
+- `/onthisday`: a photo taken on this day in an earlier year, or failing
+  that, within three days of it, under "3 years ago today". In Swedish,
+  `/dennadag`.
 - Notices to the admins, in a direct chat: after an update, the versions;
   after a stop that wasn't clean, that the bot is up again; when Signal
   starts rate-limiting the bot, how to lift the limit; and when someone's
-  safety number changes, whose, as the bot can't send to them until it's
-  trusted. The bot keeps which version ran last in `data_dir/run.json`.
+  safety number changes, whose, because the bot can't send to them until
+  the new number is trusted. The bot records which version ran last in
+  `data_dir/run.json`.
 
 ### Changed
 
 - `/weather` ends with the day's sunrise, sunset and daylight, in the
   place's own time: "🌅 07:35 · 🌇 17:21 · 9 h 46 min of daylight". So does
-  the daily post's weather.
-- What timers, specials and `/run` can't run, they now name: "Timers,
+  the weather in the daily post.
+- Timers, specials and `/run` now name the command they can't run: "Timers,
   specials and /run can't run /msg." They can't run `/remind`, `/list`,
   `/birthdays`, `/namedays`, `/birthday` or `/nameday` either.
-- The bot's health check says when Signal rate-limits the bot, and what
-  lifts the limit, while messages wait.
-
-### Updating
-
-- For holidays in the daily post, set `holidays`, such as `holidays = ["SE",
-  "GR"]`; see config.example.toml.
+- The bot's health check reports when Signal rate-limits the bot, and what
+  lifts the limit, while messages are waiting.
 
 ## 0.98.0 - 2026-10-19
 
 ### Added
 
-- A greeting for those on the allowed list who write to the bot in a direct
-  chat, but no command: "Hi, I'm Mybot, a bot. Try /help for a list of
-  commands. Contact Alice for more information.", with the bot's profile
-  name and the first admin's name as the bot's contacts have it. Once a day
-  at most for each person; commands are answered as ever, never with it.
+- A greeting for people on the allowed list who write to the bot in a
+  direct chat without sending a command: "Hi, I'm Mybot, a bot. Try /help
+  for a list of commands. Contact Alice for more information.", with the
+  bot's profile name and the first admin's name as the bot's contacts have
+  it. Each person is greeted at most once a day; commands are always
+  answered as usual, never with the greeting.
 - `/weather <city>`, such as `/weather Helsinki`: the weather in the place
   named, under a heading that names the place OpenWeatherMap found, in the
   bot's language where it has the name, with its state or region and
-  country: "Weather in Springfield, Illinois, US". A country code picks among
-  places of a name: `/weather Stockholm,US`, `/weather Springfield,MO,US`.
-  In Swedish, `/väder <ort>`.
-- `weather_calls_per_hour`, 10 by default: the most the bot asks
-  OpenWeatherMap about places named in an hour, finding them included; past
-  that, `/weather <city>` says when to try again. `weather_city` isn't
-  counted, so `/weather` alone and the daily post always get the weather.
+  country: "Weather in Springfield, Illinois, US". A country code selects
+  among places with the same name: `/weather Stockholm,US`,
+  `/weather Springfield,MO,US`. In Swedish, `/väder <ort>`.
+- `weather_calls_per_hour`, 10 by default: the maximum number of requests
+  the bot makes to OpenWeatherMap about named places in an hour, lookups
+  included; beyond that, `/weather <city>` says when to try again.
+  `weather_city` doesn't count, so `/weather` on its own and the daily post
+  always get the weather.
 
 ### Changed
 
-- The bot keeps each place's weather for 10 minutes, as OpenWeatherMap's
-  changes every 10 minutes: `/weather`, the daily post and `/status` answer
-  with it when asked again sooner, without asking OpenWeatherMap.
+- The bot keeps each place's weather for 10 minutes, since OpenWeatherMap
+  updates its data every 10 minutes: `/weather`, the daily post and
+  `/status` answer from it when asked again sooner, without asking
+  OpenWeatherMap.
 
 ## 0.97.1 - 2026-10-19
 
 ### Changed
 
-- `/delete list` shows the bot's 50 latest messages, not 20, and `/incoming`
-  keeps and lists the 50 latest messages to the bot.
-- `/delete` deletes several of the list at once: `/delete 2,5,11`. It stops
-  at one it can't delete, as when Signal can't be reached, and says which it
-  didn't try.
+- `/delete list` shows the bot's 50 latest messages instead of 20, and
+  `/incoming` keeps and lists the 50 latest messages sent to the bot.
+- `/delete` can delete several messages from the list at once:
+  `/delete 2,5,11`. It stops at the first one it can't delete, for example
+  when Signal can't be reached, and says which ones it didn't attempt.
 
 ## 0.97.0 - 2026-10-19
 
 ### Added
 
-- `/delete list`, for the admins in a direct chat: the bot's 20 latest
+- `/delete list`, for admins in a direct chat: the bot's 20 latest
   messages, wherever it sent them, numbered, with when, where to and how
-  each starts. `/delete <n>` deletes one of them for everyone, and says
-  which. The numbers are those of the list the admin was shown last.
-- `/incoming`, for the admins in a direct chat: the 20 latest messages
-  anyone but the admins sent the bot in a direct chat, commands too,
-  numbered, with when, from whom and how each starts; `/incoming 4,9`
-  forwards those two to the admin in full, their text, as the bot doesn't
-  fetch attachments. They're kept in memory only, and go when their sender
-  deletes them or they disappear. In Swedish, `/inkorg`. Timers and `/run`
-  can't run it.
+  each one begins. `/delete <n>` deletes one of them for everyone, and says
+  which. The numbers refer to the list the admin was shown last.
+- `/incoming`, for admins in a direct chat: the 20 latest messages that
+  anyone other than the admins sent the bot in a direct chat, commands
+  included, numbered, with when, from whom and how each one begins;
+  `/incoming 4,9` forwards those two to the admin in full, as text only,
+  since the bot doesn't download attachments. They are kept in memory only,
+  and are removed when their sender deletes them or when they disappear. In
+  Swedish, `/inkorg`. Timers and `/run` can't run it.
 
 ### Changed
 
-- `/help` shows the names some commands have had all along, `/test` for
-  `/status`, `/time` for `/info` and `/safety` for `/contacts`, after them,
-  as it does the configuration's aliases, which show on a command's first
-  line only. They're aliases now, so the configuration's aliases win over
-  them, as over the language's: a configuration with one of them as an alias
+- `/help` shows the names that some commands have always had, `/test` for
+  `/status`, `/time` for `/info` and `/safety` for `/contacts`, after the
+  commands, as it shows the configuration's aliases, which appear on a
+  command's first line only. These names are now aliases, so the
+  configuration's aliases take precedence over them, as over the language's
+  names: previously, a configuration that used one of them as an alias
   stopped the bot.
 - The weather's heading, "Weather in Stockholm", is in bold, in `/weather`
-  and the daily post; what explains a proverb of `fortunes_svenska`, the
-  paragraph under it, is in italics, in `/fortune` and `/dailyquote`.
+  and the daily post; the explanation of a proverb in `fortunes_svenska`,
+  the paragraph below it, is in italics, in `/fortune` and `/dailyquote`.
 
 ## 0.96.0 - 2026-10-18
 
 ### Added
 
-- `fortune_library`, the library `/fortune` picks from when none is named:
-  `fortunes_svenska` if not set, as before, or another that `/fortune list`
-  names, or `all` for every one of them. `/dailyquote` stays with
-  `fortunes_svenska`.
+- `fortune_library`, the library `/fortune` uses when none is named:
+  `fortunes_svenska` if it isn't set, as before, another library that
+  `/fortune list` lists, or `all` for every library. `/dailyquote` keeps
+  using `fortunes_svenska`.
 
 ## 0.95.0 - 2026-10-18
 
 ### Updating
 
-- The texts in `data_dir/specials.txt` are in signal-cli-rest-api's marks
-  now, for their formatting: a `*`, `~` or `` ` `` typed in a special before
-  this version formats it, or goes missing. Put a `\` before each in the
-  file, or add the special again with `/special add`.
+- The texts in `data_dir/specials.txt` are now in signal-cli-rest-api's
+  formatting marks: a `*`, `~` or `` ` `` typed in a special before this
+  version now formats the text, or disappears. Put a `\` before each one in
+  the file, or add the special again with `/special add`.
 
 ### Added
 
-- The specials of your own keep the formatting you give their text in
-  Signal: bold, italic, strikethrough, monospace and spoiler. The file keeps
-  it as marks, `**bold**` and so on, which can be written by hand too. The
-  bot turns down the few mixes signal-cli-rest-api can't send, such as bold
-  and italic that meet inside a word, and says so.
+- Your own specials keep the formatting you give their text in Signal:
+  bold, italic, strikethrough, monospace and spoiler. The file stores it as
+  marks, such as `**bold**`, which can also be written by hand. The bot
+  rejects the few combinations that signal-cli-rest-api can't send, such as
+  bold and italic that meet inside a word, and says so.
 
 ### Changed
 
@@ -572,35 +602,36 @@ what to do when updating. The format follows
 
 ### Fixed
 
-- 0.94.0's images were all built for amd64, and labelled amd64, arm64 and
-  arm/v7, each with arm/v7's variant: Podman and Docker on amd64 find no
-  image for themselves, and on ARM they'd get one that can't run. The
-  release built them with Podman 4.9, which mixes platforms up when a stage
-  names its own, as the Dockerfile's uv stage does. Releases build with
-  Podman 5 now, and `tools/build-image.sh` runs each image before it pushes
-  any, and stops unless each runs as its platform. If you pulled 0.94.0,
-  or `latest` while it was 0.94.0, pull this version.
+- 0.94.0's images were all built for amd64, yet labeled amd64, arm64 and
+  arm/v7, each with arm/v7's variant: Podman and Docker on amd64 found no
+  image for themselves, and on ARM they would get one that can't run. The
+  release built them with Podman 4.9, which mixes up platforms when a build
+  stage names its own platform, as the Dockerfile's uv stage does. Releases
+  are now built with Podman 5, and `tools/build-image.sh` runs each image
+  before it pushes any, and stops unless each one runs as its platform. If
+  you pulled 0.94.0, or `latest` while it was 0.94.0, pull this version.
 
 ## 0.94.0 - 2026-10-18
 
 ### Added
 
-- The image is built for linux/arm/v7 too, as signal-cli-rest-api is, so the
-  bot runs on 32-bit ARM, such as older Raspberry Pis. Pillow and pillow-heif
-  have no wheels there, so that image builds them against Debian's libraries,
-  which makes the release's build longer; CI still builds linux/amd64 alone.
-- The pings to `healthcheck_url` say what runs, as `/status` does, below how
-  each check went: the versions of nejomibot, signalbot, Python and
-  signal-cli-rest-api, how long the bot, and so its container, has been up,
-  and the bot's memory, with its peak and the container's limit. They go as
-  `text/plain; charset=utf-8`. signal-cli's version isn't known:
-  signal-cli-rest-api doesn't say it.
-- A setup guide, step by step, from nothing to the daily post: the README's
-  Getting started, and [DOCKERHUB.md](DOCKERHUB.md), the same for the
-  image's page on Docker Hub, which each release now puts there, with the
-  repository's description.
-- Each image a release pushes, to ghcr.io and Docker Hub, has signed build
-  provenance: which workflow built it, from which commit.
+- The image is also built for linux/arm/v7, as signal-cli-rest-api is, so
+  the bot runs on 32-bit ARM, such as older Raspberry Pis. Pillow and
+  pillow-heif have no wheels for that platform, so its image builds them
+  against Debian's libraries, which makes the release build take longer; CI
+  still builds linux/amd64 only.
+- The pings to `healthcheck_url` say what is running, as `/status` does,
+  below how each check went: the versions of nejomibot, signalbot, Python
+  and signal-cli-rest-api, how long the bot, and therefore its container,
+  has been up, and the bot's memory use, with its peak and the container's
+  limit. They are sent as `text/plain; charset=utf-8`. signal-cli's version
+  isn't known, because signal-cli-rest-api doesn't report it.
+- A step-by-step setup guide, from nothing to the daily post: the README's
+  Getting started, and [DOCKERHUB.md](DOCKERHUB.md), the same guide for the
+  image's page on Docker Hub, which each release now publishes there, along
+  with the repository's description.
+- Every image a release pushes, to ghcr.io and Docker Hub, has signed build
+  provenance: which workflow built it, and from which commit.
   `gh attestation verify oci://docker.io/jodab/nejomibot:VERSION --repo jodab/nejomibot`
   checks it.
 
@@ -611,192 +642,206 @@ what to do when updating. The format follows
   built on the machine. To run your own build, set `Image=` in
   `nejomibot.container`, or `image:` in `compose.yaml`, back to
   `localhost/nejomibot:latest`.
-- The bot doesn't start unless it can write in `data_dir`, and says why:
-  before, it ran without saving what it was told. If it stops with `Can't
-  write in data_dir`, give the folder to the bot's user, uid 1001 (step 3 of
-  Getting started).
+- The bot doesn't start unless it can write to `data_dir`, and says why:
+  previously, it ran without saving what it was told. If it stops with
+  `Can't write in data_dir`, give the folder to the bot's user, UID 1001
+  (step 3 of Getting started).
 
 ### Fixed
 
-- A config file the bot can't read stops it with `Can't read the config
-  file`, and why, such as a folder it can't open. It said the file wasn't
-  there, and went on without it, so settings in the file seemed missing.
+- A configuration file the bot can't read stops it with `Can't read the
+  config file`, and the reason, such as a folder it can't open. Previously,
+  it said the file didn't exist and carried on without it, so settings in
+  the file seemed to be missing.
 
 ## 0.93.5 - 2026-10-18
 
 ### Added
 
-- `tools/release.sh patch|minor|major` makes a release: it moves the
-  version up, dates the changelog, commits, tags and pushes that, and
+- `tools/release.sh patch|minor|major` makes a release: it raises the
+  version, dates the changelog, commits, tags and pushes the result, and
   publishes the release on GitHub, which builds and pushes the image. It
-  releases only what CI has passed on, and can be run again after a
-  failure.
+  releases only what CI has passed, and can be run again after a failure.
 
 ## 0.93.4 - 2026-10-18
 
 ### Added
 
-- The release publishes the image to Docker Hub too, as
+- Releases also publish the image to Docker Hub, as
   `docker.io/USER/nejomibot`, when the repository has the variable
   `DOCKERHUB_USERNAME` and the secret `DOCKERHUB_TOKEN`.
-  `tools/build-image.sh` takes `--push` more than once, building once for
-  every registry.
+  `tools/build-image.sh` accepts `--push` more than once, building once for
+  each registry.
 
 ## 0.93.2 - 2026-10-18
 
 ### Added
 
-- `LICENSES/fortune-mod.txt`: fortune-mod's license, which the fortune
-  libraries from it come under.
+- `LICENSES/fortune-mod.txt`: fortune-mod's license, which covers the
+  fortune libraries taken from it.
 
 ### Fixed
 
-- The README, the Dockerfile and `deploy/signal.container` said the
+- The README, the Dockerfile and `deploy/signal.container` said that the
   containers' health checks run every 20 seconds; they run every minute.
 
 ## 0.93.1 - 2026-10-18
 
 ### Changed
 
-- CI builds the image for linux/amd64 alone; the release still builds both.
-  `tools/build-image.sh --platforms LIST` chooses what it builds.
+- CI builds the image for linux/amd64 only; releases still build both
+  platforms. `tools/build-image.sh --platforms LIST` selects what it builds.
 
 ## 0.93.0 - 2026-10-18
 
 ### Updating
 
-- `tools/timers.sh` is gone: `nejomibot-timers`, in the image, does what it
-  did, through the bot's own code: `podman exec nejomibot nejomibot-timers`,
-  `... chats`, `... add "08:00" 1,2 /dailypost`, `... remove 3`.
-- The image's group is 1001, as its user is (it was 999). With Podman's `:U`,
-  or `UserNS=keep-id:uid=1001,gid=1001`, there's nothing to do.
+- `tools/timers.sh` has been removed: `nejomibot-timers`, in the image, does
+  what it did, using the bot's own code: `podman exec nejomibot
+  nejomibot-timers`, `... chats`, `... add "08:00" 1,2 /dailypost`,
+  `... remove 3`.
+- The image's group is now 1001, the same as its user (it was 999). With
+  Podman's `:U`, or `UserNS=keep-id:uid=1001,gid=1001`, there is nothing to
+  do.
 - The deploy examples now drop every capability, forbid new privileges, run
-  read-only and with an init process, and pin signal-cli-rest-api's CI build
-  by digest: copy those lines to Quadlets or Compose files made from them.
-- The log looks different: each line has the date, the level and the part of
-  the bot, and says which command and what kind of chat, not who or what
-  else; `log_level = "DEBUG"` shows the rest.
+  with a read-only file system and an init process, and pin
+  signal-cli-rest-api's CI build by digest: copy those lines to any
+  Quadlets or Compose files you made from them.
+- The log looks different: each line has the date, the level and the part
+  of the bot it comes from, and says which command ran and in what kind of
+  chat, but not who sent it or anything else; `log_level = "DEBUG"` shows
+  the rest.
 - New settings, all optional: `log_level`, `photos_map` and `photos_heif`
   (see config.example.toml).
-- The bot no longer answers the plain words `weather`, `info`, `väder` and
-  `vader`: to keep one, add it to the config's aliases, such as
-  `"/weather" = ["weather"]`.
+- The bot no longer responds to the plain words `weather`, `info`, `väder`
+  and `vader`: to keep one, add it to the configuration's aliases, for
+  example `"/weather" = ["weather"]`.
 
 ### Added
 
-- `/dailyquote`, the daily quote, as `/dailypost` is the daily post: a proverb
-  or quote from `fortunes_svenska`, headed "Proverb or quote of the day:"
-  (`/dagenscitat` in Swedish).
-- Specials of the admins' own: commands that post text and what other
-  commands answer, always in the same order, such as `/special add /morning
+- `/dailyquote`, the daily quote, as `/dailypost` is the daily post: a
+  proverb or quote from `fortunes_svenska`, under the heading "Proverb or
+  quote of the day:" (`/dagenscitat` in Swedish).
+- The admins' own specials: commands that post text and the answers of
+  other commands, always in the same order, such as `/special add /morning
   Good morning! /weather; /dailyquote`, for timers, `/run` and the admins.
-  `/specials` lists them; they're kept in `data_dir/specials.txt`.
-- Messages waiting to be sent outlast a restart: one that has waited half a
-  minute is kept in `data_dir/outbox`, and all of them as the bot stops.
-- `/msg` and `/run` say where a message only waits to be sent, or may not
-  have arrived.
+  `/specials` lists them; they are stored in `data_dir/specials.txt`.
+- Messages waiting to be sent survive a restart: a message that has waited
+  for half a minute is saved in `data_dir/outbox`, and all waiting messages
+  are saved when the bot stops.
+- `/msg` and `/run` say where a message is only waiting to be sent, or may
+  not have arrived.
 - `photos_map = "openstreetmap"`: captions link to OpenStreetMap, with its
   short links.
-- `photos_heif = false` leaves HEIC/HEIF photos out, which saves about 3 MB of
-  memory.
+- `photos_heif = false` leaves HEIC/HEIF photos out, which saves about 3 MB
+  of memory.
 - `log_level`, for how much the bot logs.
-- `nejomibot-timers`, the timers from a terminal.
-- CI, a release workflow that publishes the image to ghcr.io when a release is
-  published, and Dependabot, on GitHub.
+- `nejomibot-timers`, for managing the timers from a terminal.
+- On GitHub: CI, a release workflow that publishes the image to ghcr.io when
+  a release is published, and Dependabot.
 
 ### Changed
 
-- `fortunes_svenska`, the library `/fortune` picks from by default, has 1000
-  proverbs and quotes in Swedish instead of jokes translated from fortune-mod's
-  `fortunes`: Swedish proverbs and wellerisms, Greek ones from Delphi to today,
-  proverbs from other countries and quotes from writers long dead, with a line
-  explaining the less known ones. `fortunes` is still there, in English.
-- The weather is asked for by the city's coordinates, which OpenWeatherMap's
-  geocoding gives once, as it no longer develops its weather by city name.
-- The exchange rate comes from ExchangeRate-API's current open endpoint, and
-  its errors say what went wrong.
-- While Signal rate-limits the bot, waiting messages are tried every half hour
-  instead of every two minutes, until a message goes out.
-- The example date in `/help` and the `/timer` usage is always to come.
-- The image is smaller, 232 MB instead of 323 MB: it has neither uv nor a
-  second copy of the code, and phonenumberslite instead of phonenumbers,
-  without the 41 MB of place names, carriers and time zones signalbot never
-  reads. Its base images are pinned by digest.
-- The containers' health checks: the image's runs every minute, and three
-  failures running make the container unhealthy, rather than one every five
-  minutes. The Quadlets have Podman kill an unhealthy container, for systemd
-  to start again (`HealthOnFailure=kill`), and signal.container checks
-  signal-cli itself, not just the REST API in front of it.
-- The bot takes less memory: the fortunes aren't kept in memory once used,
-  EXIF is read by Pillow, without exifread, and HEIF support is loaded when
-  first needed.
-- The translations are compiled as the image is built, not at every start;
-  polib is no longer in the image.
-- The files in `data_dir` are synced to disk before they replace the old ones.
-- Debug mode keeps its files in a private temp folder, new at each start.
+- `fortunes_svenska`, the library `/fortune` uses by default, now has 1,000
+  proverbs and quotes in Swedish instead of jokes translated from
+  fortune-mod's `fortunes`: Swedish proverbs and wellerisms, Greek proverbs
+  from Delphi to the present day, proverbs from other countries, and quotes
+  from writers long dead, with a line explaining the less familiar ones.
+  `fortunes` is still available, in English.
+- The weather is requested by the city's coordinates, which OpenWeatherMap's
+  geocoding provides once, since OpenWeatherMap has deprecated requests by
+  city name.
+- The exchange rate comes from ExchangeRate-API's current open endpoint,
+  and its errors say what went wrong.
+- While Signal rate-limits the bot, waiting messages are retried every half
+  hour instead of every two minutes, until a message goes through.
+- The example date in `/help` and in the `/timer` usage text is always in
+  the future.
+- The image is smaller, 232 MB instead of 323 MB: it contains neither uv nor
+  a second copy of the code, and has phonenumberslite instead of
+  phonenumbers, without the 41 MB of place names, carriers and time zones
+  that signalbot never reads. Its base images are pinned by digest.
+- The containers' health checks: the image's check runs every minute, and
+  three failures in a row mark the container as unhealthy, instead of a
+  single failure every five minutes. The Quadlets have Podman kill an
+  unhealthy container, for systemd to start again (`HealthOnFailure=kill`),
+  and signal.container checks signal-cli itself, not just the REST API in
+  front of it.
+- The bot uses less memory: fortunes aren't kept in memory once used, EXIF
+  data is read by Pillow, without exifread, and HEIF support is loaded only
+  when first needed.
+- The translations are compiled when the image is built, not at every
+  start; polib is no longer in the image.
+- The files in `data_dir` are synced to disk before they replace the old
+  ones.
+- Debug mode keeps its files in a private temporary folder, created anew at
+  each start.
 - Editing `/allowed` runs it again, as for other commands that only show
-  something; `/allow` and `/disallow` still need a new message.
-- Timers, specials and `/run` say they can't *manage* timers, specials or who
-  may use the bot, rather than change them, as that covers `/chats` and
-  `/allowed` too, which only list.
+  something; `/allow` and `/disallow` still require a new message.
+- Timers, specials and `/run` say that they can't *manage* timers, specials
+  or who may use the bot, rather than *change* them, since that also covers
+  `/chats` and `/allowed`, which only list.
 - signalbot 2.1.0, Pillow 13.0 (with security fixes), pydantic 2.14 and
   pydantic-settings 2.16.
 
 ### Removed
 
-- The plain words `weather` and `info` (and in Swedish `väder` and `vader`)
-  for `/weather` and `/info`: the bot's own names for commands all start
-  with `/`. The config's aliases may still be plain words.
+- The plain words `weather` and `info` (and in Swedish, `väder` and
+  `vader`) for `/weather` and `/info`: the bot's own command names all start
+  with `/`. Aliases in the configuration can still be plain words.
 
 ### Fixed
 
-- The OpenWeatherMap API key could end up in a chat and the log, through the
-  text of some network errors, which has the URL.
-- The health checks, and looking for changes to the timers, were skipped when
-  the bot was a moment late, and two skipped health checks restarted the
-  container.
-- Two daily posts at once could pick the same photo.
-- A new timer could take the number of a line in the timers file the bot
-  couldn't read.
-- The list of photos sent is UTF-8, and only the bot's user may read it, as
-  the other files.
-- `/contacts` on an account that knows many people: profiles are asked for
-  four at a time, at most fifty for each command, and lookups don't slow
-  down with the account's size.
-- When the bot stops, its own work is stopped too, and the messages waiting
-  are kept.
+- The OpenWeatherMap API key could end up in a chat and in the log, through
+  the text of some network errors, which contains the URL.
+- The health checks, and the checks for changes to the timers, were skipped
+  when the bot was a moment late, and two skipped health checks restarted
+  the container.
+- Two daily posts at the same moment could pick the same photo.
+- A new timer could take the number of a line in the timers file that the
+  bot couldn't read.
+- The list of sent photos is now UTF-8, and readable only by the bot's
+  user, like the other files.
+- `/contacts` on an account that knows many people: profiles are requested
+  four at a time, at most fifty per command, and lookups no longer slow down
+  as the account grows.
+- When the bot stops, its own background work stops too, and the waiting
+  messages are kept.
 
 ### Security
 
-- At the default log level, the log has no phone numbers, group IDs or
+- At the default log level, the log contains no phone numbers, group IDs or
   message text.
 - `signal-account.sh` warns before linking signal-cli to a phone: the bot
-  would then take commands typed on the phone as the other person's.
+  would then treat commands typed on that phone as coming from the other
+  person.
 
 ## 0.92.0 - 2026-10-17
 
 ### Updating
 
-- The bot is a container image, for x86 and ARM, with `config.toml` in its
-  data folder: `/data/config.toml`. `deploy/` has Quadlet and Compose
-  examples; `deploy.sh`, the git hook, the pod and its network are gone.
-- Settings: `phone_number` is now `account`, `status_contacts` is `admins`;
-  `allowed_contacts`, `allowed_groups`, `signal_cli_daemon` and
-  `signal_one_request_at_a_time` are gone (who may use the bot is the allowed
-  list, changed with `/allow`); `signal_service` is required. The bot says
-  which setting is wrong and won't start until the configuration matches
-  `config.example.toml`.
-- signal-cli-rest-api must be a build after 0.101.
+- The bot is now a container image, for x86 and ARM, with `config.toml` in
+  its data folder: `/data/config.toml`. `deploy/` has Quadlet and Compose
+  examples; `deploy.sh`, the git hook, the pod and its network have been
+  removed.
+- Settings: `phone_number` is now `account`, and `status_contacts` is now
+  `admins`; `allowed_contacts`, `allowed_groups`, `signal_cli_daemon` and
+  `signal_one_request_at_a_time` have been removed (who may use the bot is
+  now the allowed list, managed with `/allow`); `signal_service` is
+  required. The bot says which setting is wrong, and won't start until the
+  configuration matches `config.example.toml`.
+- signal-cli-rest-api must be a build newer than 0.101.
 
 ### Added
 
-- `/msg` and `/run` post a message, or commands' answers, to other chats.
-- Health checks every `healthcheck_minutes`, pinged to `healthcheck_url`, and
-  the image's own health check.
+- `/msg` and `/run` post a message, or the answers of commands, to other
+  chats.
+- Health checks every `healthcheck_minutes`, pinged to `healthcheck_url`,
+  and the image's own health check.
 - `/status` shows the versions of nejomibot, signalbot and
   signal-cli-rest-api.
 
 ### Removed
 
-- `/forget`, `/contacts remove` and `/emoji`, as signal-cli-rest-api can't do
-  them.
+- `/forget`, `/contacts remove` and `/emoji`, because signal-cli-rest-api
+  can't support them.
