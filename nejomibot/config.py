@@ -13,6 +13,7 @@ from datetime import date, time
 from functools import cache, cached_property
 from pathlib import Path
 from typing import Annotated, Literal, Self
+from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import (
@@ -47,6 +48,9 @@ SIGNAL_ID = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 
 
 def valid_person(value: str) -> str:
+    # A Signal ID without its dashes, as signal-cli takes it too
+    if re.match(r"^[0-9a-f]{32}$", value):
+        value = str(UUID(value))
     if not (re.match(PHONE_NUMBER, value) or re.match(SIGNAL_ID, value)):
         raise ValueError(f"{value!r} is neither a phone number (+…) nor a Signal ID")
     return value
@@ -93,8 +97,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="NEJOMIBOT_", extra="forbid")
 
     # Signal: where signal-cli-rest-api (json-rpc mode) answers, as host:port,
-    # and the bot's account in it. The account is a phone number for now; it
-    # may be a Signal ID once signal-cli-rest-api has accounts without one.
+    # and the bot's account in it: its phone number, or for an account without
+    # one, its Signal ID (the Account Key that Signal shows)
     signal_service: HostPort
     account: Person
 

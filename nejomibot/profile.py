@@ -94,7 +94,11 @@ async def fetch_me() -> Contact:
     """The bot itself, among the recipients signal-cli knows."""
     account = get_settings().account
     me = next((c for c in await fetch_recipients() if c.is_one_of({account})), None)
-    return me or Contact(number=account)
+    if me is not None:
+        return me
+    if account.startswith("+"):
+        return Contact(number=account)
+    return Contact(uuid=account)  # an account without a number
 
 
 def profile_of(me: Contact) -> ContactProfile:
@@ -329,7 +333,11 @@ def profile_text(me: Contact) -> str:
             else _("No username")
         ),
         "🖼️ " + (_("Avatar: yes") if profile.has_avatar else _("No avatar")),
-        "📞 " + _("Number: {number}").format(number=me.number),
+        (
+            "📞 " + _("Number: {number}").format(number=me.number)
+            if me.number
+            else "🆔 " + _("Signal ID: {id}").format(id=me.uuid)
+        ),
         "",
         _("Change them with /name, /about, /avatar and /username."),
     ]

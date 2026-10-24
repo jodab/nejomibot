@@ -137,9 +137,9 @@ def parse_parts(
     word that starts with a / or a . (COMMAND_START). The text is a
     message's, with the styles of its characters, or without them, in marks
     already, as the file keeps it. Or why they can't be a special's: own are
-    the names of the admins' specials, which a special can't run."""
-    if styles is not None and "|" in text:
-        return _("A special can't have a |: the file of specials uses it.")
+    the names of the admins' specials, which a special can't run. A | in a
+    message's text goes in as \\|, a mark that shows as it is: only the first
+    | on a line of the file separates the name from the parts."""
     parts: list[Part] = []
     joins = False  # a + since the part before, even across a line break
     end = 0

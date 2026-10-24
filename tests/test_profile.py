@@ -17,6 +17,7 @@ from signalbot import (
 
 from nejomibot import commands, profile
 from nejomibot.account import Contact
+from nejomibot.config import get_settings
 from nejomibot.profile import (
     Name,
     Profile,
@@ -166,6 +167,27 @@ def test_profile_text_without_a_profile() -> None:
         "🔗 No username",
         "🖼️ No avatar",
     ]
+
+
+def test_profile_text_without_a_number() -> None:
+    me = Contact.model_validate({"uuid": ME_ID, "username": "mybot.42"})
+    assert f"🆔 Signal ID: {ME_ID}" in profile_text(me).splitlines()
+
+
+@pytest.mark.parametrize(
+    ("account", "known"),
+    [(ME, Contact(number=ME)), (ME_ID, Contact(uuid=ME_ID))],
+)
+async def test_the_bot_is_itself_before_signal_cli_knows_it(
+    monkeypatch: pytest.MonkeyPatch, account: str, known: Contact
+) -> None:
+    async def nobody() -> list[Contact]:
+        return []
+
+    monkeypatch.setenv("NEJOMIBOT_ACCOUNT", account)
+    get_settings.cache_clear()
+    monkeypatch.setattr(profile, "fetch_recipients", nobody)
+    assert await profile.fetch_me() == known
 
 
 # /name and /about, which keep the avatar

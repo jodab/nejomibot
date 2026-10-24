@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 15:20+0300\n"
+"POT-Creation-Date: 2026-10-24 16:14+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2340,6 +2340,11 @@ msgid "No avatar"
 msgstr ""
 
 #: nejomibot/profile.py
+#, python-brace-format
+msgid "Signal ID: {id}"
+msgstr ""
+
+#: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."
 msgstr ""
 
@@ -2473,10 +2478,6 @@ msgstr ""
 
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with . or /, like /morning."
-msgstr ""
-
-#: nejomibot/specials.py
-msgid "A special can't have a |: the file of specials uses it."
 msgstr ""
 
 #: nejomibot/specials.py

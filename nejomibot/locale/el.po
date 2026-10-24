@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 15:20+0300\n"
+"POT-Creation-Date: 2026-10-24 16:14+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -2493,6 +2493,11 @@ msgid "No avatar"
 msgstr "Χωρίς εικόνα προφίλ"
 
 #: nejomibot/profile.py
+#, python-brace-format
+msgid "Signal ID: {id}"
+msgstr "Signal ID: {id}"
+
+#: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."
 msgstr "Αλλάξτε τα με /όνομα, /σχετικά, /εικόνα και /όνομαχρήστη."
 
@@ -2635,12 +2640,6 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with . or /, like /morning."
 msgstr "Δώστε της όνομα: μια λέξη που ξεκινά με . ή /, όπως /πρωί."
-
-#: nejomibot/specials.py
-msgid "A special can't have a |: the file of specials uses it."
-msgstr ""
-"Μια ειδική εντολή δεν μπορεί να έχει |: το χρησιμοποιεί το αρχείο των "
-"ειδικών εντολών."
 
 #: nejomibot/specials.py
 msgid ""

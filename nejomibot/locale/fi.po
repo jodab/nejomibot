@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 15:20+0300\n"
+"POT-Creation-Date: 2026-10-24 16:14+0300\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -2472,6 +2472,11 @@ msgid "No avatar"
 msgstr "Ei profiilikuvaa"
 
 #: nejomibot/profile.py
+#, python-brace-format
+msgid "Signal ID: {id}"
+msgstr "Signal-tunnus: {id}"
+
+#: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."
 msgstr ""
 "Muuta niitä komennoilla /nimi, /tietoja, /profiilikuva ja /käyttäjänimi."
@@ -2615,12 +2620,6 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with . or /, like /morning."
 msgstr "Anna sille nimi: sana, joka alkaa merkillä . tai /, kuten /aamu."
-
-#: nejomibot/specials.py
-msgid "A special can't have a |: the file of specials uses it."
-msgstr ""
-"Erikoiskomennossa ei voi olla merkkiä |: erikoiskomentojen tiedosto käyttää "
-"sitä."
 
 #: nejomibot/specials.py
 msgid ""

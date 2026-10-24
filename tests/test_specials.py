@@ -22,9 +22,10 @@ from nejomibot.specials import (
     check_name,
     joined,
     own_specials,
+    parse_line,
     parse_parts,
 )
-from nejomibot.styles import styles_of
+from nejomibot.styles import styles_of, unmarked
 from nejomibot.timers import Timekeeper, check_commands
 
 ADMIN = "+46700000009"
@@ -164,7 +165,6 @@ def test_parts_keep_the_english_names() -> None:
         ("/timer add 08:00 /ping", "Timers, specials and /run can't run /timer."),
         ("/specials add /x Hi", "Timers, specials and /run can't run /specials."),
         ("/msg 1 Hi", "Timers, specials and /run can't run /msg."),
-        ("Hi | there /ping", "A special can't have a |"),
         ("Hi /Morning", "/Morning is a special of yours"),
         ("; ".join(["/ping"] * 6), "A special has at most 5 parts."),
         (" + ".join(["/ping"] * 6), "A special has at most 5 parts."),
@@ -509,9 +509,15 @@ async def test_formatting_given_in_signal_is_kept(chat: Chat) -> None:
 
 
 async def test_typed_marks_show_as_typed(chat: Chat) -> None:
-    await chat.send("/special add /sum 5 * 3 = 15 ~ish, see `x`")
-    assert await chat.send("/sum") == ["5 \\* 3 = 15 \\~ish, see \\`x\\`"]
+    await chat.send("/special add /sum 5 * 3 = 15 ~ish, see `x` | y || z")
+    shown = "5 \\* 3 = 15 \\~ish, see \\`x\\` \\| y \\|\\| z"
+    assert await chat.send("/sum") == [shown]
     assert chat.replies[0].text_mode == TextMode.STYLED
+    # Only the first | separates the name, as the file is read again
+    line = get_settings().specials_file.read_text().splitlines()[-1]
+    assert line == f"/sum | {shown}"
+    assert parse_line(line, set())[1] == (Part(shown, ""),)
+    assert unmarked(shown)[0] == "5 * 3 = 15 ~ish, see `x` | y || z"
 
 
 async def test_formatting_marks_can_t_say_is_refused(chat: Chat) -> None:

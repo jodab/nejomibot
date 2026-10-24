@@ -112,6 +112,17 @@ def test_signal_service_and_account_are_needed(
         Settings()  # type: ignore[call-arg]
 
 
+@pytest.mark.parametrize(
+    "given", [SIGNAL_ID, SIGNAL_ID.upper(), SIGNAL_ID.replace("-", "").upper()]
+)
+def test_an_account_without_a_number_is_its_signal_id(
+    monkeypatch: pytest.MonkeyPatch, given: str
+) -> None:
+    # With or without its dashes, as signal-cli takes it; kept as it shows it
+    monkeypatch.setenv("NEJOMIBOT_ACCOUNT", given)
+    assert Settings().account == SIGNAL_ID  # type: ignore[call-arg]
+
+
 def test_debug_keeps_its_files_apart(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NEJOMIBOT_DEBUG", "1")
     monkeypatch.setenv("NEJOMIBOT_DEBUG_GROUP", GROUP)

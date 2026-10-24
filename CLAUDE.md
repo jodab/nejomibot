@@ -105,8 +105,9 @@ posted where and when. When unsure whether a change is user-facing, ask.
   `/avatar` can't receive a picture; anyone who wants it enables attachments
   themselves. `/avatar` stays as it is.
 - `TODO.md` holds what remains of the 2026-10-17 review, the owner's open
-  decisions, the requests to upstream projects, and plans that are waiting,
-  such as accounts without a phone number.
+  decisions, what upstream projects lack (no issues filed, the owner's
+  decision, 2026-10-24), and plans that are waiting, such as accounts
+  without a phone number.
 
 ## Development commands
 

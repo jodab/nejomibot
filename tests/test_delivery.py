@@ -326,6 +326,25 @@ async def test_each_message_sent_is_checked_later(
     assert checked == [sent]
 
 
+async def test_hearing_isn_t_the_scheduler_s_job(
+    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Which logs its cancelling at shutdown as an error
+    keeper = Receipts()
+
+    async def listen(bot: SignalBot, log: SentLog) -> None:
+        await asyncio.Event().wait()
+
+    monkeypatch.setattr(keeper, "listen", listen)
+    async with asyncio.timeout(1):
+        await keeper.hear(bot)
+    assert keeper.hearing is not None
+    assert not keeper.hearing.done()
+    keeper.hearing.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await keeper.hearing
+
+
 # Hearing them
 
 

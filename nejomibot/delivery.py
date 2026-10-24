@@ -126,6 +126,7 @@ class Receipts:
         # Since when the bot hears the receipts, if it does: a message sent
         # before then may have had some it didn't hear
         self.since: datetime | None = None
+        self.hearing: asyncio.Task[None] | None = None
 
     def start(self, bot: SignalBot) -> None:
         """Hear the receipts once signalbot is ready, as long as it runs."""
@@ -136,12 +137,18 @@ class Receipts:
 
         outbox.on_sent = check_later
         bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
-            self.listen,
-            args=[bot, outbox.sent],
+            self.hear,
+            args=[bot],
             id="delivery-receipts",
             misfire_grace_time=None,
             replace_existing=True,
         )
+
+    async def hear(self, bot: SignalBot) -> None:
+        """Listen in a task of its own, in signalbot's event loop: a job of the
+        scheduler's that runs until the bot stops would be logged as failing
+        when bot.shutdown() cancels it."""
+        self.hearing = asyncio.create_task(self.listen(bot, outbox.sent))
 
     def heard_all(self, sent: Sent) -> bool:
         """Whether the bot has heard every receipt since the message was sent,

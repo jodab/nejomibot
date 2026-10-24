@@ -147,6 +147,7 @@ AVATAR_SIDE=1024
 AVATAR_MAX_BYTES=$((10 * 1024 * 1024))
 
 PHONE_NUMBER='^\+[1-9][0-9]{6,14}$'
+SIGNAL_ID='^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 # A nickname, and maybe the number Signal adds to it: mybot, or mybot.42
 USERNAME='^[A-Za-z_][A-Za-z0-9_]{2,31}(\.[0-9]{2,9})?$'
 REGISTRATION_CAPTCHA=https://signalcaptchas.org/registration/generate.html
@@ -430,7 +431,8 @@ configured_account() {
 
 # use_account [any]: settle the account: --account, NEJOMIBOT_ACCOUNT,
 # the bot's config, or else the only one signal-cli has. Unless "any", it
-# must be registered in signal-cli.
+# must be registered in signal-cli, and may be a Signal ID, for an account
+# without a number; "any" is for registering, which takes a number.
 use_account() {
   configured_account
   if [[ -z $account ]]; then
@@ -444,8 +446,16 @@ use_account() {
       *) die "signal-cli has ${#accounts[@]} accounts, so choose one with --account: ${accounts[*]}" ;;
     esac
   fi
-  [[ $account =~ $PHONE_NUMBER ]] ||
-    die "Not a phone number in international format: $account (like +46701234567)"
+  account=${account,,}
+  if [[ $account =~ ^[0-9a-f]{32}$ ]]; then # a Signal ID without its dashes
+    account=${account:0:8}-${account:8:4}-${account:12:4}-${account:16:4}-${account:20}
+  fi
+  if [[ ${1-} == any ]]; then
+    [[ $account =~ $PHONE_NUMBER ]] ||
+      die "Not a phone number in international format: $account (like +46701234567)"
+  elif ! [[ $account =~ $PHONE_NUMBER || $account =~ $SIGNAL_ID ]]; then
+    die "Neither a phone number in international format (like +46701234567) nor a Signal ID: $account"
+  fi
   account_path=$(uri "$account")
   if [[ ${1-} != any ]] && ! is_registered "$account"; then
     die "$account isn't registered in signal-cli at $url${accounts[*]:+, which has ${accounts[*]}}: run setup, or register or link."

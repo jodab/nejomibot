@@ -1532,7 +1532,7 @@ in json-rpc-native mode, its signal-cli 0.14.8 can't list the account's
 linked devices, which the health check does: the request never returns
 ([signal-cli#2119](https://github.com/AsamK/signal-cli/issues/2119)). Until
 the next release, the examples in [deploy/](deploy) pin a CI build that has
-the fixes, `1792271041-ci` from 2026-10-17, with signal-cli 0.14.9, by its
+the fixes, `1792710189-ci` from 2026-10-22, with signal-cli 0.14.9, by its
 digest, since the tags of CI builds may not be kept. That build reports its
 version as `unset`, which signalbot takes to mean a build newer than any
 release. The signal-cli-rest-api health check fails on 0.101 or older.

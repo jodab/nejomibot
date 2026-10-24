@@ -4,6 +4,39 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- The examples in `deploy/` pin a newer CI build of signal-cli-rest-api,
+  `1792710189-ci` from 2026-10-22, still with signal-cli 0.14.9: it adds
+  support for Signal accounts without a phone number, and lists the
+  accounts with their Signal IDs, which the bot reads since 0.99.10. Put its
+  digest in any Quadlets or Compose files you made from the examples.
+
+### Added
+
+- First steps toward running the bot on a Signal account without a phone
+  number, which signal-cli-rest-api supports since its CI build
+  `1792710189-ci`, though not yet in a release, and which hasn't been tried
+  with a real account yet. The `account` setting, and `signal-account.sh
+  --account`, take such an account's Signal ID, with or without its
+  dashes, and `/profile` shows the Signal ID where it would show the
+  number. Registering such an account, which takes its Recovery Key, isn't
+  possible yet.
+
+### Changed
+
+- A special's text may contain a `|`, which `/special add` refused before:
+  `/special add /menu Fish | chips /weather` posts "Fish | chips" with the
+  weather. `specials.txt` keeps it as `\|`, as it keeps a typed `*`.
+
+### Fixed
+
+- Each stop of the bot logged an error with a traceback from the scheduler,
+  as it cancelled the bot's listening for delivery receipts. That listening
+  now runs as a task of its own, which stops without a word.
+
 ## 0.99.17 - 2026-10-24
 
 ### Updating

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 15:20+0300\n"
+"POT-Creation-Date: 2026-10-24 16:14+0300\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -2513,6 +2513,11 @@ msgid "No avatar"
 msgstr "Pas de photo de profil"
 
 #: nejomibot/profile.py
+#, python-brace-format
+msgid "Signal ID: {id}"
+msgstr "Identifiant Signal : {id}"
+
+#: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."
 msgstr "Modifiez-les avec /nom, /àpropos, /photoprofil et /pseudo."
 
@@ -2654,12 +2659,6 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with . or /, like /morning."
 msgstr "Donnez-lui un nom : un mot qui commence par . ou /, comme /matin."
-
-#: nejomibot/specials.py
-msgid "A special can't have a |: the file of specials uses it."
-msgstr ""
-"Une commande spéciale ne peut pas contenir de | : le fichier des commandes "
-"spéciales l'utilise."
 
 #: nejomibot/specials.py
 msgid ""

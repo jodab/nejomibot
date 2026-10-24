@@ -11,8 +11,8 @@ services:
     # requests (#885), logs every message it receives (#892), and its native
     # signal-cli can't list linked devices (signal-cli#2119), which the bot's
     # health check does. Use the next release once there is one. This is the
-    # CI build 1792271041-ci, by its digest, as CI builds' tags may not be kept.
-    image: docker.io/bbernhard/signal-cli-rest-api@sha256:b96eff9857a6fe99be64e9cbfb33cdfe88f89e94dd3da84c78de4a4a83c16c8d
+    # CI build 1792710189-ci, by its digest, as CI builds' tags may not be kept.
+    image: docker.io/bbernhard/signal-cli-rest-api@sha256:8544250552e8df0272f3b0ce77a5c03df098cae2146d8aa57d132336a42b4edd
     environment:
       # One signal-cli for every request, as signalbot needs, on Java: the
       # native one (json-rpc-native) has had bugs this hasn't, and 32-bit ARM
