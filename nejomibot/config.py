@@ -10,7 +10,7 @@ import logging
 import os
 import re
 import tempfile
-from datetime import date, time
+from datetime import date
 from functools import cache, cached_property
 from pathlib import Path
 from typing import Annotated, Literal, Self
@@ -207,14 +207,6 @@ class Settings(BaseSettings):
     # in the last day, and how many phones confirmed each (delivery.py)
     delivery_messages: Annotated[int, Field(ge=1)] = 30
 
-    # Every day at backups_at, in timezone, the bot backs up data_dir and its
-    # config (backups.py) into backups_dir, data_dir/backups if not given,
-    # and keeps the newest backups_kept
-    backups: bool = True
-    backups_at: time = time(4, 0)
-    backups_dir: Path | None = None
-    backups_kept: Annotated[int, Field(ge=1)] = 30
-
     # The admins: they may use every command, and they alone the admin
     # commands, in a direct chat with the bot. They may make others admins,
     # with /admin add, but no command can take away what they may do.
@@ -346,11 +338,6 @@ class Settings(BaseSettings):
     def admins_file(self) -> Path:
         """The admins besides those in the config: one per line."""
         return self.data_file("admins.txt")
-
-    @property
-    def backups_folder(self) -> Path:
-        """Where the backups go: backups_dir, or else data_dir/backups."""
-        return self.backups_dir or self.data_dir / "backups"
 
     @property
     def outbox_dir(self) -> Path:

@@ -14,7 +14,7 @@ from types import FrameType
 from pydantic import ValidationError
 from signalbot import LOGGER_NAME, Config, ConnectionMode, InMemoryConfig, SignalBot
 
-from . import access, backups, health, reminders, rest
+from . import access, health, reminders, rest
 from .admins import Admin, Admins
 from .albums import Album, Albums
 from .allowed import Allow, Allowed, Disallow
@@ -349,8 +349,6 @@ def main() -> None:
     timekeeper.start(bot, [handler for handler, *_who in registrations])
     logger.info("%d timers, in %s", len(timekeeper.timers), settings.timers_file)
     reminders.start(bot)
-    # A backup every day at backups_at, and now if the latest is a day old
-    backups.start(bot)
     health.start(bot)
 
     bot.start()

@@ -108,7 +108,6 @@ async def test_a_start_s_notice(
         notices,
         "local_checks",
         lambda: [
-            ("💾", Check("Backups", ok=True, detail="none yet")),
             ("🕐", Check("Clock", ok=False, detail="not synchronized")),
             ("🧠", Check("Bot memory", ok=True, detail="70.0 MB")),
         ],
@@ -140,7 +139,6 @@ async def test_a_start_s_notice(
             "⏰ 1 timer",
             "👥 Member of 1 group · 0 chats allowed · 1 admin",
             "📷 Photo library: 1 photo",
-            "💾 Backups: none yet",
             "🧠 Bot memory: 70.0 MB",
             "",
             "🔌 signal-cli-rest-api unset, json-rpc mode",

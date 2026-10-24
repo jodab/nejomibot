@@ -1,8 +1,8 @@
 """The files the bot keeps what it's told in, and what it's done: the timers,
 the specials, the allowed list, the admins added, the reminders, the lists,
 the birthdays, the albums' birth dates, the chats' languages, the photos
-sent, the messages waiting to be sent and the backups. They list phone
-numbers, so only the bot's user may read them."""
+sent and the messages waiting to be sent. They list phone numbers, so only
+the bot's user may read them."""
 
 import contextlib
 import logging

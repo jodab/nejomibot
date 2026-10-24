@@ -510,8 +510,8 @@ OpenWeatherMap key or a phone number in it: word such errors with
 **Health** has two layers. `health.py` runs checks (signal-cli-rest-api
 through signalbot, the bot itself, and Signal's servers through the linked
 devices) every `healthcheck_minutes`, logs failures, and pings
-`healthcheck_url` with the results, followed by the versions, uptime, memory
-and backups (`ping_text`). `/status` shows the same through the same
+`healthcheck_url` with the results, followed by the versions, uptime and
+memory (`ping_text`). `/status` shows the same through the same
 functions, which live in `health.py` because `status.py` imports it. The
 container check (`healthcheck.py`, the image's HEALTHCHECK) asks the running
 bot over the abstract Unix socket `\0nejomibot-health`. It checks liveness
@@ -530,22 +530,6 @@ any writer) or `files.append_privately`. In the line-based files, hand
 edits, comments and unreadable lines are kept as they are; a new file of
 this kind uses `files.KeptLines`, as the reminders, lists and birthdays do.
 Debug mode keeps the files in a private temporary folder per run.
-
-**Backups** (`backups.py`): every day at `backups_at` in `timezone`, and at
-startup if none is from the last day, the bot writes a `tar.zst` of every
-file in `data_dir` except `run.json` (and the outbox, which is a folder, and
-files over 10 MB), plus the configuration file and `config.example.toml` from
-the working directory, through `replace_privately` in a thread, into
-`settings.backups_folder` (`backups_dir`, otherwise `data_dir/backups`),
-keeping the newest `backups_kept`. It makes none when the files' contents
-match the latest backup (a SHA-256 of each, with the latest backup
-decompressed for the comparison), which `unchanged_at` records, in memory,
-so that the backups count as current. tarfile and zstd are part of Python
-3.14; entries are built from `os.fstat`, because `tar.add` looks up owner
-names, which loads NSS libraries for good (0.7 MB). `backups.state()` feeds
-`/status`'s Backups check (which fails when the last backup failed, or when
-the backups haven't been current for two days) and the health ping's line.
-No backups are made in debug mode, or with `backups = false`.
 
 **Translations** (`i18n.py`): messages are written in English, marked with
 `_()`, `ngettext()`, or `N_()` in tables built ahead of use, and formatted
@@ -687,3 +671,13 @@ in the bot's languages (`weather.Place.names`).
   whole library's would be 21 MB). Resolving aliases once per message
   rather than in each handler: 0.1 ms per message on a desktop, 4 ms
   before.
+- **2026-10-25, backups removed:** 0.36 MB less of Python's allocations
+  after the imports and the Swedish translations (tracemalloc, 36.3 to
+  36.0 MB), all of it tarfile, the one module of the standard library the
+  bot no longer imports (aiohttp imports `compression.zstd` itself); peak
+  RSS 78.2 to 77.9 MB with a 1024×768 picture, the median of five runs
+  each. In the worker thread that ran them, a backup and the next day's
+  comparison kept 1.6 MB more (zstd's buffers, as on 2026-10-19), so a
+  running bot now takes 1.9 MB less. The image loses 0.17 MB: tarfile's
+  bytecode (135 KB), `backups.py` with its own (32 KB), and 3.6 KB of `.mo`
+  files.

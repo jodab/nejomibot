@@ -50,10 +50,6 @@ def test_host_lines(fake_system: Path) -> None:
     assert lines[-1] == "🌡️ CPU 47°C"
 
 
-def test_backups_check() -> None:
-    assert status.backups_check() == Check("Backups", ok=True, detail="none yet")
-
-
 def test_disk_check(tmp_path: Path) -> None:
     assert status.disk_check(tmp_path).detail.endswith("B")
     assert not status.disk_check(tmp_path / "missing").ok

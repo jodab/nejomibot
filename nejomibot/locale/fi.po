@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 22:25+0300\n"
+"POT-Creation-Date: 2026-10-25 00:12+0300\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -435,30 +435,6 @@ msgstr "🗑️ {name} ei saa enää käyttää arkikomentoja."
 #: nejomibot/allowed.py
 msgid "They're an admin, so may still use them."
 msgstr "Hän on ylläpitäjä, joten hän voi yhä käyttää niitä."
-
-#: nejomibot/backups.py
-msgid "off"
-msgstr "pois päältä"
-
-#: nejomibot/backups.py
-msgid "none yet"
-msgstr "ei vielä yhtään"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "{count}, {newest} old"
-msgid_plural "{count}, the newest {newest} old, the oldest {oldest} old"
-msgstr[0] "{count}, {newest} vanha"
-msgstr[1] "{count}, uusin {newest} vanha, vanhin {oldest} vanha"
-
-#: nejomibot/backups.py
-msgid "last skipped: no changes"
-msgstr "viimeisin ohitettu: ei muutoksia"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "last failed: {error}"
-msgstr "viimeisin epäonnistui: {error}"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
@@ -1097,10 +1073,6 @@ msgstr "{used}, raja {limit}"
 #, python-brace-format
 msgid "(peak {peak})"
 msgstr "(huippu {peak})"
-
-#: nejomibot/health.py nejomibot/status.py
-msgid "Backups"
-msgstr "Varmuuskopiot"
 
 #: nejomibot/help.py
 msgid "[<album>]"

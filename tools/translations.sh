@@ -50,7 +50,7 @@ if (($# > 0)); then
 fi
 
 for po in "$locale"/*.po; do
-  msgmerge --quiet --update --backup=none --add-location=file "$po" "$locale/messages.pot"
+  msgmerge --quiet --add-location=file --output-file="$po" "$po" "$locale/messages.pot"
   msgattrib --no-obsolete --output-file="$po" "$po" # what the code no longer has
   echo "$po: $(msgfmt --statistics --output-file=/dev/null "$po" 2>&1)"
 done

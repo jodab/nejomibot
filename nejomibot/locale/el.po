@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 22:25+0300\n"
+"POT-Creation-Date: 2026-10-25 00:12+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -447,30 +447,6 @@ msgstr "🗑️ {name}: δεν έχει πλέον πρόσβαση στις κ�
 #: nejomibot/allowed.py
 msgid "They're an admin, so may still use them."
 msgstr "Είναι διαχειριστής, οπότε εξακολουθεί να έχει πρόσβαση."
-
-#: nejomibot/backups.py
-msgid "off"
-msgstr "ανενεργά"
-
-#: nejomibot/backups.py
-msgid "none yet"
-msgstr "κανένα ακόμη"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "{count}, {newest} old"
-msgid_plural "{count}, the newest {newest} old, the oldest {oldest} old"
-msgstr[0] "{count}, ηλικίας {newest}"
-msgstr[1] "{count}, το νεότερο ηλικίας {newest}, το παλαιότερο {oldest}"
-
-#: nejomibot/backups.py
-msgid "last skipped: no changes"
-msgstr "το τελευταίο παραλείφθηκε: καμία αλλαγή"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "last failed: {error}"
-msgstr "το τελευταίο απέτυχε: {error}"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
@@ -1117,10 +1093,6 @@ msgstr "{used} από όριο {limit}"
 #, python-brace-format
 msgid "(peak {peak})"
 msgstr "(μέγιστο {peak})"
-
-#: nejomibot/health.py nejomibot/status.py
-msgid "Backups"
-msgstr "Αντίγραφα ασφαλείας"
 
 #: nejomibot/help.py
 msgid "[<album>]"

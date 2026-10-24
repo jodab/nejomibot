@@ -4,6 +4,25 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- The bot no longer makes backups. Before updating, remove `backups`,
+  `backups_at`, `backups_dir` and `backups_kept` from the configuration, if
+  it has them: the bot doesn't start with a setting it doesn't know, and its
+  log names the setting. A volume mounted for `backups_dir` is no longer
+  needed. The backups already made stay in `data_dir/backups` or
+  `backups_dir` until you delete them; to keep backing up, copy `data_dir`
+  and the configuration file by other means.
+
+### Removed
+
+- The daily backups, their four settings, `/status`'s Backups check, and
+  the backups' line in the startup notice and in the health check pings.
+  The bot uses 0.3 MB less memory, or 1.9 MB less once a daily backup would
+  have run, and the image is 0.17 MB smaller.
+
 ## 0.99.22 - 2026-10-24
 
 ### Updating

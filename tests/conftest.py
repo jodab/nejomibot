@@ -19,7 +19,6 @@ from signalbot import (
 
 from nejomibot import (
     access,
-    backups,
     birthdays,
     commands,
     contacts,
@@ -93,8 +92,6 @@ def fresh_lists() -> None:
         kept.reset()
     birthdays.shown.clear()
     contacts.shown.clear()
-    # Nor any backup made, or failed
-    backups.last_failure = backups.unchanged_at = None
     # Nor what commands did, for edits of them, nor who sent how many
     commands.done.clear()
     commands.command_limit.clear()

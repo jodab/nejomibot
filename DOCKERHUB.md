@@ -34,8 +34,8 @@ Signal.
   admins manage it from a direct chat, and by default, the log contains no
   phone numbers or message text.
 - 🩺 **Reliable and light:** health checks with alerts, notices to the admins,
-  messages retried until they get through, daily backups, and a small image
-  that runs in about 80 MB of memory.
+  messages retried until they get through, and a small image that runs in
+  about 80 MB of memory.
 
 **Image:** `docker.io/jodab/nejomibot`, also `ghcr.io/jodab/nejomibot` ·
 **Tags:** `latest`, and each release by its version ·
@@ -297,9 +297,6 @@ That's it: the bot is up and running. 🎉
   those of the European Union, the Nordic countries and most of the Western
   world are included; see
   [the README](https://github.com/jodab/nejomibot#birthdays-name-days-and-holidays).
-- **Backups:** every day at 04:00, the bot backs up what it stores, along
-  with its settings, in `data/backups`, unless nothing has changed, and keeps
-  the latest 30; see [the README](https://github.com/jodab/nejomibot#backups).
 - **A shell in the container:** `docker compose exec nejomibot sh`, or
   `bash`, starts with a short guide to the bot's tools, such as
   `nejomibot-timers` and `signal-account.sh`, and where the bot keeps its

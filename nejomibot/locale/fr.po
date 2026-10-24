@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 22:25+0300\n"
+"POT-Creation-Date: 2026-10-25 00:12+0300\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -453,31 +453,6 @@ msgstr "🗑️ {name} ne peut plus utiliser les commandes courantes."
 #: nejomibot/allowed.py
 msgid "They're an admin, so may still use them."
 msgstr "Cette personne est administrateur et peut donc toujours les utiliser."
-
-#: nejomibot/backups.py
-msgid "off"
-msgstr "désactivées"
-
-#: nejomibot/backups.py
-msgid "none yet"
-msgstr "aucune pour l'instant"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "{count}, {newest} old"
-msgid_plural "{count}, the newest {newest} old, the oldest {oldest} old"
-msgstr[0] "{count}, âgée de {newest}"
-msgstr[1] ""
-"{count}, la plus récente âgée de {newest}, la plus ancienne de {oldest}"
-
-#: nejomibot/backups.py
-msgid "last skipped: no changes"
-msgstr "dernière ignorée : aucun changement"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "last failed: {error}"
-msgstr "dernière en échec : {error}"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
@@ -1132,10 +1107,6 @@ msgstr "{used} sur une limite de {limit}"
 #, python-brace-format
 msgid "(peak {peak})"
 msgstr "(pic {peak})"
-
-#: nejomibot/health.py nejomibot/status.py
-msgid "Backups"
-msgstr "Sauvegardes"
 
 #: nejomibot/help.py
 msgid "[<album>]"

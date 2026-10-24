@@ -6,7 +6,7 @@ find out late:
   (a crash, a kill, a power cut), that messages may be lost. Then what needs
   their attention, such as lines of the bot's files it can't read, or a
   clock that isn't synchronized, and how the bot is: its timers, chats,
-  photos, backups and memory, its versions, and where it runs. Once in QUIET
+  photos and memory, its versions, and where it runs. Once in QUIET
   at most, but after an update: a start sooner after the last told waits
   till then, so a crash loop can't flood the admins, nor run into Signal's
   rate limits; should the bot stop meanwhile, the next start tells instead.
@@ -59,7 +59,7 @@ from .i18n import (
 )
 from .messages import RATE_LIMITED_FIRST, describe, escape, outbox, send
 from .specials import own_specials
-from .status import backups_check, check_photos, clock_check
+from .status import check_photos, clock_check
 from .timers import timekeeper
 
 logger = logging.getLogger(__name__)
@@ -226,8 +226,8 @@ def check_line(icon: str, check: Check) -> str:
 
 def local_checks() -> list[tuple[str, Check]]:
     """The checks of the host's state for a start's notice, with their icons.
-    Blocking: reads /proc, /sys and the backups' folder."""
-    return [("💾", backups_check()), ("🕐", clock_check()), ("🧠", memory_check())]
+    Blocking: reads /proc and /sys."""
+    return [("🕐", clock_check()), ("🧠", memory_check())]
 
 
 async def about_of(bot: SignalBot) -> About | None:

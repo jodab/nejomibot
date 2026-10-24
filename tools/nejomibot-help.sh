@@ -17,7 +17,7 @@ nejomibot
   nejomibot-help.sh       This guide
 
   /data/config.toml       Settings (all of them: /app/config.example.toml)
-  /data                   Data and backups
+  /data                   Data
   /photos                 Photo library, read-only
 
 Logs, on the host: podman logs nejomibot, or journalctl -u nejomibot

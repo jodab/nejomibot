@@ -16,7 +16,7 @@ from pathlib import Path
 
 from signalbot import About, DataMessageContext, SignalBot
 
-from . import access, backups, publicip, system
+from . import access, publicip, system
 from .account import (
     Account,
     account_lines,
@@ -154,20 +154,9 @@ def account_checks(account: Account | Exception) -> list[Check]:
     ]
 
 
-def backups_check() -> Check:
-    """Blocking: reads the backups' folder."""
-    ok, detail = backups.state(datetime.now(get_settings().tz))
-    return Check(_("Backups"), ok=ok, detail=detail)
-
-
 def system_checks() -> list[Check]:
-    """Blocking: reads /proc, /sys and the backups' folder."""
-    return [
-        disk_check(get_settings().photos_dir),
-        memory_check(),
-        clock_check(),
-        backups_check(),
-    ]
+    """Blocking: reads /proc and /sys."""
+    return [disk_check(get_settings().photos_dir), memory_check(), clock_check()]
 
 
 # Report

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 22:25+0300\n"
+"POT-Creation-Date: 2026-10-25 00:12+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -436,30 +436,6 @@ msgstr "🗑️ {name} får inte längre använda vardagskommandona."
 #: nejomibot/allowed.py
 msgid "They're an admin, so may still use them."
 msgstr "Hen är admin och får fortfarande använda dem."
-
-#: nejomibot/backups.py
-msgid "off"
-msgstr "av"
-
-#: nejomibot/backups.py
-msgid "none yet"
-msgstr "inga ännu"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "{count}, {newest} old"
-msgid_plural "{count}, the newest {newest} old, the oldest {oldest} old"
-msgstr[0] "{count}, {newest} gammal"
-msgstr[1] "{count}, den nyaste {newest} gammal, den äldsta {oldest} gammal"
-
-#: nejomibot/backups.py
-msgid "last skipped: no changes"
-msgstr "senaste hoppades över: inga ändringar"
-
-#: nejomibot/backups.py
-#, python-brace-format
-msgid "last failed: {error}"
-msgstr "senaste misslyckades: {error}"
 
 #: nejomibot/birthdays.py
 #, python-brace-format
@@ -1092,10 +1068,6 @@ msgstr "{used} av gränsen {limit}"
 #, python-brace-format
 msgid "(peak {peak})"
 msgstr "(topp {peak})"
-
-#: nejomibot/health.py nejomibot/status.py
-msgid "Backups"
-msgstr "Säkerhetskopior"
 
 #: nejomibot/help.py
 msgid "[<album>]"

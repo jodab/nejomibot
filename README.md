@@ -38,8 +38,8 @@ Signal.
   profile, posting to other chats, deleting the bot's messages, delivery and
   read receipts, and the latest messages people have sent the bot.
 - 🩺 **Reliable and light:** health checks with alerts, notices to the admins,
-  messages retried until they get through, daily backups, and a small
-  container image for x86 and ARM that runs in about 80 MB of memory.
+  messages retried until they get through, and a small container image for
+  x86 and ARM that runs in about 80 MB of memory.
 
 The bot connects to Signal through
 [signalbot](https://pypi.org/project/signalbot/), which in turn uses
@@ -229,16 +229,14 @@ several chats, list them, as in `1,2`; you can also give days, as in
 `mon-fri 07:30` ([more](#timers)). `/timer run 1` runs the timer right away,
 so you can see that it works.
 
-That's it: the bot is up and running. Every day at 04:00, it backs up what
-it stores, along with its settings, in `data/backups` ([more](#backups)).
-Possible next steps: get alerted when the bot is down, with
-`healthcheck_url` ([how](#health-checks)); add birthdays, name days and your
-country's holidays for `/today` ([how](#birthdays-name-days-and-holidays));
-create [specials](#specials) of your own, such as a daily post with the day
-and the weather in one message and a heading above the photo, with a
-shorter name of your choice; open a shell in the bot's container, which
-starts with a guide to its tools (`docker compose exec nejomibot bash`); and
-set a profile picture:
+That's it: the bot is up and running. Possible next steps: get alerted when
+the bot is down, with `healthcheck_url` ([how](#health-checks)); add
+birthdays, name days and your country's holidays for `/today`
+([how](#birthdays-name-days-and-holidays)); create [specials](#specials) of
+your own, such as a daily post with the day and the weather in one message
+and a heading above the photo, with a shorter name of your choice; open a
+shell in the bot's container, which starts with a guide to its tools
+(`docker compose exec nejomibot bash`); and set a profile picture:
 
 ```sh
 docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg
@@ -911,9 +909,8 @@ account), then whether every safety number is trusted, nobody the bot talks
 to is blocked, the bot is still in every group on the allowed list,
 OpenWeatherMap and the exchange rate API (if `exchange_rate` is set) respond,
 the photo library isn't empty, disk and memory use are below 90% of their
-limits, NTP keeps the clock synchronized, and the [backups](#backups) are
-being made: the last one didn't fail, and the newest is less than two days
-old. A check that takes longer than 20 seconds fails.
+limits, and NTP keeps the clock synchronized. A check that takes longer than
+20 seconds fails.
 
 ### Incoming messages
 
@@ -1399,14 +1396,10 @@ grace time.
 Each ping reports how each check went, followed by what is running, as
 `/status` shows it: the versions of nejomibot, signalbot, Python and
 signal-cli-rest-api; how long the bot has been up, and so its container,
-since the bot is the container's process; the bot's memory use, with its
-peak and the container's limit, if there is one; and the
-[backups](#backups): how many there are and how old the newest and oldest
-are, or why the last one failed. A failed backup doesn't make the ping a
-`/fail`, because it doesn't concern the bot's health; `/status`'s Backups
-check fails instead. healthchecks.io shows this text with each ping in the
-check's log. signal-cli's version isn't included, because
-signal-cli-rest-api doesn't report it.
+since the bot is the container's process; and the bot's memory use, with its
+peak and the container's limit, if there is one. healthchecks.io shows this
+text with each ping in the check's log. signal-cli's version isn't included,
+because signal-cli-rest-api doesn't report it.
 
 ### Notices to the admins
 
@@ -1420,8 +1413,8 @@ with each of them, about things they would otherwise find out too late:
   lines in the bot's files that it can't read, which therefore have no
   effect, a clock that isn't synchronized, or messages still waiting to be
   sent; and finally, how the bot is doing: its timers and when the next one
-  runs, its groups, allowed chats and admins, the photos, the backups, the
-  clock, its memory use, signal-cli-rest-api's version, and where it runs:
+  runs, its groups, allowed chats and admins, the photos, the clock, its
+  memory use, signal-cli-rest-api's version, and where it runs:
 
   ```
   🟢 nejomibot 0.99.11 started
@@ -1433,7 +1426,6 @@ with each of them, about things they would otherwise find out too late:
   ⏰ 2 timers, the next Saturday 24 October 08:00
   👥 In 3 groups · 6 chats allowed · 1 admin
   📷 Photo library: 1151 photos
-  💾 Backups: 12, the newest 5 h old, the oldest 12 d 5 h old
   🕐 Clock: synchronized, max error 0.02 s
   🧠 Bot memory: 74.1MB (peak 74.9MB)
 
@@ -1708,8 +1700,7 @@ messages waiting to be sent, and the version that ran last) it stores in
 which must exist at startup. These files contain phone numbers, so only the
 bot's user can read them. Each file is written in full through a temporary
 file, which is safely on disk before it takes the old file's place, so
-neither a crash nor a power cut can leave a file half-written. Every night,
-the bot [backs them up](#backups) in `data_dir/backups`.
+neither a crash nor a power cut can leave a file half-written.
 
 ### Debug mode
 
@@ -1864,68 +1855,6 @@ what goes wrong; signalbot's warning that a group message didn't reach
 someone names that person, by number or ID. Each line of the log has the
 date and time, the level, and the part of the bot it comes from.
 
-### Backups
-
-Every day at `backups_at` (04:00 by default) in `timezone`, the bot backs up
-what it stores in `data_dir`, together with its configuration file and
-`config.example.toml`, into `backups_dir`, or into `data_dir/backups` if that
-isn't set. A backup is a tar archive compressed with Zstandard and named
-after the time it was made, such as `nejomibot-2026-10-19_0400.tar.zst`,
-which unpacks into a folder of the same name. At startup, the bot makes a
-backup right away if the latest one is a day old or more, as when the bot
-was down at `backups_at`. When the contents of the files haven't changed
-since the latest backup, whatever their timestamps, the bot makes none, since
-the latest backup still has everything. A bot that posts a photo of the day
-changes its list of sent photos daily, so it backs up daily. It keeps the
-newest `backups_kept` backups (30 by default) and deletes older ones,
-leaving anything else in the folder alone. `backups = false` turns backups
-off, for example when `data_dir` is backed up by other means. A
-`backups_at` in the hour that daylight saving time skips or repeats (02:00
-to 03:00 in most of Europe and North America) runs an hour late on the day
-daylight saving time starts, and twice on the day it ends, the second time
-most likely finding nothing changed.
-
-`backups_dir` can be a separate folder, ideally on another disk: the bot's
-user must be able to write to it, and in the container, it must be mounted,
-for example with `Volume=/mnt/backup/nejomibot:/backups:U` in the Quadlet and
-`backups_dir = "/backups"`, since everything else is read-only. The log
-records what each backup contained, that nothing had changed, or that a
-backup failed. `/status` has a Backups check, which shows how many backups
-there are, how old the newest and oldest are, and why the last one was
-skipped, if it was (`the last skipped: nothing changed`). The check fails
-when the last backup failed, or when the backups haven't been current for
-two days, meaning that no backup was made or found unnecessary in that time;
-the [health check pings](#health-checks) report the same:
-
-```
-Backups: 30, the newest 2 d 6 h old, the oldest 41 d 6 h old; the last skipped: nothing changed
-```
-
-An archive contains every file in `data_dir` except `run.json`, which only
-records how the bot last ran, and files over 10 MB, which aren't the bot's;
-it also leaves out the messages waiting to be sent, which would otherwise go
-out again, late. The configuration file is included wherever it is, and the
-sample configuration as the version that made the backup has it. Only the
-bot's user can read the archives, because they contain phone numbers and
-the configuration holds the API key. They are on the same disk as what they
-back up, so copy them elsewhere too, along with the rest of `data_dir`. In
-debug mode, the bot makes no backups.
-
-To restore, stop the bot, unpack a backup in the data folder as the user
-who owns it (root, or your own user with rootless Podman), copy back what you
-need with `cp -p`, which keeps the bot's user as the owner, and start the
-bot again:
-
-```sh
-cd /srv/nejomibot/data
-tar -xf backups/nejomibot-2026-10-19_0400.tar.zst   # GNU tar 1.31 or later, with zstd
-cp -p nejomibot-2026-10-19_0400/birthdays.txt .
-```
-
-Without `zstd` on the host, `python3 -m tarfile -e <archive> .` unpacks an
-archive with Python 3.14 or later; in the bot's container, `python -m
-tarfile -l /data/backups/<archive>` lists what an archive contains.
-
 ## Development
 
 The project uses [uv](https://docs.astral.sh/uv/). Python and all
@@ -2016,7 +1945,6 @@ nejomibot/
   system.py     process, container and host facts from /proc and /sys
   publicip.py   public IPv4 and IPv6 addresses, ASN and location
   files.py      the files in data_dir: written privately, read again when changed
-  backups.py    the daily backup of data_dir and the configuration, in data_dir/backups
 deploy/         examples: Podman Quadlets and a Compose file
 tests/
 tools/          build-image.sh: tests and builds the image, for x86 and ARM;
