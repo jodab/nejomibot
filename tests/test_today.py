@@ -4,8 +4,9 @@ import pytest
 from helpers import ALICE, ALICE_ID, GROUP, message_from
 from signalbot import DataMessageContext, SendMessage, SignalBot
 
+from nejomibot import birthdays
 from nejomibot.config import get_settings
-from nejomibot.messages import collected, for_chat
+from nejomibot.messages import for_chat
 from nejomibot.timers import check_commands
 from nejomibot.today import Today, TodayPreview, day_message, preview, preview_day
 
@@ -26,27 +27,36 @@ async def test_today_names_the_day(
     assert post is not None
     assert for_chat(post, GROUP).text == f"{NATIONAL_DAY}\n🎂 Alice turns 36 today!"
     assert for_chat(post, ALICE).text == NATIONAL_DAY
-    # Or that there's nothing special
-    post = await day_message(bot, day=date(2026, 6, 8))
+    # Or, asked in a direct chat, that there's nothing special
+    post = await day_message(bot, day=date(2026, 6, 8), asked=True)
     assert post is not None
     assert post.text == "Nothing special today."
 
 
-async def test_a_post_says_nothing_of_a_day_with_nothing(bot: SignalBot) -> None:
+async def test_unasked_it_says_nothing_of_a_day_with_nothing(bot: SignalBot) -> None:
     get_settings().data_file("birthdays.txt").write_text(
         f"birthday | 1990-06-06 | {ALICE_ID} {ALICE} | Alice\n"
     )
-    # As a timer, a special or /run runs it: a chat with nothing special
-    # gets nothing, and with nothing anywhere, there's no message
-    token = collected.set([])
-    try:
-        assert await day_message(bot, day=date(2026, 6, 8)) is None
-        post = await day_message(bot, day=date(2026, 6, 6))
-    finally:
-        collected.reset(token)
+    # As in a group, or as a timer, a special or /run runs it: a chat with
+    # nothing special gets nothing, and with nothing anywhere, there's no
+    # message
+    assert await day_message(bot, day=date(2026, 6, 8)) is None
+    post = await day_message(bot, day=date(2026, 6, 6))
     assert post is not None
     assert for_chat(post, GROUP).text == "🎂 Alice turns 36 today!"
     assert for_chat(post, ALICE).text == ""
+
+
+async def test_a_group_hears_of_a_day_with_something_alone(
+    bot: SignalBot, answers: list[SendMessage], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_HOLIDAYS", '["SE"]')
+    get_settings.cache_clear()
+    context = DataMessageContext(bot, message_from(ADMIN, "/today", in_group=True))
+    for day in (date(2026, 6, 6), date(2026, 6, 8)):
+        monkeypatch.setattr(birthdays, "today", lambda day=day: day)
+        await Today().handle_data_message(context)
+    assert [answer.text for answer in answers] == [NATIONAL_DAY]
 
 
 @pytest.mark.parametrize(
@@ -97,19 +107,24 @@ async def test_the_preview(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> N
 
 @pytest.mark.usefixtures("swedish")
 async def test_the_commands(bot: SignalBot, answers: list[SendMessage]) -> None:
-    async def send(text: str) -> str:
-        """What the bot answers an admin's direct message, as text."""
+    async def send(text: str, *, in_group: bool = False) -> str:
+        """What the bot answers an admin's direct message, or the admin in
+        GROUP, as text: nothing, if it doesn't answer."""
         answers.clear()
-        context = DataMessageContext(bot, message_from(ADMIN, text))
+        message = message_from(ADMIN, text, in_group=in_group)
+        context = DataMessageContext(bot, message)
         for handler in (Today(), TodayPreview()):
             await handler.handle_data_message(context)
-        [answer] = answers
-        return answer.text or ""
+        assert len(answers) <= 1
+        return "".join(answer.text or "" for answer in answers)
 
     # By their Swedish names, as an admin sends them; /day is /today too
     assert await send("/idag") == "Inget särskilt idag."
     assert await send("/dagen") == "Inget särskilt idag."
     assert await send("/day") == "Inget särskilt idag."
+    # In a group, on a day with nothing special, nothing
+    assert await send("/idag", in_group=True) == ""
+    assert await send("/day", in_group=True) == ""
     assert (await send("/idag förhandsvisa imorgon")).startswith("**👁️ /idag på ")
     # The English word too
     assert (await send("/idag preview")).startswith("**👁️ /idag på ")

@@ -178,8 +178,8 @@ def notes() -> list[str]:
             "Signal, <who> is a name, shown in <chats>, or in every group"
         ),
         _(
-            "<parts> – text and commands, separated by ;, e.g. Good morning! "
-            "/today; /weather; /uniquephoto"
+            "<parts> – text and commands, separated by ;, or by + for one "
+            "message, e.g. Good morning! /today + /weather; /uniquephoto"
         ),
         _(
             "<album> – one of /albums, by name; /album takes a <date> with its "

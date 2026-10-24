@@ -273,10 +273,14 @@ second `Command` of the same name with `timers=False`. A list shown under
 things, in order, data in `data_dir/specials.txt` (`/special add|remove`,
 `/specials`): parts of text and a command, each run through
 `Timekeeper.answers_to` as a timer's, its text heading the first answer.
+Parts are separated by `;` or line breaks, or joined by a `+` standing on its
+own (`SEPARATOR`, `Part.joined`), which posts all they answer in one message
+(`joined()`, which also heads an answer with its text; `by_message()`).
 None are code: `/dailypost` and `/dailyquote` went, as specials post the
-same (the owner's decision, 2026-10-23), the daily post through `/today`,
-`/weather` and `/uniquephoto` (the round of photos not sent yet, see Photos). Their parts can't be
-the admins' own specials, nor what timers can't run; one a timer runs
+same (the owner's decision, 2026-10-23), the daily post through `/today +
+/weather` and `/uniquephoto` (the round of photos not sent yet, see
+Photos). Their parts can't be the admins' own specials, nor what timers
+can't run; one a timer runs
 can't be removed. `OwnSpecials.current()` stats the
 file at each lookup and rereads it when it changed. Their texts keep the
 formatting given in Signal (`DataMessage.text_styles`), which
@@ -312,8 +316,10 @@ refuses shortcuts.
 
 **Birthdays and holidays** (`birthdays.py`, `holidays.py`): `/today`
 (`today.py`, or `/day`) names the day, without the weather, which a daily
-post adds with `/weather` (the owner's decision, 2026-10-23); in what a
-timer, a special or `/run` posts, nothing on a day with nothing, as
+post adds with `/weather` (the owner's decision, 2026-10-23). On a day
+with nothing, it says "Nothing special today." only when asked in a direct
+chat (`day_message(asked=True)`), and nothing in a group, nor in what a
+timer, a special or `/run` posts (the owner's decision, 2026-10-24), as
 `send()` sends nothing with nothing in it (a `PerChat` with no text for the
 chat). `/today preview` shows the admins each group's: its holidays, in every chat, from
 rules in `holidays.py` (Easter from dateutil), for 35 countries by their ISO codes

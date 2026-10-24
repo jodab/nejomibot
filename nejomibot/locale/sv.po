@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 21:46+0300\n"
+"POT-Creation-Date: 2026-10-24 12:25+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -1446,11 +1446,11 @@ msgstr ""
 
 #: nejomibot/help.py
 msgid ""
-"<parts> – text and commands, separated by ;, e.g. Good morning! /today; /"
-"weather; /uniquephoto"
+"<parts> – text and commands, separated by ;, or by + for one message, e.g. "
+"Good morning! /today + /weather; /uniquephoto"
 msgstr ""
-"<delar> – text och kommandon, åtskilda med ;, t.ex. God morgon! /idag; /"
-"väder; /unikbild"
+"<delar> – text och kommandon, åtskilda med ;, eller med + för ett "
+"meddelande, t.ex. God morgon! /idag + /väder; /unikbild"
 
 #: nejomibot/help.py
 msgid ""
@@ -2617,6 +2617,14 @@ msgid ""
 msgstr ""
 "Delarna skiljs åt med ; eller radbrytningar. Text före ett kommando inleder "
 "dess svar, text för sig blir ett eget meddelande."
+
+#: nejomibot/specials.py
+msgid ""
+"A + in place of a ; puts the parts on either side of it in one message, as "
+"in /today + /weather."
+msgstr ""
+"Ett + i stället för ett ; lägger delarna på båda sidor om det i samma "
+"meddelande, som i /idag + /väder."
 
 #: nejomibot/specials.py
 msgid "Text keeps the formatting you give it in Signal, such as bold."

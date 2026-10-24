@@ -238,7 +238,7 @@ The everyday commands, for everyone the bot may talk to:
 | `/albums` | The albums, the folders of the photo library: how many photos each has, the years they were taken in, the birth date its captions count an age from, and its shortcuts |
 | `/onthisday`, `/onthisday <album>` | A photo taken on this day in an earlier year, or else within three days of it, from every album or the one named, captioned as `/photo` captions it, under how many years ago (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/cache`, `/cache <album>` | Number and size of photos in the library, by type, and how many albums it has; with an album, its photos' |
-| `/today`, `/day` | The day's holidays, and in a group, the birthdays and name days of those in it; "Nothing special today." on a day without any, but nothing in what a timer, a special or `/run` posts (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
+| `/today`, `/day` | The day's holidays, and in a group, the birthdays and name days of those in it; on a day without any, "Nothing special today." in a direct chat, but nothing in a group, nor in what a timer, a special or `/run` posts (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/weather`, `/weather <city>` | Current weather in `weather_city`, or in the city named, such as `/weather Helsinki`, under its heading in bold, with the day's sunrise and sunset (see [The weather](#the-weather)) |
 | `/forecast`, `/forecast <city>` | The weather today and tomorrow there: each day's worst weather, its lowest and highest temperature, and its chance of rain or snow (see [The weather](#the-weather)) |
 | `/info`, `/time` | The time in the places in `clocks`, and the `exchange_rate` |
@@ -279,7 +279,7 @@ For the admins, in a direct chat with the bot:
 | `/timer add <when> [<chats>] <commands>` | A new timer, e.g. `/timer add mon-fri 07:30 1,2 /today; /weather; /uniquephoto` |
 | `/timer remove <n>`, `/timer run <n>` | Remove a timer, or run it now |
 | `/specials` | The [specials](#specials) of your own: commands that post text and what other commands answer |
-| `/special add <name> <parts>` | A new special, or a change to one, e.g. `/special add /morning Good morning! /today; /weather; /uniquephoto` |
+| `/special add <name> <parts>` | A new special, or a change to one, e.g. `/special add /morning Good morning! /today + /weather; /uniquephoto` |
 | `/special remove <name>` | Remove a special, unless a timer runs it |
 | `/msg <chats> <text>` | Post the text to other chats, e.g. `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Run commands and post their answers to other chats, e.g. `/run 1 /status` |
@@ -511,11 +511,12 @@ own time zone, to chats 1 and 2 of `/chats`, the day's holidays, and in a
 group, the birthdays and name days of those it's for, if there are any (see
 [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)),
 then the weather, under its heading in bold, then a photo. Every chat gets
-the same weather and the same photo. For a heading over the photo, make the
-post a [special](#specials), with "Photo of the day!" made bold in Signal:
+the same weather and the same photo. For the day and the weather in one
+message, and a heading over the photo, make the post a [special](#specials),
+with "Photo of the day!" made bold in Signal:
 
 ```
-/special add /dailypost /today; /weather; Photo of the day! /uniquephoto
+/special add /dailypost /today + /weather; Photo of the day! /uniquephoto
 /timer add 08:00 1,2 /dailypost
 ```
 
@@ -642,9 +643,9 @@ birthdays and name days of those it's for:
 🌸 Happy name day, Bob!
 ```
 
-On a day with none of these, it says "Nothing special today.", but in what a
-timer, a special or `/run` posts, nothing, so a daily post of `/today;
-/weather` is the weather alone then.
+On a day with none of these, it says "Nothing special today." in a direct
+chat, but nothing in a group, nor in what a timer, a special or `/run`
+posts, so a daily post of `/today + /weather` is the weather alone then.
 
 - Sweden: its public holidays and their eves, its flag days
   ([förordning 1982:270](https://lagen.nu/1982:270)), the Sundays of Advent,
@@ -984,7 +985,7 @@ and what other commands answer. The admins make them in a direct chat with
 the bot, mostly for timers:
 
 ```
-/special add /morning Good morning! /today; /weather; /uniquephoto
+/special add /morning Good morning! /today + /weather; /uniquephoto
 /special add /bins The bins go out tonight!
 /specials                                  the specials of your own
 /timer add tue 18:00 1 /bins               a reminder, every Tuesday
@@ -994,7 +995,13 @@ the bot, mostly for timers:
 A special's parts are separated by `;` or line breaks. Text before a command
 heads what the command answers, in the same message, a blank line between:
 `Good morning! /weather` posts the weather under "Good morning!". Text alone
-is a message of its own. The name is a word that starts with `/`, and isn't
+is a message of its own. A `+` of its own in place of a `;` puts the parts on
+either side of it in one message, all they post, a blank line between:
+`/today + /weather` posts the day with the weather under it, and `/weather +
+Have a nice day!` the weather with a line under it. A `+` in a word, as in
+`C++` or `+4670000000`, is text; so a text, or what follows a command, such
+as an album's name, can't have a `+` of its own, as none can have a `;`. The
+name is a word that starts with `/`, and isn't
 a command or an alias; `/special add` with the name of one you have changes
 it. A special has up to five parts.
 
@@ -1006,13 +1013,14 @@ bold and italic that meet inside a word, and a style that starts or ends
 right by a `\` or `*`.
 
 Two to start from, their headings made bold in Signal: the
-[daily post](#photos-and-the-daily-post) with "Photo of the day!" over its
-photo, and a proverb or quote from `fortunes_svenska`, the bot's own
+[daily post](#photos-and-the-daily-post), the day with the weather under it,
+then a photo under "Photo of the day!", and a proverb or quote from
+`fortunes_svenska`, the bot's own
 library, under "Proverb or quote of the day:", what explains a proverb in
 italics, as `/fortune` has it:
 
 ```
-/special add /dailypost /today; /weather; Photo of the day! /uniquephoto
+/special add /dailypost /today + /weather; Photo of the day! /uniquephoto
 /special add /dailyquote Proverb or quote of the day: /fortune fortunes_svenska
 ```
 
@@ -1025,14 +1033,15 @@ of `/special add` or `remove` takes the place of what it edits. A special a
 timer runs can be changed, but not removed: remove the timer first.
 
 The specials of your own are kept in `data_dir/specials.txt`, a line each:
-the name, a `|`, and the parts, their commands by their English names, their
+the name, a `|`, and the parts, separated by `;` or joined by `+`, their
+commands by their English names, their
 texts in signal-cli-rest-api's marks for the formatting: `**bold**`,
 `*italic*`, `***both***`, `~strikethrough~`, `` `monospace` `` and
 `||spoiler||`, with a `\` before a `*`, `~`, `` ` `` or `|` that shows as it
 is:
 
 ```
-/morning | **Good morning!** /today; /weather; /uniquephoto
+/morning | **Good morning!** /today + /weather; /uniquephoto
 ```
 
 The bot reads the file again when it changes, so it can be changed by hand

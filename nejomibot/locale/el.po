@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 21:46+0300\n"
+"POT-Creation-Date: 2026-10-24 12:25+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -1471,11 +1471,11 @@ msgstr ""
 
 #: nejomibot/help.py
 msgid ""
-"<parts> – text and commands, separated by ;, e.g. Good morning! /today; /"
-"weather; /uniquephoto"
+"<parts> – text and commands, separated by ;, or by + for one message, e.g. "
+"Good morning! /today + /weather; /uniquephoto"
 msgstr ""
-"<μέρη> – κείμενο και εντολές, χωρισμένα με ;, π.χ. Καλημέρα! /σήμερα; /"
-"καιρός; /νέαφωτο"
+"<μέρη> – κείμενο και εντολές, χωρισμένα με ;, ή με + για ένα μήνυμα, π.χ. "
+"Καλημέρα! /σήμερα + /καιρός; /νέαφωτο"
 
 #: nejomibot/help.py
 msgid ""
@@ -2655,6 +2655,14 @@ msgid ""
 msgstr ""
 "Τα μέρη χωρίζονται με ; ή αλλαγές γραμμής. Κείμενο πριν από μια εντολή "
 "γίνεται τίτλος της απάντησής της· κείμενο μόνο του είναι μήνυμα."
+
+#: nejomibot/specials.py
+msgid ""
+"A + in place of a ; puts the parts on either side of it in one message, as "
+"in /today + /weather."
+msgstr ""
+"Ένα + στη θέση του ; βάζει τα μέρη και στις δύο πλευρές του σε ένα μήνυμα, "
+"όπως στο /σήμερα + /καιρός."
 
 #: nejomibot/specials.py
 msgid "Text keeps the formatting you give it in Signal, such as bold."

@@ -22,7 +22,16 @@ from signalbot import (
     text_triggered,
 )
 
-from nejomibot import access, commands, messages, photos, specials, timers, weather
+from nejomibot import (
+    access,
+    birthdays,
+    commands,
+    messages,
+    photos,
+    specials,
+    timers,
+    weather,
+)
 from nejomibot.access import HEADER
 from nejomibot.account import Contact
 from nejomibot.bot import handlers
@@ -622,6 +631,33 @@ async def test_a_daily_post_sends_everyone_the_same(
     ]
     # One photo, from those not sent yet this round
     assert photos_picked == [True]
+
+
+async def test_a_daily_post_joins_the_day_and_the_weather(
+    sent: Sent, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def weather_message(city: str = "") -> str:
+        return "**Weather**"
+
+    monkeypatch.setattr(weather, "weather_message", weather_message)
+    monkeypatch.setenv("NEJOMIBOT_HOLIDAYS", '["SE"]')
+    get_settings.cache_clear()
+    get_settings().specials_file.write_text("/dailypost | /today + /weather\n")
+    bot = cast(SignalBot, FakeBot())
+    keeper = Timekeeper()
+    keeper.start(bot, [h for h, *_ in handlers(bot, get_settings())])
+    monkeypatch.setattr(specials, "timekeeper", keeper)
+    timer = add(keeper, "08:00", [GROUP, ALICE], "/dailypost")
+    # The day with the weather under it, in one message
+    monkeypatch.setattr(birthdays, "today", lambda: date(2026, 6, 6))
+    await keeper.run(timer.id)
+    day = "🇸🇪 National Day of Sweden · flag day\n\n**Weather**"
+    assert sent == [(GROUP, day), (ALICE, day)]
+    # On a day with nothing special, the weather alone
+    sent.clear()
+    monkeypatch.setattr(birthdays, "today", lambda: date(2026, 6, 8))
+    await keeper.run(timer.id)
+    assert sent == [(GROUP, "**Weather**"), (ALICE, "**Weather**")]
 
 
 async def test_a_timer_runs_a_special_of_the_admins(

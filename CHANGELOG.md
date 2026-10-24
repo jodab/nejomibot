@@ -4,6 +4,31 @@ What changed from one version of nejomibot to the next, newest first, and
 what to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- A `+` standing on its own in a special now joins the parts on either side
+  of it (see Added). If one of your specials has such a `+` in its text, or
+  in what follows a command, such as an album's name, the special posts
+  differently from this release on: put the `+` next to a word, or write it
+  out.
+
+### Added
+
+- A `+` in place of a `;` puts a special's parts on either side of it in one
+  message, a blank line between them: `/special add /dailypost /today +
+  /weather; Photo of the day! /uniquephoto` posts the day's holidays, and in
+  a group its birthdays and name days, with the weather under them in one
+  message, as `/today` had them before 0.99.14, then the photo. Text can be
+  joined too: `/weather + Have a nice day!` puts a line under the weather.
+  A `+` inside a word, as in `C++`, is text.
+
+### Changed
+
+- `/today` and `/day`, asked in a group on a day with nothing special, no
+  longer answer; in a direct chat they still say "Nothing special today.".
+
 ## 0.99.15 - 2026-10-23
 
 ### Added

@@ -20,7 +20,7 @@ from nejomibot.specials import (
     Part,
     Specials,
     check_name,
-    headed,
+    joined,
     own_specials,
     parse_parts,
 )
@@ -51,10 +51,13 @@ class Chat:
         pass
 
     async def answers_to(self, command: str) -> list[SendMessage]:
-        """Two answers to /status, as it has; one to the rest."""
+        """Two answers to /status, as it has; none to /today, as on a day
+        with nothing special; one to the rest."""
         self.ran.append(command)
         if command == "/status":
             return [SendMessage(text="checks"), SendMessage(text="details")]
+        if command == "/today":
+            return []
         return [SendMessage(text=f"{command}!")]
 
     async def send(
@@ -115,6 +118,29 @@ def chat(monkeypatch: pytest.MonkeyPatch) -> Chat:
             "||Surprise!|| /ping; **Bins** \\*now\\*",
             [Part("||Surprise!||", "/ping"), Part("**Bins** \\*now\\*")],
         ),
+        # A + of its own joins a part to the one before, in its message
+        (
+            "/today + /weather; Photo! /uniquephoto",
+            [
+                Part("", "/today"),
+                Part("", "/weather", joined=True),
+                Part("Photo!", "/uniquephoto"),
+            ],
+        ),
+        # Text too, and across a line break
+        (
+            "/today\n+ /weather +\nBye!",
+            [
+                Part("", "/today"),
+                Part("", "/weather", joined=True),
+                Part("Bye!", joined=True),
+            ],
+        ),
+        # A + in a word is text, and one before the first part joins nothing
+        (
+            "+ C++ /ping; +4670000000 /info",
+            [Part("C++", "/ping"), Part("+4670000000", "/info")],
+        ),
     ],
 )
 def test_parts(text: str, parts: list[Part]) -> None:
@@ -141,6 +167,7 @@ def test_parts_keep_the_english_names() -> None:
         ("Hi | there /ping", "A special can't have a |"),
         ("Hi /Morning", "/Morning is a special of yours"),
         ("; ".join(["/ping"] * 6), "A special has at most 5 parts."),
+        (" + ".join(["/ping"] * 6), "A special has at most 5 parts."),
     ],
 )
 def test_parts_refused(text: str, why: str) -> None:
@@ -241,6 +268,30 @@ async def test_a_special_posts_its_parts_in_order(chat: Chat) -> None:
     assert chat.ran == ["/status", "/ping"]
 
 
+async def test_parts_joined_by_a_plus_post_in_one_message(chat: Chat) -> None:
+    await chat.send("/special add /morning Morning! /status + /ping; Hi + Bye; /ping")
+    # All that they post, both answers of /status too, and nothing more for
+    # one that answers nothing
+    assert await chat.send("/morning") == [
+        "Morning!\n\nchecks\n\ndetails\n\n/ping!",
+        "Hi\n\nBye",
+        "/ping!",
+    ]
+    await chat.send("/special add /daily /today + /weather")
+    assert await chat.send("/daily") == ["/weather!"]
+    # Kept and shown as given
+    lines = get_settings().specials_file.read_text().splitlines()
+    assert lines[-2:] == [
+        "/morning | Morning! /status + /ping; Hi + Bye; /ping",
+        "/daily | /today + /weather",
+    ]
+    assert await chat.send("/specials") == [
+        "**✨ 2 specials**\n"
+        "**/daily** · /today + /weather\n"
+        "**/morning** · Morning! /status + /ping; Hi + Bye; /ping"
+    ]
+
+
 async def test_an_edit_runs_a_special_again_or_changes_it(chat: Chat) -> None:
     await chat.send("/special add /morning /ping")
     # One of the admins' own runs again: its commands change nothing
@@ -257,26 +308,35 @@ async def test_an_edit_runs_a_special_again_or_changes_it(chat: Chat) -> None:
     assert list(own_specials.current().specials) == ["/bins"]
 
 
-def test_a_heading_is_in_marks() -> None:
+def test_messages_joined_are_styled_if_one_is() -> None:
+    heading = SendMessage(text="*Hi*", text_mode=TextMode.STYLED)
     styled = SendMessage(text="**Help**", text_mode=TextMode.STYLED)
-    assert headed("*Hi*", styled) == SendMessage(
+    assert joined([heading, styled]) == SendMessage(
         text="*Hi*\n\n**Help**", text_mode=TextMode.STYLED
     )
-    # A plain answer is styled, as it shows
+    # A plain one is escaped, as it shows, and the photos are all kept
     plain = SendMessage(text="5 * 3", base64_attachments=["aGVq"])
-    assert headed("*Hi*", plain) == SendMessage(
-        text="*Hi*\n\n5 \\* 3", base64_attachments=["aGVq"], text_mode=TextMode.STYLED
-    )
-
-
-def test_a_heading_heads_each_chat_s_own_text() -> None:
-    # As /today's, with birthdays in a group
-    post = PerChat(
-        text="**Weather**",
-        texts={GROUP: "🎂 Alice turns 36 today!\n\n**Weather**"},
+    photo = SendMessage(base64_attachments=["ZGVq"], text_mode=TextMode.STYLED)
+    assert joined([heading, plain, photo]) == SendMessage(
+        text="*Hi*\n\n5 \\* 3",
+        base64_attachments=["aGVq", "ZGVq"],
         text_mode=TextMode.STYLED,
     )
-    post = headed("**Hi!**", post)
+    # Plain ones stay plain
+    assert joined([plain, SendMessage(text="Hi")]) == SendMessage(
+        text="5 * 3\n\nHi", base64_attachments=["aGVq"]
+    )
+
+
+def test_each_chat_s_own_text_is_joined_too() -> None:
+    # As /today's, with birthdays in a group and nothing elsewhere
+    day = PerChat(
+        text="", texts={GROUP: "🎂 Alice turns 36 today!"}, text_mode=TextMode.STYLED
+    )
+    weather = SendMessage(text="**Weather**", text_mode=TextMode.STYLED)
+    post = joined(
+        [SendMessage(text="**Hi!**", text_mode=TextMode.STYLED), day, weather]
+    )
     assert for_chat(post, GROUP).text == (
         "**Hi!**\n\n🎂 Alice turns 36 today!\n\n**Weather**"
     )

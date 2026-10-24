@@ -1,10 +1,10 @@
 """/today (or /day): the day's holidays, in the countries of the setting
 holidays (holidays.py), and in a group, the birthdays and name days of those
-it's for (birthdays.py), or that there's nothing special. For everyone
-allowed. A timer posts it to every chat at once, each group with its own
-birthdays, and on a day with nothing special, nothing, as do specials and
-/run; with /weather and /uniquephoto after it, it's a daily post:
-/timer add 08:00 1,2 /today; /weather; /uniquephoto.
+it's for (birthdays.py). For everyone allowed. On a day with nothing
+special, it says so in a direct chat, and nothing in a group, nor in what a
+timer, a special or /run posts. A timer posts it to every chat at once, each
+group with its own birthdays; with /weather and /uniquephoto after it, it's
+a daily post: /timer add 08:00 1,2 /today; /weather; /uniquephoto.
 
 /today preview, or /today preview 10-25, 2026-10-25 or tomorrow, shows an
 admin what /today will say on that day, today if none is given, in each
@@ -26,19 +26,20 @@ from .messages import PerChat, collected, escape
 from .timers import DAYS_FROM_NOW, in_language
 
 
-async def day_message(bot: SignalBot, day: date | None = None) -> PerChat | None:
+async def day_message(
+    bot: SignalBot, day: date | None = None, *, asked: bool = False
+) -> PerChat | None:
     """The day's holidays, in the countries of the setting holidays, and in
     a group, the birthdays and name days of those it's for: today's, or the
-    day's; or that there's nothing special. Posted by a timer, a special or
-    /run, a chat with nothing special gets nothing (messages.send()), and
-    with nothing anywhere, there's no message. Styled."""
+    day's. A chat with nothing special gets nothing (messages.send()), and
+    with nothing anywhere, there's no message; asked, as in a direct chat,
+    it says there's nothing special. Styled."""
     day = day or birthdays.today()
     holidays = days_on(day, get_settings().holidays)
     greetings = await birthdays.greetings(bot, day)
-    posted = collected.get() is not None
-    if posted and not holidays and not any(greetings.values()):
+    if not asked and not holidays and not any(greetings.values()):
         return None
-    nothing = "" if posted else escape(_("Nothing special today."))
+    nothing = escape(_("Nothing special today.")) if asked else ""
     return PerChat(
         text=escape("\n".join(holidays)) or nothing,
         texts={
@@ -107,7 +108,10 @@ class Today(Handler):
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
         bot = context.bot
-        await answer(context, lambda: day_message(bot), styled=True)
+        # Whether to say there's nothing special: not in a group, nor to the
+        # made-up direct message of a timer, a special or /run
+        asked = not context.message.is_group() and collected.get() is None
+        await answer(context, lambda: day_message(bot, asked=asked), styled=True)
 
 
 class TodayPreview(Handler):

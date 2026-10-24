@@ -2,14 +2,17 @@
 each after the one before: texts, and what other commands answer. The
 admins make them in a direct chat with the bot:
 
-  /special add /morning Good morning! /today; /weather; /uniquephoto
+  /special add /morning Good morning! /today + /weather; /uniquephoto
   /special add /bins The bins go out tonight!
   /specials                    the admins' own
   /special remove /bins
 
 A special's parts are separated by ; or line breaks. Text before a command
 heads the command's first answer, a blank line between; text alone is a
-message of its own. The commands run as a timer runs them, as an admin would
+message of its own. A + of its own in place of a ; puts all that the parts
+on either side of it post in one message, a blank line between: /today +
+/weather is the day with the weather under it. A + in a word, as in C++, is
+text. The commands run as a timer runs them, as an admin would
 in a direct chat with the bot, so a special can have any command a timer
 can, but not another special. Specials are for timers, /run and the admins,
 in a direct chat. Text keeps the formatting the admin gives it in Signal:
@@ -25,7 +28,7 @@ with /special add, but not removed.
 
 import logging
 import re
-from collections.abc import Collection, Iterable
+from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass
 from typing import Self
 
@@ -44,7 +47,7 @@ from .commands import (
 from .config import get_settings
 from .files import write_privately
 from .i18n import _, ngettext
-from .messages import PerChat, escape, unreadable_text
+from .messages import PerChat, escape, for_chat, unreadable_text
 from .styles import Styles, marked, styles_of
 from .timers import check_commands, timekeeper
 
@@ -55,10 +58,13 @@ MAX_SPECIALS = 50
 # its chats
 MAX_PARTS = 5
 NAME = re.compile(r"^/[^\s|;]+$")
+# What separates a special's parts: a ; or a line break, or a + of its own,
+# which keeps the parts on either side of it in one message
+SEPARATOR = re.compile(r"([;\n]|(?<!\S)\+(?!\S))")
 
 HEADER = (
     "# nejomibot's specials, one per line:",
-    "#   name | its parts, separated by ;",
+    "#   name | its parts, separated by ;, or by + for one message",
     "# Texts in marks: **bold**, *italic*, ~strikethrough~, `monospace`, ||spoiler||,",
     "# a \\ before a *, ~, ` or | that shows as it is.",
     "# Changed with /special in Signal, or by hand: the bot reads it again when",
@@ -73,16 +79,31 @@ class Part:
 
     text: str = ""  # in marks for its styles
     command: str = ""  # by its English name
+    joined: bool = False  # by a + to the part before, in its message
 
 
 type Parts = tuple[Part, ...]
+
+
+def by_message(parts: Parts) -> list[Parts]:
+    """The parts of each message: a part's own, and those joined to it."""
+    found: list[Parts] = []
+    for part in parts:
+        if part.joined and found:
+            found[-1] += (part,)
+        else:
+            found.append((part,))
+    return found
 
 
 def parts_text(parts: Parts, *, styled: bool = False) -> str:
     """As the file keeps them, or styled, as the bot shows them: their texts
     are in marks either way."""
     command = escape if styled else str
-    return "; ".join(f"{part.text} {command(part.command)}".strip() for part in parts)
+    return "; ".join(
+        " + ".join(f"{part.text} {command(part.command)}".strip() for part in one)
+        for one in by_message(parts)
+    )
 
 
 def check_name(name: str) -> str | None:
@@ -97,36 +118,49 @@ def check_name(name: str) -> str | None:
 def parse_parts(
     text: str, own: Collection[str], styles: Styles | None = None
 ) -> Parts | str:
-    """The parts in the text, separated by ; or line breaks: each its text,
-    then its command, from the first word that starts with /. The text is a
-    message's, with the styles of its characters, or without them, in marks
-    already, as the file keeps it. Or why they can't be a special's: own are
-    the names of the admins' specials, which a special can't run."""
+    """The parts in the text, separated by ; or line breaks, or by a + of its
+    own, which joins them: each its text, then its command, from the first
+    word that starts with /. The text is a message's, with the styles of its
+    characters, or without them, in marks already, as the file keeps it. Or
+    why they can't be a special's: own are the names of the admins'
+    specials, which a special can't run."""
     if styles is not None and "|" in text:
         return _("A special can't have a |: the file of specials uses it.")
     parts: list[Part] = []
-    for piece in re.finditer(r"[^\s;][^;\n]*", text):
-        start = re.search(r"(?:^|\s)/", piece[0])
-        words = piece[0][: start.start() if start else None].rstrip()
-        if styles is not None:
-            at = piece.start()
-            if (words := marked(words, styles[at : at + len(words)])) is None:
-                return _(
-                    "That formatting can't be kept: bold and italic can't meet "
-                    "inside a word, nor a style start or end right by a \\ or *."
-                )
-        if start is None:
-            parts.append(Part(words))
+    joins = False  # a + since the part before, even across a line break
+    end = 0
+    # Every other piece is a separator, the first a part
+    for i, piece in enumerate(SEPARATOR.split(text)):
+        at, end = end, end + len(piece)
+        if i % 2:
+            joins = joins or piece == "+"
             continue
-        command = canonical(piece[0][start.start() :].strip())
-        if command.split()[0].lower() in own:
+        if not (stripped := piece.lstrip()):
+            continue
+        at += len(piece) - len(stripped)
+        start = re.search(r"(?:^|\s)/", stripped)
+        words = stripped[: start.start() if start else None].rstrip()
+        if (
+            styles is not None
+            and (words := marked(words, styles[at : at + len(words)])) is None
+        ):
             return _(
-                "{command} is a special of yours, and specials can't run each other."
-            ).format(command=command)
-        # built_in, as known() would read the file this may be reading
-        if why_not := check_commands([command], built_in):
-            return why_not
-        parts.append(Part(words, command))
+                "That formatting can't be kept: bold and italic can't meet "
+                "inside a word, nor a style start or end right by a \\ or *."
+            )
+        command = ""
+        if start is not None:
+            command = canonical(stripped[start.start() :].strip())
+            if command.split()[0].lower() in own:
+                return _(
+                    "{command} is a special of yours, and specials can't run "
+                    "each other."
+                ).format(command=command)
+            # built_in, as known() would read the file this may be reading
+            if why_not := check_commands([command], built_in):
+                return why_not
+        parts.append(Part(words, command, joins and bool(parts)))
+        joins = False
     if not parts:
         return _("What should it post?") + f"\n\n{usage()}"
     if len(parts) > MAX_PARTS:
@@ -233,35 +267,51 @@ class OwnSpecials:
 own_specials = OwnSpecials()
 
 
-def headed(text: str, message: SendMessage) -> SendMessage:
-    """The message, styled, the text in marks before its own, a blank line
-    between; in each chat's text too, for a message with some."""
+def joined(messages: Sequence[SendMessage]) -> SendMessage:
+    """The messages as one: their texts in order, a blank line between,
+    styled if any is, and their photos; and each chat's own text, for a
+    message with some (PerChat), as /today's. The bot's answers have
+    nothing else."""
+    if len(messages) == 1:
+        return messages[0]
+    styled = any(message.text_mode == TextMode.STYLED for message in messages)
 
-    def head(own: str) -> str:
-        if message.text_mode != TextMode.STYLED:
-            own = escape(own)
-        return f"{text}\n\n{own}" if own else text
+    def text(chat: str = "") -> str:
+        texts: list[str] = []
+        for message in messages:
+            own = (for_chat(message, chat) if chat else message).text or ""
+            if styled and message.text_mode != TextMode.STYLED:
+                own = escape(own)
+            texts += [own] if own else []
+        return "\n\n".join(texts)
 
-    update: dict[str, object] = {
-        "text": head(message.text or ""),
-        "text_mode": TextMode.STYLED,
+    chats = {
+        chat for each in messages if isinstance(each, PerChat) for chat in each.texts
     }
-    if isinstance(message, PerChat):
-        update["texts"] = {chat: head(own) for chat, own in message.texts.items()}
-    return message.model_copy(update=update)
+    photos = [photo for each in messages for photo in each.base64_attachments or []]
+    mode = TextMode.STYLED if styled else None
+    if chats:
+        texts = {chat: text(chat) for chat in chats}
+        return PerChat(
+            text=text(), texts=texts, base64_attachments=photos or None, text_mode=mode
+        )
+    return SendMessage(text=text(), base64_attachments=photos or None, text_mode=mode)
 
 
 async def posts(parts: Parts) -> list[SendMessage]:
     """What a special posts, part after part: what its command answers, the
-    first headed by its text, or the text alone."""
+    first headed by its text, or the text alone; and in one message, all
+    that parts joined by + post."""
     found: list[SendMessage] = []
-    for part in parts:
-        answers = await timekeeper.answers_to(part.command) if part.command else []
-        if part.text and answers:
-            answers[0] = headed(part.text, answers[0])
-        elif part.text:
-            answers = [SendMessage(text=part.text, text_mode=TextMode.STYLED)]
-        found += answers
+    for one in by_message(parts):
+        answers: list[SendMessage] = []
+        for part in one:
+            own = await timekeeper.answers_to(part.command) if part.command else []
+            if part.text:
+                heading = SendMessage(text=part.text, text_mode=TextMode.STYLED)
+                own[:1] = [joined([heading, *own[:1]])]
+            answers += own
+        found += [joined(answers)] if len(one) > 1 and answers else answers
     return found
 
 
@@ -278,6 +328,11 @@ def usage() -> str:
             + _(
                 "Parts are separated by ; or line breaks. Text before a command "
                 "heads its answer, text alone is a message."
+            ),
+            "  "
+            + _(
+                "A + in place of a ; puts the parts on either side of it in one "
+                "message, as in /today + /weather."
             ),
             "  " + _("Text keeps the formatting you give it in Signal, such as bold."),
             _("/special remove <name>: remove one"),
