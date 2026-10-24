@@ -4,6 +4,30 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- The setup guides show how to set up the Signal account without the bot
+  running, as before its first start: `signal-account.sh` runs in a
+  container of its own on signal-cli-rest-api's network, `podman run --rm
+  -it --no-healthcheck --network container:signal docker.io/jodab/nejomibot
+  signal-account.sh setup`, or with Compose, `docker compose run --rm
+  nejomibot signal-account.sh setup`.
+
+### Changed
+
+- The photo commands list the library in less than half the time: on a
+  Raspberry Pi 4 with 7,639 photos, `/uniquephoto` picks its photo in
+  85 ms rather than 206 ms, and with an album, in 203 ms rather than 463 ms.
+- Every interactive shell in the container starts with the guide to its
+  tools, `sh` as well as `bash`, and login shells too.
+
+### Fixed
+
+- A login shell in the container, such as `sh -l` or `bash -l`, didn't find
+  the bot's tools, since Debian's `/etc/profile` sets a PATH without them.
+
 ## 0.99.18 - 2026-10-24
 
 ### Updating

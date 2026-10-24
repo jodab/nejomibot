@@ -39,6 +39,28 @@ def test_scan_finds_each_photo_once(photos_dir: Path) -> None:
     assert found == ["B.JPG", "a.jpg", "c.jpeg", "sub/d.heic"]
 
 
+def test_scan_lists_what_walk_does(photos_dir: Path) -> None:
+    for name in ["a.jpg", "x/b.jpg", "x/y/c.jpg", "x/z/d.jpg", "w/e.jpg"]:
+        (photos_dir / name).parent.mkdir(parents=True, exist_ok=True)
+        (photos_dir / name).touch()
+    (photos_dir / "link.jpg").symlink_to(photos_dir / "a.jpg")
+    (photos_dir / "folder.jpg").symlink_to(photos_dir / "x")  # listed, not read
+    walked = [
+        dirpath / name
+        for dirpath, _dirs, names in photos_dir.walk()
+        for name in names
+        if name.lower().endswith(photos.extensions())
+    ]
+    assert len(walked) == 7
+    assert photos.scan_photos() == walked
+    assert [str(p) for p in photos.scan_photos()] == [str(p) for p in walked]
+
+
+def test_scan_without_a_library(photos_dir: Path) -> None:
+    photos_dir.rmdir()
+    assert photos.scan_photos() == []
+
+
 def test_format_age() -> None:
     def age(year: int, month: int, day: int, hour: int = 0, minute: int = 0) -> str:
         return photos.format_age(datetime(year, month, day, hour, minute), BORN)

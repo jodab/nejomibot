@@ -132,9 +132,12 @@ stage runs only for the building machine's platform. On linux/arm/v7,
 Pillow and pillow-heif have no wheels, so the build stage compiles them
 against Debian's libraries (`TARGETARCH` is `arm`). Debian's libheif reads
 HEIF but can't write it, which only the tests do. Of `tools/`, the image
-has `signal-account.sh` and `nejomibot-help.sh`, the guide its
-`/etc/bash.bashrc` shows an interactive shell (`podman exec -it nejomibot
-bash`), not scripts or `bash -c`. Before pushing, the script
+has `signal-account.sh`, `nejomibot-help.sh`, the guide every interactive
+shell starts with (not scripts or `sh -c`), and `nejomibot-profile.sh`, as
+`/etc/profile.d/nejomibot.sh`, which shows it: bash reads it from
+`/etc/bash.bashrc`, a login shell from `/etc/profile` (whose PATH lacks the
+tools, which it adds), and `sh` through `ENV`. A new file for the image
+also needs a line in `.dockerignore`, an allowlist. Before pushing, the script
 runs each platform's image and stops unless Python there reports that
 platform's machine: Podman 4.9 built 0.94.0's images all for amd64, because
 the uv stage names its own platform (`$BUILDPLATFORM`), so the image jobs
@@ -356,7 +359,15 @@ owner's to change, as the changelog says): `sent-photos.txt` lists the sent
 photos by their paths in the library, and an album's round starts over when
 its lines are removed. `library_name()` and `album_of()` strip the prefix as
 text, because pathlib's `relative_to()` made a pick take 53 ms longer for
-7,641 photos. `moments()` is the single index of when each photo was taken,
+7,641 photos, and `scan_photos()` lists through `iterdir()`, whose paths
+keep their text, because `str()` of paths joined from `walk()`'s names
+takes 140 ms for 7,639 photos on the Pi 4 (a `/uniquephoto` pick there:
+206 ms before, 85 ms after; with an album, 463 and 203 ms). The time
+between a daily post's text and its photo is signal-cli's: about 2 s to
+upload any photo and send it, and 1 to 2 s more for a 1 to 3 MB one
+(2026-10-24); the photos still go out at full size, not shrunk to save
+that time (the owner's decision, 2026-10-24). `moments()` is the single
+index of when each photo was taken,
 for `/photo <date>`, `/albums` and `/onthisday`. `/photo <date>` is as exact
 as it is given (the owner's decision, 2026-10-23): a year, month, day or
 hour (`Period`) gives a random photo from that period, or else from the

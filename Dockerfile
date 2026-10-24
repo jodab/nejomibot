@@ -9,8 +9,10 @@ FROM docker.io/library/python:3.14-slim@sha256:0514bc76712d64f8bb48adcb95b1ab0d8
 # tzdata lets TZ give local log timestamps; curl, jq and qrencode are for
 # signal-account.sh. On 32-bit ARM, where Pillow and pillow-heif have no
 # wheels, the libraries they're built against (the wheels bring their own).
-# The bot's user and group are 1001 both. An interactive shell, as in podman
-# exec -it nejomibot bash, starts with a short guide (tools/nejomibot-help.sh).
+# The bot's user and group are 1001 both. Every interactive shell, as in
+# podman exec -it nejomibot sh, or bash, starts with a short guide
+# (tools/nejomibot-help.sh), through /etc/profile.d/nejomibot.sh, which the
+# image gets below: bash reads it from /etc/bash.bashrc, and sh as $ENV.
 ARG TARGETARCH
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata curl jq qrencode \
@@ -21,13 +23,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 1001 nejomibot \
     && useradd --system --uid 1001 --gid 1001 --no-create-home nejomibot \
-    && echo 'if command -v nejomibot-help.sh >/dev/null; then nejomibot-help.sh; fi' \
-        >> /etc/bash.bashrc
+    && echo '. /etc/profile.d/nejomibot.sh' >> /etc/bash.bashrc
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH=/app/tools:/app/.venv/bin:$PATH \
-    NEJOMIBOT_CONFIG=/data/config.toml
+    NEJOMIBOT_CONFIG=/data/config.toml \
+    ENV=/etc/profile.d/nejomibot.sh
 
 WORKDIR /app
 
@@ -96,6 +98,7 @@ LABEL org.opencontainers.image.title=nejomibot \
 COPY --from=build /app/.venv .venv
 COPY config.example.toml ./
 COPY tools/signal-account.sh tools/nejomibot-help.sh tools/
+COPY tools/nejomibot-profile.sh /etc/profile.d/nejomibot.sh
 
 # The photos go in /photos, which the bot only reads, and config.toml in
 # /data, where the bot keeps what it's told. By number, so a runtime can see

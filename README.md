@@ -158,6 +158,9 @@ log; the bot keeps running.
 docker compose exec nejomibot signal-account.sh setup
 ```
 
+If the bot isn't running, run the tool in a container of its own instead:
+`docker compose run --rm nejomibot signal-account.sh setup`.
+
 1. **Register or link?** Press Enter to choose `r`, register. Don't link the
    bot to a phone: the bot would then treat anything typed on that phone in
    a direct chat as coming from the other person
@@ -1468,8 +1471,21 @@ podman exec -it nejomibot signal-account.sh --dry-run unregister  # what it woul
 ```
 
 (With Compose, use `docker compose exec nejomibot signal-account.sh setup`.)
-A picture for the avatar is passed on standard input, from wherever it is,
-since the container can't see your files:
+The tool also runs without the bot, for example before the bot's first
+start, in a container of its own on signal-cli-rest-api's network, where it
+finds signal-cli-rest-api at `127.0.0.1:8080` and the only account there, and
+`setup` asks for the number. `--no-healthcheck` keeps the image's health
+check, which asks the bot, from running in that container:
+
+```sh
+podman run --rm -it --no-healthcheck --network container:signal \
+  docker.io/jodab/nejomibot signal-account.sh setup
+```
+
+With Compose, `docker compose run --rm nejomibot signal-account.sh setup`
+does the same, with the bot's settings. A picture for the avatar is passed
+on standard input, from wherever it is, since the container can't see your
+files:
 
 ```sh
 podman exec -i nejomibot signal-account.sh profile --avatar - < logo.png
@@ -1644,11 +1660,12 @@ the tools leave behind (`RunInit=true`). It uses two folders:
   the bot's user: Podman's `:U` option sees to that; otherwise, run
   `chown 1001` on it.
 
-A shell in the container, `podman exec -it nejomibot bash` (with Compose,
-`docker compose exec nejomibot bash`), starts with a short guide to the
-bot's tools there: `nejomibot-healthcheck`, `nejomibot-timers` and
-`signal-account.sh`, what each does and where it is, and where the bot keeps
-its files. `nejomibot-help.sh` shows the guide again.
+Every interactive shell in the container, such as `podman exec -it nejomibot
+sh` or `bash` (with Compose, `docker compose exec nejomibot sh`), starts with
+a short guide to the bot's tools there: `nejomibot-healthcheck`,
+`nejomibot-timers` and `signal-account.sh`, what each does and where it is,
+and where the bot keeps its files. `nejomibot-help.sh` shows the guide
+again.
 
 ### A fresh install
 
@@ -1658,7 +1675,9 @@ the Quadlets or `podman run` below, the steps are the same, with `podman exec
 `config.toml` in the data folder, start the bot, which waits for its account
 (as its log shows), register the account with `signal-account.sh setup` in
 the bot's container, then send `/help` from an admin's phone, and use
-`/allow` and the timers.
+`/allow` and the timers. The account can also be set up before the bot
+starts, with the tool in a container of its own
+([how](#setting-up-and-managing-the-signal-account)).
 
 ### Podman Quadlets
 
@@ -1890,6 +1909,7 @@ deploy/         examples: Podman Quadlets and a Compose file
 tests/
 tools/          build-image.sh: tests and builds the image, for x86 and ARM;
                 nejomibot-help.sh: the guide a shell in the container starts with;
+                nejomibot-profile.sh: shows it, whichever shell, and puts the tools on its PATH;
                 release.sh: makes a release, and with it the image;
                 signal-account.sh: sets up and manages the Signal account;
                 tidy-photos.sh: converts, renames and deduplicates the photo library;

@@ -182,6 +182,9 @@ answer its questions:
 docker compose exec nejomibot signal-account.sh setup
 ```
 
+If the bot isn't running, run the tool in a container of its own instead:
+`docker compose run --rm nejomibot signal-account.sh setup`.
+
 1. **Register or link?** Press Enter to choose `r`, register. Don't link the
    bot to a phone (see Keep it safe, below).
 2. **The captcha.** Signal almost always requires one first. Open
@@ -294,9 +297,10 @@ That's it: the bot is up and running. 🎉
 - **Backups:** every day at 04:00, the bot backs up what it stores, along
   with its settings, in `data/backups`, unless nothing has changed, and keeps
   the latest 30; see [the README](https://github.com/jodab/nejomibot#backups).
-- **A shell in the container:** `docker compose exec nejomibot bash` starts
-  with a short guide to the bot's tools, such as `nejomibot-timers` and
-  `signal-account.sh`, and where the bot keeps its files.
+- **A shell in the container:** `docker compose exec nejomibot sh`, or
+  `bash`, starts with a short guide to the bot's tools, such as
+  `nejomibot-timers` and `signal-account.sh`, and where the bot keeps its
+  files.
 - **Commands of your own, other names for commands, and all the settings:**
   see the [README](https://github.com/jodab/nejomibot#readme).
 
