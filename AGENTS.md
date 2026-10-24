@@ -433,7 +433,8 @@ taken closest. Every photo command accepts an album, and without one, uses
 every photo, in an album or not (the owner's decision, 2026-10-23). Each
 album's birth date and shortcuts are in `albums.txt`
 (`photos.album_settings`), set with the admins' `/album`;
-`photos_birth_date` applies to albums without one. A shortcut is an alias
+an album has none until one is set (the owner's decision, 2026-10-24), and
+`photos_birth_date` applies to photos in no album only. A shortcut is an alias
 for `/photo <album>`, in place of the configuration's aliases for `/photo`
 (the owner's decision, 2026-10-23): `Photo.shortcuts()` hands them to
 `commands.aliases()`, where every other alias takes precedence, and

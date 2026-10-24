@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 20:44+0300\n"
+"POT-Creation-Date: 2026-10-24 22:25+0300\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -258,24 +258,19 @@ msgstr[1] "📷 {count} fotos sin álbum"
 #: nejomibot/albums.py
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
-"captions count an age from; /album <album> -: none of its own. /album "
-"<album> shortcuts /alice: other names for /photo <album>; /album <album> "
-"shortcuts -: none. /albums lists the albums."
+"captions count an age from; /album <album> -: none. /album <album> "
+"shortcuts /alice: other names for /photo <album>; /album <album> shortcuts "
+"-: none. /albums lists the albums."
 msgstr ""
 "/album <álbum>: el álbum. /album <álbum> 2019-06-15: la fecha de nacimiento "
-"desde la que sus pies de foto cuentan una edad; /album <álbum> -: ninguna "
-"propia. /album <álbum> atajos /alice: otros nombres para /foto <álbum>; /"
-"album <álbum> atajos -: ninguno. /álbumes muestra los álbumes."
+"desde la que sus pies de foto cuentan una edad; /album <álbum> -: ninguna. /"
+"album <álbum> atajos /alice: otros nombres para /foto <álbum>; /album "
+"<álbum> atajos -: ninguno. /álbumes muestra los álbumes."
 
 #: nejomibot/albums.py
 #, python-brace-format
 msgid "Born {day}"
 msgstr "Nacido el {day}"
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid "Born {day}, as photos_birth_date has it"
-msgstr "Nacido el {day}, según photos_birth_date"
 
 #: nejomibot/albums.py
 msgid "No birth date, so its captions show no age"
@@ -299,16 +294,8 @@ msgstr ""
 
 #: nejomibot/albums.py
 #, python-brace-format
-msgid "{album} has no birth date of its own."
-msgstr "{album} no tiene fecha de nacimiento propia."
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid ""
-"✅ {album}: no birth date of its own, so photos_birth_date's, {day}, counts."
-msgstr ""
-"✅ {album}: sin fecha de nacimiento propia, así que vale la de "
-"photos_birth_date, {day}."
+msgid "{album} has no birth date."
+msgstr "{album} no tiene fecha de nacimiento."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -1533,10 +1520,10 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own, and shortcuts as /alice, or - for none"
+"for none, and shortcuts as /alice, or - for none"
 msgstr ""
 "<álbum> – uno de /álbumes, por su nombre; /album admite una <fecha> con su "
-"año, o - para ninguna propia, y atajos como /alice, o - para ninguno"
+"año, o - para ninguna, y atajos como /alice, o - para ninguno"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"

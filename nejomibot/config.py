@@ -171,7 +171,8 @@ class Settings(BaseSettings):
     # Where photos that don't say their time zone were taken; timezone if not
     # given. Captions show the time in timezone, wherever a photo was taken.
     photos_timezone: TimeZone | None = None
-    # With a birth date, captions show the age of who's in the photos
+    # With a birth date, captions of photos in no album show the age of
+    # who's in them; /album sets an album's
     photos_birth_date: date | None = None
     photos_age_emoji: str = "🎂"
     # Captions link to where a photo was taken on this map

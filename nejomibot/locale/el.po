@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 20:44+0300\n"
+"POT-Creation-Date: 2026-10-24 22:25+0300\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -261,25 +261,20 @@ msgstr[1] "📷 {count} φωτογραφίες εκτός άλμπουμ"
 #: nejomibot/albums.py
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
-"captions count an age from; /album <album> -: none of its own. /album "
-"<album> shortcuts /alice: other names for /photo <album>; /album <album> "
-"shortcuts -: none. /albums lists the albums."
+"captions count an age from; /album <album> -: none. /album <album> "
+"shortcuts /alice: other names for /photo <album>; /album <album> shortcuts "
+"-: none. /albums lists the albums."
 msgstr ""
 "/album <άλμπουμ>: το άλμπουμ. /album <άλμπουμ> 2019-06-15: η ημερομηνία "
 "γέννησης από την οποία οι λεζάντες του υπολογίζουν ηλικία· /album <άλμπουμ> "
-"-: καμία δική του. /album <άλμπουμ> συντομεύσεις /alice: άλλα ονόματα για "
-"το /φωτογραφία <άλμπουμ>· /album <άλμπουμ> συντομεύσεις -: καμία. Το /"
-"άλμπουμ δείχνει τα άλμπουμ."
+"-: καμία. /album <άλμπουμ> συντομεύσεις /alice: άλλα ονόματα για το /"
+"φωτογραφία <άλμπουμ>· /album <άλμπουμ> συντομεύσεις -: καμία. Το /άλμπουμ "
+"δείχνει τα άλμπουμ."
 
 #: nejomibot/albums.py
 #, python-brace-format
 msgid "Born {day}"
 msgstr "Γέννηση: {day}"
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid "Born {day}, as photos_birth_date has it"
-msgstr "Γέννηση: {day}, από το photos_birth_date"
 
 #: nejomibot/albums.py
 msgid "No birth date, so its captions show no age"
@@ -301,16 +296,8 @@ msgstr "✅ {album}: γέννηση {day}, οπότε οι λεζάντες δε
 
 #: nejomibot/albums.py
 #, python-brace-format
-msgid "{album} has no birth date of its own."
-msgstr "Το {album} δεν έχει δική του ημερομηνία γέννησης."
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid ""
-"✅ {album}: no birth date of its own, so photos_birth_date's, {day}, counts."
-msgstr ""
-"✅ {album}: χωρίς δική του ημερομηνία γέννησης, οπότε ισχύει αυτή του "
-"photos_birth_date, {day}."
+msgid "{album} has no birth date."
+msgstr "Το {album} δεν έχει ημερομηνία γέννησης."
 
 #: nejomibot/albums.py
 #, python-brace-format
@@ -1542,11 +1529,11 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own, and shortcuts as /alice, or - for none"
+"for none, and shortcuts as /alice, or - for none"
 msgstr ""
 "<άλμπουμ> – ένα από το /άλμπουμ, με το όνομά του· το /album δέχεται "
-"<ημερομηνία> με έτος, ή - για καμία δική του, και συντομεύσεις όπως /alice, "
-"ή - για καμία"
+"<ημερομηνία> με έτος, ή - για καμία, και συντομεύσεις όπως /alice, ή - για "
+"καμία"
 
 #: nejomibot/help.py
 msgid "remove – after /about, /avatar or /username, takes it away"

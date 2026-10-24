@@ -223,8 +223,7 @@ def notes() -> list[str]:
         ),
         _(
             "<album> – one of /albums, by name; /album takes a <date> with its "
-            "year, or - for none of its own, and shortcuts as /alice, or - for "
-            "none"
+            "year, or - for none, and shortcuts as /alice, or - for none"
         ),
         _("remove – after /about, /avatar or /username, takes it away"),
         _(

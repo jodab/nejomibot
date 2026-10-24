@@ -49,7 +49,7 @@ def library(photos_dir: Path) -> Path:
 
 @pytest.fixture
 def born(monkeypatch: pytest.MonkeyPatch) -> None:
-    """photos_birth_date, for the albums without one of their own."""
+    """photos_birth_date, for the photos in no album."""
     monkeypatch.setenv("NEJOMIBOT_PHOTOS_BIRTH_DATE", "2018-01-01")
     get_settings.cache_clear()
 
@@ -87,8 +87,9 @@ async def test_an_album(
     assert texts(answers) == [
         "📖 **Alice**\n3 photos · 2019–2021\n🎂 No birth date, so its captions show "
         "no age\n🏷️ No shortcuts",
-        "📖 **Bob and Carol**\n1 photo · 2024\n🎂 Born 2018-01-01, as "
-        "photos_birth_date has it\n🏷️ No shortcuts",
+        # Not photos_birth_date's: an album has none until it's set
+        "📖 **Bob and Carol**\n1 photo · 2024\n🎂 No birth date, so its captions "
+        "show no age\n🏷️ No shortcuts",
         "📖 **Alice**\n3 photos · 2019–2021\n🎂 Born 2019-06-15\n🏷️ No shortcuts",
     ]
 
@@ -109,21 +110,26 @@ async def test_an_albums_birth_date(answers: list[SendMessage]) -> None:
         "✅ Alice: born 2019-06-15, so its captions show the age.",
         "✅ Alice: born 2019-06-16, so its captions show the age.",
         "✅ Alice: no birth date, so its captions show no age.",
-        "Alice has no birth date of its own.",
+        "Alice has no birth date.",
     ]
 
 
 @pytest.mark.usefixtures("library", "born")
-async def test_without_its_own_photos_birth_date_counts(
+async def test_photos_birth_date_is_for_photos_in_no_album(
     answers: list[SendMessage],
 ) -> None:
     await send(Album(), "/album Alice 2019-06-15")
     await send(Album(), "/album Alice -")
-    assert photos.birth_date("Alice") == date(2018, 1, 1)
-    assert texts(answers)[1] == (
-        "✅ Alice: no birth date of its own, so photos_birth_date's, 2018-01-01, "
-        "counts."
-    )
+    await send(Albums(), "/albums")
+    assert photos.birth_date("Alice") is None
+    assert photos.birth_date(None) == date(2018, 1, 1)
+    assert texts(answers)[1:] == [
+        "✅ Alice: no birth date, so its captions show no age.",
+        "**📚 2 albums**\n"
+        "**Alice** · 3 photos · 2019–2021\n"
+        "**Bob and Carol** · 1 photo · 2024\n"
+        "📷 1 photo in no album",
+    ]
 
 
 @pytest.mark.usefixtures("library")

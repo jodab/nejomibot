@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 20:44+0300\n"
+"POT-Creation-Date: 2026-10-24 22:25+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -251,19 +251,14 @@ msgstr[1] ""
 #: nejomibot/albums.py
 msgid ""
 "/album <album>: the album. /album <album> 2019-06-15: the birth date its "
-"captions count an age from; /album <album> -: none of its own. /album "
-"<album> shortcuts /alice: other names for /photo <album>; /album <album> "
-"shortcuts -: none. /albums lists the albums."
+"captions count an age from; /album <album> -: none. /album <album> "
+"shortcuts /alice: other names for /photo <album>; /album <album> shortcuts "
+"-: none. /albums lists the albums."
 msgstr ""
 
 #: nejomibot/albums.py
 #, python-brace-format
 msgid "Born {day}"
-msgstr ""
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid "Born {day}, as photos_birth_date has it"
 msgstr ""
 
 #: nejomibot/albums.py
@@ -286,13 +281,7 @@ msgstr ""
 
 #: nejomibot/albums.py
 #, python-brace-format
-msgid "{album} has no birth date of its own."
-msgstr ""
-
-#: nejomibot/albums.py
-#, python-brace-format
-msgid ""
-"✅ {album}: no birth date of its own, so photos_birth_date's, {day}, counts."
+msgid "{album} has no birth date."
 msgstr ""
 
 #: nejomibot/albums.py
@@ -1444,7 +1433,7 @@ msgstr ""
 #: nejomibot/help.py
 msgid ""
 "<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none of its own, and shortcuts as /alice, or - for none"
+"for none, and shortcuts as /alice, or - for none"
 msgstr ""
 
 #: nejomibot/help.py

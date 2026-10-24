@@ -7,8 +7,7 @@ shows one, and sets those:
   /album Alice                          the album
   /album Alice 2019-06-15               its captions show the age of who was
                                         born then
-  /album Alice -                        none of its own: photos_birth_date,
-                                        if set
+  /album Alice -                        none: its captions show no age
   /album Alice shortcuts /alice /al     other names for /photo Alice, so
                                         /alice 2024 is /photo Alice 2024
   /album Alice shortcuts -              none
@@ -46,7 +45,6 @@ from .photos import (
     album_lines,
     album_named,
     album_settings,
-    birth_date,
     by_album,
     moments,
     no_album,
@@ -77,10 +75,11 @@ def size_text(photos: list[Path], found: dict[Path, datetime]) -> str:
 def album_line(name: str, photos: list[Path], found: dict[Path, datetime]) -> str:
     """E.g. '1234 photos · 2019–2026 · 🎂 2019-06-15 · 🏷️ /alice /al'."""
     text = size_text(photos, found)
-    if born := birth_date(name):
-        text += f" · {get_settings().photos_age_emoji} {born:%Y-%m-%d}"
-    if shortcuts := own_settings(name).shortcuts:
-        text += f" · 🏷️ {' '.join(map(prefixed, shortcuts))}"
+    own = own_settings(name)
+    if own.born:
+        text += f" · {get_settings().photos_age_emoji} {own.born:%Y-%m-%d}"
+    if own.shortcuts:
+        text += f" · 🏷️ {' '.join(map(prefixed, own.shortcuts))}"
     return text
 
 
@@ -115,20 +114,16 @@ def albums_text() -> str:
 def album_usage() -> str:
     return _(
         "/album <album>: the album. /album <album> 2019-06-15: the birth date "
-        "its captions count an age from; /album <album> -: none of its own. "
+        "its captions count an age from; /album <album> -: none. "
         "/album <album> shortcuts /alice: other names for /photo "
         "<album>; /album <album> shortcuts -: none. /albums lists the albums."
     )
 
 
 def born_text(name: str) -> str:
-    """The birth date the album's captions count an age from, and whose."""
-    if own := own_settings(name).born:
-        return _("Born {day}").format(day=f"{own:%Y-%m-%d}")
-    if born := get_settings().photos_birth_date:
-        return _("Born {day}, as photos_birth_date has it").format(
-            day=f"{born:%Y-%m-%d}"
-        )
+    """The birth date the album's captions count an age from."""
+    if born := own_settings(name).born:
+        return _("Born {day}").format(day=f"{born:%Y-%m-%d}")
     return _("No birth date, so its captions show no age")
 
 
@@ -170,13 +165,8 @@ def remove_birth_date(name: str) -> str:
     """Take the album's own birth date away, for an edit to undo. Raises
     OSError."""
     if not (own := own_settings(name)).born:
-        return _("{album} has no birth date of its own.").format(album=name)
+        return _("{album} has no birth date.").format(album=name)
     keep(replace(own, album=name, born=None))
-    if born := get_settings().photos_birth_date:
-        return _(
-            "✅ {album}: no birth date of its own, so photos_birth_date's, {day}, "
-            "counts."
-        ).format(album=name, day=f"{born:%Y-%m-%d}")
     return _("✅ {album}: no birth date, so its captions show no age.").format(
         album=name
     )

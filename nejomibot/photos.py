@@ -27,7 +27,8 @@ runs /uniquephoto every day posts each photo once, round after round.
 /photo and /onthisday don't count toward the rounds.
 
 With a birth date, captions show the age of who's in the photos on the day:
-the album's own, which /album sets (albums.py), or else photos_birth_date.
+the album's own, which /album sets (albums.py); an album has none until it's
+set. Photos in no album take photos_birth_date.
 An album can have shortcuts, too, other names for /photo with it, as /alice
 for /photo Alice.
 
@@ -194,8 +195,7 @@ ALBUMS_HEADER = (
     "# nejomibot's albums, one per line:",
     "#   album | 2019-06-15 | /alice /al",
     "# The album is a folder right in photos_dir, by its name. Its photos'",
-    "# captions show the age of who's in them, born on that day; an album",
-    "# without one takes photos_birth_date, if the config has one. Each",
+    "# captions show the age of who's in them, born on that day. Each",
     "# shortcut, a word that starts with /, is another name for /photo with",
     "# the album: /alice is /photo Alice, and /alice 2024 /photo Alice 2024.",
     "# Either may be left out.",
@@ -246,11 +246,11 @@ def own_settings(album: str) -> AlbumSettings:
 
 
 def birth_date(album: str | None) -> date | None:
-    """The birth date ages count from in the album's photos: its own, or
-    else photos_birth_date."""
-    if album is not None and (born := own_settings(album).born):
-        return born
-    return get_settings().photos_birth_date
+    """The birth date ages count from in the album's photos: its own, if
+    set; for photos in no album, photos_birth_date."""
+    if album is None:
+        return get_settings().photos_birth_date
+    return own_settings(album).born
 
 
 # The rounds

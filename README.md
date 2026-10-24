@@ -319,7 +319,7 @@ For admins, in a direct chat with the bot:
 | Command | Reply |
 |---|---|
 | `/status`, `/test` | A health check in two messages: first the checks, failed ones first, then the details: the bot and its versions, Signal, the public IP addresses and ASN, the container, and the host |
-| `/album <album>`, `/album <album> <date>`, `/album <album> -` | An album: how many photos it has, the years they were taken, the birth date its captions count an age from, and its shortcuts. With a date, such as `2019-06-15`, it sets that birth date; `-` removes it, so that `photos_birth_date` applies again (see [Photos and the daily post](#photos-and-the-daily-post)) |
+| `/album <album>`, `/album <album> <date>`, `/album <album> -` | An album: how many photos it has, the years they were taken, the birth date its captions count an age from, and its shortcuts. With a date, such as `2019-06-15`, it sets that birth date; `-` removes it, so that its captions show no age (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/album <album> shortcuts <names>`, `/album <album> shortcuts -` | Other names for `/photo <album>`: `/album Alice shortcuts /alice` makes `/alice` mean `/photo Alice`, and `/alice 2017` mean `/photo Alice 2017`; `-` removes them. A shortcut starts with `/` or `.`: a plain word, which would make every message that starts with it a command, is taken with a `/` |
 | `/today preview [<date>]` | What `/today` will say on a given day, such as `10-25`, `2026-10-25` or `tomorrow`, or today if no day is given, in each group the bot is in and in a direct chat |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, in two short lines each, with whether they are verified; with `<who>`, one person in full, with their safety number. `<who>` is the person's number in the list you were shown last by `/contacts` or `/trust`, their phone number, their Signal ID or its beginning, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
@@ -699,11 +699,12 @@ up, each photo can show how old they were when it was taken: give the album
 their birth date, and the bot counts from it to the day the photo was
 taken, as in "🎂 1 year, 2 months and 3 days", after `photos_age_emoji` (🎂
 by default). `/album Alice 2019-06-15` sets an album's birth date, `/album
-Alice -` removes it, and `/album Alice` shows the album. `photos_birth_date`
-is the birth date for the albums without one of their own, and for the
-photos in no album; without a birth date, captions show no age. Birth dates
-are stored with the shortcuts in `data_dir/albums.txt`, one album per line,
-and the file can be edited by hand: the bot reads it again when it changes.
+Alice -` removes it, and `/album Alice` shows the album. An album has no
+birth date until you set one, and `photos_birth_date` is the birth date for
+the photos in no album; without a birth date, captions show no age. Birth
+dates are stored with the shortcuts in `data_dir/albums.txt`, one album per
+line, and the file can be edited by hand: the bot reads it again when it
+changes.
 
 A photo with a GPS position links to where it was taken: on Google Maps, or
 with `photos_map = "openstreetmap"`, as an OpenStreetMap short link, such as

@@ -92,8 +92,8 @@ def test_no_age_without_a_birth_date() -> None:
 
 
 @pytest.mark.usefixtures("born")
-def test_caption_is_in_the_bots_time(tmp_path: Path) -> None:
-    path = make_jpeg(tmp_path / "x.jpg", "2020:07:01 12:00:00", "+03:00")
+def test_caption_is_in_the_bots_time(photos_dir: Path) -> None:
+    path = make_jpeg(photos_dir / "x.jpg", "2020:07:01 12:00:00", "+03:00")
     assert caption(path, "Photo of the day!") == (
         "**Photo of the day!**\n\n📅 2020-07-01 11:00\n🎂 1 year and 16 days"
     )
@@ -106,12 +106,12 @@ def test_caption_of_a_photo_taken_in_sweden(tmp_path: Path) -> None:
 
 @pytest.mark.usefixtures("born")
 def test_caption_without_offset_takes_photos_timezone(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("NEJOMIBOT_PHOTOS_TIMEZONE", "Europe/Helsinki")
     get_settings.cache_clear()
     path = make_jpeg(
-        tmp_path / "x.jpg", "2019:07:02 19:50:01", created="2019:07:02 19:50:01"
+        photos_dir / "x.jpg", "2019:07:02 19:50:01", created="2019:07:02 19:50:01"
     )
     assert caption(path) == "📅 2019-07-02 18:50\n🎂 17 days"
 
@@ -123,11 +123,11 @@ def test_caption_without_offset_or_photos_timezone(tmp_path: Path) -> None:
 
 @pytest.mark.usefixtures("born")
 @pytest.mark.parametrize("offset", [None, "+03:00"])
-def test_caption_of_a_utc_original(tmp_path: Path, offset: str | None) -> None:
+def test_caption_of_a_utc_original(photos_dir: Path, offset: str | None) -> None:
     # Some phones save DateTimeOriginal in UTC, whatever offset they give, and
     # CreateDate in local time
     path = make_jpeg(
-        tmp_path / "x.jpg", "2020:07:01 22:30:00", offset, "2020:07:02 01:30:00"
+        photos_dir / "x.jpg", "2020:07:01 22:30:00", offset, "2020:07:02 01:30:00"
     )
     assert caption(path) == "📅 2020-07-02 00:30\n🎂 1 year and 17 days"
 
@@ -557,12 +557,16 @@ async def test_no_photo_says_when_it_was_taken(
 
 @pytest.mark.usefixtures("born")
 def test_an_albums_own_birth_date(photos_dir: Path) -> None:
-    make_photos(photos_dir, "Alice/a.jpg", "b.jpg", taken="2020:06:15 12:00:00")
+    make_photos(
+        photos_dir, "Alice/a.jpg", "Bob/b.jpg", "c.jpg", taken="2020:06:15 12:00:00"
+    )
     # By its name in any case
     photos.album_settings.add(photos.AlbumSettings("alice", date(2020, 6, 14)))
     assert caption(photos_dir / "Alice/a.jpg") == "📅 2020-06-15 12:00\n🎂 1 day"
-    # The others, photos_birth_date
-    assert caption(photos_dir / "b.jpg") == "📅 2020-06-15 12:00\n🎂 1 year"
+    # An album without one shows no age
+    assert caption(photos_dir / "Bob/b.jpg") == "📅 2020-06-15 12:00"
+    # Photos in no album, photos_birth_date's
+    assert caption(photos_dir / "c.jpg") == "📅 2020-06-15 12:00\n🎂 1 year"
 
 
 def test_photo_stats_count_the_albums(photos_dir: Path) -> None:

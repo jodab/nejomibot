@@ -4,6 +4,19 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- An album without a birth date of its own no longer takes
+  `photos_birth_date`, which now applies only to the photos in no album.
+  Give such an album its birth date with `/album <album> <date>`.
+
+### Changed
+
+- An album has no birth date until `/album` sets one: `/albums`, `/album`
+  and the captions showed `photos_birth_date` for an album without one.
+
 ## 0.99.21 - 2026-10-24
 
 ### Updating

@@ -53,10 +53,9 @@ data_dir = "/data"
 # Ages in captions: for an album of one child or pet growing up, each
 # photo's caption can show how old they were when it was taken, counted from
 # their birth date to the day of the photo, as "🎂 1 year, 2 months and 3
-# days". An album (a folder directly in photos_dir) can have a birth date of
-# its own, set with /album; this one is for the albums without one, and the
-# photos in no album. Without a birth date, captions show no age.
-# photos_age_emoji goes before the age.
+# days". An album (a folder directly in photos_dir) gets its birth date with
+# /album; this one is for the photos in no album. Without a birth date,
+# captions show no age. photos_age_emoji goes before the age.
 # photos_birth_date = 2020-01-31
 # photos_age_emoji = "🎂"
 # A photo's caption links to where it was taken: "google" (Google Maps) or
