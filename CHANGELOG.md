@@ -4,6 +4,27 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- A fourth health check, **Delivery**, in `/status` and in the pings to
+  `healthcheck_url`. It fails when the bot has been unable to hear the
+  receipts for its messages for longer than `healthcheck_minutes`, as
+  messages to the bot may then be lost too, and when no phone has confirmed
+  three of the bot's messages in a row within `unconfirmed_hours` of each
+  being sent, nor any message sent after them.
+- `unconfirmed_hours`: how long the delivery check gives a phone to confirm
+  each message, 12 hours by default and 24 at most.
+
+### Changed
+
+- The bot's health check also fails in the round after a send fails in a
+  way that leaves it unknown whether the message arrived, such as a
+  timeout, and in the round after a waiting message is dropped, once it has
+  waited `send_retry_hours`. Before, these were only in the log, and the
+  check passed again once the dropped messages were gone.
+
 ## 0.99.28 - 2026-10-25
 
 ### Changed

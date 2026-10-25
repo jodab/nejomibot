@@ -261,14 +261,20 @@ class Settings(BaseSettings):
     bot_avatar: Path | None = None  # a picture, made square
     bot_username: BotUsername | None = None
 
-    # Every healthcheck_minutes the bot checks signal-cli-rest-api, itself, and
-    # Signal's servers with its account (health.py). With a URL such as
-    # https://hc-ping.com/<uuid>, it then pings it, or URL/fail, with what it
-    # found, the versions, the uptime and its memory.
+    # Every healthcheck_minutes the bot checks signal-cli-rest-api, itself,
+    # Signal's servers with its account, and the delivery of its messages
+    # (health.py). With a URL such as https://hc-ping.com/<uuid>, it then
+    # pings it, or URL/fail, with what it found, the versions, the uptime and
+    # its memory.
     healthcheck_url: (
         Annotated[str, StringConstraints(pattern=r"^https?://\S+$")] | None
     ) = None
     healthcheck_minutes: Annotated[int, Field(ge=1)] = 5
+    # The delivery check fails once no phone has confirmed three of the bot's
+    # messages in a row within this many hours of each being sent, nor any
+    # message sent since; at most 24, as the bot keeps receipts for a day
+    # (delivery.py)
+    unconfirmed_hours: Annotated[float, Field(gt=0, le=24)] = 12
 
     # How much the bot logs: DEBUG adds what each command says and who sent
     # it, and whom messages go to; WARNING only what went wrong. Other

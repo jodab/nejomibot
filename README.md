@@ -231,13 +231,14 @@ several chats, list them, as in `1,2`; you can also give days, as in
 so you can see that it works.
 
 That's it: the bot is up and running. Possible next steps: get alerted when
-the bot is down, with `healthcheck_url` ([how](#health-checks)); add
-birthdays, name days and your country's holidays for `/today`
-([how](#birthdays-name-days-and-holidays)); create [specials](#specials) of
-your own, such as a daily post with the day and the weather in one message
-and a heading above the photo, with a shorter name of your choice; open a
-shell in the bot's container, which starts with a guide to its tools
-(`docker compose exec nejomibot bash`); and set a profile picture:
+the bot is down or its messages don't get through, with `healthcheck_url`
+([how](#health-checks)); add birthdays, name days and your country's
+holidays for `/today` ([how](#birthdays-name-days-and-holidays)); create
+[specials](#specials) of your own, such as a daily post with the day and the
+weather in one message and a heading above the photo, with a shorter name of
+your choice; open a shell in the bot's container, which starts with a guide
+to its tools (`docker compose exec nejomibot bash`); and set a profile
+picture:
 
 ```sh
 docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg
@@ -576,7 +577,8 @@ begins, and how many people in the chat received it and read it, as in
 10 minutes without any confirmation, ⚠️. The log records that as a warning
 too: Signal accepted the message, but it may not have arrived. With
 `log_level = "DEBUG"`, the log shows how many people each message reached
-within those 10 minutes.
+within those 10 minutes. The [health checks](#health-checks) fail when no
+phone has confirmed three messages in a row within `unconfirmed_hours`.
 
 A message longer than 2,000 bytes is sent the way Signal's apps send one:
 signal-cli puts the beginning of the text in the message and the full text
@@ -940,14 +942,14 @@ short lines:
   `/sys`, which describe the whole machine, so this works in the
   unprivileged container and still describes the server.
 
-The checks, all performed live: the three [health checks](#health-checks)
-(signal-cli-rest-api, the bot itself, and Signal's servers through the
-account), then whether every safety number is trusted, nobody the bot talks
-to is blocked, the bot is still in every group on the allowed list,
-OpenWeatherMap and the exchange rate API (if `exchange_rate` is set) respond,
-the photo library isn't empty, disk and memory use are below 90% of their
-limits, and NTP keeps the clock synchronized. A check that takes longer than
-20 seconds fails.
+The checks, all performed live: the four [health checks](#health-checks)
+(signal-cli-rest-api, the bot itself, Signal's servers through the account,
+and the delivery of the bot's messages), then whether every safety number is
+trusted, nobody the bot talks to is blocked, the bot is still in every group
+on the allowed list, OpenWeatherMap and the exchange rate API (if
+`exchange_rate` is set) respond, the photo library isn't empty, disk and
+memory use are below 90% of their limits, and NTP keeps the clock
+synchronized. A check that takes longer than 20 seconds fails.
 
 ### Incoming messages
 
@@ -1435,14 +1437,30 @@ ready after a start, the bot checks its health:
 - **The bot:** signalbot has started, which it does once signal-cli-rest-api
   has the account, and no message has waited more than 15 minutes to be
   sent. If Signal rate-limits the bot, the check says so, and what lifts the
-  limit.
+  limit. The check also fails in the round after a send fails in a way that
+  leaves it unknown whether the message arrived, such as a timeout (the bot
+  doesn't send such a message again, as it could then arrive twice), and in
+  the round after a waiting message is dropped, once it has waited
+  `send_retry_hours`.
 - **Signal:** Signal's servers respond for the account. The bot asks
   signal-cli-rest-api for the account's linked devices, which signal-cli
   requests from Signal. This is the only request a health check makes of
   Signal.
+- **Delivery:** the bot hears the [receipts](#delivery) that phones send for
+  its messages, on a websocket to signal-cli-rest-api of its own; messages
+  to the bot arrive the same way, on signalbot's. The check fails when the
+  bot has been unable to hear them for longer than `healthcheck_minutes`, as
+  messages to the bot may then be lost too. It also fails when no phone has
+  confirmed three of the bot's messages in a row within `unconfirmed_hours`
+  (12 by default, at most 24) of each being sent, nor any message sent after
+  them: the messages may not arrive, or the receipts may not reach the bot.
+  One or two unconfirmed messages don't fail it, as they may have gone to
+  phones that are off. A message counts only if it went to someone, and if
+  the bot has heard receipts ever since it was sent: when the connection
+  fails, the count starts over.
 
 A failed check is logged, with what failed, and `/status` starts with the
-same three checks. To be alerted, set `healthcheck_url`, for example to a
+same four checks. To be alerted, set `healthcheck_url`, for example to a
 check's ping URL at [healthchecks.io](https://healthchecks.io)
 (`https://hc-ping.com/<uuid>`): after each round, the bot pings that URL if
 every check passed, or the URL with `/fail` appended, along with what

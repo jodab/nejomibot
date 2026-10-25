@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 10:37+0200\n"
+"POT-Creation-Date: 2026-10-25 14:05+0200\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1058,8 +1058,47 @@ msgstr ""
 "limite"
 
 #: nejomibot/health.py
+#, python-brace-format
+msgid "{count} message may not have arrived, as sending it failed"
+msgid_plural "{count} messages may not have arrived, as sending them failed"
+msgstr[0] "{count} message n'est peut-être pas arrivé, car son envoi a échoué"
+msgstr[1] ""
+"{count} messages ne sont peut-être pas arrivés, car leur envoi a échoué"
+
+#: nejomibot/health.py
 msgid "running"
 msgstr "en marche"
+
+#: nejomibot/health.py
+msgid "Delivery"
+msgstr "Distribution"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no receipts heard for {duration}: the websocket to signal-cli-rest-api "
+"fails, so messages to the bot may be lost too"
+msgstr ""
+"aucun accusé reçu depuis {duration} : le websocket vers signal-cli-rest-api "
+"échoue, des messages destinés au bot peuvent donc aussi être perdus"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no phone has confirmed any message the bot sent in the last {duration}: they "
+"may not arrive, or their receipts may not reach the bot"
+msgstr ""
+"aucun des messages envoyés par le bot depuis {duration} n'a été confirmé par "
+"un téléphone : ils n'arrivent peut-être pas, ou leurs accusés ne parviennent "
+"pas au bot"
+
+#: nejomibot/health.py
+msgid "connecting to signal-cli-rest-api"
+msgstr "connexion à signal-cli-rest-api"
+
+#: nejomibot/health.py
+msgid "receipts heard"
+msgstr "accusés reçus"
 
 #: nejomibot/health.py
 #, python-brace-format

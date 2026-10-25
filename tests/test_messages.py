@@ -315,6 +315,20 @@ async def test_old_messages_are_dropped_and_reported(new_outbox: NewOutbox) -> N
     ]
 
 
+async def test_what_the_outbox_loses_is_counted(new_outbox: NewOutbox) -> None:
+    # For the health checks: sends it gave up on, and messages it dropped
+    clock = Clock()
+    outbox = new_outbox(FakePost(Outcome.GIVE_UP, Outcome.NOT_SENT), clock)
+    await outbox.send(GROUP, text("timed out"))
+    await outbox.send(ALICE, text("waits"))
+    assert (outbox.given_up, outbox.discarded) == (1, 0)
+
+    clock.now += timedelta(hours=3, minutes=1)
+    await outbox.flush()
+    assert len(outbox) == 0
+    assert (outbox.given_up, outbox.discarded) == (1, 1)
+
+
 def test_retries_come_soon_then_less_often() -> None:
     delays = [d.total_seconds() for d in itertools.islice(retry_delays(), 6)]
     assert delays == [10, 20, 40, 80, 120, 120]

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 10:37+0200\n"
+"POT-Creation-Date: 2026-10-25 14:05+0200\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -1027,8 +1027,48 @@ msgstr ""
 "poistamiseksi"
 
 #: nejomibot/health.py
+#, python-brace-format
+msgid "{count} message may not have arrived, as sending it failed"
+msgid_plural "{count} messages may not have arrived, as sending them failed"
+msgstr[0] ""
+"{count} viesti ei ehkä mennyt perille, koska sen lähetys epäonnistui"
+msgstr[1] ""
+"{count} viestiä ei ehkä mennyt perille, koska niiden lähetys epäonnistui"
+
+#: nejomibot/health.py
 msgid "running"
 msgstr "käynnissä"
+
+#: nejomibot/health.py
+msgid "Delivery"
+msgstr "Toimitus"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no receipts heard for {duration}: the websocket to signal-cli-rest-api "
+"fails, so messages to the bot may be lost too"
+msgstr ""
+"ei kuittauksia {duration} aikana: websocket-yhteys signal-cli-rest-apiin ei "
+"toimi, joten myös botille tulevia viestejä voi kadota"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no phone has confirmed any message the bot sent in the last {duration}: they "
+"may not arrive, or their receipts may not reach the bot"
+msgstr ""
+"yksikään puhelin ei ole vahvistanut yhtäkään viestiä, jonka botti on "
+"lähettänyt viimeisten {duration} aikana: ne eivät ehkä mene perille, tai "
+"kuittaukset eivät tavoita bottia"
+
+#: nejomibot/health.py
+msgid "connecting to signal-cli-rest-api"
+msgstr "yhdistää signal-cli-rest-apiin"
+
+#: nejomibot/health.py
+msgid "receipts heard"
+msgstr "kuittauksia vastaanotetaan"
 
 #: nejomibot/health.py
 #, python-brace-format

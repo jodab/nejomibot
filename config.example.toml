@@ -138,14 +138,19 @@ admins = [
 # to; "WARNING" only what goes wrong
 # log_level = "INFO"
 
-# Every healthcheck_minutes the bot checks signal-cli-rest-api, itself, and
-# Signal's servers with its account, and logs what fails. With a health check
-# URL to report to, such as https://hc-ping.com/<uuid> from healthchecks.io,
-# it then pings the URL, or the URL with /fail and what failed. Each ping also
-# says the versions of the bot and signal-cli-rest-api, the bot's uptime and
-# its memory.
+# Every healthcheck_minutes the bot checks signal-cli-rest-api, itself,
+# Signal's servers with its account, and the delivery of its messages, and
+# logs what fails. With a health check URL to report to, such as
+# https://hc-ping.com/<uuid> from healthchecks.io, it then pings the URL, or
+# the URL with /fail and what failed. Each ping also says the versions of the
+# bot and signal-cli-rest-api, the bot's uptime and its memory.
 # healthcheck_url = "https://hc-ping.com/your-uuid"
 # healthcheck_minutes = 5
+# The delivery check fails when no phone has confirmed three of the bot's
+# messages in a row within this many hours of each being sent, nor any
+# message sent since, so that a phone that's off for a while doesn't fail
+# it. At most 24, as the bot keeps receipts for a day.
+# unconfirmed_hours = 12
 
 # NEJOMIBOT_DEBUG=1 talks only to this group (and the admins); see README
 # debug_group = "group.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx="

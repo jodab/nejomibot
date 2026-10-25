@@ -356,9 +356,13 @@ session (`client.py`). aiohttp's error text can contain the URL, with the
 OpenWeatherMap key or a phone number: word such errors with `describe()` or
 `web_error()`, never with `str(e)`.
 
-**Health**: `health.py` checks signal-cli-rest-api, the bot and Signal's
-servers every `healthcheck_minutes`, and pings `healthcheck_url`; `/status`
-shows the same through the same functions. The container's check
+**Health**: `health.py` checks signal-cli-rest-api, the bot, Signal's
+servers and delivery (what `delivery.receipts` hears) every
+`healthcheck_minutes`, and pings `healthcheck_url`; `/status` shows the
+same through the same functions. The bot check tells of each send the
+outbox gave up on, and each message it dropped, in one round only: a
+round's `Health` keeps the outbox's counts, which the next round and
+`/status` take from theirs (`Rounds.reported`). The container's check
 (`healthcheck.py`) asks the bot over the abstract Unix socket
 `\0nejomibot-health`, for liveness only: it fails when the bot doesn't
 answer or its rounds are late, never because Signal or signal-cli-rest-api

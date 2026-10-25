@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 10:37+0200\n"
+"POT-Creation-Date: 2026-10-25 14:05+0200\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -1022,8 +1022,47 @@ msgstr ""
 "begränsningen"
 
 #: nejomibot/health.py
+#, python-brace-format
+msgid "{count} message may not have arrived, as sending it failed"
+msgid_plural "{count} messages may not have arrived, as sending them failed"
+msgstr[0] ""
+"{count} meddelande kom kanske inte fram, eftersom sändningen misslyckades"
+msgstr[1] ""
+"{count} meddelanden kom kanske inte fram, eftersom sändningarna misslyckades"
+
+#: nejomibot/health.py
 msgid "running"
 msgstr "igång"
+
+#: nejomibot/health.py
+msgid "Delivery"
+msgstr "Leverans"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no receipts heard for {duration}: the websocket to signal-cli-rest-api "
+"fails, so messages to the bot may be lost too"
+msgstr ""
+"inga kvitton mottagna på {duration}: websocketen till signal-cli-rest-api "
+"fungerar inte, så även meddelanden till boten kan gå förlorade"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no phone has confirmed any message the bot sent in the last {duration}: they "
+"may not arrive, or their receipts may not reach the bot"
+msgstr ""
+"ingen telefon har bekräftat något meddelande som boten skickat de senaste "
+"{duration}: de kanske inte kommer fram, eller så når kvittona inte boten"
+
+#: nejomibot/health.py
+msgid "connecting to signal-cli-rest-api"
+msgstr "ansluter till signal-cli-rest-api"
+
+#: nejomibot/health.py
+msgid "receipts heard"
+msgstr "kvitton tas emot"
 
 #: nejomibot/health.py
 #, python-brace-format

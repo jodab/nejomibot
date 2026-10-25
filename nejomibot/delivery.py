@@ -11,6 +11,14 @@ which the log has as a warning too: Signal took it, but it may not have
 arrived. At DEBUG, the log has how many each message reached in those 10
 minutes.
 
+The health checks' delivery check (health.py) fails when the bot hasn't
+heard receipts for longer than healthcheck_minutes, as messages to the bot
+come over a websocket to the same place; and when no phone has confirmed
+UNCONFIRMED messages in a row within unconfirmed_hours of each being sent,
+nor any message sent after them, as one or two can go to phones that are
+off. A message counts only if it went to someone, and the bot has heard
+its receipts all along: what came while the connection was down is lost.
+
 signalbot drops receipts, so the bot hears them on a websocket of its own
 (rest.received). signal-cli-rest-api up to 0.101, and its builds before
 2026-10-13, may drop what reaches a websocket while it's busy with the
@@ -20,6 +28,7 @@ come out low.
 
 import asyncio
 import logging
+from collections import deque
 from datetime import UTC, datetime, timedelta
 
 import aiohttp
@@ -48,6 +57,10 @@ logger = logging.getLogger(__name__)
 # worth a word in the log
 CHECK_AFTER = timedelta(minutes=10)
 MINUTES = int(CHECK_AFTER.total_seconds() // 60)
+# The delivery check fails once nobody has confirmed this many messages in a
+# row, each within unconfirmed_hours
+UNCONFIRMED = 3
+NEVER = datetime.min.replace(tzinfo=UTC)
 # What only a receipt has in its JSON: the rest isn't parsed at all
 RECEIPT = '"receiptMessage"'
 
@@ -82,17 +95,18 @@ def receipt_in(data: str) -> Envelope | None:
     return envelope if envelope.receipt_message is not None else None
 
 
-def confirm(log: SentLog, envelope: Envelope) -> None:
+def confirm(log: SentLog, envelope: Envelope) -> datetime:
     """Note who confirmed the messages the receipt is for, and whether they
-    read them."""
+    read them; when the latest of those in the log was sent, or NEVER."""
     receipt = envelope.receipt_message
     who = envelope.source_uuid or envelope.source_number
     if receipt is None or not who:
-        return
+        return NEVER
     read = receipt.is_read or receipt.is_viewed
-    for timestamp in receipt.timestamps:
-        if sent := log.find(timestamp):
-            sent.confirmed[who] = read or sent.confirmed.get(who, False)
+    found = [sent for timestamp in receipt.timestamps if (sent := log.find(timestamp))]
+    for sent in found:
+        sent.confirmed[who] = read or sent.confirmed.get(who, False)
+    return max((sent.at for sent in found), default=NEVER)
 
 
 def expected(bot: SignalBot, chat: str) -> int | None:
@@ -121,12 +135,20 @@ def status_text(sent: Sent, of: int | None, now: datetime) -> str:
 
 class Receipts:
     """Hears the receipts for the bot's messages, and checks on each message
-    CHECK_AFTER after it's sent."""
+    CHECK_AFTER after it's sent, and for the delivery check, unconfirmed_hours
+    after."""
 
     def __init__(self) -> None:
         # Since when the bot hears the receipts, if it does: a message sent
         # before then may have had some it didn't hear
         self.since: datetime | None = None
+        # Since when it hasn't, once it began to listen
+        self.lost: datetime | None = None
+        # When the latest message that a phone confirmed was sent
+        self.latest_confirmed = NEVER
+        # When the latest messages were sent that are unconfirmed_hours old,
+        # of those it counts
+        self.settled: deque[datetime] = deque(maxlen=UNCONFIRMED)
         self.hearing: asyncio.Task[None] | None = None
 
     def start(self, bot: SignalBot) -> None:
@@ -135,6 +157,8 @@ class Receipts:
         def check_later(sent: Sent) -> None:
             loop = asyncio.get_running_loop()
             loop.call_later(CHECK_AFTER.total_seconds(), self.check, bot, sent)
+            hours = get_settings().unconfirmed_hours
+            loop.call_later(hours * 3600, self.settle, bot, sent)
 
         outbox.on_sent = check_later
         bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
@@ -185,17 +209,35 @@ class Receipts:
             sum(sent.confirmed.values()),
         )
 
+    def settle(self, bot: SignalBot, sent: Sent) -> None:
+        """Count the message for the delivery check, now unconfirmed_hours
+        old, if it went to someone and the bot has heard all its receipts."""
+        if self.heard_all(sent) and expected(bot, sent.chat):
+            self.settled.append(sent.at)
+
+    def unconfirmed(self) -> datetime | None:
+        """Since when no phone has confirmed any of the bot's messages, if
+        nobody confirmed the latest UNCONFIRMED it counted, nor any message
+        sent after the first of them."""
+        if len(self.settled) < UNCONFIRMED:
+            return None
+        first = min(self.settled)
+        return None if self.latest_confirmed >= first else first
+
     async def listen(self, bot: SignalBot, log: SentLog) -> None:
         """Hear the receipts for as long as the bot runs, connecting again
         whenever the connection fails or ends: after 10 seconds, then less and
-        less often, every 2 minutes at most."""
+        less often, every 2 minutes at most. When it fails, the messages
+        counted for the delivery check are forgotten: a phone may have
+        confirmed a later one meanwhile."""
         await bot.wait_until_ready()
         said = ""  # what went wrong last, said once
         delays = retry_delays()
+        self.lost = datetime.now(UTC)
         while True:
             try:
                 async with rest.received() as websocket:
-                    self.since = datetime.now(UTC)
+                    self.since, self.lost = datetime.now(UTC), None
                     if said:
                         logger.info("Hearing receipts again")
                         said = ""
@@ -204,7 +246,8 @@ class Receipts:
                         if message.type is aiohttp.WSMsgType.TEXT and (
                             envelope := receipt_in(message.data)
                         ):
-                            confirm(log, envelope)
+                            at = confirm(log, envelope)
+                            self.latest_confirmed = max(self.latest_confirmed, at)
                 said = "the connection ended"
                 logger.warning("Hearing receipts stopped: %s", said)
             except Exception as e:
@@ -213,6 +256,8 @@ class Receipts:
                     said = why
             finally:
                 self.since = None
+                self.lost = self.lost or datetime.now(UTC)
+                self.settled.clear()
             await asyncio.sleep(next(delays).total_seconds())
 
 

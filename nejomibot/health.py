@@ -1,16 +1,19 @@
 """The bot's health: whether signal-cli-rest-api answers, whether the bot
-itself runs, and whether Signal's servers answer for its account. /status
-starts with these checks.
+itself runs and its messages go out, whether Signal's servers answer for its
+account, and whether the bot hears receipts and phones confirm its messages
+(delivery.py). /status starts with these checks.
 
 The bot runs them every healthcheck_minutes, the first time once signalbot is
 ready. Each time it asks Signal's servers one thing: the account's linked
-devices. It keeps the latest result, only in memory. With healthcheck_url
-set, it also reports each to a health check service such as healthchecks.io:
-it pings the URL when all passed, or URL/fail with what failed, so the
-service warns when something fails, or when the pings stop. Each ping says
-how each check went, then what runs, as /status does: the versions of the
-bot, signalbot, Python and signal-cli-rest-api, how long the bot, and so its
-container, has been up, and the memory it uses.
+devices. The bot check tells of each send the outbox gave up on, and of each
+message it dropped, once: in the first round after. The bot keeps the latest
+result, only in memory. With healthcheck_url set, it also reports each to a
+health check service such as healthchecks.io: it pings the URL when all
+passed, or URL/fail with what failed, so the service warns when something
+fails, or when the pings stop. Each ping says how each check went, then what
+runs, as /status does: the versions of the bot, signalbot, Python and
+signal-cli-rest-api, how long the bot, and so its container, has been up,
+and the memory it uses.
 
 The container's health check (healthcheck.py) asks something else: whether
 the bot works, so whether restarting it could help, as a container runtime
@@ -35,8 +38,9 @@ from . import healthcheck, system
 from .account import Device, fetch_devices
 from .client import client
 from .config import get_settings
+from .delivery import receipts
 from .i18n import _, format_duration, format_file_size, ngettext
-from .messages import describe, outbox
+from .messages import describe, dropped_text, outbox
 
 logger = logging.getLogger(__name__)
 
@@ -101,10 +105,26 @@ def is_too_old(version: str) -> bool:
         return False  # "unset", for a build after a release
 
 
-def bot_check(bot: SignalBot, now: datetime) -> Check:
+@dataclass(frozen=True)
+class Health:
+    checks: list[Check]
+    about: About | None  # signal-cli-rest-api's, if it answered
+    devices: list[Device]  # the account's linked devices, if Signal answered
+    # The outbox's sends given up and messages dropped since the start, as
+    # the bot check saw them: the next one tells of those after
+    given_up: int = 0
+    discarded: int = 0
+
+    @property
+    def failed(self) -> list[Check]:
+        return [check for check in self.checks if not check.ok]
+
+
+def bot_check(bot: SignalBot, now: datetime, before: Health | None = None) -> Check:
     """The bot itself: signalbot has started, which it only does once
-    signal-cli-rest-api has the account, and no message has waited long to
-    be sent."""
+    signal-cli-rest-api has the account, no message has waited long to be
+    sent, and since the check before, the outbox gave up on no send and
+    dropped no message."""
     name = _("Bot")
     # signalbot leaves the task's type open
     started = cast("asyncio.Task[object] | None", bot.init_task)  # pyright: ignore[reportUnknownMemberType]
@@ -114,6 +134,7 @@ def bot_check(bot: SignalBot, now: datetime) -> Check:
             ok=False,
             detail=_("starting: waiting for signal-cli-rest-api and the account"),
         )
+    problems: list[str] = []
     if (oldest := outbox.oldest()) and now - oldest > WAITING_TOO_LONG:
         waiting = len(outbox)
         detail = ngettext(
@@ -126,22 +147,48 @@ def bot_check(bot: SignalBot, now: datetime) -> Check:
                 "rate-limited by Signal: run signal-account.sh rate-limit to lift "
                 "the limit"
             )
-        return Check(name, ok=False, detail=detail)
+        problems.append(detail)
+    if given_up := outbox.given_up - (before.given_up if before else 0):
+        problems.append(
+            ngettext(
+                "{count} message may not have arrived, as sending it failed",
+                "{count} messages may not have arrived, as sending them failed",
+                given_up,
+            ).format(count=given_up)
+        )
+    if discarded := outbox.discarded - (before.discarded if before else 0):
+        problems.append(dropped_text(discarded))
+    if problems:
+        return Check(name, ok=False, detail=". ".join(problems))
     return Check(name, ok=True, detail=_("running"))
 
 
-@dataclass(frozen=True)
-class Health:
-    checks: list[Check]
-    about: About | None  # signal-cli-rest-api's, if it answered
-    devices: list[Device]  # the account's linked devices, if Signal answered
+def delivery_check(now: datetime) -> Check:
+    """The bot hears the receipts for its messages, on a websocket to where
+    messages to it come from too, and phones confirm what it sends."""
+    name = _("Delivery")
+    every = timedelta(minutes=get_settings().healthcheck_minutes)
+    if (lost := receipts.lost) and now - lost > every:
+        detail = _(
+            "no receipts heard for {duration}: the websocket to "
+            "signal-cli-rest-api fails, so messages to the bot may be lost too"
+        ).format(duration=format_duration(now - lost))
+        return Check(name, ok=False, detail=detail)
+    if since := receipts.unconfirmed():
+        detail = _(
+            "no phone has confirmed any message the bot sent in the last "
+            "{duration}: they may not arrive, or their receipts may not reach "
+            "the bot"
+        ).format(duration=format_duration(now - since))
+        return Check(name, ok=False, detail=detail)
+    if receipts.since is None:
+        return Check(name, ok=True, detail=_("connecting to signal-cli-rest-api"))
+    return Check(name, ok=True, detail=_("receipts heard"))
 
-    @property
-    def failed(self) -> list[Check]:
-        return [check for check in self.checks if not check.ok]
 
-
-async def check_health(bot: SignalBot) -> Health:
+async def check_health(bot: SignalBot, before: Health | None = None) -> Health:
+    """The health checks; of the outbox's losses, those since the check
+    before."""
     found_about: list[About] = []
     found_devices: list[Device] = []
 
@@ -174,10 +221,18 @@ async def check_health(bot: SignalBot) -> Health:
         run_check("signal-cli-rest-api", signal_api),
         run_check(_("Signal"), signal),
     )
+    now = datetime.now(UTC)
     return Health(
-        checks=[api_check, bot_check(bot, datetime.now(UTC)), signal_check],
+        checks=[
+            api_check,
+            bot_check(bot, now, before),
+            signal_check,
+            delivery_check(now),
+        ],
         about=found_about[0] if found_about else None,
         devices=found_devices,
+        given_up=outbox.given_up,
+        discarded=outbox.discarded,
     )
 
 
@@ -302,9 +357,15 @@ class Rounds:
         self.started: datetime | None = None  # when it began answering
         self.server: asyncio.Server | None = None
 
+    @property
+    def reported(self) -> Health | None:
+        """What the latest round found, if one ran: the next tells of what
+        the outbox lost since."""
+        return self.latest[1] if self.latest else None
+
     async def run(self, bot: SignalBot) -> None:
         """Check the bot's health, and report it to healthcheck_url, if set."""
-        health = await check_health(bot)
+        health = await check_health(bot, self.reported)
         self.latest = (datetime.now(UTC), health)
         if failed := health.failed:
             logger.warning("Health check failed: %s", report_text(failed))

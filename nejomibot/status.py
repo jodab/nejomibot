@@ -33,6 +33,7 @@ from .health import (
     CheckFailed,
     check_health,
     memory_check,
+    rounds,
     run_check,
     up_since,
     version_lines,
@@ -381,8 +382,11 @@ async def status_messages(bot: SignalBot, message_delay: float) -> list[str]:
     if pair := get_settings().exchange_rate:
         remote.append(run_check(_("Exchange rates"), lambda: check_rates(*pair)))
     remote.append(run_check(_("Photo library"), check_photos))
+    # What the outbox lost since the latest round, as its next ping tells
     health, others, local = await asyncio.gather(
-        check_health(bot), asyncio.gather(*remote), asyncio.to_thread(system_checks)
+        check_health(bot, rounds.reported),
+        asyncio.gather(*remote),
+        asyncio.to_thread(system_checks),
     )
     internet, container, host = await info
     account = await account_read

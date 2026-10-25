@@ -16,11 +16,14 @@ from nejomibot import bot as bot_module
 from nejomibot import health, healthcheck
 from nejomibot.bot import wait_for_account
 from nejomibot.config import get_settings
+from nejomibot.delivery import Receipts
 from nejomibot.health import (
     Check,
+    Health,
     Rounds,
     bot_check,
     check_health,
+    delivery_check,
     is_too_old,
     run_check,
 )
@@ -86,12 +89,20 @@ async def started(bot: SignalBot) -> SignalBot:
 
 
 class Waiting:
-    """An outbox with messages waiting since then, and maybe rate-limited."""
+    """An outbox with messages waiting since then, and maybe rate-limited;
+    with sends given up and messages dropped since the start."""
 
     def __init__(
-        self, since: datetime | None, count: int, *, rate_limited: bool = False
+        self,
+        since: datetime | None,
+        count: int,
+        *,
+        rate_limited: bool = False,
+        given_up: int = 0,
+        discarded: int = 0,
     ) -> None:
         self.since, self.count, self.rate_limited = since, count, rate_limited
+        self.given_up, self.discarded = given_up, discarded
 
     def oldest(self) -> datetime | None:
         return self.since
@@ -127,12 +138,89 @@ async def test_bot_check(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Non
     )
 
 
+async def test_bot_check_tells_of_what_the_outbox_lost(
+    bot: SignalBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await started(bot)
+    lost = Waiting(NOW - timedelta(minutes=20), 1, given_up=3, discarded=1)
+    monkeypatch.setattr(health, "outbox", lost)
+    assert bot_check(bot, NOW) == Check(
+        "Bot",
+        ok=False,
+        detail="1 message queued, the oldest for 20 min. 3 messages may not have "
+        "arrived, as sending them failed. 1 message could not be delivered "
+        "within 3 hours and was discarded",
+    )
+    # Only what's new since the check before
+    before = Health([], None, [], given_up=2, discarded=1)
+    lost.since = None
+    assert bot_check(bot, NOW, before) == Check(
+        "Bot", ok=False, detail="1 message may not have arrived, as sending it failed"
+    )
+    before = Health([], None, [], given_up=3, discarded=1)
+    assert bot_check(bot, NOW, before) == Check("Bot", ok=True, detail="running")
+
+
+async def test_each_loss_is_told_of_in_one_round(
+    bot: SignalBot, signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await started(bot)
+    monkeypatch.setattr(health, "outbox", Waiting(None, 0, given_up=1))
+    rounds = Rounds()
+    await rounds.run(bot)
+    assert (first := rounds.reported) is not None
+    assert first.failed == [
+        Check(
+            "Bot",
+            ok=False,
+            detail="1 message may not have arrived, as sending it failed",
+        )
+    ]
+    await rounds.run(bot)
+    assert (second := rounds.reported) is not None
+    assert second.failed == []
+
+
+def test_delivery_check(monkeypatch: pytest.MonkeyPatch) -> None:
+    keeper = Receipts()
+    monkeypatch.setattr(health, "receipts", keeper)
+    assert delivery_check(NOW) == Check(
+        "Delivery", ok=True, detail="connecting to signal-cli-rest-api"
+    )
+    keeper.since = NOW - timedelta(days=1)
+    assert delivery_check(NOW) == Check("Delivery", ok=True, detail="receipts heard")
+
+    # Not for a moment, as while signal-cli-rest-api restarts; but not for
+    # longer than healthcheck_minutes
+    keeper.since, keeper.lost = None, NOW - timedelta(minutes=5)
+    assert delivery_check(NOW).ok
+    keeper.lost = NOW - timedelta(minutes=12)
+    assert delivery_check(NOW) == Check(
+        "Delivery",
+        ok=False,
+        detail="no receipts heard for 12 min: the websocket to signal-cli-rest-api "
+        "fails, so messages to the bot may be lost too",
+    )
+
+    # No phone confirmed three in a row within unconfirmed_hours, nor any
+    # message sent since
+    keeper.since, keeper.lost = NOW - timedelta(days=1), None
+    keeper.settled.extend(NOW - timedelta(hours=hours) for hours in (14, 13, 12))
+    assert delivery_check(NOW) == Check(
+        "Delivery",
+        ok=False,
+        detail="no phone has confirmed any message the bot sent in the last "
+        "14 h 0 min: they may not arrive, or their receipts may not reach the bot",
+    )
+
+
 async def test_all_is_well(bot: SignalBot, signal_api: FakeApi) -> None:
     result = await check_health(await started(bot))
     assert [(c.name, c.ok, c.detail) for c in result.checks] == [
         ("signal-cli-rest-api", True, "version unset"),
         ("Bot", True, "running"),
         ("Signal", True, "the account has 2 devices"),
+        ("Delivery", True, "connecting to signal-cli-rest-api"),
     ]
     assert result.about is not None and result.about.version == "unset"
     assert [device.id for device in result.devices] == [2, 1]
@@ -251,6 +339,7 @@ async def test_pings_when_all_is_well(
         "OK signal-cli-rest-api: version unset",
         "OK Bot: running",
         "OK Signal: the account has 2 devices",
+        "OK Delivery: connecting to signal-cli-rest-api",
     ]
     # Then what runs, as /status says it: the versions, the uptime, the memory
     lines = about.splitlines()
@@ -314,6 +403,7 @@ async def test_answer_says_how_the_latest_check_went(
         "OK signal-cli-rest-api: version unset",
         "OK Bot: running",
         "OK Signal: the account has 2 devices",
+        "OK Delivery: connecting to signal-cli-rest-api",
     ]
     # Checks every 5 minutes: one 12 minutes ago means the bot is stuck
     assert rounds.answer(at + timedelta(minutes=12)).startswith(
@@ -340,6 +430,7 @@ async def test_what_a_check_finds_doesnt_fail_the_bot(
         "OK signal-cli-rest-api: version unset",
         "FAILED Bot: starting: waiting for signal-cli-rest-api and the account",
         f"FAILED Signal: User {ME} is not registered.",
+        "OK Delivery: connecting to signal-cli-rest-api",
     ]
 
 

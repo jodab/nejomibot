@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 10:37+0200\n"
+"POT-Creation-Date: 2026-10-25 14:05+0200\n"
 "Language-Team: Norwegian Bokmål\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
@@ -1028,8 +1028,46 @@ msgstr ""
 "begrensningen"
 
 #: nejomibot/health.py
+#, python-brace-format
+msgid "{count} message may not have arrived, as sending it failed"
+msgid_plural "{count} messages may not have arrived, as sending them failed"
+msgstr[0] "{count} melding kom kanskje ikke fram, fordi sendingen mislyktes"
+msgstr[1] "{count} meldinger kom kanskje ikke fram, fordi sendingene mislyktes"
+
+#: nejomibot/health.py
 msgid "running"
 msgstr "kjører"
+
+#: nejomibot/health.py
+msgid "Delivery"
+msgstr "Levering"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no receipts heard for {duration}: the websocket to signal-cli-rest-api "
+"fails, so messages to the bot may be lost too"
+msgstr ""
+"ingen kvitteringer mottatt på {duration}: websocketen til signal-cli-rest-"
+"api svikter, så også meldinger til boten kan gå tapt"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no phone has confirmed any message the bot sent in the last {duration}: they "
+"may not arrive, or their receipts may not reach the bot"
+msgstr ""
+"ingen telefon har bekreftet noen melding som boten har sendt de siste "
+"{duration}: de kommer kanskje ikke fram, eller så når ikke kvitteringene "
+"fram til boten"
+
+#: nejomibot/health.py
+msgid "connecting to signal-cli-rest-api"
+msgstr "kobler til signal-cli-rest-api"
+
+#: nejomibot/health.py
+msgid "receipts heard"
+msgstr "kvitteringer mottas"
 
 #: nejomibot/health.py
 #, python-brace-format

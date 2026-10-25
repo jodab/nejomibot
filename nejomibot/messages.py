@@ -382,6 +382,10 @@ class Outbox:
         self._queues: defaultdict[str, deque[Queued]] = defaultdict(deque)
         self._locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
         self._dropped: Counter[str] = Counter()
+        # Sends given up and waiting messages dropped since the start, which
+        # the health checks report (health.py)
+        self.given_up = 0
+        self.discarded = 0
         self._retrying: asyncio.Task[None] | None = None
         self._rate_limited = False
         # When a try last met Signal's rate limit, by time.monotonic
@@ -561,6 +565,7 @@ class Outbox:
         while queue and self._now() - queue[0].queued_at > max_age:
             queue.popleft().forget()
             self._dropped[recipient] += 1
+            self.discarded += 1
             logger.warning(
                 "Dropped a message %s, not sent in %s", to_whom(recipient), max_age
             )
@@ -574,6 +579,8 @@ class Outbox:
             with speaking(chat_language(recipient)):
                 message = delayed(message, queued_at)
         outcome, timestamp = await self._post(recipient, message)
+        if outcome is Outcome.GIVE_UP:
+            self.given_up += 1
         if outcome is Outcome.RATE_LIMITED:
             if not self._rate_limited and self.on_rate_limited is not None:
                 self.on_rate_limited()
@@ -595,7 +602,7 @@ class Outbox:
                 self.on_sent(sent)
         if dropped := self._dropped.pop(recipient, 0):
             with speaking(chat_language(recipient)):
-                notice = SendMessage(text=dropped_text(dropped))
+                notice = SendMessage(text=error_text(dropped_text(dropped)))
             if await self._try(recipient, notice) is not Outcome.SENT:
                 self._dropped[recipient] += dropped
         return outcome
@@ -639,16 +646,15 @@ def delayed(message: SendMessage, queued_at: datetime) -> SendMessage:
 
 
 def dropped_text(count: int) -> str:
+    """That count messages waited send_retry_hours and were dropped, as the
+    chat is told, and the health checks."""
     hours = get_settings().send_retry_hours
-    return error_text(
-        ngettext(
-            "{count} message could not be delivered within {hours} hours and was "
-            "discarded",
-            "{count} messages could not be delivered within {hours} hours and were "
-            "discarded",
-            count,
-        ).format(count=count, hours=f"{hours:g}")
-    )
+    return ngettext(
+        "{count} message could not be delivered within {hours} hours and was discarded",
+        "{count} messages could not be delivered within {hours} hours and were "
+        "discarded",
+        count,
+    ).format(count=count, hours=f"{hours:g}")
 
 
 outbox = Outbox()

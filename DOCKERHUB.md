@@ -276,10 +276,10 @@ That's it: the bot is up and running. 🎉
 
 - **A profile picture:**
   `docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg`
-- **Get alerted when the bot is down:** create a check at
-  [healthchecks.io](https://healthchecks.io), and put its ping URL in
-  `healthcheck_url` in the settings. The bot pings it every 5 minutes with
-  what it found.
+- **Get alerted when the bot is down or its messages don't get through:**
+  create a check at [healthchecks.io](https://healthchecks.io), and put its
+  ping URL in `healthcheck_url` in the settings. The bot pings it every 5
+  minutes with what it found.
 - **See how the bot is doing:** send it `/status`. `docker compose ps` shows
   the containers as `healthy` a minute after they start (with Podman,
   `podman ps` does).

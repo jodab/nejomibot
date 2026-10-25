@@ -3,6 +3,7 @@ import contextlib
 import itertools
 import json
 import logging
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -325,13 +326,20 @@ async def test_each_message_sent_is_checked_later(
 ) -> None:
     monkeypatch.setattr(delivery.outbox, "on_sent", None)
     monkeypatch.setattr(delivery, "CHECK_AFTER", timedelta(0))
+    monkeypatch.setenv("NEJOMIBOT_UNCONFIRMED_HOURS", "0.000001")  # 3.6 ms
+    get_settings.cache_clear()
     keeper = Receipts()
     checked: list[Sent] = []
+    settled: list[Sent] = []
 
     def check(bot: SignalBot, sent: Sent) -> None:
         checked.append(sent)
 
+    def settle(bot: SignalBot, sent: Sent) -> None:
+        settled.append(sent)
+
     monkeypatch.setattr(keeper, "check", check)
+    monkeypatch.setattr(keeper, "settle", settle)
     keeper.start(bot)
     assert bot.scheduler.get_job("delivery-receipts") is not None  # pyright: ignore[reportUnknownMemberType]
     on_sent = delivery.outbox.on_sent
@@ -340,6 +348,92 @@ async def test_each_message_sent_is_checked_later(
     on_sent(sent)
     await asyncio.sleep(0.01)
     assert checked == [sent]
+    # And for the delivery check, unconfirmed_hours after it was sent
+    assert settled == [sent]
+
+
+# The delivery check
+
+
+async def test_unconfirmed_messages_fail_the_delivery_check_three_in_a_row(
+    bot: SignalBot,
+) -> None:
+    keeper = Receipts()
+    sent = [Sent(NOW_MS + i * MINUTE_MS, GROUP) for i in range(4)]
+    keeper.since = sent[0].at - timedelta(seconds=1)
+    keeper.settle(bot, sent[0])
+    keeper.settle(bot, sent[1])
+    # One or two may go to phones that are off
+    assert keeper.unconfirmed() is None
+    keeper.settle(bot, sent[2])
+    assert keeper.unconfirmed() == sent[0].at
+    # Of the latest three it counted
+    keeper.settle(bot, sent[3])
+    assert keeper.unconfirmed() == sent[1].at
+    # A phone confirmed one sent after the first of them
+    keeper.latest_confirmed = sent[2].at
+    assert keeper.unconfirmed() is None
+
+
+async def test_the_delivery_check_counts_what_it_can_tell_of(bot: SignalBot) -> None:
+    keeper = Receipts()
+    sent = Sent(NOW_MS, GROUP)
+    keeper.settle(bot, sent)  # not hearing receipts at all
+    keeper.since = sent.at + timedelta(seconds=1)  # only since after it
+    keeper.settle(bot, sent)
+    keeper.since = sent.at - timedelta(seconds=1)
+    keeper.settle(bot, Sent(NOW_MS, "group.b2xk"))  # a group the bot has left
+    assert not keeper.settled
+    keeper.settle(bot, sent)
+    assert list(keeper.settled) == [sent.at]
+
+
+async def test_hearing_receipts_tells_the_delivery_check(
+    bot: SignalBot, signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(bot, "wait_until_ready", ready)
+    confirmed, closing, ended = asyncio.Event(), asyncio.Event(), asyncio.Event()
+
+    def confirming(log: SentLog, envelope: delivery.Envelope) -> datetime:
+        at = confirm(log, envelope)
+        confirmed.set()
+        return at
+
+    def delays() -> Iterator[timedelta]:
+        while True:
+            ended.set()  # the connection ended: it waits to connect again
+            yield timedelta(hours=1)
+
+    async def receive(request: web.Request) -> web.StreamResponse:
+        websocket = web.WebSocketResponse()
+        await websocket.prepare(request)
+        await websocket.send_str(receipt(ALICE_ID, NOW_MS))
+        await closing.wait()
+        await websocket.close()
+        return websocket
+
+    monkeypatch.setattr(delivery, "confirm", confirming)
+    monkeypatch.setattr(delivery, "retry_delays", delays)
+    signal_api.route("GET", RECEIVE, receive)
+    keeper, sent = Receipts(), Sent(NOW_MS, GROUP)
+    task = asyncio.create_task(keeper.listen(bot, log_of(sent)))
+    try:
+        async with asyncio.timeout(5):
+            await confirmed.wait()
+        assert keeper.lost is None
+        assert keeper.latest_confirmed == sent.at
+        keeper.settled.append(sent.at)
+        closing.set()
+        async with asyncio.timeout(5):
+            await ended.wait()
+        assert keeper.since is None
+        assert keeper.lost is not None
+        # A phone may confirm a message meanwhile, unheard
+        assert not keeper.settled
+    finally:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
 
 
 async def test_hearing_isn_t_the_scheduler_s_job(
@@ -379,10 +473,11 @@ async def heard(
     """Listen until everyone's receipt for the message is in, then stop."""
     keeper, done = Receipts(), asyncio.Event()
 
-    def confirmed(log: SentLog, envelope: delivery.Envelope) -> None:
-        confirm(log, envelope)
+    def confirmed(log: SentLog, envelope: delivery.Envelope) -> datetime:
+        at = confirm(log, envelope)
         if set(sent.confirmed) == everyone:
             done.set()
+        return at
 
     monkeypatch.setattr(delivery, "confirm", confirmed)
     task = asyncio.create_task(keeper.listen(bot, log_of(sent)))

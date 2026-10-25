@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 10:37+0200\n"
+"POT-Creation-Date: 2026-10-25 14:05+0200\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -1046,8 +1046,49 @@ msgstr ""
 "αρθεί"
 
 #: nejomibot/health.py
+#, python-brace-format
+msgid "{count} message may not have arrived, as sending it failed"
+msgid_plural "{count} messages may not have arrived, as sending them failed"
+msgstr[0] ""
+"{count} μήνυμα ενδέχεται να μην έχει φτάσει, επειδή η αποστολή του απέτυχε"
+msgstr[1] ""
+"{count} μηνύματα ενδέχεται να μην έχουν φτάσει, επειδή η αποστολή τους "
+"απέτυχε"
+
+#: nejomibot/health.py
 msgid "running"
 msgstr "σε λειτουργία"
+
+#: nejomibot/health.py
+msgid "Delivery"
+msgstr "Παράδοση"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no receipts heard for {duration}: the websocket to signal-cli-rest-api "
+"fails, so messages to the bot may be lost too"
+msgstr ""
+"καμία απόδειξη εδώ και {duration}: η σύνδεση websocket με το signal-cli-rest-"
+"api αποτυγχάνει, οπότε ενδέχεται να χάνονται και μηνύματα προς το bot"
+
+#: nejomibot/health.py
+#, python-brace-format
+msgid ""
+"no phone has confirmed any message the bot sent in the last {duration}: they "
+"may not arrive, or their receipts may not reach the bot"
+msgstr ""
+"κανένα τηλέφωνο δεν έχει επιβεβαιώσει κανένα από τα μηνύματα του bot εδώ και "
+"{duration}: ενδέχεται να μην παραδίδονται ή οι αποδείξεις τους να μη φτάνουν "
+"στο bot"
+
+#: nejomibot/health.py
+msgid "connecting to signal-cli-rest-api"
+msgstr "σύνδεση με το signal-cli-rest-api"
+
+#: nejomibot/health.py
+msgid "receipts heard"
+msgstr "οι αποδείξεις λαμβάνονται"
 
 #: nejomibot/health.py
 #, python-brace-format
