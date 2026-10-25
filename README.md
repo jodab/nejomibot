@@ -106,7 +106,7 @@ Fill in at least the following settings, keeping the quotes:
 | Setting | Description | Example |
 |---|---|---|
 | `account` | The bot's phone number, or the Signal ID of [an account without one](#an-account-without-a-phone-number) | `"+46700000000"` |
-| `admins` | Your phone number, which makes you the admin | `["+46700000001"]` |
+| `admins` | Your phone number, which makes you the admin, or your Signal ID if you have no number (see [An account without a phone number](#an-account-without-a-phone-number)) | `["+46700000001"]` |
 | `openweather_api_key` | Your OpenWeatherMap API key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
 | `timezone` | Your time zone, used by the timers | `"Europe/Stockholm"` |
@@ -254,14 +254,14 @@ To update the bot later, see [Updating](#updating).
   **`Can't write in data_dir /data: Permission denied`:** the `data` folder
   doesn't belong to the bot. Repeat step 3.
 - **The bot doesn't reply:** its log must be past the `Waiting` line, and
-  `admins` must contain your number in international format. If both are
-  correct, your Signal may be hiding your number from the bot, as it does
-  when **Who can see my number** is set to **Nobody** in its privacy
-  settings. The bot then knows you only by your Signal ID: `docker compose
-  exec nejomibot signal-account.sh identities` lists everyone who has
-  written to the bot, by name. Put the ID shown after your name, such as
-  `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, in `admins` in place of your
-  number, and restart the bot.
+  `admins` must contain your number in international format, or your Signal
+  ID if you have no number. If both are correct, your Signal may be hiding
+  your number from the bot, as it does when **Who can see my number** is set
+  to **Nobody** in its privacy settings. The bot then knows you only by your
+  Signal ID: `docker compose exec nejomibot signal-account.sh identities`
+  lists everyone who has written to the bot, by name. Put the ID shown after
+  your name, such as `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, in `admins` in
+  place of your number, and restart the bot.
 - **A group is missing from `/chats`:** Signal only invited the bot. In the
   group's settings, under **Requests & invites**, revoke the invitation, and
   once the bot has replied to you, add it again.
@@ -321,7 +321,7 @@ For admins, in a direct chat with the bot:
 | `/album <album>`, `/album <album> <date>`, `/album <album> -` | An album: how many photos it has, the years they were taken, the birth date its captions count an age from, and its shortcuts. With a date, such as `2019-06-15`, it sets that birth date; `-` removes it, so that its captions show no age (see [Photos and the daily post](#photos-and-the-daily-post)) |
 | `/album <album> shortcuts <names>`, `/album <album> shortcuts -` | Other names for `/photo <album>`: `/album Alice shortcuts /alice` makes `/alice` mean `/photo Alice`, and `/alice 2017` mean `/photo Alice 2017`; `-` removes them. A shortcut starts with `/` or `.`: a plain word, which would make every message that starts with it a command, is taken with a `/` |
 | `/today preview [<date>]` | What `/today` will say on a given day, such as `10-25`, `2026-10-25` or `tomorrow`, or today if no day is given, in each group the bot is in and in a direct chat |
-| `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, in two short lines each, with whether they are verified; with `<who>`, one person in full, with their safety number. `<who>` is the person's number in the list you were shown last by `/contacts` or `/trust`, their phone number, their Signal ID or its beginning, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
+| `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, each with their name, profile name, username, phone number, Signal ID, About, groups and whether they are verified; with `<who>`, one person, with their safety number too. `<who>` is the person's number in the list you were shown last by `/contacts` or `/trust`, their phone number, their Signal ID or its beginning, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
 | `/contacts add <who> <name>` | Saves someone as a contact under that name, or renames them. `<who>` is as for `/contacts`; when it is a name, the longest beginning of the message that names someone is used. Someone the bot doesn't know yet can be added by phone number, or by Signal username, as `u:alice.42` or `@alice.42` |
 | `/trust`, `/trust <who>` | Everyone's safety numbers, numbered as `/contacts` numbers them and laid out as the Signal apps show them, with whether each one is verified; with `<who>`, one person's |
 | `/trust <who> <safety number>` | Marks a safety number as verified, after you have compared it with the one on the person's phone |
@@ -414,8 +414,8 @@ The admins, meaning those listed in the `admins` setting and those they add,
 may use every command: the everyday commands wherever those are allowed, and
 the admin commands only in a direct chat with the bot, because those
 commands show phone numbers and the server's addresses, or change the bot.
-An admin is given by phone number, or by Signal ID if they don't share their
-number. Everyone else may use the everyday commands only if they are on the
+An admin is given by phone number, or by Signal ID if they have none or
+don't share it. Everyone else may use the everyday commands only if they are on the
 [allowed list](#the-allowed-list): as a contact, in a direct chat with the
 bot, or as a member of an allowed group, in that group, together with the
 [specials](#specials) the admins let everyone use. The bot doesn't reply to
@@ -924,8 +924,8 @@ short lines:
   timer run; the messages waiting to be sent again; and how long the command
   took to arrive. signal-cli's version isn't included, because
   signal-cli-rest-api doesn't report it.
-- **Signal account:** the number and profile, the contacts and who is
-  blocked, the safety numbers (naming those that are new or have changed in
+- **Signal account:** the profile, as `/profile` shows it, with the phone
+  number or Signal ID; the contacts and who is blocked, the safety numbers (naming those that are new or have changed in
   the last week), the groups, and the linked devices.
 - **Internet:** the public IPv4 and IPv6 addresses (from Cloudflare's
   `/cdn-cgi/trace`, requested over each), their reverse DNS names, and from
@@ -974,13 +974,16 @@ change them. Timers and `/run` can run `/incoming` too: `/run 1 /incoming
 `/contacts` lists everyone the bot's Signal account knows, numbered: first
 its contacts, then everyone else it knows, such as the members of its
 groups, then anyone it only has a safety number for. Each person is shown by
-name, with their phone number, the name they gave themselves in Signal (🪪)
-where it differs from the one in the contacts, and their Signal username,
-such as `@alice.42`, where signal-cli knows it. The bot itself is neither
-listed nor counted, since its own safety number isn't anyone's to compare.
-`/contacts <n>` shows a person the way `/profile` shows the bot: profile
-name, username and number, one per line. Signal doesn't share usernames:
-signal-cli knows only the usernames of people it found by username, as
+name, with everything the bot knows of them on a line each, in the way
+`/profile` shows the bot: the name they gave themselves in Signal, where it
+differs from the one in the contacts; their Signal username, such as
+`@alice.42`, where signal-cli knows it; their phone number, or that they
+don't share it; their Signal ID; their About; the groups they share with the
+bot; whether they're blocked; and whether their safety number is verified.
+The bot itself is neither listed nor counted, since its own safety number
+isn't anyone's to compare. `/contacts <n>` shows one person the same way,
+followed by their safety number. Signal doesn't share usernames: signal-cli
+knows only the usernames of people it found by username, as
 `/contacts add u:alice.42 Alice` does, so most people are shown without one.
 `/trust` lists the same people under the same numbers, with their safety
 numbers, shown as three rows of four groups of five digits, as the Signal
@@ -989,7 +992,7 @@ were shown last by either command stands for that person wherever a command
 accepts `<who>`:
 
 ```
-/contacts 3                  that person, in full
+/contacts 3                  that person, with their safety number
 /trust 3                     their safety number
 /trust 3 12345 67890 ...     mark it verified, after comparing it with their phone
 /contacts add 3 Bobby        save them as a contact under that name
@@ -1641,6 +1644,14 @@ username, so give it one, with `/username` or `signal-account.sh username`;
 until then, `/status` and `/profile` warn. The registration lock PIN and
 the privacy settings for the phone number don't apply to it, and
 `signal-account.sh` skips them in `setup`.
+
+People without a phone number can use the bot too. They find it by its
+username, and you give the bot their Signal ID wherever it takes a person:
+in `admins`, as in `admins = ["0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e"]`, and
+in `/allow` and `/admin add`. Signal Android shows a person's Signal ID as
+their Account Key, and once they have written to the bot,
+`signal-account.sh identities` lists it after their name. Upper or lower
+case makes no difference.
 
 ## How the bot talks to Signal
 

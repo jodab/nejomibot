@@ -177,3 +177,16 @@ def test_an_account_without_a_number_needs_a_username() -> None:
     ]
     # With a number, people can find it by that
     assert username_checks(account_of(ME, number=ME, uuid=ME_ID)) == []
+
+
+def test_the_signal_section_without_a_number() -> None:
+    account = account_of(ME_ID, uuid=ME_ID, username="mybot.42")
+    assert status.signal_lines(account, [])[:5] == [
+        "🪪 No name",
+        "💬 No About",
+        "🔗 Username: @mybot.42",
+        "🖼️ No avatar",
+        f"🆔 Signal ID: {ME_ID}",
+    ]
+    # An account signal-cli doesn't list shows its Signal ID all the same
+    assert f"🆔 Signal ID: {ME_ID}" in status.signal_lines(account_of(ME_ID), [])

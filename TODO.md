@@ -1,6 +1,6 @@
 # TODO
 
-The open work, as of 0.99.26: decisions for the owner, what is planned,
+The open work, as of 0.99.27: decisions for the owner, what is planned,
 plans that wait on them or on upstream projects, and what those projects
 lack. What has been done is in [CHANGELOG.md](CHANGELOG.md).
 
@@ -48,15 +48,17 @@ created with Signal Login, and work with people who have none.
 1. Done (2026-10-25): the owner restored an account without a number into
    signal-cli on the Pi, as the account's only device, and the bot runs on
    it.
-2. Try the bot on it, posting only to the test group: commands, receipts
-   and `/delivery`, the safety numbers, `/contacts`, `/profile`, the
-   avatar, `signal-account.sh status` and `identities`, and whether Signal
-   Android shows the Account Key as the ACI, in case it's in another form.
-   Signal's apps mark the bot's name "Name not verified", as it can't be
-   saved by number: find out whether a nickname for the bot takes that
-   away, and if so, say so in the README.
-3. Write the restore down in the README once it has worked, and find out
-   what `pin`, the registration lock, does without a number.
+2. Mostly done (2026-10-25): commands, groups, receipts and `/delivery`,
+   the safety numbers, `/contacts`, `/profile`, the avatar, the username,
+   and `signal-account.sh status` and `identities` all work on it. Still to
+   find out, on a phone: whether Signal Android shows the Account Key as the
+   ACI, in case it's in another form; whether a nickname for the bot takes
+   away the "Name not verified" that Signal's apps mark its name with, as it
+   can't be saved by number, and if so, say so in the README.
+3. Find out what `pin`, the registration lock, does without a number. The
+   restore itself isn't documented beyond the README's pointer to
+   signal-cli: it waits for signal-cli-rest-api to restore accounts (see
+   Upstream).
 
 ## Upstream
 
@@ -65,9 +67,9 @@ of signalbot and signal-cli-rest-api for them.
 
 - [ ] **signal-cli-rest-api's next release.** 0.101, the latest, is broken
   for the bot (#885, #892, signal-cli#2119), so [deploy/](deploy) pins the
-  CI build `1792710189-ci` by digest; the owner's Raspberry Pi stays on
-  0.101, as the CI builds have issues of their own. Once a release is out,
-  move to it and revisit `LAST_TOO_OLD` in [health.py](nejomibot/health.py).
+  CI build `1792710189-ci` by digest, which the owner's Raspberry Pi runs
+  too. Once a release is out, move to it and revisit `LAST_TOO_OLD` in
+  [health.py](nejomibot/health.py).
   It will also give each websocket a buffer (68ca0107), so a burst of
   receipts is no longer cut short: then remove the note on that in
   delivery.py's docstring and in the README.

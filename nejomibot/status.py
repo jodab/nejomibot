@@ -20,6 +20,7 @@ from signalbot import About, DataMessageContext, SignalBot
 from . import access, publicip, system
 from .account import (
     Account,
+    Device,
     account_lines,
     device_lines,
     fetch_account,
@@ -40,6 +41,7 @@ from .i18n import _, format_duration, format_file_size, ngettext
 from .info import fetch_rate
 from .messages import arrival_delay, describe, escape, outbox
 from .photos import by_album, scan_photos
+from .profile import profile_lines
 from .timers import timekeeper
 from .weather import UNITS, fetch_weather
 
@@ -139,10 +141,10 @@ def username_check(account: Account) -> list[Check]:
     """For an account without a phone number, its username: the only way
     anyone can find it on Signal."""
     me = account.me
-    if re.match(PHONE_NUMBER, account.id) or (me is not None and me.number):
+    if re.match(PHONE_NUMBER, account.id) or me.number:
         return []
     name = _("Username")
-    if me is not None and me.username:
+    if me.username:
         return [Check(name, ok=True, detail=f"@{me.username}")]
     detail = _("none, and without a phone number, nobody can find the bot")
     return [Check(name, ok=False, detail=detail)]
@@ -341,6 +343,17 @@ def details_text(sections: list[Section]) -> str:
     )
 
 
+def signal_lines(account: Account | Exception, devices: list[Device]) -> list[str]:
+    """The Signal account's section: its profile as /profile shows it, the
+    rest of the account, and the devices."""
+    lines = (
+        []
+        if isinstance(account, Exception)
+        else [*profile_lines(account.me), *account_lines(account)]
+    )
+    return [*lines, *device_lines(devices, datetime.now(UTC))]
+
+
 async def account_or_error(bot: SignalBot) -> Account | Exception:
     try:
         return await fetch_account(bot)
@@ -374,13 +387,9 @@ async def status_messages(bot: SignalBot, message_delay: float) -> list[str]:
     internet, container, host = await info
     account = await account_read
     checks = [*health.checks, *account_checks(account), *others, *local]
-    signal_lines = [
-        *([] if isinstance(account, Exception) else account_lines(account)),
-        *device_lines(health.devices, datetime.now(UTC)),
-    ]
     sections: list[Section] = [
         ("🤖", _("Bot"), bot_lines(health.about, message_delay)),
-        ("📱", _("Signal account"), signal_lines),
+        ("📱", _("Signal account"), signal_lines(account, health.devices)),
         ("🌐", _("Internet"), internet),
         ("📦", _("Container"), container),
         ("🖥️", _("Host"), host),

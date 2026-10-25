@@ -4,6 +4,23 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- `/status` shows the bot's profile as `/profile` does, a line each for the
+  name, the About, the username, the avatar, and the phone number or Signal
+  ID, rather than an unlabeled line with the number or Signal ID, the name
+  and the username.
+- `/contacts` shows everyone in full, a line each for their profile name,
+  username, phone number, Signal ID, About, groups, whether they're blocked
+  and whether they're verified, with a blank line between people, rather
+  than two short lines each without the Signal ID and the About.
+  `/contacts <who>` shows the person the same way, then their safety number,
+  and labels the Signal ID and the About as `/profile` does.
+- The README, DOCKERHUB.md and config.example.toml say how to make someone
+  without a phone number an admin: by their Signal ID, in `admins`.
+
 ## 0.99.27 - 2026-10-25
 
 ### Added

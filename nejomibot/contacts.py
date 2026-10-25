@@ -1,8 +1,9 @@
-"""/contacts: everyone the bot's Signal account knows, numbered, two short
-lines each, and /contacts <who> one of them in full, with their safety
-number. /trust lists everyone's safety numbers, in the same order and by the
-same numbers, /trust <who> shows one, and /trust <who> <safety number> marks
-it as verified, once it's been compared with the one on their phone.
+"""/contacts: everyone the bot's Signal account knows, numbered, each with
+all the bot knows of them but their safety number, and /contacts <who> one
+of them, with their safety number too. /trust lists everyone's safety
+numbers, in the same order and by the same numbers, /trust <who> shows one,
+and /trust <who> <safety number> marks it as verified, once it's been
+compared with the one on their phone.
 /contacts add <who> <name> makes someone a contact by that name, or renames
 them. They show phone numbers, so they only answer the admins, in direct
 chats.
@@ -206,15 +207,36 @@ def heading_line(account: Account, contact: Contact) -> str:
     return line + escape("".join(f" · {each}" for each in ids))
 
 
-def person_summary(account: Account, contact: Contact) -> str:
-    """Two short lines, for /contacts: who, with their number, then how far
-    they're trusted, if they're blocked, and the groups they're in. Styled."""
-    second = [trust_mark(account.identity_of(contact))]
-    if contact.blocked:
-        second.append(_("🚫 blocked"))
+def person_entry(account: Account, contact: Contact) -> str:
+    """Everything about someone but their safety number, a line each, for
+    /contacts and /contacts <who>: their names, username, number, Signal ID,
+    About, groups, and how far they're trusted. Styled."""
+    number = number_of(account, contact)
+    lines: list[str] = []
+    if own := profile_name_of(contact):
+        lines.append("🪪 " + _("Profile name: {name}").format(name=own))
+    if contact.username:
+        username = f"@{contact.username}"
+        lines.append("🔗 " + _("Username: {username}").format(username=username))
+    lines.append(
+        "📞 "
+        + (
+            _("Number: {number}").format(number=number)
+            if number
+            else _("phone number not shared")
+        )
+    )
+    if contact.uuid:
+        lines.append("🆔 " + _("Signal ID: {id}").format(id=contact.uuid))
+    if contact.profile and (about := full_name(contact.profile.about)):
+        lines.append("💬 " + _("About: {about}").format(about=about))
     if groups := groups_of(account, contact):
-        second.append("👥 " + ", ".join(groups))
-    return f"{heading_line(account, contact)}\n{escape(' · '.join(second))}"
+        lines.append("👥 " + _("In {groups}").format(groups=", ".join(groups)))
+    if contact.blocked:
+        lines.append(_("🚫 blocked"))
+    lines.append(trust_text(account.identity_of(contact)))
+    heading = f"👤 **{escape(short_heading(account, contact))}**"
+    return "\n".join([heading, *map(escape, lines)])
 
 
 def safety_entry(account: Account, contact: Contact) -> str:
@@ -243,39 +265,15 @@ def safety_card(account: Account, contact: Contact, who: str) -> str:
 
 
 def person_card(account: Account, contact: Contact, who: str | None = None) -> str:
-    """One person in full, for /contacts <who>: their numbers and ID, About,
-    groups, and safety number to compare. Styled."""
+    """One person in full, for /contacts <who>: as /contacts lists them, then
+    their safety number to compare. Styled."""
+    lines = [person_entry(account, contact)]
     identity = account.identity_of(contact)
-    number = number_of(account, contact)
-    lines = [f"👤 **{escape(heading_of(account, contact))}**"]
-    if own := profile_name_of(contact):
-        lines.append("🪪 " + _("Profile name: {name}").format(name=own))
-    if contact.username:
-        username = f"@{contact.username}"
-        lines.append("🔗 " + _("Username: {username}").format(username=username))
-    lines.append(
-        "📞 "
-        + (
-            _("Number: {number}").format(number=number)
-            if number
-            else _("phone number not shared")
-        )
-    )
-    if contact.uuid:
-        lines.append(f"🆔 {contact.uuid}")
-    if contact.profile and (about := full_name(contact.profile.about)):
-        lines.append(f"💬 “{about}”")
-    if groups := groups_of(account, contact):
-        lines.append("👥 " + _("In {groups}").format(groups=", ".join(groups)))
-    if contact.blocked:
-        lines.append(_("🚫 blocked"))
-    lines.append(trust_text(identity))
-    text = escape("\n".join(lines[1:]))
     if identity and identity.safety_number:
-        text += "\n" + "\n".join(format_safety_number(identity.safety_number))
+        lines.extend(format_safety_number(identity.safety_number))
     if unverified(account, contact):
-        text += "\n" + escape(verify_hint(who or heading_of(account, contact)))
-    return f"{lines[0]}\n{text}"
+        lines.append(escape(verify_hint(who or heading_of(account, contact))))
+    return "\n".join(lines)
 
 
 # The lists, numbered alike
@@ -307,9 +305,11 @@ def everyone(account: Account) -> Listed:
     return [(c.number, c.uuid) for *_head, group in sections(account) for c in group]
 
 
-def numbered(account: Account, entry: Callable[[Account, Contact], str]) -> list[str]:
+def numbered(
+    account: Account, entry: Callable[[Account, Contact], str], between: str = "\n"
+) -> list[str]:
     """The sections, each person as entry() has them, numbered from 1 across
-    the sections. Styled."""
+    the sections, with between after the title and each person. Styled."""
     texts: list[str] = []
     n = 0
     for icon, title, people in sections(account):
@@ -317,7 +317,7 @@ def numbered(account: Account, entry: Callable[[Account, Contact], str]) -> list
         for contact in people:
             n += 1
             lines.append(f"{n} {entry(account, contact)}")
-        texts.append("\n".join(lines))
+        texts.append(between.join(lines))
     return texts
 
 
@@ -342,7 +342,8 @@ def safety_count(account: Account) -> str:
 
 def contacts_message(account: Account) -> str:
     """Contacts first, then everyone else signal-cli knows, then anyone it
-    only has a safety number for: numbered, two short lines each. Styled."""
+    only has a safety number for: numbered, each in full but for their safety
+    number, a blank line apart. Styled."""
     hint = _(
         "/contacts <n> shows one in full; /trust lists the safety numbers, to "
         "compare with their phones."
@@ -351,7 +352,7 @@ def contacts_message(account: Account) -> str:
         [
             f"👥 **{escape(_('Who the bot knows'))}**\n"
             + escape("🔐 " + safety_count(account)),
-            *numbered(account, person_summary),
+            *numbered(account, person_entry, between="\n\n"),
             escape("🔎 " + hint),
         ]
     )

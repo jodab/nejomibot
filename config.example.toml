@@ -97,8 +97,8 @@ send_retry_hours = 3
 # delivery receipt, and read it
 # delivery_messages = 30
 
-# The admins, by phone number, or by Signal ID for those who don't share
-# their number. They may use every command: the everyday ones anywhere
+# The admins, by phone number, or by Signal ID for those who have none or
+# don't share it. They may use every command: the everyday ones anywhere
 # they're allowed, and the admin commands (/status, /today preview, /album,
 # the specials, /contacts, /trust, /allowed, /allow, /disallow, /admins,
 # /admin, the profile commands, the timers, /msg, /run, /incoming,
@@ -112,6 +112,7 @@ send_retry_hours = 3
 # command, names the first to contact.
 admins = [
     "+46700000001",  # you
+    # "0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e",  # someone without a number
 ]
 # Each start, once the bot is ready, the admins above get a notice: the
 # version, anything that needs their attention, and how the bot is. false

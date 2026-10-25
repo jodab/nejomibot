@@ -24,8 +24,6 @@ def allow(*chats: str) -> None:
 def test_account_lines(account: Account) -> None:
     # Short lines, as Signal's bubbles are narrow
     assert account_lines(account) == [
-        f"{ME} · “Mybot” @mybot.01",
-        "💬 Hej",
         "👤 1 contact · 4 known recipients",
         "🚫 blocked: Bob Berg",
         "🔐 Safety numbers: 2 trusted (1 verified) · 1 untrusted",
@@ -34,6 +32,20 @@ def test_account_lines(account: Account) -> None:
         "1 left · 1 pending invite",
         "🙋 Asking to join: Familjen (1)",
     ]
+
+
+def test_the_signal_section_starts_with_the_profile(account: Account) -> None:
+    # As /profile shows it
+    assert status.signal_lines(account, [Device(id=1)]) == [
+        "🪪 Mybot",
+        "💬 About: Hej",
+        "🔗 Username: @mybot.01",
+        "🖼️ No avatar",
+        f"📞 Number: {ME}",
+        *account_lines(account),
+        "📟 #1 primary",
+    ]
+    assert status.signal_lines(RuntimeError("down"), []) == []
 
 
 async def test_devices(signal_api: FakeApi) -> None:

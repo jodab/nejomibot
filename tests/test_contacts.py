@@ -1,5 +1,6 @@
 import asyncio
 import time
+from datetime import datetime
 
 import pytest
 from aiohttp import web
@@ -10,7 +11,9 @@ from helpers import (
     BOB_ID,
     CAROL_ID,
     DAVE_ID,
+    DAY_MS,
     ME,
+    NOW_MS,
     SAFETY_NUMBER,
     FakeApi,
     message_from,
@@ -27,6 +30,7 @@ from nejomibot.account import (
     Profile,
     with_fresh_profiles,
 )
+from nejomibot.config import get_settings
 from nejomibot.contacts import (
     Contacts,
     Trust,
@@ -56,20 +60,31 @@ def test_format_safety_number_like_the_apps() -> None:
 
 
 def test_contacts_message(account: Account) -> None:
-    # Two short lines each, as Signal's bubbles are narrow; no safety numbers.
-    # Numbered across the sections, as /trust numbers them too.
+    # Everyone in full but for their safety number, a line each, a blank line
+    # apart; numbered across the sections, as /trust numbers them too
+    bob_key = datetime.fromtimestamp((NOW_MS - DAY_MS) / 1000, get_settings().tz)
     assert contacts_message(account) == (
         "👥 **Who the bot knows**\n"
         "🔐 3 safety numbers: 1 verified, 1 untrusted.\n\n"
-        "📇 **Contacts** (1)\n"
-        f"1 👤 **Alice** · {ALICE}\n"
-        "✅ Verified · 👥 Familjen\n\n"
+        "📇 **Contacts** (1)\n\n"
+        "1 👤 **Alice**\n"
+        f"📞 Number: {ALICE}\n"
+        f"🆔 Signal ID: {ALICE_ID}\n"
+        "👥 In Familjen\n"
+        "✅ Verified, key from 1970-01-01\n\n"
         # Not the bot itself; sorted by name, or by ID without one
-        "💬 **Other known recipients** (2)\n"
-        f"2 👤 **Bob Berg** · {BOB}\n"
-        "❌ Untrusted: safety number changed · 🚫 blocked\n"
-        "3 👤 **ca401000…** · phone number not shared\n"
-        "⚪ Not verified · 👥 Familjen\n\n"
+        "💬 **Other known recipients** (2)\n\n"
+        "2 👤 **Bob Berg**\n"
+        f"📞 Number: {BOB}\n"
+        f"🆔 Signal ID: {BOB_ID}\n"
+        "💬 About: Hi\\*\n"
+        "🚫 blocked\n"
+        f"❌ Untrusted: safety number changed, key from {bob_key:%Y-%m-%d}\n\n"
+        "3 👤 **ca401000…**\n"
+        "📞 phone number not shared\n"
+        f"🆔 Signal ID: {CAROL_ID}\n"
+        "👥 In Familjen\n"
+        "⚪ Not verified\n\n"
         "🔎 /contacts <n> shows one in full; /trust lists the safety numbers, to "
         "compare with their phones."
     )
@@ -80,27 +95,32 @@ def test_contacts_message_lists_safety_numbers_of_strangers(
 ) -> None:
     account.recipients.pop()  # Carol
     assert (
-        "🔢 **Only a safety number** (1)\n"
-        "3 👤 **ca401000…** · phone number not shared\n"
-        "⚪ Not verified · 👥 Familjen\n\n"
+        "🔢 **Only a safety number** (1)\n\n"
+        "3 👤 **ca401000…**\n"
+        "📞 phone number not shared\n"
+        f"🆔 Signal ID: {CAROL_ID}\n"
+        "👥 In Familjen\n"
+        "⚪ Not verified\n\n"
     ) in contacts_message(account)
 
 
 def test_a_long_id_shows_by_its_start(account: Account) -> None:
     uuid = "0b7c1d2e-3f40-4a5b-8c6d-7e8f9a0b1c2d"
     account.recipients.append(Contact(uuid=uuid))
-    assert "👤 **0b7c1d2e…** · phone number not shared" in contacts_message(account)
+    assert (
+        f"👤 **0b7c1d2e…**\n📞 phone number not shared\n🆔 Signal ID: {uuid}\n"
+    ) in contacts_message(account)
 
 
 def test_a_username_shows_where_signal_cli_knows_it(account: Account) -> None:
     # As it does for someone it found by it
     account.recipients.append(Contact(uuid=DAVE_ID, name="Dave", username="dave.07"))
-    # One that's all the name they have, once
+    # One that's all the name they have, which heads them too
     eve_id = "e7e00000-0000-4000-8000-000000000005"
     account.recipients.append(Contact(uuid=eve_id, username="eve.42"))
     text = contacts_message(account)
-    assert "👤 **Dave** · phone number not shared · @dave.07\n" in text
-    assert "👤 **eve.42** · phone number not shared\n" in text
+    assert "👤 **Dave**\n🔗 Username: @dave.07\n📞 phone number not shared\n" in text
+    assert "👤 **eve.42**\n🔗 Username: @eve.42\n" in text
 
 
 def test_person_card(account: Account) -> None:
@@ -110,7 +130,7 @@ def test_person_card(account: Account) -> None:
         [
             "👤 **Alice**",
             f"📞 Number: {ALICE}",
-            f"🆔 {ALICE_ID}",
+            f"🆔 Signal ID: {ALICE_ID}",
             "👥 In Familjen",
             "✅ Verified, key from 1970-01-01",
             *format_safety_number(SAFETY_NUMBER),
@@ -136,13 +156,12 @@ def test_the_profile_name_and_username_show_beside_the_contacts_name(
             "🪪 Profile name: DaveTheBrave⚘",
             "🔗 Username: @dave.07",
             "📞 phone number not shared",
-            f"🆔 {DAVE_ID}",
+            f"🆔 Signal ID: {DAVE_ID}",
             "No safety number yet",
         ]
     )
-    assert (
-        "👤 **Dave** · phone number not shared · 🪪 DaveTheBrave⚘ · @dave.07\n"
-    ) in contacts_message(account)
+    # /contacts lists them the same way
+    assert f"\n4 {person_card(account, dave)}\n\n" in contacts_message(account)
 
 
 @pytest.mark.parametrize("who", ["u:dave.07", "@dave.07"])
@@ -204,7 +223,10 @@ def test_contacts_message_heads_the_unnamed_with_their_number(
 ) -> None:
     account.recipients.append(Contact(number="+46700000009", uuid="z-uuid"))
     text = contacts_message(account)
-    assert "\n2 👤 **+46700000009**\nNo safety number yet\n" in text
+    assert (
+        "\n2 👤 **+46700000009**\n📞 Number: +46700000009\n"
+        "🆔 Signal ID: z-uuid\nNo safety number yet\n"
+    ) in text
 
 
 @pytest.mark.parametrize(
@@ -438,7 +460,7 @@ async def test_trust_lists_everyones_safety_numbers(
     )
     # Numbered as /contacts numbers them
     await say(bot, "/contacts 3")
-    assert (answers[-1].text or "").startswith(f"👤 **{CAROL_ID}**\n")
+    assert (answers[-1].text or "").startswith("👤 **ca401000…**\n")
 
 
 async def test_trust_shows_one_and_verifies_it_by_number(

@@ -116,7 +116,7 @@ Fill in at least the following settings, keeping the quotes:
 | Setting | Description | Example |
 |---|---|---|
 | `account` | The bot's phone number, or the Signal ID of [an account without one](https://github.com/jodab/nejomibot#an-account-without-a-phone-number) | `"+46700000000"` |
-| `admins` | Your phone number, which makes you the admin | `["+46700000001"]` |
+| `admins` | Your phone number, which makes you the admin, or your Signal ID if you have no number (see [An account without a phone number](https://github.com/jodab/nejomibot#an-account-without-a-phone-number)) | `["+46700000001"]` |
 | `openweather_api_key` | Your OpenWeatherMap API key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
 | `timezone` | Your time zone, used by the timers | `"Europe/Stockholm"` |
@@ -344,7 +344,8 @@ folder doesn't belong to the bot: repeat step 3.
 
 1. Look at its log, `docker compose logs nejomibot`: it must be past the
    `Waiting` line.
-2. Check that `admins` contains your number, in international format.
+2. Check that `admins` contains your number, in international format, or
+   your Signal ID if you have no number.
 3. Still nothing? Your Signal may be hiding your number from the bot, as it
    does when *Settings > Privacy > Phone number > Who can see my number* is
    set to *Nobody*. The bot then knows you only by your Signal ID. List

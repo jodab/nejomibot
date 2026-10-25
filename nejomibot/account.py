@@ -144,6 +144,16 @@ def find_by_ids[T: (Contact, Identity)](
     return None
 
 
+def find_me(recipients: list[Contact], account: str) -> Contact:
+    """The bot itself among the recipients, or its phone number or Signal ID
+    alone if signal-cli doesn't list it."""
+    if me := next((c for c in recipients if c.is_one_of({account})), None):
+        return me
+    if account.startswith("+"):
+        return Contact(number=account)
+    return Contact(uuid=account)  # an account without a number
+
+
 @dataclass(frozen=True)
 class Account:
     """What signal-cli knows, as read at one time: looked up by ID, through
@@ -156,8 +166,8 @@ class Account:
     groups: list[GroupEntry]
 
     @cached_property
-    def me(self) -> Contact | None:
-        return next((c for c in self.recipients if c.is_one_of({self.id})), None)
+    def me(self) -> Contact:
+        return find_me(self.recipients, self.id)
 
     @cached_property
     def contact_ids(self) -> set[str]:
@@ -190,8 +200,7 @@ class Account:
         return number or f"{(uuid or '?')[:8]}…"
 
     def is_me(self, member: str) -> bool:
-        me = self.me
-        return member == self.id or bool(me and me.uuid and member == me.uuid)
+        return member in (self.id, self.me.uuid)
 
     def untrusted(self) -> list[str]:
         """Names of those whose safety number changed and isn't trusted yet:
@@ -302,19 +311,6 @@ async def with_fresh_profiles(account: Account) -> Account:
     return replace(account, recipients=recipients)
 
 
-def profile_lines(account: Account) -> list[str]:
-    """E.g. ['+46700000000 · “Mybot” @mybot.01', '💬 Weather and photos']."""
-    line = account.id
-    if not (me := account.me):
-        return [line]
-    profile = me.profile or Profile()
-    if name := full_name(profile.given_name, profile.lastname):
-        line += f" · “{name}”"
-    if me.username:
-        line += f" @{me.username}"
-    return [line, *([f"💬 {profile.about}"] if profile.about else [])]
-
-
 def seen_day(seen: datetime, now: datetime) -> str:
     """'today', 'yesterday' or the date: Signal only keeps the day."""
     tz = get_settings().tz
@@ -423,10 +419,10 @@ def group_lines(account: Account) -> list[str]:
 
 
 def account_lines(account: Account) -> list[str]:
-    """For /status: the account, a short line for each thing about it."""
+    """For /status, after the profile: the account, a short line for each
+    thing about it."""
     now = datetime.now(UTC)
     return [
-        *profile_lines(account),
         *contact_lines(account),
         *identity_lines(account, now),
         *group_lines(account),

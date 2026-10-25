@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 04:44+0200\n"
+"POT-Creation-Date: 2026-10-25 10:37+0200\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -736,10 +736,6 @@ msgid "phone number not shared"
 msgstr "telefonnumret delas inte"
 
 #: nejomibot/contacts.py
-msgid "🚫 blocked"
-msgstr "🚫 blockerad"
-
-#: nejomibot/contacts.py
 #, python-brace-format
 msgid "Profile name: {name}"
 msgstr "Profilnamn: {name}"
@@ -754,10 +750,24 @@ msgstr "Användarnamn: {username}"
 msgid "Number: {number}"
 msgstr "Nummer: {number}"
 
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "Signal ID: {id}"
+msgstr "Signal-ID: {id}"
+
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "About: {about}"
+msgstr "Om: {about}"
+
 #: nejomibot/contacts.py
 #, python-brace-format
 msgid "In {groups}"
 msgstr "I {groups}"
+
+#: nejomibot/contacts.py
+msgid "🚫 blocked"
+msgstr "🚫 blockerad"
 
 #: nejomibot/contacts.py
 msgid "Contacts"
@@ -2597,11 +2607,6 @@ msgstr ""
 "var, emoji fyra."
 
 #: nejomibot/profile.py
-#, python-brace-format
-msgid "About: {about}"
-msgstr "Om: {about}"
-
-#: nejomibot/profile.py
 msgid "No About"
 msgstr "Inget Om"
 
@@ -2692,6 +2697,10 @@ msgid "No username: without a phone number, nobody can find the bot"
 msgstr "Inget användarnamn: utan telefonnummer kan ingen hitta boten"
 
 #: nejomibot/profile.py
+msgid "No name, so Signal shows the number"
+msgstr "Inget namn, så Signal visar numret"
+
+#: nejomibot/profile.py
 msgid "Avatar: yes"
 msgstr "Profilbild: ja"
 
@@ -2700,17 +2709,8 @@ msgid "No avatar"
 msgstr "Ingen profilbild"
 
 #: nejomibot/profile.py
-#, python-brace-format
-msgid "Signal ID: {id}"
-msgstr "Signal-ID: {id}"
-
-#: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."
 msgstr "Ändra dem med /name, /about, /avatar och /username."
-
-#: nejomibot/profile.py
-msgid "No name, so Signal shows the number"
-msgstr "Inget namn, så Signal visar numret"
 
 #: nejomibot/publicip.py
 msgid "not announced"

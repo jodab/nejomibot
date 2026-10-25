@@ -36,7 +36,7 @@ from PIL import Image, ImageOps
 from signalbot import Attachment, DataMessageContext, SignalBot
 
 from . import rest
-from .account import Contact, fetch_recipients, full_name
+from .account import Contact, fetch_recipients, find_me, full_name
 from .account import Profile as ContactProfile
 from .commands import Command, Handler, answer, argument
 from .config import (
@@ -117,13 +117,7 @@ class AvatarImage:
 
 async def fetch_me() -> Contact:
     """The bot itself, among the recipients signal-cli knows."""
-    account = get_settings().account
-    me = next((c for c in await fetch_recipients() if c.is_one_of({account})), None)
-    if me is not None:
-        return me
-    if account.startswith("+"):
-        return Contact(number=account)
-    return Contact(uuid=account)  # an account without a number
+    return find_me(await fetch_recipients(), get_settings().account)
 
 
 def profile_of(me: Contact) -> ContactProfile:
@@ -555,11 +549,18 @@ def username_line(me: Contact) -> str:
     return "⚠️ " + _("No username: without a phone number, nobody can find the bot")
 
 
-def profile_text(me: Contact) -> str:
-    """Styled: the name in bold, the rest as is."""
+def profile_lines(me: Contact) -> list[str]:
+    """/profile's lines, which /status shows too: the name, the About, the
+    username, the avatar, and the phone number or Signal ID."""
     profile = profile_of(me)
-    name = name_of(me)
-    lines = [
+    if name := name_of(me):
+        shown = name
+    elif me.number:
+        shown = _("No name, so Signal shows the number")
+    else:
+        shown = _("No name")
+    return [
+        f"🪪 {shown}",
         "💬 " + about_text(profile),
         username_line(me),
         "🖼️ " + (_("Avatar: yes") if profile.has_avatar else _("No avatar")),
@@ -568,16 +569,16 @@ def profile_text(me: Contact) -> str:
             if me.number
             else "🆔 " + _("Signal ID: {id}").format(id=me.uuid)
         ),
-        "",
-        _("Change them with /name, /about, /avatar and /username."),
     ]
-    if name:
-        shown = f"**{escape(name)}**"
-    elif me.number:
-        shown = escape(_("No name, so Signal shows the number"))
-    else:
-        shown = escape(_("No name"))
-    return "\n".join([f"🪪 {shown}", *map(escape, lines)])
+
+
+def profile_text(me: Contact) -> str:
+    """Styled: the name in bold, the rest as is."""
+    lines = [escape(line) for line in profile_lines(me)]
+    if name := name_of(me):
+        lines[0] = f"🪪 **{escape(name)}**"
+    hint = _("Change them with /name, /about, /avatar and /username.")
+    return "\n".join([*lines, "", escape(hint)])
 
 
 async def show_profile() -> str:

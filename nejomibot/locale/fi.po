@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 04:44+0200\n"
+"POT-Creation-Date: 2026-10-25 10:37+0200\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -738,10 +738,6 @@ msgid "phone number not shared"
 msgstr "puhelinnumeroa ei jaettu"
 
 #: nejomibot/contacts.py
-msgid "🚫 blocked"
-msgstr "🚫 estetty"
-
-#: nejomibot/contacts.py
 #, python-brace-format
 msgid "Profile name: {name}"
 msgstr "Profiilinimi: {name}"
@@ -756,10 +752,24 @@ msgstr "Käyttäjänimi: {username}"
 msgid "Number: {number}"
 msgstr "Numero: {number}"
 
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "Signal ID: {id}"
+msgstr "Signal-tunnus: {id}"
+
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "About: {about}"
+msgstr "Tietoja: {about}"
+
 #: nejomibot/contacts.py
 #, python-brace-format
 msgid "In {groups}"
 msgstr "Ryhmissä: {groups}"
+
+#: nejomibot/contacts.py
+msgid "🚫 blocked"
+msgstr "🚫 estetty"
 
 #: nejomibot/contacts.py
 msgid "Contacts"
@@ -2618,11 +2628,6 @@ msgstr ""
 "é vievät kaksi kukin, emojit neljä."
 
 #: nejomibot/profile.py
-#, python-brace-format
-msgid "About: {about}"
-msgstr "Tietoja: {about}"
-
-#: nejomibot/profile.py
 msgid "No About"
 msgstr "Ei Tietoja-tekstiä"
 
@@ -2715,6 +2720,10 @@ msgid "No username: without a phone number, nobody can find the bot"
 msgstr "Ei käyttäjänimeä: ilman puhelinnumeroa kukaan ei löydä bottia"
 
 #: nejomibot/profile.py
+msgid "No name, so Signal shows the number"
+msgstr "Ei nimeä, joten Signal näyttää numeron"
+
+#: nejomibot/profile.py
 msgid "Avatar: yes"
 msgstr "Profiilikuva: kyllä"
 
@@ -2723,18 +2732,9 @@ msgid "No avatar"
 msgstr "Ei profiilikuvaa"
 
 #: nejomibot/profile.py
-#, python-brace-format
-msgid "Signal ID: {id}"
-msgstr "Signal-tunnus: {id}"
-
-#: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."
 msgstr ""
 "Muuta niitä komennoilla /nimi, /tietoja, /profiilikuva ja /käyttäjänimi."
-
-#: nejomibot/profile.py
-msgid "No name, so Signal shows the number"
-msgstr "Ei nimeä, joten Signal näyttää numeron"
 
 #: nejomibot/publicip.py
 msgid "not announced"

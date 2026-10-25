@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 04:44+0200\n"
+"POT-Creation-Date: 2026-10-25 10:37+0200\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -750,10 +750,6 @@ msgid "phone number not shared"
 msgstr "ο αριθμός τηλεφώνου δεν κοινοποιείται"
 
 #: nejomibot/contacts.py
-msgid "🚫 blocked"
-msgstr "🚫 αποκλεισμένος"
-
-#: nejomibot/contacts.py
 #, python-brace-format
 msgid "Profile name: {name}"
 msgstr "Όνομα προφίλ: {name}"
@@ -768,10 +764,24 @@ msgstr "Όνομα χρήστη: {username}"
 msgid "Number: {number}"
 msgstr "Αριθμός: {number}"
 
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "Signal ID: {id}"
+msgstr "Signal ID: {id}"
+
+#: nejomibot/contacts.py nejomibot/profile.py
+#, python-brace-format
+msgid "About: {about}"
+msgstr "Σχετικά: {about}"
+
 #: nejomibot/contacts.py
 #, python-brace-format
 msgid "In {groups}"
 msgstr "Σε {groups}"
+
+#: nejomibot/contacts.py
+msgid "🚫 blocked"
+msgstr "🚫 αποκλεισμένος"
 
 #: nejomibot/contacts.py
 msgid "Contacts"
@@ -2650,11 +2660,6 @@ msgstr ""
 "ελληνικά ή το é πιάνουν δύο το καθένα, τα emoji τέσσερα."
 
 #: nejomibot/profile.py
-#, python-brace-format
-msgid "About: {about}"
-msgstr "Σχετικά: {about}"
-
-#: nejomibot/profile.py
 msgid "No About"
 msgstr "Χωρίς «Σχετικά»"
 
@@ -2748,6 +2753,10 @@ msgstr ""
 "Χωρίς όνομα χρήστη: χωρίς αριθμό τηλεφώνου, κανείς δεν μπορεί να βρει το bot"
 
 #: nejomibot/profile.py
+msgid "No name, so Signal shows the number"
+msgstr "Χωρίς όνομα, οπότε το Signal δείχνει τον αριθμό"
+
+#: nejomibot/profile.py
 msgid "Avatar: yes"
 msgstr "Εικόνα προφίλ: ναι"
 
@@ -2756,17 +2765,8 @@ msgid "No avatar"
 msgstr "Χωρίς εικόνα προφίλ"
 
 #: nejomibot/profile.py
-#, python-brace-format
-msgid "Signal ID: {id}"
-msgstr "Signal ID: {id}"
-
-#: nejomibot/profile.py
 msgid "Change them with /name, /about, /avatar and /username."
 msgstr "Αλλάξτε τα με /όνομα, /σχετικά, /εικόνα και /όνομαχρήστη."
-
-#: nejomibot/profile.py
-msgid "No name, so Signal shows the number"
-msgstr "Χωρίς όνομα, οπότε το Signal δείχνει τον αριθμό"
 
 #: nejomibot/publicip.py
 msgid "not announced"
