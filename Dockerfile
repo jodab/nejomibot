@@ -57,17 +57,26 @@ RUN .venv/bin/python -c 'import pathlib, polib; \
      for po in pathlib.Path("locale").glob("*.po")]'
 
 FROM uv-base AS build
-# On 32-bit ARM, what building Pillow, pillow-heif and the smaller ones without
-# wheels there takes: a compiler, the libraries' headers, and pkg-config to
-# find them, left behind here
+# strip, from binutils (below); on 32-bit ARM also what building Pillow,
+# pillow-heif and the smaller ones without wheels there takes: a compiler, the
+# libraries' headers, and pkg-config to find them. All left behind here.
 ARG TARGETARCH
-RUN if [ "$TARGETARCH" = arm ]; then \
-        apt-get update \
-        && apt-get install -y --no-install-recommends gcc libc6-dev pkgconf \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends binutils \
+    && if [ "$TARGETARCH" = arm ]; then \
+        apt-get install -y --no-install-recommends gcc libc6-dev pkgconf \
             libjpeg62-turbo-dev zlib1g-dev libwebp-dev libavif-dev libheif-dev; \
     fi
-# Dependencies first, so code changes don't reinstall them
-RUN uv sync --locked --no-dev --no-install-project
+# Dependencies first, so code changes don't reinstall them. Their compiled
+# modules and libraries are stripped as Debian strips its own (dh_strip's
+# --strip-unneeded): what only a debugger reads, 10 to 14 MB of each image,
+# goes. Then each must still load, as aiohttp, multidict, yarl and propcache
+# would fall back to pure Python without a word if one didn't.
+RUN uv sync --locked --no-dev --no-install-project \
+    && find .venv -name '*.so*' -type f -exec strip --strip-unneeded {} + \
+    && .venv/bin/python -c 'import ctypes, pathlib; \
+        [ctypes.CDLL(str(lib)) for lib in pathlib.Path(".venv").rglob("*.so*") \
+         if lib.is_file()]'
 COPY nejomibot/ nejomibot/
 # The compiled translations, without what they're compiled from, nor the
 # templates that new languages start from
@@ -111,6 +120,12 @@ COPY tools/nejomibot-profile.sh /etc/profile.d/nejomibot.sh
 # of the whole library's 22 MB.
 RUN env -u PYTHONDONTWRITEBYTECODE python -c 'import concurrent.futures.thread, \
         nejomibot.bot, nejomibot.healthcheck, nejomibot.timers_cli'
+
+# glibc gives each thread that allocates a memory arena of its own, up to 8
+# per CPU (2 on 32-bit ARM), and each keeps what it has held. Two do for the
+# bot, whose other threads are asyncio's workers (to_thread(), DNS lookups),
+# and it keeps 1.5 MB less.
+ENV MALLOC_ARENA_MAX=2
 
 # The photos go in /photos, which the bot only reads, and config.toml in
 # /data, where the bot keeps what it's told. By number, so a runtime can see

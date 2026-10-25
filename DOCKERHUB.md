@@ -115,7 +115,7 @@ Fill in at least the following settings, keeping the quotes:
 
 | Setting | Description | Example |
 |---|---|---|
-| `account` | The bot's phone number | `"+46700000000"` |
+| `account` | The bot's phone number, or the Signal ID of [an account without one](https://github.com/jodab/nejomibot#an-account-without-a-phone-number) | `"+46700000000"` |
 | `admins` | Your phone number, which makes you the admin | `["+46700000001"]` |
 | `openweather_api_key` | Your OpenWeatherMap API key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
@@ -321,8 +321,8 @@ version from the Tags tab.
 - **Never publish signal-cli-rest-api's port, 8080.** It has no password:
   anyone who can reach it controls the bot's Signal account. The Compose
   file publishes nothing.
-- **Give the bot a number of its own, and register it; don't link it to your
-  phone.** When the bot is linked to a phone, anything typed there in a
+- **Give the bot an account of its own, and register it; don't link it to
+  your phone.** When the bot is linked to a phone, anything typed there in a
   direct chat with someone reaches the bot as if that person had sent it,
   admin commands included.
 - **Keep `data` private.** It holds your API key and phone numbers; step 3

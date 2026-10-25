@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 00:12+0300\n"
+"POT-Creation-Date: 2026-10-25 03:16+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2327,6 +2327,10 @@ msgid "A link that starts a chat with the bot: {link}"
 msgstr ""
 
 #: nejomibot/profile.py
+msgid "No username: without a phone number, nobody can find the bot"
+msgstr ""
+
+#: nejomibot/profile.py
 msgid "Avatar: yes"
 msgstr ""
 
@@ -2686,6 +2690,14 @@ msgstr ""
 
 #: nejomibot/status.py
 msgid "none blocked"
+msgstr ""
+
+#: nejomibot/status.py
+msgid "Username"
+msgstr ""
+
+#: nejomibot/status.py
+msgid "none, and without a phone number, nobody can find the bot"
 msgstr ""
 
 #: nejomibot/status.py

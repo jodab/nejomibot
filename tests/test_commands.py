@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import Callable
 from typing import Any, cast
@@ -13,7 +14,7 @@ from signalbot import (
     TextMode,
 )
 
-from nejomibot import commands
+from nejomibot import commands, receipts
 from nejomibot.commands import (
     ALIASES,
     Command,
@@ -374,16 +375,21 @@ class Replies:
         self.done: list[str] = []
         monkeypatch.setattr(commands, "reply", self.reply)
         monkeypatch.setattr(commands, "mark_read", self.mark_read)
-        monkeypatch.setattr(commands, "show_typing", self.show_typing)
+        monkeypatch.setattr(receipts, "show_typing", self.show_typing)
+        monkeypatch.setattr(receipts, "stop_typing", self.stop_typing)
 
     async def reply(self, context: DataMessageContext, message: SendMessage) -> None:
         self.sent.append(message)
+        self.done.append("answer")
 
     async def mark_read(self, context: DataMessageContext) -> None:
         self.done.append("read")
 
     async def show_typing(self, context: DataMessageContext) -> None:
         self.done.append("typing")
+
+    async def stop_typing(self, context: DataMessageContext) -> None:
+        self.done.append("stopped typing")
 
 
 @pytest.fixture
@@ -393,17 +399,46 @@ def replies(monkeypatch: pytest.MonkeyPatch) -> Replies:
 
 async def test_answer(replies: Replies) -> None:
     async def hello() -> str:
+        await asyncio.sleep(0.01)  # as a slow command waits for something
         return "Hello *there*"
 
     await answer(context_of("/hello"), hello, slow=True)
-    assert replies.done == ["read", "typing"]
+    assert replies.done == ["read", "typing", "answer"]
     assert [(m.text, m.text_mode) for m in replies.sent] == [("Hello *there*", None)]
+
+
+async def test_the_command_runs_while_its_receipt_goes(
+    replies: Replies, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    arrived = asyncio.Event()
+
+    async def mark_read(context: DataMessageContext) -> None:
+        await arrived.wait()
+        replies.done.append("read")
+
+    async def hello() -> str:
+        replies.done.append("ran")
+        arrived.set()  # the receipt arrives as the command runs
+        return "Hello"
+
+    monkeypatch.setattr(commands, "mark_read", mark_read)
+    await answer(context_of("/hello"), hello)
+    # The answer waits for it
+    assert replies.done == ["ran", "read", "answer"]
+
+
+async def test_typing_stops_when_a_command_doesnt_answer(replies: Replies) -> None:
+    async def nothing() -> None:
+        await asyncio.sleep(0.01)
+
+    await answer(context_of("/hello"), nothing, slow=True)
+    assert replies.done == ["read", "typing", "stopped typing"]
 
 
 async def test_answer_styled_with_several_messages(replies: Replies) -> None:
     photo = SendMessage(text="A photo", base64_attachments=["aGVq"])
     await answer(context_of("/post"), lambda: ["**Hi**", photo], styled=True)
-    assert replies.done == ["read"]
+    assert replies.done == ["read", "answer", "answer"]  # quick: no typing
     assert replies.sent == [
         SendMessage(text="**Hi**", text_mode=TextMode.STYLED),
         photo,

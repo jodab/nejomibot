@@ -27,6 +27,8 @@ from nejomibot import (
     info,
     lists,
     photos,
+    profile,
+    receipts,
     reminders,
     specials,
     system,
@@ -88,6 +90,7 @@ def fresh_lists() -> None:
         birthdays.kept,
         photos.album_settings,
         i18n.chat_languages,
+        profile.kept,
     ):
         kept.reset()
     birthdays.shown.clear()
@@ -200,5 +203,6 @@ def answers(monkeypatch: pytest.MonkeyPatch) -> list[SendMessage]:
 
     monkeypatch.setattr(commands, "reply", reply)
     monkeypatch.setattr(commands, "mark_read", nothing)
-    monkeypatch.setattr(commands, "show_typing", nothing)
+    monkeypatch.setattr(receipts, "show_typing", nothing)
+    monkeypatch.setattr(receipts, "stop_typing", nothing)
     return found

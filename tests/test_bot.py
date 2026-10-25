@@ -279,6 +279,17 @@ async def test_finds_the_account_either_way_it_is_listed(
     await asyncio.wait_for(wait_for_account(), 1)
 
 
+async def test_an_account_without_a_number(
+    signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_ACCOUNT", NUMBERLESS)
+    get_settings.cache_clear()
+    signal_api.responses["/v1/accounts"] = [{"number": "", "aci": NUMBERLESS}]
+    await asyncio.wait_for(wait_for_account(), 1)
+    # Its part of the API, as signal-cli-rest-api takes it since 787d204e
+    assert rest.account_path("/v1/devices") == f"/v1/devices/{NUMBERLESS}"
+
+
 async def test_the_wait_leaves_no_http_session_behind(signal_api: FakeApi) -> None:
     # It runs on a loop of its own, and signalbot on another after it
     await wait_for_account()

@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import threading
 from datetime import date, datetime
 from pathlib import Path
 from typing import cast
@@ -16,6 +17,7 @@ from nejomibot.styles import unmarked
 
 # Made up, as is everyone in the tests
 BORN = date(2019, 6, 15)
+TAKEN = "2024:06:01 08:00:00"
 
 
 @pytest.fixture
@@ -368,6 +370,94 @@ def make_photos(photos_dir: Path, *names: str, taken: str | None = None) -> None
         path = photos_dir / name
         path.parent.mkdir(parents=True, exist_ok=True)
         make_jpeg(path, taken, "+02:00" if taken else None)
+
+
+def counting_reads(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """The names of the photos read for when they were taken, as they're
+    read."""
+    read: list[str] = []
+    moment_taken = photos.moment_taken
+
+    def reading(path: Path) -> datetime | None:
+        read.append(path.name)
+        return moment_taken(path)
+
+    monkeypatch.setattr(photos, "moment_taken", reading)
+    return read
+
+
+async def test_the_index_is_read_in_the_background_a_chunk_at_a_time(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_photos(photos_dir, "a.jpg", "Alice/b.jpg", "Alice/c.jpg", taken=TAKEN)
+    make_photos(photos_dir, "d.jpg")  # which doesn't say when it was taken
+    read = counting_reads(monkeypatch)
+    chunks: list[int] = []
+    remember = photos.remember
+
+    def remembering(paths: list[Path]) -> None:
+        chunks.append(len(paths))
+        remember(paths)
+
+    monkeypatch.setattr(photos, "remember", remembering)
+    monkeypatch.setattr(photos, "INDEX_CHUNK", 3)
+    await photos.index()
+    assert chunks == [3, 1]
+    assert sorted(read) == ["a.jpg", "b.jpg", "c.jpg", "d.jpg"]
+    # The commands then read none of them again
+    found = photos.moments(photos.scan_photos())
+    assert sorted(path.name for path in found) == ["a.jpg", "b.jpg", "c.jpg"]
+    assert len(read) == 4
+
+
+async def test_photos_added_or_removed_after_the_index(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_photos(photos_dir, "a.jpg", "b.jpg", taken=TAKEN)
+    await photos.index()
+    read = counting_reads(monkeypatch)
+    make_photos(photos_dir, "c.jpg", taken=TAKEN)
+    (photos_dir / "a.jpg").unlink()
+    found = photos.moments(photos.scan_photos())
+    assert sorted(path.name for path in found) == ["b.jpg", "c.jpg"]
+    assert read == ["c.jpg"]
+    assert sorted(Path(name).name for name in photos.taken) == ["b.jpg", "c.jpg"]
+
+
+async def test_a_stop_waits_for_one_chunk_at_most(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_photos(photos_dir, "a.jpg", "b.jpg", "c.jpg", taken=TAKEN)
+    monkeypatch.setattr(photos, "INDEX_CHUNK", 1)
+    loop = asyncio.get_running_loop()
+    reading = asyncio.Event()
+    release = threading.Event()
+    chunks: list[list[Path]] = []
+
+    def remembering(paths: list[Path]) -> None:
+        chunks.append(paths)
+        loop.call_soon_threadsafe(reading.set)
+        release.wait(5)
+
+    monkeypatch.setattr(photos, "remember", remembering)
+    task = asyncio.create_task(photos.index())
+    await reading.wait()
+    task.cancel()
+    release.set()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert len(chunks) == 1
+
+
+async def test_the_index_logs_what_fails(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    def failing() -> list[Path]:
+        raise OSError("No such file or directory")
+
+    monkeypatch.setattr(photos, "scan_photos", failing)
+    await photos.index()
+    assert "Reading when the photos were taken failed" in caplog.text
 
 
 def test_library_names(photos_dir: Path) -> None:

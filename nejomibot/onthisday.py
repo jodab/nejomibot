@@ -5,9 +5,9 @@ taken within three days of it, under "3 years ago, around this day".
 count toward the round of /uniquephoto.
 
 When each photo was taken comes from its EXIF, as its caption has it, in the
-bot's timezone, read once for each photo (photos.moments()), so the first
-/onthisday after a start takes longer: 0.2 s for 1150 photos on a desktop
-whose disk cache has them.
+bot's timezone, read for each photo in the background once the bot has
+started (photos.index()), and again only for a photo added or changed since
+(photos.moments()).
 """
 
 import asyncio

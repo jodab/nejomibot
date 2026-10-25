@@ -116,6 +116,43 @@ Command = Annotated[
 ]
 Alias = Annotated[str, StringConstraints(pattern=r"^\S+$"), AfterValidator(alias_name)]
 Currency = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
+
+# Signal's limits for a profile: a name as the Android app cuts it, About as
+# the apps let it be typed, and what an encrypted profile field holds; and a
+# username, a nickname and maybe the number Signal adds to it: mybot.42
+NAME_MAX_BYTES = 128
+ABOUT_MAX_CHARACTERS = 140
+ABOUT_MAX_BYTES = 512
+USERNAME = r"^[A-Za-z_][A-Za-z0-9_]{2,31}(\.[0-9]{2,9})?$"
+
+
+def profile_name(name: str) -> str:
+    if not name.strip():
+        raise ValueError("a profile needs a name")
+    if len(name.encode()) > NAME_MAX_BYTES:
+        raise ValueError(f"at most {NAME_MAX_BYTES} bytes")
+    return name
+
+
+def profile_about(about: str) -> str:
+    if len(about) > ABOUT_MAX_CHARACTERS or len(about.encode()) > ABOUT_MAX_BYTES:
+        raise ValueError(
+            f"at most {ABOUT_MAX_CHARACTERS} characters and {ABOUT_MAX_BYTES} bytes"
+        )
+    return about
+
+
+BotName = Annotated[
+    str, StringConstraints(strip_whitespace=True), AfterValidator(profile_name)
+]
+BotAbout = Annotated[
+    str, StringConstraints(strip_whitespace=True), AfterValidator(profile_about)
+]
+BotUsername = Annotated[
+    str,
+    BeforeValidator(lambda v: v.removeprefix("@") if isinstance(v, str) else v),
+    StringConstraints(pattern=USERNAME),
+]
 # The countries whose holidays the calendar has
 Country = Literal[
     "AT", "AU", "BE", "BG", "CA", "CH", "CY", "CZ", "DE", "DK", "EE", "ES",
@@ -211,6 +248,15 @@ class Settings(BaseSettings):
     # commands, in a direct chat with the bot. They may make others admins,
     # with /admin add, but no command can take away what they may do.
     admins: list[Person] = []
+
+    # The bot's Signal profile: set as the bot starts, where data_dir/bot.txt
+    # has none of it, and kept there from then on, with every change /name,
+    # /about, /avatar, /username or signal-account.sh makes (profile.py). A
+    # username taken already gets the number Signal gives it.
+    bot_name: BotName | None = None
+    bot_about: BotAbout | None = None
+    bot_avatar: Path | None = None  # a picture, made square
+    bot_username: BotUsername | None = None
 
     # Every healthcheck_minutes the bot checks signal-cli-rest-api, itself, and
     # Signal's servers with its account (health.py). With a URL such as

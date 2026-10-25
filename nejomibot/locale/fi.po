@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 00:12+0300\n"
+"POT-Creation-Date: 2026-10-25 03:16+0300\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -2463,6 +2463,10 @@ msgid "A link that starts a chat with the bot: {link}"
 msgstr "Linkki, joka aloittaa keskustelun botin kanssa: {link}"
 
 #: nejomibot/profile.py
+msgid "No username: without a phone number, nobody can find the bot"
+msgstr "Ei käyttäjänimeä: ilman puhelinnumeroa kukaan ei löydä bottia"
+
+#: nejomibot/profile.py
 msgid "Avatar: yes"
 msgstr "Profiilikuva: kyllä"
 
@@ -2855,6 +2859,14 @@ msgstr "synkronoitu, virhe enintään {error} s"
 #: nejomibot/status.py
 msgid "none blocked"
 msgstr "ei estettyjä"
+
+#: nejomibot/status.py
+msgid "Username"
+msgstr "Käyttäjänimi"
+
+#: nejomibot/status.py
+msgid "none, and without a phone number, nobody can find the bot"
+msgstr "ei ole, ja ilman puhelinnumeroa kukaan ei löydä bottia"
 
 #: nejomibot/status.py
 msgid "Recipients"

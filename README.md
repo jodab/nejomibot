@@ -105,7 +105,7 @@ Fill in at least the following settings, keeping the quotes:
 
 | Setting | Description | Example |
 |---|---|---|
-| `account` | The bot's phone number | `"+46700000000"` |
+| `account` | The bot's phone number, or the Signal ID of [an account without one](#an-account-without-a-phone-number) | `"+46700000000"` |
 | `admins` | Your phone number, which makes you the admin | `["+46700000001"]` |
 | `openweather_api_key` | Your OpenWeatherMap API key | `"0123456789abcdef..."` |
 | `weather_city` | The city for the weather | `"Stockholm"` |
@@ -438,8 +438,10 @@ ID. signal-cli-rest-api provides no way to remove someone from the contacts,
 or to forget them, so the bot can't do that either.
 
 The bot marks each command as read, in groups as well as in direct chats,
-and shows that it is typing while it works on slower commands. Both are best
-effort: if they fail, the answer still arrives.
+and shows that it is typing while it works on a command: from the start for
+slower commands, and for any other once it has taken a second. It keeps
+showing it, as Signal's apps do, until the answer arrives, for two minutes at
+most. Both are best effort: if they fail, the answer still arrives.
 
 Signal lets you edit a message for up to a day, and the bot treats an edited
 command as if it had arrived instead of the original:
@@ -465,8 +467,9 @@ restart, an edit of a message sent before the restart isn't run, because
 the bot can't tell what the original did, and the bot says so; send the
 command again as a new message instead.
 
-The bot needs a phone number of its own, registered for it. If the number
-is also signed in on a phone, for example when signal-cli is linked to that
+The bot needs an account of its own: a phone number registered for it, or
+[an account without a phone number](#an-account-without-a-phone-number). If
+the account is also signed in on a phone, for example when signal-cli is linked to that
 phone, a command typed on the phone in a direct chat looks to the bot as if
 the other person had sent it (signalbot can't tell the two apart), so the
 bot would treat it as that person's command, admin commands included.
@@ -668,11 +671,13 @@ moment, in the bot's `timezone`, such as "Nearest to 2024-06-01 15:00: 8 min
 before". With an album name first, as in `/photo Alice 2019-03-14`, it picks
 from that album only. A photo that doesn't record when it was taken is never
 the nearest, but can still be picked at random. The time a photo was taken
-is the one its caption shows: the bot reads it once for each photo, from the
-file's header, and keeps it in memory, about 400 bytes per photo, reading a
-photo again only when its file changes. As a result, the first `/photo` with
-a date, `/albums` or `/onthisday` after a start takes longer: about 2.5
-seconds for 7,600 photos on a desktop computer whose disk cache holds them.
+is the one its caption shows: the bot reads it for each photo, from the
+file's header, in the background as it starts, and keeps it in memory, about
+400 bytes per photo. It reads a photo again only when its file changes, and a
+photo added later when one of these commands first needs it. Until it has
+read them all, which takes about 2.5 seconds for 7,600 photos on a desktop
+computer whose disk cache holds them, a `/photo` with a date, `/albums` or
+`/onthisday` waits for it.
 
 JPEG and the other formats are sent as they are. HEIC/HEIF photos are
 converted to JPEG on the fly, with a warning in the log, since not every
@@ -1366,6 +1371,24 @@ pictures sent to the bot, which it doesn't with
 `JSON_RPC_IGNORE_ATTACHMENTS=true` (the bot then says so); the account tool
 described below can set the avatar from a file instead.
 
+The profile can also be set in the configuration, with `bot_name`,
+`bot_about`, `bot_avatar` (a picture file, which the bot treats as `/avatar`
+does) and `bot_username`, which the bot sets as it starts. Once set, the bot
+keeps the profile in `data_dir/bot.txt`, a line for each part: `name`,
+`about`, `username`, and `avatar`, a picture in the same folder followed by
+its SHA-256. Every change made with `/name`, `/about`, `/avatar`,
+`/username` or `signal-account.sh` goes there too, and from then on a
+setting is used only for a part that `bot.txt` doesn't have. At each start,
+the bot compares the account's profile, as signal-cli knows it, with
+`bot.txt`, and changes only what differs: a new account, such as one
+without a phone number, gets the bot's profile, and an edit of `bot.txt`
+takes effect at the next start; otherwise nothing is sent to Signal. The
+avatar is compared by the SHA-256 of the picture beside `bot.txt`, which
+the bot records as it sets it. An empty `about`, `avatar` or `username`
+line removes that part. When Signal turns down the username, for
+example because the number given after the dot is taken, the bot asks for
+the name alone and keeps the number Signal gives it.
+
 ## Health checks
 
 Every `healthcheck_minutes` (5 by default), and as soon as signalbot is
@@ -1509,7 +1532,7 @@ check.
 signal-cli-rest-api can do with the account itself: registering the number
 or linking signal-cli to a phone, and managing the profile, username, PIN,
 privacy, linked devices, safety numbers and rate limits; `--help` lists it
-all. The bot needs a number of its own, registered for it: linked to a
+all. The bot needs an account of its own, registered for it: linked to a
 phone, it would treat commands typed on that phone as coming from the other
 person, so the tool warns before it links. The tool is included in the
 bot's image, where it finds signal-cli-rest-api and the account in the
@@ -1568,6 +1591,27 @@ challenge that lifts the limit, because signalbot doesn't pass it on.
 `signal-account.sh rate-limit --to +46701234567` sends that number a short
 test message: if Signal is rate-limiting the bot, the response includes a
 challenge, and the tool guides you through the captcha that lifts the limit.
+
+### An account without a phone number
+
+Signal Login, in the beta of Signal for Android, creates a Signal account
+without a phone number. Signal Android shows its Account Key, which is the
+account's Signal ID, a UUID such as `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`,
+and its Recovery Key, the only way to restore the account. The bot can use
+such an account: set `account` to its Signal ID.
+
+signal-cli-rest-api can link signal-cli to such an account
+(`signal-account.sh link`), with the drawback described above, but it can't
+restore one with its Recovery Key yet. signal-cli itself can, with its
+`register --recovery-key` command, run on signal-cli-rest-api's data while
+signal-cli-rest-api is stopped; see
+[signal-cli's documentation](https://github.com/AsamK/signal-cli/blob/master/man/signal-cli.1.adoc).
+
+Nobody can find an account without a phone number unless it has a
+username, so give it one, with `/username` or `signal-account.sh username`;
+until then, `/status` and `/profile` warn. The registration lock PIN and
+the privacy settings for the phone number don't apply to it, and
+`signal-account.sh` skips them in `setup`.
 
 ## How the bot talks to Signal
 
@@ -1847,8 +1891,12 @@ its log has the message. What the bot stores in the data folder stays as it
 is. To choose when to update, use a version tag in place of `latest`.
 
 The log (`journalctl -u nejomibot`, `docker compose logs nejomibot`) records
-the commands the bot answers, by name, and the kind of chat, but not who
-sent them, what followed the command's name, or whom messages go to;
+each start's steps: the version, where the settings come from, when
+signal-cli-rest-api has the account, what the bot's files hold, when the bot
+is ready, and how long reading when the photos were taken took; with
+`log_level = "DEBUG"`, the steps in between too. It records the commands the
+bot answers, by name, and the kind of chat, but not who sent them, what
+followed the command's name, or whom messages go to;
 `log_level = "DEBUG"` adds those. signalbot, which at the INFO level logs
 every message the bot receives in full, and the other libraries log only
 what goes wrong; signalbot's warning that a group message didn't reach

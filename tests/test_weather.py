@@ -11,7 +11,7 @@ from aiohttp import web
 from helpers import ALICE, Clock
 from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot
 
-from nejomibot import commands, weather
+from nejomibot import commands, receipts, weather
 from nejomibot.config import get_settings
 
 TZ = ZoneInfo("Europe/Stockholm")
@@ -419,7 +419,8 @@ async def test_the_command(
         replies.append(message.text or "")
 
     monkeypatch.setattr(commands, "mark_read", nothing)
-    monkeypatch.setattr(commands, "show_typing", nothing)
+    monkeypatch.setattr(receipts, "show_typing", nothing)
+    monkeypatch.setattr(receipts, "stop_typing", nothing)
     monkeypatch.setattr(commands, "reply", reply)
     # By its Swedish name too, and with the place's spaces made single
     for text in ["/väder  Göteborg", "/weather"]:
@@ -620,7 +621,8 @@ async def test_the_forecast_command(
         replies.append(message.text or "")
 
     monkeypatch.setattr(commands, "mark_read", nothing)
-    monkeypatch.setattr(commands, "show_typing", nothing)
+    monkeypatch.setattr(receipts, "show_typing", nothing)
+    monkeypatch.setattr(receipts, "stop_typing", nothing)
     monkeypatch.setattr(commands, "reply", reply)
     message = DataMessage(
         server_delivered_timestamp=0,

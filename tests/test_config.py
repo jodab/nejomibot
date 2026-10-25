@@ -103,6 +103,12 @@ def test_the_environment_is_enough(tmp_path: Path) -> None:
         ("NEJOMIBOT_HEALTHCHECK_MINUTES", "0"),
         ("NEJOMIBOT_WEATHER_CALLS_PER_HOUR", "0"),
         ("NEJOMIBOT_DEBUG_GROUP", "not-a-group"),
+        # A profile as Signal takes it: a name, About and username that fit
+        ("NEJOMIBOT_BOT_NAME", " "),
+        ("NEJOMIBOT_BOT_NAME", "å" * 65),
+        ("NEJOMIBOT_BOT_ABOUT", "x" * 141),
+        ("NEJOMIBOT_BOT_USERNAME", "1bot"),
+        ("NEJOMIBOT_BOT_USERNAME", "mybot.4"),
     ],
 )
 def test_rejects_invalid_values(
@@ -197,3 +203,8 @@ def test_the_example_has_every_setting_as_it_reads(
     settings = Settings()  # type: ignore[call-arg]
     assert set(Settings.model_fields) - set(tomllib.loads(given)) == {"debug"}
     assert settings.command_limit == 20
+
+
+def test_a_username_may_start_with_an_at(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NEJOMIBOT_BOT_USERNAME", "@mybot.42")
+    assert Settings().bot_username == "mybot.42"  # type: ignore[call-arg]

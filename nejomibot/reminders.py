@@ -292,6 +292,7 @@ async def serve(bot: SignalBot) -> None:
     """Once signalbot is ready: post what came due while the bot was down,
     then look for due reminders at the start of every minute."""
     await bot.wait_until_ready()
+    logger.debug("Posting the reminders that come due, at the start of each minute")
     bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
         post_due,
         "cron",

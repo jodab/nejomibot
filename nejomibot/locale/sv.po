@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 00:12+0300\n"
+"POT-Creation-Date: 2026-10-25 03:16+0300\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -2449,6 +2449,10 @@ msgid "A link that starts a chat with the bot: {link}"
 msgstr "En länk som startar en chatt med boten: {link}"
 
 #: nejomibot/profile.py
+msgid "No username: without a phone number, nobody can find the bot"
+msgstr "Inget användarnamn: utan telefonnummer kan ingen hitta boten"
+
+#: nejomibot/profile.py
 msgid "Avatar: yes"
 msgstr "Profilbild: ja"
 
@@ -2834,6 +2838,14 @@ msgstr "synkroniserad, felmarginal högst {error} s"
 #: nejomibot/status.py
 msgid "none blocked"
 msgstr "ingen blockerad"
+
+#: nejomibot/status.py
+msgid "Username"
+msgstr "Användarnamn"
+
+#: nejomibot/status.py
+msgid "none, and without a phone number, nobody can find the bot"
+msgstr "inget, och utan telefonnummer kan ingen hitta boten"
 
 #: nejomibot/status.py
 msgid "Recipients"

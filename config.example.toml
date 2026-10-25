@@ -7,8 +7,9 @@
 # signal-cli-rest-api, in json-rpc mode: where it answers, as host:port. Next
 # to the bot that's 127.0.0.1:8080, or e.g. signal:8080 in Docker Compose.
 signal_service = "127.0.0.1:8080"
-# The bot's account in signal-cli-rest-api: its phone number. Register or
-# link it with signal-account.sh once the bot runs; it waits till then.
+# The bot's account in signal-cli-rest-api: its phone number, or for an
+# account without one, its Signal ID. Register or link it with
+# signal-account.sh once the bot runs; it waits till then.
 account = "+46700000000"
 
 # The language the bot answers in, where a chat hasn't chosen one of its own
@@ -112,6 +113,20 @@ send_retry_hours = 3
 admins = [
     "+46700000001",  # you
 ]
+
+# The bot's Signal profile, which the bot sets as it starts: its name, About,
+# avatar (a picture file, which the bot makes square) and username, which
+# Signal gives a number, as in mybot.42; one taken already gets another
+# number. Once set, the bot keeps the profile in data_dir/bot.txt, with every
+# change /name, /about, /avatar, /username or signal-account.sh makes, and
+# from then on these are used only for a part bot.txt doesn't have. At each
+# start the bot compares the account's profile with bot.txt and changes only
+# what differs, which is nothing unless the account is new or bot.txt was
+# edited.
+# bot_name = "Mybot"
+# bot_about = "Weather and photos"
+# bot_avatar = "/data/avatar.png"
+# bot_username = "mybot"
 
 # How much the bot logs: "INFO", the commands by name and the kind of chat;
 # "DEBUG" adds who sent them, what follows the name, and whom messages go

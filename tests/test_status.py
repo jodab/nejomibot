@@ -4,10 +4,11 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from helpers import GROUP, ME, FakeApi, group_entry, write
+from helpers import GROUP, ME, ME_ID, FakeApi, group_entry, write
 from signalbot import SignalBot
 
 from nejomibot import status, system
+from nejomibot.account import Account, Contact
 from nejomibot.config import get_settings
 from nejomibot.health import Check
 from nejomibot.timers import timekeeper
@@ -153,3 +154,26 @@ def test_the_bots_lines_name_its_time_zone_once(
     assert lines[3] == "Time zone Europe/Stockholm"
     assert lines[4].startswith("Up ")
     assert lines[5] == "Next timer run 2026-10-19 17:41"
+
+
+def account_of(account_id: str, **me: str) -> Account:
+    """The account, whose own entry has these fields."""
+    recipients = [Contact.model_validate(me)]
+    return Account(
+        account_id, contacts=[], recipients=recipients, identities=[], groups=[]
+    )
+
+
+def username_checks(account: Account) -> list[tuple[str, bool, str]]:
+    return [(c.name, c.ok, c.detail) for c in status.account_checks(account)][2:]
+
+
+def test_an_account_without_a_number_needs_a_username() -> None:
+    assert username_checks(account_of(ME_ID, uuid=ME_ID)) == [
+        ("Username", False, "none, and without a phone number, nobody can find the bot")
+    ]
+    assert username_checks(account_of(ME_ID, uuid=ME_ID, username="mybot.42")) == [
+        ("Username", True, "@mybot.42")
+    ]
+    # With a number, people can find it by that
+    assert username_checks(account_of(ME, number=ME, uuid=ME_ID)) == []

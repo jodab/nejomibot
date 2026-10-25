@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 00:12+0300\n"
+"POT-Creation-Date: 2026-10-25 03:16+0300\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -2464,6 +2464,11 @@ msgid "A link that starts a chat with the bot: {link}"
 msgstr "Un enlace que abre un chat con el bot: {link}"
 
 #: nejomibot/profile.py
+msgid "No username: without a phone number, nobody can find the bot"
+msgstr ""
+"Sin nombre de usuario: sin número de teléfono, nadie puede encontrar el bot"
+
+#: nejomibot/profile.py
 msgid "Avatar: yes"
 msgstr "Foto de perfil: sí"
 
@@ -2855,6 +2860,14 @@ msgstr "sincronizado, error máx. {error} s"
 #: nejomibot/status.py
 msgid "none blocked"
 msgstr "ninguno bloqueado"
+
+#: nejomibot/status.py
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: nejomibot/status.py
+msgid "none, and without a phone number, nobody can find the bot"
+msgstr "ninguno, y sin número de teléfono, nadie puede encontrar el bot"
 
 #: nejomibot/status.py
 msgid "Recipients"

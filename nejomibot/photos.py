@@ -14,8 +14,9 @@ With a date, as exact as it's given, it picks one taken then: in 2017, in
 in the nearest year, month, day or hour that has some; to the minute, as
 /photo Alice 2024-06-01 15:00, the one taken nearest that moment, in the
 bot's timezone, as captions have it. When each photo was taken is read
-once, from its header, and kept while the bot runs (moments()), about 400
-bytes a photo, so the first /photo with a date after a start takes longer.
+from its header in the background once the bot has started (index()), and
+kept while it runs (moments()), about 400 bytes a photo; a photo added or
+changed later is read when one of these commands next needs it.
 
 /uniquephoto picks among the photos not sent yet in this round, and counts
 toward it: none twice until every photo has been sent, then a new round
@@ -54,7 +55,7 @@ from typing import IO, Any
 
 from dateutil.relativedelta import relativedelta
 from PIL import ExifTags, Image
-from signalbot import DataMessageContext, SendMessage, TextMode
+from signalbot import DataMessageContext, SendMessage, SignalBot, TextMode
 
 from .commands import Command, Handler, answer, argument, built_in
 from .config import as_command, get_settings
@@ -69,6 +70,7 @@ EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp")
 # Not every Signal client shows HEIF, so these are sent as JPEG
 HEIF = (".heic", ".heif")
 MAX_ATTEMPTS = 5
+INDEX_CHUNK = 100  # photos read at a time in the background (index())
 EXIF_TIME = "%Y:%m:%d %H:%M:%S"
 UTC_OFFSET = re.compile(r"^[+-]\d{2}:\d{2}$")
 MAX_ZONE_SHIFT = timedelta(hours=14)  # the farthest any time zone is from UTC
@@ -450,6 +452,20 @@ def moment_taken(path: Path) -> datetime | None:
     return exif_datetime(exif)
 
 
+def entry_for(path: Path) -> tuple[int, int, datetime | None] | None:
+    """The photo's mtime and size, and when it was taken: as read before if
+    it hasn't changed since, else read now. None if it's gone. With reading
+    held."""
+    try:
+        stat = path.stat()
+    except OSError:
+        return None
+    known = taken.get(str(path))
+    if known and known[:2] == (stat.st_mtime_ns, stat.st_size):
+        return known
+    return stat.st_mtime_ns, stat.st_size, moment_taken(path)
+
+
 def moments(photos: list[Path]) -> dict[Path, datetime]:
     """When each photo of the library, as scan_photos() lists it, was taken,
     if known. Photos read before and unchanged since aren't read again; those
@@ -458,21 +474,52 @@ def moments(photos: list[Path]) -> dict[Path, datetime]:
     with reading:
         seen: dict[str, tuple[int, int, datetime | None]] = {}
         for path in photos:
-            try:
-                stat = path.stat()
-            except OSError:
+            if (entry := entry_for(path)) is None:
                 continue
-            known = taken.get(name := str(path))
-            if known and known[:2] == (stat.st_mtime_ns, stat.st_size):
-                moment = known[2]
-            else:
-                moment = moment_taken(path)
-            seen[name] = (stat.st_mtime_ns, stat.st_size, moment)
-            if moment:
-                found[path] = moment
+            seen[str(path)] = entry
+            if entry[2]:
+                found[path] = entry[2]
         taken.clear()
         taken.update(seen)
     return found
+
+
+def remember(photos: list[Path]) -> None:
+    """Read when these photos were taken, those new or changed since, for
+    moments(), which keeps the rest. Blocking."""
+    with reading:
+        for path in photos:
+            if entry := entry_for(path):
+                taken[str(path)] = entry
+
+
+async def index() -> None:
+    """Read when each photo was taken, once the bot has started, so that the
+    first /photo with a date, /albums or /onthisday needn't. A chunk at a
+    time, so a command can go first, and a stop waits for one chunk at most.
+    Photos added or changed later are read by the next of those commands,
+    and those removed are forgotten."""
+    logger.info("Reading when the photos were taken")
+    clock = asyncio.get_running_loop()
+    began = clock.time()
+    try:
+        library = await asyncio.to_thread(scan_photos)
+        for start in range(0, len(library), INDEX_CHUNK):
+            await asyncio.to_thread(remember, library[start : start + INDEX_CHUNK])
+    except Exception as e:
+        log_failure(logger, "Reading when the photos were taken", e)
+        return
+    logger.info(
+        "Read when %d photos were taken, in %.1f s", len(library), clock.time() - began
+    )
+
+
+def start(bot: SignalBot) -> None:
+    """Read when the photos were taken, in the background, once signalbot is
+    ready."""
+    bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
+        index, id="photo-index", misfire_grace_time=None, replace_existing=True
+    )
 
 
 def exif_location(exif: Image.Exif) -> tuple[float, float] | None:

@@ -4,6 +4,49 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- Accounts without a phone number, as Signal Login creates: give the
+  account's Signal ID as `account`. signal-cli-rest-api supports them in the
+  build that `deploy/` uses. `/status` and `/profile` warn while such an
+  account has no username, since nobody can find it then, and
+  `signal-account.sh` shows the account's Signal ID, skips the PIN and the
+  phone number's privacy in `setup`, and warns before `unregister` that only
+  the Recovery Key restores it. Restoring one with its Recovery Key takes
+  signal-cli itself, as signal-cli-rest-api can't yet (see the README).
+- The bot's profile in the configuration: `bot_name`, `bot_about`,
+  `bot_avatar` and `bot_username`, which the bot sets as it starts. Once
+  set, it keeps the profile in `data_dir/bot.txt`, with every change made
+  with `/name`, `/about`, `/avatar`, `/username` or `signal-account.sh`. At
+  each start it compares the account's profile with `bot.txt` and changes
+  only what differs, so a new account gets the profile, and an edit of
+  `bot.txt` is set. A username that Signal turns down gets the number
+  Signal gives it.
+
+### Changed
+
+- The image is 10 to 14 MB smaller, as its compiled modules no longer carry
+  debug information, which only debuggers read, and the bot uses about
+  1.5 MB less memory while it runs.
+- The bot reads when each photo was taken in the background as it starts,
+  so the first `/photo` with a date, `/albums` or `/onthisday` after a start
+  no longer waits for that.
+- While the bot works on a command, it keeps showing that it is typing,
+  as Signal's apps do, until the answer arrives, for two minutes at most:
+  from the start for slower commands, as before, and now also for any other
+  command that takes more than a second. Before, it showed this once, which
+  Signal's apps show for 15 seconds at most.
+- A command no longer waits for its read receipt and the typing indicator
+  to be sent before it runs: they go while it runs, and its answer waits for
+  them. On a Raspberry Pi, where each takes about 0.2 seconds, a slower
+  command answers about a quarter of a second sooner.
+- The log records each start's steps: the version, where the settings come
+  from, when signal-cli-rest-api has the account, the number of reminders,
+  when the bot is ready, and when reading when the photos were taken starts
+  and ends; with `log_level = "DEBUG"`, the steps in between too.
+
 ## 0.99.24 - 2026-10-25
 
 ### Changed

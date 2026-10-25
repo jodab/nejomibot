@@ -2,7 +2,7 @@
 # signal-account.sh - set up and look after a Signal account in signal-cli-rest-api.
 #
 # Everything signal-cli-rest-api can do with the account itself: register a
-# number or link to a phone, the profile (name, About, avatar), username, PIN,
+# number or link, the profile (name, About, avatar), username, PIN,
 # privacy, linked devices, safety numbers and rate limits. It only talks to the
 # REST API, one request at a time, explains what Signal answers, and asks
 # before anything that can't be undone.
@@ -39,16 +39,17 @@
 #   privacy [--number-seen-by everyone|nobody]
 #           [--findable-by-number everyone|nobody]
 #                              who sees the phone number, and who can find the
-#                              account by it
+#                              account by it (an account with a number)
 #   rate-limit TOKEN [CAPTCHA] lift a rate limit by solving a captcha, for
 #                              the challenge TOKEN Signal gave with it
-#   rate-limit --to WHO        send WHO (a phone number) a short test message;
+#   rate-limit --to WHO        send WHO (a phone number, Signal ID or
+#                              u:username) a short test message;
 #                              if Signal rate-limits the account, it gives a
 #                              challenge, and the captcha comes next. The bot
 #                              logs when Signal rate-limits it, but signalbot
 #                              doesn't pass the challenge on.
 #   unregister [--delete-account] [--delete-local-data]
-#                              stop using the number in signal-cli; with
+#                              stop using the account in signal-cli; with
 #                              --delete-account, delete the Signal account too
 #   delete-local-data [--even-if-registered]
 #                              delete what signal-cli keeps of an account that
@@ -84,8 +85,9 @@
 # Options, before or after the command
 #   -u, --url URL              signal-cli-rest-api; default: signal_service in
 #                              the bot's config, else 127.0.0.1:8080
-#   -a, --account NUMBER       the account; default: account in the bot's
-#                              config, else the only one registered
+#   -a, --account ACCOUNT      the account: its phone number, or its Signal
+#                              ID; default: account in the bot's config, else
+#                              the only one registered
 #   -c, --config FILE          the bot's config; default: $NEJOMIBOT_CONFIG
 #                              (/data/config.toml in the bot's container), else
 #                              config.toml beside tools/
@@ -124,10 +126,17 @@
 # signal-cli-rest-api can't set the family name or the emoji before About: a
 # family name stays after a new --name.
 #
-# LINKED: the bot needs a number of its own, registered. Linked to a phone,
-# what its owner types in a direct chat reaches the bot as if the other
-# person sent it (signalbot can't tell them apart), so a command typed there
-# acts as theirs, and an admin's commands as the admin's.
+# The bot keeps its profile in bot.txt in its data folder, and at each start
+# changes what differs from it: where that folder is, as in the bot's
+# container, what the tool changes in the profile goes there too.
+#
+# LINKED: the bot needs an account of its own: a number registered for it, or
+# an account without a number, as Signal Login creates, restored into
+# signal-cli with its Recovery Key, which signal-cli-rest-api can't do yet
+# (see the README). Linked to a phone, what its owner types in a direct chat
+# reaches the bot as if the other person sent it (signalbot can't tell them
+# apart), so a command typed there acts as theirs, and an admin's commands as
+# the admin's.
 
 set -euo pipefail
 
@@ -160,7 +169,9 @@ CHALLENGE_CAPTCHA=https://signalcaptchas.org/challenge/generate.html
 url="" account="" config_file=""
 assume_yes=0 dry_run=0 json=0 verbose=0
 account_path=""                 # the account, encoded for URLs
+account_number="" account_id="" # its number, if any, and Signal ID, from is_registered
 accounts=()                     # the accounts in signal-cli, from list_accounts
+account_pairs=()                # each one's number and Signal ID, from list_accounts
 status=""                       # HTTP status of the last answer
 api_version="" api_mode=""      # from read_about
 answer="" secret="" captcha=""  # what ask, ask_secret and get_captcha got
@@ -389,6 +400,51 @@ config_value() {
   fi
 }
 
+# ---- The bot's profile file ------------------------------------------------
+
+# bot.txt in the bot's data folder, if it's here: the bot keeps its profile
+# there, and at each start changes what differs from it, so what the tool
+# changes goes there too (see the README).
+bot_txt() {
+  local data
+  data=$(config_value data_dir)
+  data=${data:-/data}
+  [[ -d $data && -w $data ]] && printf '%s/bot.txt' "$data"
+}
+
+# keep_part PART VALUE: PART's line in bot.txt, in place of its last one.
+keep_part() {
+  local file line last
+  file=$(bot_txt) || return 0
+  line="$1${2:+ $2}"
+  last=$( { grep -n -E "^$1( |\$)" "$file" 2>/dev/null || true; } | tail -n 1 | cut -d: -f1)
+  if [[ -n $last ]]; then
+    awk -v n="$last" -v line="$line" 'NR == n { print line; next } { print }' "$file" >"$work/bot.txt"
+    cat -- "$work/bot.txt" >"$file" # in place, so it stays the bot's user's alone
+  else
+    (umask 077 && printf '%s\n' "$line" >>"$file")
+  fi
+  detail "In $file: $line"
+}
+
+# keep_avatar [FILE]: the avatar sent, beside bot.txt and named there, or none.
+keep_avatar() {
+  local file data name=""
+  file=$(bot_txt) || return 0
+  data=${file%/bot.txt}
+  rm -f -- "$data/bot-avatar.jpg" "$data/bot-avatar.png"
+  if [[ -n ${1-} ]]; then
+    if [[ $(head -c 4 -- "$1" | od -An -tx1 | tr -d ' \n') == 89504e47 ]]; then
+      name=bot-avatar.png
+    else
+      name=bot-avatar.jpg
+    fi
+    (umask 077 && cp -- "$1" "$data/$name")
+    name="$name $(sha256sum -- "$data/$name" | cut -d ' ' -f 1)"
+  fi
+  keep_part avatar "$name"
+}
+
 # Where signal-cli-rest-api is: --url, the bot's NEJOMIBOT_SIGNAL_SERVICE or
 # config, or the default.
 settle_url() {
@@ -407,24 +463,34 @@ read_about() {
   api_mode=$(jq -r '.mode // "?"' "$reply")
 }
 
-# Each by its phone number, or its Signal ID if it has none. Since its
+# Each by its phone number, or its Signal ID if it has none, in $accounts,
+# and both, as NUMBER/ID with either empty, in $account_pairs. Since its
 # numberless support (787d204e, 2026-10-22) signal-cli-rest-api lists them
 # as {"number": ..., "aci": ...}; before, by number alone.
 list_accounts() {
   request GET /v1/accounts || fail "Can't list the accounts"
   mapfile -t accounts < <(jq -r '.[] | if type == "string" then .
     elif (.number // "") != "" then .number else .aci // empty end' "$reply")
+  mapfile -t account_pairs < <(jq -r '.[] | if type == "string" then "\(.)/"
+    else "\(.number // "")/\(.aci // "")" end' "$reply")
 }
 
-# is_registered NUMBER: true if signal-cli has the account.
+# is_registered ACCOUNT: true if signal-cli has the account, by its number or
+# Signal ID, which then go in $account_number and $account_id.
 is_registered() {
-  local known
+  local pair
   list_accounts
-  for known in "${accounts[@]}"; do
-    if [[ $known == "$1" ]]; then return 0; fi
+  for pair in "${account_pairs[@]}"; do
+    if [[ -n $1 && ($1 == "${pair%%/*}" || $1 == "${pair#*/}") ]]; then
+      account_number=${pair%%/*} account_id=${pair#*/}
+      return 0
+    fi
   done
   return 1
 }
+
+# Whether the account, settled by use_account, has no phone number.
+numberless() { [[ -z $account_number ]]; }
 
 # The account from --account, NEJOMIBOT_ACCOUNT or the bot's config.
 configured_account() {
@@ -483,7 +549,11 @@ show_profile() {
   about=$(me .profile.about)
   username=$(me .username)
   name="$given${family:+ $family}"
-  row Name "${name:-none, so Signal shows the number}"
+  if numberless; then
+    row Name "${name:-none}"
+  else
+    row Name "${name:-none, so Signal shows the number}"
+  fi
   if [[ -n $family ]]; then row "" "(given name $given, family name $family)"; fi
   row About "${about:-none}"
   if [[ $(me .profile.has_avatar) == true ]]; then row Avatar yes; else row Avatar none; fi
@@ -628,6 +698,12 @@ set_profile() {
   if [[ -s $work/avatar.b64 ]]; then with_avatar "$work/avatar.b64"; fi
   change --body --slow PUT "/v1/profiles/$account_path" || fail "Signal didn't take the profile"
   info "Profile changed."
+  keep_part name "$name"
+  if ((about_given)); then keep_part about "$about"; fi
+  case $avatar in
+    new) keep_avatar "$work/avatar" ;;
+    remove) keep_avatar ;;
+  esac
 }
 
 # set_username NAME: as Signal takes it; it adds a number unless NAME has one.
@@ -643,6 +719,7 @@ set_username() {
     fi
     fail "Signal didn't take the username $wanted"
   fi
+  keep_part username "$(jq -r '.username' "$reply")"
   if ((json)); then
     print_json
     return
@@ -792,7 +869,7 @@ get_code() {
 link_device() {
   local name=$1 link new="" waited=0 known
   local -a before
-  warn "Linked to a phone, the bot takes what its owner types in a direct chat as sent by the other person, and runs it as theirs: an admin's commands too. The bot needs a number of its own, registered (see --help, LINKED)."
+  warn "Linked to a phone, the bot takes what its owner types in a direct chat as sent by the other person, and runs it as theirs: an admin's commands too. The bot needs an account of its own (see --help, LINKED)."
   confirm "Link to a phone all the same?" || die "Nothing has been changed."
   list_accounts
   before=("${accounts[@]}")
@@ -848,8 +925,16 @@ cmd_status() {
   fi
   info "signal-cli-rest-api $api_version, $api_mode mode, at $url"
   info ""
-  row Account "$account (signal-cli has ${#accounts[@]})"
+  if numberless; then
+    row Account "$account, without a phone number (signal-cli has ${#accounts[@]})"
+  else
+    row Account "$account (signal-cli has ${#accounts[@]})"
+    if [[ -n $account_id ]]; then row "Signal ID" "$account_id"; fi
+  fi
   show_profile
+  if numberless && [[ -z $(me .username) ]]; then
+    warn "No username: without a phone number, nobody can find the account. Set one with: username NAME"
+  fi
   info ""
   show_devices "$work/devices.json"
   info ""
@@ -872,11 +957,13 @@ cmd_setup() {
 
   step "The account"
   configured_account
-  if [[ $account =~ $PHONE_NUMBER ]] && is_registered "$account"; then
+  if [[ $account =~ $PHONE_NUMBER || $account =~ $SIGNAL_ID ]] && is_registered "$account"; then
     info "$account is registered in signal-cli already."
   else
-    info "The bot needs a number of its own, registered here; linked to a phone, it"
-    info "would take commands typed on the phone as sent by the other person."
+    info "The bot needs an account of its own: a number registered here, or one"
+    info "without a number restored with its Recovery Key, which signal-cli-rest-api"
+    info "can't do yet (see the README). Linked to a phone, it would take commands"
+    info "typed on the phone as sent by the other person."
     ask "Register a number as a new Signal account (r), or link to a phone with Signal (l)?" r
     case ${answer,,} in
       r*)
@@ -917,32 +1004,50 @@ cmd_setup() {
     fi
   fi
   if [[ -z $(me .profile.given_name) ]]; then
-    warn "The profile has no name, so Signal shows the number."
+    if numberless; then
+      warn "The profile has no name."
+    else
+      warn "The profile has no name, so Signal shows the number."
+    fi
   fi
 
   step "The username"
-  info "With a username, people can start a chat without the number."
+  if numberless; then
+    info "Without a phone number, a username is the only way anyone can find the account."
+  else
+    info "With a username, people can start a chat without the number."
+  fi
   while ask "Username (Enter skips it):" && [[ -n $answer ]]; do
     if (set_username "$answer"); then break; fi
   done
 
   step "The PIN"
-  info "A registration lock PIN stops anyone else registering the number, even"
-  info "with its SMS code. Only for a number registered here, not linked."
-  if confirm "Set a PIN?"; then
-    (set_pin) || warn "No PIN set; set it later with: pin"
+  if numberless; then
+    info "A registration lock PIN guards a phone number, which this account doesn't"
+    info "have: its Recovery Key restores it. Skipped."
+  else
+    info "A registration lock PIN stops anyone else registering the number, even"
+    info "with its SMS code. Only for a number registered here, not linked."
+    if confirm "Set a PIN?"; then
+      (set_pin) || warn "No PIN set; set it later with: pin"
+    fi
   fi
 
   step "Privacy"
   local seen findable
-  ask "Who sees the phone number: everyone or nobody? (Enter leaves it)"
-  seen=$(everyone_or_nobody "$answer") || seen=""
-  if [[ -n $answer && -z $seen ]]; then info "Neither everyone nor nobody, so that stays."; fi
-  ask "Who can find the account by its number: everyone or nobody? (Enter leaves it)"
-  findable=$(everyone_or_nobody "$answer") || findable=""
-  if [[ -n $answer && -z $findable ]]; then info "Neither everyone nor nobody, so that stays."; fi
-  if [[ -n $seen || -n $findable ]]; then
-    (set_privacy "$seen" "$findable") || warn "Privacy unchanged; set it later with: privacy"
+  if numberless; then
+    info "Who sees the phone number, and who finds the account by it: this account"
+    info "has no number. Skipped."
+  else
+    ask "Who sees the phone number: everyone or nobody? (Enter leaves it)"
+    seen=$(everyone_or_nobody "$answer") || seen=""
+    if [[ -n $answer && -z $seen ]]; then info "Neither everyone nor nobody, so that stays."; fi
+    ask "Who can find the account by its number: everyone or nobody? (Enter leaves it)"
+    findable=$(everyone_or_nobody "$answer") || findable=""
+    if [[ -n $answer && -z $findable ]]; then info "Neither everyone nor nobody, so that stays."; fi
+    if [[ -n $seen || -n $findable ]]; then
+      (set_privacy "$seen" "$findable") || warn "Privacy unchanged; set it later with: privacy"
+    fi
   fi
 
   step "Done"
@@ -1069,6 +1174,7 @@ cmd_username() {
         die "Nothing has been changed."
       change --slow DELETE "/v1/accounts/$account_path/username" ||
         fail "Signal didn't remove the username"
+      keep_part username ""
       info "Username removed."
       ;;
     -*) usage_error "Unknown username option: $1" ;;
@@ -1080,6 +1186,10 @@ cmd_pin() {
   case ${1-} in
     "")
       use_account
+      if numberless; then
+        warn "A registration lock PIN guards a phone number, which $account doesn't have: its Recovery Key restores it."
+        confirm "Set a PIN all the same?" || die "Nothing has been changed."
+      fi
       set_pin
       ;;
     --remove)
@@ -1118,6 +1228,9 @@ cmd_privacy() {
     return
   fi
   use_account
+  if numberless; then
+    die "These settings are about the phone number, and $account has none."
+  fi
   set_privacy "$seen" "$findable"
 }
 
@@ -1186,6 +1299,8 @@ cmd_unregister() {
   info "and the bot stops working until it's registered or linked again."
   if [[ $delete_account == true ]]; then
     warn "--delete-account deletes the Signal account itself, for good: its profile, username and groups go, and the number has to start afresh."
+  elif numberless; then
+    warn "Without a phone number, only its Recovery Key restores $account, and signal-cli-rest-api can't use one yet (see the README)."
   fi
   if [[ $delete_data == true ]]; then
     info "--delete-local-data deletes what signal-cli keeps of it too: keys, contacts and groups."

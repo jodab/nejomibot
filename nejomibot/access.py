@@ -449,6 +449,7 @@ async def link_lists(bot: SignalBot) -> None:
     """Link the phone numbers on the lists, then write the names now known
     after the # of their lines with none."""
     await bot.wait_until_ready()
+    logger.debug("Linking the phone numbers on the lists")
     await link(recipients())
     known = await names(bot)
     for kept in (allowed_list, admin_list):

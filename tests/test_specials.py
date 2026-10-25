@@ -11,7 +11,7 @@ from signalbot import (
     TextMode,
 )
 
-from nejomibot import commands, specials
+from nejomibot import commands, receipts, specials
 from nejomibot.commands import Command, aliases, canonical, known
 from nejomibot.config import get_settings
 from nejomibot.messages import PerChat, for_chat
@@ -56,7 +56,8 @@ class Chat:
         self.keeper = Timekeeper()
         monkeypatch.setattr(commands, "reply", self.reply)
         monkeypatch.setattr(commands, "mark_read", self.nothing)
-        monkeypatch.setattr(commands, "show_typing", self.nothing)
+        monkeypatch.setattr(receipts, "show_typing", self.nothing)
+        monkeypatch.setattr(receipts, "stop_typing", self.nothing)
         monkeypatch.setattr(self.keeper, "answers_to", self.answers_to)
         monkeypatch.setattr(specials, "timekeeper", self.keeper)
 

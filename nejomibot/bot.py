@@ -4,17 +4,19 @@ the health reports."""
 import asyncio
 import logging
 import os
+import platform
 import signal
 import sys
 import tempfile
 from collections.abc import Callable
+from importlib.metadata import version
 from pathlib import Path
 from types import FrameType
 
 from pydantic import ValidationError
 from signalbot import LOGGER_NAME, Config, ConnectionMode, InMemoryConfig, SignalBot
 
-from . import access, health, reminders, rest
+from . import access, health, photos, profile, reminders, rest
 from .admins import Admin, Admins
 from .albums import Album, Albums
 from .allowed import Allow, Allowed, Disallow
@@ -209,6 +211,7 @@ def load_settings() -> Settings:
         )
     except (ValueError, OSError) as e:  # a file that won't parse, or aliases
         sys.exit(f"Invalid configuration ({where}):\n{e}")
+    logger.info("Read the settings (%s)", where)
     if not settings.debug:  # which keeps its files in a temp folder
         check_data_dir(settings.data_dir)
     if settings.debug:
@@ -239,6 +242,7 @@ async def wait_for_account() -> None:
             while True:
                 try:
                     if settings.account in await rest.accounts():
+                        logger.info("%s has the account", api)
                         return
                     why = (
                         f"{api} has no account {settings.account} yet: register "
@@ -295,6 +299,11 @@ def shutdown() -> None:
 def main() -> None:
     signal.signal(signal.SIGTERM, stop)
     set_up_logging()
+    logger.info(
+        "Starting nejomibot %s, with Python %s",
+        version("nejomibot"),
+        platform.python_version(),
+    )
     settings = load_settings()
     logging.getLogger(__package__).setLevel(settings.log_level)
     asyncio.run(wait_for_account())
@@ -315,6 +324,9 @@ def main() -> None:
         )
     )
     logging.getLogger(LOGGER_NAME).handlers.clear()  # see set_up_logging
+    logger.debug(
+        "signalbot set up, for signal-cli-rest-api at %s", settings.signal_service
+    )
     outbox.start(bot)
     # The receipts for what it sends, for /delivery, and a warning in the log
     # for a message nobody's phone confirmed
@@ -344,12 +356,24 @@ def main() -> None:
     # A greeting for the allowed list's messages that aren't commands; it
     # checks who wrote them itself
     bot.register(greeter, contacts=True, groups=False)
+    logger.debug("%d handlers registered", len(registrations) + 2)
     # Timers run their commands through the same handlers, but for those
     # their commands say timers mayn't
     timekeeper.start(bot, [handler for handler, *_who in registrations])
     logger.info("%d timers, in %s", len(timekeeper.timers), settings.timers_file)
     reminders.start(bot)
+    logger.info(
+        "%d reminders, in %s",
+        len(reminders.kept.current().entries),
+        settings.data_file(reminders.kept.name),
+    )
+    # When each photo was taken, read in the background for the commands that
+    # need it, so the first of them after a start doesn't wait for it
+    photos.start(bot)
+    # The profile data_dir/bot.txt has, or config.toml's bot_* settings
+    profile.start(bot)
     health.start(bot)
 
+    logger.debug("Starting signalbot: its event loop and scheduler")
     bot.start()
     shutdown()

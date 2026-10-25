@@ -143,7 +143,12 @@ pytest in the Dockerfile's test stage, and builds nothing if they fail. That
 stage runs only for the building machine's platform. On linux/arm/v7,
 Pillow and pillow-heif have no wheels, so the build stage compiles them
 against Debian's libraries (`TARGETARCH` is `arm`). Debian's libheif reads
-HEIF but can't write it, which only the tests do. Of `tools/`, the image
+HEIF but can't write it, which only the tests do. The build stage strips
+the compiled modules and libraries, as Debian strips its own
+(`--strip-unneeded`), and then loads each one: aiohttp, multidict, yarl and
+propcache fall back to pure Python without a word when theirs doesn't load.
+The final stage sets `MALLOC_ARENA_MAX=2` (see the resource budget). Of
+`tools/`, the image
 has `signal-account.sh`, `nejomibot-help.sh`, the guide every interactive
 shell starts with (not scripts or `sh -c`), and `nejomibot-profile.sh`, as
 `/etc/profile.d/nejomibot.sh`, which shows it: bash reads it from
@@ -182,6 +187,19 @@ Debug mode talks only to `debug_group` and the admins, and keeps its files
 in a private temporary folder, created anew at each start. Stop the
 production bot first: two bots on one account compete for incoming
 messages.
+
+Profile in the image, which has its bytecode, rather than in a checkout run
+with `PYTHONDONTWRITEBYTECODE`, which compiles every import anew. Python
+3.15's sampling profiler runs a script (`python -m profiling.sampling run
+--mode cpu --collapsed -o out.txt script.py`) or attaches to a running bot
+(`podman exec --user 0 NAME python -m profiling.sampling attach
+--async-aware -d 30 --collapsed -o /data/out.txt 1`), which takes a
+container started with `--cap-add SYS_PTRACE`, as Yama otherwise lets a
+process read only its children. `--async-aware` follows asyncio's tasks but
+not `asyncio.to_thread()`'s threads, which `--mode cpu -a` does; prefer
+`--collapsed` to `--pstats`, which can't save the garbled names that sampling
+other threads reads at times; and `--blocking` gets whole stacks, but in
+`--mode wall` only.
 
 ## Architecture
 
@@ -284,8 +302,13 @@ language's names in `locale/<language>.toml`; and the configuration's
 message (`commands.resolved_message()`, kept by the message, as signalbot
 hands every handler the same message: 23 ms of the Pi's CPU per message
 when each of the 38 handlers resolved it), and calls
-`handle()`, which mostly calls `answer()`: logging, the read receipt, the
-typing indicator for slow commands, a plain or styled reply, failures as
+`handle()`, which mostly calls `answer()`: logging, the read receipt and
+the typing indicator beside the command, which the answer waits for (the
+owner's request, 2026-10-25, once signal-cli-rest-api took overlapping
+requests; `receipts.Typing`: at once for slow
+commands, after `TYPING_AFTER` for others, again every `TYPING_EVERY`, as
+Signal's apps show it for 15 s, for `TYPING_FOR` at most, and the answer
+waits for one on its way), a plain or styled reply, failures as
 `error_text()`, and edits ignored where running again would do something
 twice (see Conventions). `commands.known()` finds any command, the admins'
 own specials included (through `Specials.takes`); timers and `/run` use it,
@@ -431,7 +454,11 @@ upload any photo and send it, and 1 to 2 s more for a 1 to 3 MB one
 (2026-10-24); the photos still go out at full size, not shrunk to save
 that time (the owner's decision, 2026-10-24). `moments()` is the single
 index of when each photo was taken,
-for `/photo <date>`, `/albums` and `/onthisday`. `/photo <date>` is as exact
+for `/photo <date>`, `/albums` and `/onthisday`, which `index()` reads in the
+background once the bot has started (the owner's decision, 2026-10-25), a
+chunk at a time (`remember()`), so a stop waits for one chunk at most; each
+call of `moments()` then reads only what was added or changed, and forgets
+what was removed. `/photo <date>` is as exact
 as it is given (the owner's decision, 2026-10-23): a year, month, day or
 hour (`Period`) gives a random photo from that period, or else from the
 nearest period of the same size that has photos; to the minute, the photo
@@ -526,10 +553,28 @@ because Signal or signal-cli-rest-api fails (a restart wouldn't help, and
 could lose the messages that have waited less than half a minute, which
 aren't on disk yet), and not while the bot waits for the account.
 
+**The bot's profile** (`profile.py`): `/name`, `/about`, `/avatar` and
+`/username` change it through `rest.py`, and keep what they set in
+`data_dir/bot.txt` (`kept`, a `KeptLines` of a part and its value each; the
+avatar as `bot-avatar.jpg` or `.png` beside it, named there with its
+SHA-256), as does `signal-account.sh` where that folder is (the owner's
+request, 2026-10-25). Once signalbot is ready, `keep_profile` compares the
+account's profile, as signal-cli knows it, with `bot.txt`, or where it has
+nothing, the `bot_*` settings, and changes only what differs (the owner's
+request: nothing is sent at a start that changes nothing): name, About and
+avatar in one update, as one without the avatar removes it, and the avatar
+only when the account has none or the picture's
+SHA-256 differs from the one recorded, since signal-cli may not give back
+the bytes uploaded; a username Signal turns down is tried as its nickname
+alone (`claim_username`). The account itself may be a Signal ID, for one
+without a phone number: signal-cli-rest-api takes it in paths and as the
+sender since 787d204e, as signalbot passes `phone_number` on only there, and
+`/status` and `/profile` warn while such an account has no username.
+
 **Files the bot keeps**: `allowed.txt`, `admins.txt`, `timers.txt`,
 `specials.txt`, `reminders.txt`, `lists.txt`, `birthdays.txt`, `albums.txt`,
-`languages.txt`, `sent-photos.txt`, `album-rounds.txt`, `run.json` and
-`outbox/` in `data_dir`,
+`languages.txt`, `sent-photos.txt`, `album-rounds.txt`, `bot.txt` (and
+`bot-avatar.*`), `run.json` and `outbox/` in `data_dir`,
 written through `files.write_privately` (mode 0600, a `mkstemp` temporary
 file, fsync, replace, then an fsync of the folder; `replace_privately` for
 any writer) or `files.append_privately`. In the line-based files, hand
@@ -709,3 +754,36 @@ in the bot's languages (`weather.Place.names`).
   library's bytecode in the image: 5.7 MB (205 files) of the whole
   library's 22 MB (du). PyYAML, built from its source, and frozenlist run
   as pure Python (see TODO.md), at no measurable cost.
+- **2026-10-25, stripped modules and two arenas:** without the compiled
+  modules' debug information, the images take amd64 227.6 MB (241.3
+  before), arm64 245.6 MB (258.4) and arm/v7 208.3 MB (218.7), and peak RSS
+  after the imports is the same (75.6 against 76.1 MB, medians of seven
+  runs), as the sections removed are never loaded; a clean build of the
+  amd64 build stage takes 23.4 s against 19.4 s (apt and binutils). The
+  running bot, measured with its amd64 image against the tests' FakeApi
+  with a receive websocket added, a made-up library of 7,600 photos and 26
+  commands from an admin, three times each, on a desktop: ready in 0.7 s;
+  77.5 MB after the start, and after the commands 88.7 to 89.5 MB with
+  `MALLOC_ARENA_MAX=2` against 90.0 to 90.5 MB without; most commands
+  answer in 2 to 5 ms, photos in 17 to 32 ms, and a photo by date,
+  `/albums` and `/onthisday` in 55 to 60 ms once the index is built (a
+  `stat()` of each photo takes 15 ms of that, listing them 9 ms); the
+  index's first build after a start takes 0.8 s for those tiny files, and
+  `/status` 2.2 s, waiting for OpenWeatherMap and the public address's
+  lookup. With PEP 810's global lazy imports (`PYTHON_LAZY_IMPORTS=all`)
+  the bot doesn't start, as its handlers register their commands as
+  they're imported, nor does pytest; lazy imports of the bot's own would
+  save only Pillow's 10 ms, and `gc.freeze()` after the imports 5% of a
+  photo command's time at most.
+- **2026-10-25, the photo index in the background** (measured as above):
+  read 0.9 s after the start for the 7,600 made-up photos, so the first
+  `/photo 2015` takes 56 ms against 810 ms; RSS right after the start, with
+  the index and Pillow loaded, is 87.7 to 88.0 MB against 77.2 to 77.3 MB,
+  and after the commands 88.1 to 89.5 MB against 89.9 to 90.4 MB. While it's
+  read, the event loop's requests take 0.37 ms against 0.16 ms (the GIL),
+  and the start is as quick (ready 0.75 s against 0.69 s).
+- **2026-10-25, the read receipt and typing beside the command** (measured
+  as above, with the fake API taking 0.2 s for each, as the Pi does): the
+  slower commands, which show the bot typing, answer in about 203 ms against
+  406 to 457 ms, the quick ones in 203 ms as before, as the answer waits for
+  the receipt.

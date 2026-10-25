@@ -321,6 +321,12 @@ class Notices:
         save_run(self.run)
         if previous := self.previous:
             self.looked = previous.stopped or previous.started
+            logger.debug(
+                "The run before: %s, started %s, %s",
+                previous.version,
+                previous.started,
+                f"stopped {previous.stopped}" if previous.stopped else "no clean stop",
+            )
         outbox.on_rate_limited = lambda: self.spawn(self.rate_limited(bot))
         bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
             self.serve,
@@ -345,7 +351,9 @@ class Notices:
         """Once signalbot is ready: tell the admins of the start, beside what
         follows, then look at the safety numbers every healthcheck_minutes."""
         await bot.wait_until_ready()
-        self.spawn(self.tell_of_start(bot, datetime.now(UTC)))
+        ready = datetime.now(UTC)
+        logger.info("Ready, %.1f s after the start", (ready - STARTED).total_seconds())
+        self.spawn(self.tell_of_start(bot, ready))
         await self.look_at_safety_numbers(bot)
         bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
             self.look_at_safety_numbers,

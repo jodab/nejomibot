@@ -1,5 +1,7 @@
 import base64
+import hashlib
 import io
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -36,6 +38,7 @@ LINK = "https://signal.me/#eu/abc"
 AVATAR = b"the avatar as it is"
 PROFILES = f"/v1/profiles/{ME}"
 USERNAME = f"/v1/accounts/{ME}/username"
+TAKEN = {"taken", "nejomi.07"}  # as Signal turns them down
 
 
 class Profiles:
@@ -89,7 +92,7 @@ class Profiles:
 
     async def set_username(self, request: web.Request) -> web.Response:
         wanted = (await request.json())["username"]
-        if wanted == "taken":
+        if wanted in TAKEN:
             return web.json_response(
                 {"error": "invalid signal-cli response"}, status=400
             )
@@ -171,7 +174,17 @@ def test_profile_text_without_a_profile() -> None:
 
 def test_profile_text_without_a_number() -> None:
     me = Contact.model_validate({"uuid": ME_ID, "username": "mybot.42"})
-    assert f"🆔 Signal ID: {ME_ID}" in profile_text(me).splitlines()
+    lines = profile_text(me).splitlines()
+    assert f"🆔 Signal ID: {ME_ID}" in lines
+    assert "🔗 Username: @mybot.42" in lines
+
+
+def test_profile_text_without_a_number_or_a_username() -> None:
+    lines = profile_text(Contact(uuid=ME_ID)).splitlines()
+    assert lines[0] == "🪪 No name"
+    assert "⚠️ No username: without a phone number, nobody can find the bot" in lines
+    # With a number, people can find the bot by that
+    assert "🔗 No username" in profile_text(Contact(number=ME)).splitlines()
 
 
 @pytest.mark.parametrize(
@@ -451,3 +464,128 @@ async def test_failure_is_answered(
     await Name().handle_data_message(context_of(bot, "/name Mybot"))
     [message] = replies
     assert message.text == "Something went wrong: Signal says no"
+
+
+# bot.txt
+
+
+def new_account(profiles: Profiles) -> None:
+    """As a new account's: no name, About, avatar or username."""
+    profiles.profile.update(
+        given_name=None, lastname=None, about=None, has_avatar=False
+    )
+    profiles.avatar = None
+    profiles.me["username"] = None
+
+
+def bot_txt() -> list[str]:
+    """bot.txt's lines but its comments."""
+    text = get_settings().data_file("bot.txt").read_text(encoding="utf-8")
+    return [line for line in text.splitlines() if not line.startswith("#")]
+
+
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+@pytest.fixture
+def configured(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
+    """config.toml's bot_* settings, with a picture for the avatar."""
+    picture = tmp_path / "logo.jpg"
+    Image.new("RGB", (1200, 800), "orange").save(picture)
+    monkeypatch.setenv("NEJOMIBOT_BOT_NAME", "Nejomi")
+    monkeypatch.setenv("NEJOMIBOT_BOT_ABOUT", "Weather and photos")
+    monkeypatch.setenv("NEJOMIBOT_BOT_AVATAR", str(picture))
+    monkeypatch.setenv("NEJOMIBOT_BOT_USERNAME", "@nejomi")
+    get_settings.cache_clear()
+    return picture
+
+
+@pytest.mark.usefixtures("configured")
+async def test_the_settings_set_a_new_accounts_profile(profiles: Profiles) -> None:
+    new_account(profiles)
+    await profile.set_kept_profile()
+    [update] = profiles.updates()
+    assert (update["name"], update["about"]) == ("Nejomi", "Weather and photos")
+    uploaded = base64.b64decode(update["base64_avatar"])
+    assert Image.open(io.BytesIO(uploaded)).size == (800, 800)  # made square
+    assert profiles.api.bodies("POST", USERNAME) == [{"username": "nejomi"}]
+    assert get_settings().data_file("bot-avatar.jpg").read_bytes() == uploaded
+    assert bot_txt() == [
+        "name Nejomi",
+        "about Weather and photos",
+        f"avatar bot-avatar.jpg {sha256(uploaded)}",
+        "username nejomi.42",
+    ]
+    # The next start finds the profile as bot.txt has it
+    await profile.set_kept_profile()
+    assert len(profiles.updates()) == 1
+    assert len(profiles.api.bodies("POST", USERNAME)) == 1
+
+
+@pytest.mark.usefixtures("configured")
+async def test_bot_txt_comes_before_the_settings(profiles: Profiles) -> None:
+    get_settings().data_file("bot.txt").write_text("name Mybot\nusername\n")
+    await profile.set_kept_profile()
+    # About and the avatar from the settings, as bot.txt has neither
+    [update] = profiles.updates()
+    assert (update["name"], update["about"]) == ("Mybot", "Weather and photos")
+    assert "base64_avatar" in update
+    # bot.txt's empty username removes it
+    assert profiles.api.bodies("DELETE", USERNAME) == [None]
+    assert "username" in bot_txt()
+
+
+async def test_a_taken_username_gets_the_number_signal_gives(
+    profiles: Profiles, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_BOT_USERNAME", "nejomi.07")
+    get_settings.cache_clear()
+    await profile.set_kept_profile()
+    assert profiles.api.bodies("POST", USERNAME) == [
+        {"username": "nejomi.07"},
+        {"username": "nejomi"},
+    ]
+    assert bot_txt() == ["username nejomi.42"]
+
+
+async def test_the_commands_keep_what_they_set(profiles: Profiles) -> None:
+    await name_command("/name Nejomi")
+    await about_command("/about remove")
+    await username_command("/username nejomi")
+    assert bot_txt() == ["name Nejomi", "about", "username nejomi.42"]
+
+
+async def test_an_edited_bot_txt_is_set(profiles: Profiles) -> None:
+    get_settings().data_file("bot.txt").write_text("name Other\nabout New\n")
+    await profile.set_kept_profile()
+    [update] = profiles.updates()
+    assert (update["name"], update["about"]) == ("Other", "New")
+    assert base64.b64decode(update["base64_avatar"]) == AVATAR  # as it was
+
+
+async def test_a_new_picture_for_the_avatar_is_set(profiles: Profiles) -> None:
+    settings = get_settings()
+    # bot.txt names the picture as it was set, and it's been replaced since
+    Image.new("RGB", (64, 64), "blue").save(settings.data_file("bot-avatar.jpg"))
+    settings.data_file("bot.txt").write_text(
+        f"avatar bot-avatar.jpg {sha256(b'old')}\n"
+    )
+    await profile.set_kept_profile()
+    [update] = profiles.updates()
+    uploaded = base64.b64decode(update["base64_avatar"])
+    assert bot_txt() == [f"avatar bot-avatar.jpg {sha256(uploaded)}"]
+    # As set, it's left alone
+    await profile.set_kept_profile()
+    assert len(profiles.updates()) == 1
+
+
+async def test_an_avatar_it_cant_read_leaves_the_rest(
+    profiles: Profiles, caplog: pytest.LogCaptureFixture
+) -> None:
+    get_settings().data_file("bot.txt").write_text("name Other\navatar gone.jpg\n")
+    await profile.set_kept_profile()
+    [update] = profiles.updates()
+    assert update["name"] == "Other"
+    assert base64.b64decode(update["base64_avatar"]) == AVATAR
+    assert "Could not read the avatar" in caplog.text

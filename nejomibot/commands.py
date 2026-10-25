@@ -14,7 +14,8 @@ language (i18n.speaking()).
 Each handler is a Handler that lists its commands, saying of each whether
 more may follow its name and whether timers and /run may run it. answer()
 does what every command does: logs it, marks it read, shows the bot typing
-for a slow one, and replies with what it says, or with what went wrong.
+while it works on a slow one, or one that takes a while, and replies with
+what it says, or with what went wrong.
 
 The bot answers each person at most command_limit commands in
 command_limit_minutes, so nobody can run it into Signal's rate limits: past
@@ -30,6 +31,7 @@ did undone, so the edit takes its place, as the command said how with
 undo_with(); one whose post or deletion can't be undone isn't run.
 """
 
+import asyncio
 import inspect
 import logging
 import re
@@ -72,7 +74,7 @@ from .messages import (
     outbox,
     reply,
 )
-from .receipts import mark_read, show_typing
+from .receipts import Typing, mark_read
 from .styles import utf16_length
 
 logger = logging.getLogger(__name__)
@@ -534,8 +536,9 @@ async def answer(
     styled, or as the messages it makes; or with what went wrong. Its name
     and the kind of chat go in the log, the rest only at DEBUG.
 
-    An EditMessage is a DataMessage: what an edit does, edits says. A slow
-    command shows the bot typing meanwhile."""
+    An EditMessage is a DataMessage: what an edit does, edits says. The bot
+    shows itself typing meanwhile: at once for a slow command, else once it
+    takes a while (receipts.Typing)."""
     message = context.message
     words = (message.text or "").split()
     name = words[0].lower() if words else "?"
@@ -549,38 +552,44 @@ async def answer(
     logger.debug(
         "From %s: %s", message.source_uuid or message.source_number, message.text
     )
-    await mark_read(context)
-    if slow:
-        await show_typing(context)
-    # What it does is kept for an edit, but for a timer, /run or a special's
-    keep = edits is Edits.REPLACE and collected.get() is None
-    did = Done(time.monotonic()) if keep else None
-    ran = False
+    # The read receipt and the bot typing go beside the command, which needn't
+    # wait for them, while its answer does (receipts.Typing)
+    receipt = asyncio.create_task(mark_read(context))
+    typing = Typing(context, at_once=slow)
     try:
-        why = await undo_first(message) if did and edited else None
-        if why:
-            # So an edit of this edit is refused too, whichever it names
-            remember(message_keys(message), Done(time.monotonic(), final=why))
-            replies = escape(why) if styled else why
-        else:
-            ran = True
-            token = doing.set(did)
-            try:
-                replies = what()
-                if inspect.isawaitable(replies):
-                    replies = await replies
-            finally:
-                doing.reset(token)
-    except Exception as e:
-        log_failure(logger, name, e)
-        replies = escape(error_text(e)) if styled else error_text(e)
-    # What it did before it failed, too
-    if did is not None and ran:
-        remember(message_keys(message), did)
-    if replies is None:
-        return
-    mode = TextMode.STYLED if styled else None
-    for item in [replies] if isinstance(replies, str | SendMessage) else replies:
-        if isinstance(item, str):
-            item = SendMessage(text=item, text_mode=mode)
-        await reply(context, item)
+        # What it does is kept for an edit, but for a timer, /run or a special's
+        keep = edits is Edits.REPLACE and collected.get() is None
+        did = Done(time.monotonic()) if keep else None
+        ran = False
+        try:
+            why = await undo_first(message) if did and edited else None
+            if why:
+                # So an edit of this edit is refused too, whichever it names
+                remember(message_keys(message), Done(time.monotonic(), final=why))
+                replies = escape(why) if styled else why
+            else:
+                ran = True
+                token = doing.set(did)
+                try:
+                    replies = what()
+                    if inspect.isawaitable(replies):
+                        replies = await replies
+                finally:
+                    doing.reset(token)
+        except Exception as e:
+            log_failure(logger, name, e)
+            replies = escape(error_text(e)) if styled else error_text(e)
+        # What it did before it failed, too
+        if did is not None and ran:
+            remember(message_keys(message), did)
+        items = [replies] if isinstance(replies, str | SendMessage) else replies or []
+        await receipt
+        await typing.stop(answered=bool(items))
+        mode = TextMode.STYLED if styled else None
+        for item in items:
+            if isinstance(item, str):
+                item = SendMessage(text=item, text_mode=mode)
+            await reply(context, item)
+    finally:
+        receipt.cancel()
+        typing.cancel()

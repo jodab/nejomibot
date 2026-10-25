@@ -98,7 +98,8 @@ def confirm(log: SentLog, envelope: Envelope) -> None:
 def expected(bot: SignalBot, chat: str) -> int | None:
     """How many should confirm a message to the chat: a contact, or each of
     a group's members but the bot, which signal-cli-rest-api lists by its
-    number; None for a group the bot isn't in."""
+    number, or without one, by its Signal ID, as account has it then; None
+    for a group the bot isn't in."""
     if not access.is_group(chat):
         return 1
     group = next((g for g in bot.groups if g.id == chat and g.member), None)
@@ -148,6 +149,7 @@ class Receipts:
         """Listen in a task of its own, in signalbot's event loop: a job of the
         scheduler's that runs until the bot stops would be logged as failing
         when bot.shutdown() cancels it."""
+        logger.debug("Hearing receipts, on a websocket of its own")
         self.hearing = asyncio.create_task(self.listen(bot, outbox.sent))
 
     def heard_all(self, sent: Sent) -> bool:

@@ -14,8 +14,10 @@ from helpers import (
     CAROL_ID,
     GROUP,
     ME,
+    ME_ID,
     NOW_MS,
     FakeApi,
+    group_entry,
     message_from,
 )
 from signalbot import DataMessageContext, SendMessage, SignalBot, TextMode
@@ -163,6 +165,20 @@ async def test_who_should_confirm(bot: SignalBot) -> None:
     # A group the bot has left, and one it was never in
     assert expected(bot, "group.b2xk") is None
     assert expected(bot, "group.bm9uZQ==") is None
+
+
+async def test_who_should_confirm_for_an_account_without_a_number(
+    bot: SignalBot, signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # signal-cli-rest-api lists such a bot among the members by its Signal ID,
+    # which account is then
+    monkeypatch.setenv("NEJOMIBOT_ACCOUNT", ME_ID)
+    get_settings.cache_clear()
+    signal_api.responses[f"/v1/groups/{ME}"] = [
+        group_entry(GROUP, "Familjen", members=[ME_ID, ALICE, CAROL_ID])
+    ]
+    await bot.groups.refresh()
+    assert expected(bot, GROUP) == 2
 
 
 def test_what_a_messages_status_says() -> None:

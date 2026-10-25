@@ -30,54 +30,36 @@ created with Signal Login, and work with people who have none.
   one as its primary device: `register --recovery-key KEY -a ACI`, with
   `--totp` when Signal asks for it. It can't create such an account, as the
   payment happens in the app store (signal-cli#2124).
-- *signal-cli-rest-api:* supports such accounts in the CI build that
-  [deploy/](deploy) pins, not yet in a release: its paths take an ACI where
-  they take `{number}`, and `/v1/accounts` lists `{"number", "aci"}`. Its
-  `register` can't take a Recovery Key (or a `totp`), so until it can, an
-  account can only be linked.
-- *signalbot:* `Config.phone_number` can be any string, used in the paths and
-  as the sender, so an ACI should work; still to be tried.
-- *The bot:* `account` takes a Signal ID, and finds the account by it; what
-  remains is below.
+- *signal-cli-rest-api:* the CI build that [deploy/](deploy) pins, and the
+  owner's Raspberry Pi runs, has its numberless support (#896, 787d204e):
+  its paths and its send requests take an ACI where they take the number,
+  and `/v1/accounts` lists `{"number", "aci"}`. Its `register` can't take a
+  Recovery Key (or a `totp`), so it can only link such an account.
+- *signalbot:* passes `Config.phone_number` on only in paths and as the
+  sender, so an ACI works, as far as the code goes.
+- *The bot:* done, with tests against a fake signal-cli-rest-api: `account`
+  takes a Signal ID; `/status` and `/profile` warn while an account without
+  a number has no username; `signal-account.sh` matches an account by its
+  number or ID, shows its Signal ID, skips the PIN and the number's privacy
+  in `setup`, refuses `privacy`, notes what a PIN guards, and warns before
+  `unregister`; the README, DOCKERHUB.md and config.example.toml describe
+  it. The profile moves to a new account by itself: `bot.txt` keeps it.
 
 **Steps:**
 
-1. For you to decide: an account to try it with ($3, and an Android phone
-   with Google Play and the beta), and how the bot takes it over. Restored
-   with its Recovery Key, signal-cli becomes its primary device, the phone
-   gives it up, and the bot is the account's only device: the way to go.
-   Linked instead, the phone keeps the account, and what is typed there in a
-   direct chat reaches the bot as if the other person had sent it, as with
-   a number (see Who may use what in the README).
-2. Make the code changes below, with tests.
-3. Try it with the account on a signal-cli-rest-api of its own, posting only
-   to the test group, then update the documentation.
-
-**Code changes:**
-
-- `rest.py`: every `account_path()` request tried with an ACI: devices,
-  contacts, identities, trust, profiles, username and avatars.
-- `delivery.expected()` takes the bot out of a group's members by its phone
-  number only; without a number, it has to by its Signal ID.
-- `/profile` and `/status`: warn when an account without a number has no
-  username, since nobody can find it then. Check how Signal Android shows
-  the Account Key, in case it is in another form.
-- `tools/signal-account.sh`: `setup` and `register` should offer restoring
-  with the Account Key and the Recovery Key, once signal-cli-rest-api can,
-  asked for the way PINs are and kept out of the shell history, and say that
-  the phone will give the account up. `link` for an account without a
-  number. `status` and `identities` should show the ACI; `privacy` and
-  `search` are about numbers, so they should say so; `rate-limit --to`
-  should accept an ACI or `u:username`; and `unregister` should warn that
-  an account without a number can only be restored with its Recovery Key.
-  Find out what `pin`, the registration lock, means without a number.
-- Tests: `/status`'s lines, and `FakeApi` answering for an account without a
-  number throughout.
-- Documentation: the README (Who may use what, Getting started,
-  Configuration, Setting up and managing the Signal account), DOCKERHUB.md,
-  config.example.toml and `signal-account.sh --help`: the bot needs an
-  account of its own, either a number registered for it or a Signal Login
-  account restored into signal-cli, and without a number, a username.
+1. For you: back up signal-cli-rest-api's data on the Pi, then restore the
+   account into it, as its primary device. signal-cli-rest-api can't, so
+   with signal-cli, in a container of the same image while the signal
+   container is stopped, on the same data: `signal-cli -a <ACI> register
+   --recovery-key <key>` (and `--totp` if Signal asks), then start the
+   signal container again, set `account` to the ACI, and give the account a
+   username.
+2. Try the bot on it, posting only to the test group: commands, receipts
+   and `/delivery`, the safety numbers, `/contacts`, `/profile`, the
+   avatar, `signal-account.sh status` and `identities`, and whether Signal
+   Android shows the Account Key as the ACI, in case it's in another form.
+3. Write the restore down in the README once it has worked, and find out
+   what `pin`, the registration lock, does without a number.
 
 ## Upstream
 
@@ -107,6 +89,11 @@ of signalbot and signal-cli-rest-api for them.
   signalbot passes the tokens on and can submit a solved captcha, decide
   whether an admin should be able to send the bot the `signalcaptcha://`
   link in a direct chat instead, which would be a new command.
+- [ ] **signal-cli-rest-api can't restore an account with its Recovery
+  Key**: its `register` takes neither the key nor a TOTP. Once it can,
+  `signal-account.sh setup` should offer it, asked for the way PINs are and
+  kept out of the shell history, and the bot could restore its account by
+  itself as it starts (the owner asked, 2026-10-25).
 - [ ] **Wheels for Python 3.15.** PyYAML, which signalbot needs, has none
   as of 6.0.3, so uv builds it from its source as the image is built: pure
   Python, without libyaml, in a few seconds, with the latest setuptools and
@@ -132,11 +119,6 @@ of signalbot and signal-cli-rest-api for them.
 
 ## Waiting
 
-- [ ] **A typed command waits about 0.4 s before it runs.** `answer()` sends
-  the read receipt, then shows the bot typing, each a request of about 0.2 s
-  on the Pi, before the command starts. They could go out while the command
-  runs, as long as the reply waits for them, once signal-cli-rest-api no
-  longer crashes on overlapping requests (#885).
 - [ ] **A message that signal-cli-rest-api always refuses holds up its
   chat.** An HTTP 400 counts as surely not sent, so the message is tried
   again every 2 minutes for `send_retry_hours` (3 by default), and every

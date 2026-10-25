@@ -9,6 +9,7 @@ checks (health.py).
 import asyncio
 import logging
 import os
+import re
 import shutil
 from collections.abc import Awaitable
 from datetime import UTC, datetime, timedelta
@@ -24,7 +25,7 @@ from .account import (
     fetch_account,
 )
 from .commands import Command, Handler, answer
-from .config import get_settings
+from .config import PHONE_NUMBER, get_settings
 from .health import (
     STARTED,
     Check,
@@ -134,8 +135,22 @@ def blocked_check(name: str, account: Account) -> Check:
     return Check(name, ok=True, detail=_("none blocked"))
 
 
+def username_check(account: Account) -> list[Check]:
+    """For an account without a phone number, its username: the only way
+    anyone can find it on Signal."""
+    me = account.me
+    if re.match(PHONE_NUMBER, account.id) or (me is not None and me.number):
+        return []
+    name = _("Username")
+    if me is not None and me.username:
+        return [Check(name, ok=True, detail=f"@{me.username}")]
+    detail = _("none, and without a phone number, nobody can find the bot")
+    return [Check(name, ok=False, detail=detail)]
+
+
 def account_checks(account: Account | Exception) -> list[Check]:
-    """Everyone's safety number trusted, nobody the bot talks to blocked."""
+    """Everyone's safety number trusted, nobody the bot talks to blocked, and
+    without a phone number, a username."""
     names = (_("Safety numbers"), _("Recipients"))
     if isinstance(account, Exception):
         return [Check(name, ok=False, detail=describe(account)) for name in names]
@@ -151,6 +166,7 @@ def account_checks(account: Account | Exception) -> list[Check]:
             else _("all trusted"),
         ),
         blocked_check(names[1], account),
+        *username_check(account),
     ]
 
 
