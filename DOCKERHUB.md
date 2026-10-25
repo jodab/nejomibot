@@ -68,7 +68,10 @@ You need:
    message or call with a verification code. Don't use your own number, or
    any number that is in use with Signal on a phone: registering it for the
    bot signs it out of Signal everywhere else. A cheap prepaid SIM card
-   works, and a landline can receive the code as a voice call.
+   works, and a landline can receive the code as a voice call. Instead, the
+   bot can also be linked to a phone with Signal, as Signal Desktop is, and
+   use that phone's account
+   ([Linking to a phone](https://github.com/jodab/nejomibot#linking-to-a-phone)).
 3. **Signal on your phone.** You will be the bot's admin.
 4. **A free [OpenWeatherMap](https://openweathermap.org/) API key** for the
    weather: sign up, then copy the key from
@@ -76,8 +79,8 @@ You need:
    can take up to two hours to become active.
 5. **Your photos** in a folder, as JPEG, PNG, GIF, WebP, AVIF or HEIC files,
    with or without subfolders.
-6. **A web browser** on any computer or phone, to solve the captcha that
-   Signal requires when you register the number.
+6. **A web browser** on any computer or phone, to solve a captcha if Signal
+   requires one when you register the number.
 
 Podman works too: type `podman` wherever this guide says `docker`
 (`podman compose` requires podman-compose or Docker Compose to be
@@ -186,9 +189,15 @@ docker compose exec nejomibot signal-account.sh setup
 If the bot isn't running, run the tool in a container of its own instead:
 `docker compose run --rm nejomibot signal-account.sh setup`.
 
-1. **Register or link?** Press Enter to choose `r`, register. Don't link the
-   bot to a phone (see Keep it safe, below).
-2. **The captcha.** Signal almost always requires one first. Open
+1. **Register or link?** Press Enter to choose `r`, register. To link the
+   bot to a phone with Signal instead, type `l`, scan the QR code that the
+   tool shows with that phone (in Signal, **Settings > Linked devices > Link
+   a new device**), and continue with step 4. A linked bot has a few
+   drawbacks, which
+   [Linking to a phone](https://github.com/jodab/nejomibot#linking-to-a-phone)
+   describes.
+2. **The captcha, if Signal requires one.** If Signal wants a captcha
+   solved before it sends the code, the tool asks for it. Open
    [signalcaptchas.org/registration/generate.html](https://signalcaptchas.org/registration/generate.html)
    in a browser and solve the captcha. When **Open Signal** appears,
    right-click it (on a phone, press and hold it) and copy the link. Paste it
@@ -201,7 +210,8 @@ If the bot isn't running, run the tool in a container of its own instead:
 4. **Profile, username, PIN and privacy.** Press Enter to skip any of these.
    Do give the bot a **name**, or Signal shows its phone number instead, and
    set a **PIN** (answer `y`), which prevents anyone else from registering
-   the number. Keep the PIN somewhere safe.
+   the number. Keep the PIN somewhere safe. A linked bot has the phone's
+   profile, and the tool skips the PIN, which only the phone can set.
 
 When the tool shows `== Done` followed by the account, the bot starts within
 seconds. Its log then shows lines such as:
@@ -322,10 +332,11 @@ version from the Tags tab.
 - **Never publish signal-cli-rest-api's port, 8080.** It has no password:
   anyone who can reach it controls the bot's Signal account. The Compose
   file publishes nothing.
-- **Give the bot an account of its own, and register it; don't link it to
-  your phone.** When the bot is linked to a phone, anything typed there in a
-  direct chat with someone reaches the bot as if that person had sent it,
-  admin commands included.
+- **Mind what is typed on a linked phone.** When the bot is linked to a
+  phone, a command typed there in a direct chat with someone reaches the
+  bot as if that person had sent it, admin commands included. A number
+  registered for the bot alone, or a phone kept for the bot's account,
+  avoids this.
 - **Keep `data` private.** It holds your API key and phone numbers; step 3
   makes it accessible to the bot alone.
 

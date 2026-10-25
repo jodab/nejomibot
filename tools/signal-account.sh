@@ -20,9 +20,9 @@
 #   verify CODE [--pin]        finish registering with the code; --pin asks for
 #                              the PIN of a number with a registration lock
 #   link [NAME]                make signal-cli a linked device of a phone,
-#                              called NAME there (default nejomibot): shows a
-#                              QR code to scan, and waits for it. Not for the
-#                              bot: see LINKED below
+#                              called NAME there (default nejomibot), to use
+#                              its account: shows a QR code to scan, and
+#                              waits for it (see LINKED below)
 #
 # The account
 #   status                     the account and the REST API (the default)
@@ -130,13 +130,15 @@
 # changes what differs from it: where that folder is, as in the bot's
 # container, what the tool changes in the profile goes there too.
 #
-# LINKED: the bot needs an account of its own: a number registered for it, or
-# an account without a number, as Signal Login creates, restored into
-# signal-cli with its Recovery Key, which signal-cli-rest-api can't do yet
-# (see the README). Linked to a phone, what its owner types in a direct chat
-# reaches the bot as if the other person sent it (signalbot can't tell them
-# apart), so a command typed there acts as theirs, and an admin's commands as
-# the admin's.
+# LINKED: linked to a phone, the bot uses the phone's account, which stays
+# there. It needs no number of its own, and it's how signal-cli-rest-api can
+# take an account without a number, as Signal Login creates (see the README).
+# The phone has to come online at least once every 30 days, or Signal
+# unlinks the bot, and only the phone can link it again, set the PIN or link
+# other devices. What is typed on the phone in a direct chat reaches the bot
+# as if the other person sent it (signalbot can't tell them apart), so a
+# command typed there acts as theirs, and in a chat with an admin, as the
+# admin's. A phone kept for the bot avoids that.
 
 set -euo pipefail
 
@@ -869,8 +871,12 @@ get_code() {
 link_device() {
   local name=$1 link new="" waited=0 known
   local -a before
-  warn "Linked to a phone, the bot takes what its owner types in a direct chat as sent by the other person, and runs it as theirs: an admin's commands too. The bot needs an account of its own (see --help, LINKED)."
-  confirm "Link to a phone all the same?" || die "Nothing has been changed."
+  info "Once linked, the bot uses the phone's account. Keep in mind (--help, LINKED):"
+  info "  - What is typed on the phone in a direct chat reaches the bot as if the"
+  info "    other person sent it, and a command there acts as theirs: a phone kept"
+  info "    for the bot suits it best."
+  info "  - The phone has to come online at least once every 30 days, or Signal"
+  info "    unlinks the bot, and only the phone can link it again."
   list_accounts
   before=("${accounts[@]}")
   if command -v qrencode >/dev/null; then
@@ -956,14 +962,13 @@ cmd_setup() {
   fi
 
   step "The account"
+  local linked=0 # linked to a phone just now
   configured_account
   if [[ $account =~ $PHONE_NUMBER || $account =~ $SIGNAL_ID ]] && is_registered "$account"; then
     info "$account is registered in signal-cli already."
   else
-    info "The bot needs an account of its own: a number registered here, or one"
-    info "without a number restored with its Recovery Key, which signal-cli-rest-api"
-    info "can't do yet (see the README). Linked to a phone, it would take commands"
-    info "typed on the phone as sent by the other person."
+    info "The bot needs a Signal account: a number registered here for the bot"
+    info "alone, or the account of a phone with Signal, which it is linked to."
     ask "Register a number as a new Signal account (r), or link to a phone with Signal (l)?" r
     case ${answer,,} in
       r*)
@@ -972,7 +977,10 @@ cmd_setup() {
         get_code
         verify "$answer" 0
         ;;
-      l*) link_device "$DEFAULT_DEVICE" ;;
+      l*)
+        link_device "$DEFAULT_DEVICE"
+        linked=1
+        ;;
       *) die "Neither r nor l: stopped." ;;
     esac
   fi
@@ -1022,7 +1030,10 @@ cmd_setup() {
   done
 
   step "The PIN"
-  if numberless; then
+  if ((linked)); then
+    info "Only the phone sets the registration lock PIN, in Signal's settings: a"
+    info "linked device can't. Skipped."
+  elif numberless; then
     info "A registration lock PIN guards a phone number, which this account doesn't"
     info "have: its Recovery Key restores it. Skipped."
   else

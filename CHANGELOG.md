@@ -4,6 +4,20 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- Linking the bot to a phone with Signal, as a linked device, is a
+  supported alternative to registering a number for it: the README's new
+  section "Linking to a phone" describes how, and what it means for the
+  bot. `signal-account.sh` no longer asks for confirmation before it links:
+  it notes the drawbacks, then shows the QR code. After linking, `setup`
+  skips the registration lock PIN, which only the phone can set.
+- The setup guides no longer have you solve a captcha before you register
+  the bot's number: Signal doesn't always require one, and
+  `signal-account.sh` asks for one only when Signal does, as it did before.
+
 ## 0.99.30 - 2026-10-25
 
 ### Added

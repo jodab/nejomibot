@@ -126,12 +126,14 @@ of signalbot and signal-cli-rest-api for them.
   them, move to it.
 - [ ] **What else signalbot lacks:** it puts a sync message's destination in
   a `DataMessage`'s source fields, so a command typed on a linked phone looks
-  as if the other person had sent it (the bot warns against linking
-  instead); `SendError` keeps only the HTTP status, not signal-cli-rest-api's
-  error text (`messages.describe()`); `SQLiteStorage` has no `close()` (the
-  tests filter the ResourceWarning); `MessageActions._log_send_errors` names
-  the recipient at WARNING level; and it depends on phonenumbers, 41 MB,
-  where phonenumberslite would do (uv's `exclude-dependencies` swaps them).
+  as if the other person had sent it (signal-account.sh and the README
+  describe it as a drawback of linking; once signalbot tells sync messages
+  apart, decide what the bot does with them); `SendError` keeps only the
+  HTTP status, not signal-cli-rest-api's error text (`messages.describe()`);
+  `SQLiteStorage` has no `close()` (the tests filter the ResourceWarning);
+  `MessageActions._log_send_errors` names the recipient at WARNING level;
+  and it depends on phonenumbers, 41 MB, where phonenumberslite would do
+  (uv's `exclude-dependencies` swaps them).
   A received message its models can't validate (pydantic's
   `ValidationError`, which its receiving doesn't catch, unlike
   `UnknownMessageFormatError`), or a failed group refresh, ends its

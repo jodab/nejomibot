@@ -70,15 +70,17 @@ guide as it appears on Docker Hub.
    message or call with a verification code. Don't use your own number, or
    any number that is in use with Signal on a phone: registering it for the
    bot signs it out of Signal everywhere else. A cheap prepaid SIM card
-   works, and a landline can receive the code as a voice call.
+   works, and a landline can receive the code as a voice call. Instead, the
+   bot can also be linked to a phone with Signal, as Signal Desktop is, and
+   use that phone's account ([Linking to a phone](#linking-to-a-phone)).
 3. **Signal on your phone.** You will be the bot's admin.
 4. **A free [OpenWeatherMap](https://openweathermap.org/) API key** for the
    weather, from [your API keys page](https://home.openweathermap.org/api_keys).
    A new key can take up to two hours to become active.
 5. **Your photos** in a folder, as JPEG, PNG, GIF, WebP, AVIF or HEIC files,
    with or without subfolders.
-6. **A web browser** on any computer or phone, to solve the captcha that
-   Signal requires when you register the number.
+6. **A web browser** on any computer or phone, to solve a captcha if Signal
+   requires one when you register the number.
 
 ### Step 1: Create a folder for the bot
 
@@ -163,11 +165,13 @@ docker compose exec nejomibot signal-account.sh setup
 If the bot isn't running, run the tool in a container of its own instead:
 `docker compose run --rm nejomibot signal-account.sh setup`.
 
-1. **Register or link?** Press Enter to choose `r`, register. Don't link the
-   bot to a phone: the bot would then treat anything typed on that phone in
-   a direct chat as coming from the other person
-   ([why](#who-may-use-what)).
-2. **The captcha.** Open
+1. **Register or link?** Press Enter to choose `r`, register. To link the
+   bot to a phone with Signal instead, type `l`, scan the QR code that the
+   tool shows with that phone (in Signal, **Settings > Linked devices > Link
+   a new device**), and continue with step 4. A linked bot has a few
+   drawbacks, which [Linking to a phone](#linking-to-a-phone) describes.
+2. **The captcha, if Signal requires one.** If Signal wants a captcha
+   solved before it sends the code, the tool asks for it. Open
    [signalcaptchas.org/registration/generate.html](https://signalcaptchas.org/registration/generate.html)
    in a browser and solve the captcha. When **Open Signal** appears,
    right-click it (on a phone, press and hold it), copy the link, and paste
@@ -180,7 +184,8 @@ If the bot isn't running, run the tool in a container of its own instead:
 4. **Profile, username, PIN and privacy.** Press Enter to skip any of these.
    Do give the bot a **name**, or Signal shows its phone number instead, and
    set a **PIN** (answer `y`), which prevents anyone else from registering
-   the number.
+   the number. A linked bot has the phone's profile, and the tool skips the
+   PIN, which only the phone can set.
 
 When the tool shows `== Done` followed by the account, the bot starts within
 seconds, and its log shows `INFO nejomibot.bot: 0 timers, in
@@ -499,14 +504,11 @@ restart, an edit of a message sent before the restart isn't run, because
 the bot can't tell what the original did, and the bot says so; send the
 command again as a new message instead.
 
-The bot needs an account of its own: a phone number registered for it, or
-[an account without a phone number](#an-account-without-a-phone-number). If
-the account is also signed in on a phone, for example when signal-cli is linked to that
-phone, a command typed on the phone in a direct chat looks to the bot as if
-the other person had sent it (signalbot can't tell the two apart), so the
-bot would treat it as that person's command, admin commands included.
-[signal-account.sh](#setting-up-and-managing-the-signal-account) warns
-about this before it links.
+If the bot's account is also in use on another device, such as a phone that
+the bot is [linked to](#linking-to-a-phone), a command typed there in a
+direct chat looks to the bot as if the other person had sent it (signalbot
+can't tell the two apart), so the bot treats it as that person's command,
+admin commands included.
 
 `/delete` works in every chat the bot is in, groups included, but only for
 admins; from anyone else, it is ignored. It deletes the bot's latest message
@@ -1603,13 +1605,11 @@ check.
 
 [tools/signal-account.sh](tools/signal-account.sh) does everything
 signal-cli-rest-api can do with the account itself: registering the number
-or linking signal-cli to a phone, and managing the profile, username, PIN,
-privacy, linked devices, safety numbers and rate limits; `--help` lists it
-all. The bot needs an account of its own, registered for it: linked to a
-phone, it would treat commands typed on that phone as coming from the other
-person, so the tool warns before it links. The tool is included in the
-bot's image, where it finds signal-cli-rest-api and the account in the
-bot's configuration, so it needs no options:
+or [linking signal-cli to a phone](#linking-to-a-phone), and managing the
+profile, username, PIN, privacy, linked devices, safety numbers and rate
+limits; `--help` lists it all. The tool is included in the bot's image,
+where it finds signal-cli-rest-api and the account in the bot's
+configuration, so it needs no options:
 
 ```sh
 podman exec -it nejomibot signal-account.sh                 # status: account, profile, devices
@@ -1665,6 +1665,35 @@ challenge that lifts the limit, because signalbot doesn't pass it on.
 test message: if Signal is rate-limiting the bot, the response includes a
 challenge, and the tool guides you through the captcha that lifts the limit.
 
+### Linking to a phone
+
+Instead of a number registered for it alone, the bot can use the account of
+a phone with Signal, as a linked device of that phone, the way Signal
+Desktop is. Choose `l` in `signal-account.sh setup`, or run
+`signal-account.sh link`, and scan the QR code that the tool shows with the
+phone: in Signal, **Settings > Linked devices > Link a new device**. The
+bot then needs no number of its own, nor a verification code or captcha;
+the account stays on the phone, and the phone shows the bot's chats. It is
+also how
+signal-cli-rest-api can use
+[an account without a phone number](#an-account-without-a-phone-number).
+Set `account` to the account's phone number, or its Signal ID; the tool
+shows it once the bot is linked.
+
+A linked bot has a few drawbacks:
+
+- What is typed on the phone in a direct chat reaches the bot as if the
+  other person had sent it, since signalbot can't tell the two apart: the
+  bot runs a command typed there as theirs, with an admin's rights in a
+  chat with an admin, and answers them. Other messages typed there can get
+  them the bot's greeting, and `/incoming` lists them as theirs. In a
+  group, a command typed on the phone runs as anyone's would. A phone kept
+  for the bot's account avoids all of this.
+- The phone has to come online at least once every 30 days; otherwise,
+  Signal unlinks the bot, and only the phone can link it again.
+- Only the phone can set the registration lock PIN and link other devices,
+  so `setup` skips the PIN.
+
 ### An account without a phone number
 
 Signal Login, in the beta of Signal for Android, creates a Signal account
@@ -1674,8 +1703,8 @@ and its Recovery Key, the only way to restore the account. The bot can use
 such an account: set `account` to its Signal ID.
 
 signal-cli-rest-api can link signal-cli to such an account
-(`signal-account.sh link`), with the drawback described above, but it can't
-restore one with its Recovery Key yet. signal-cli itself can, with its
+([Linking to a phone](#linking-to-a-phone)), but it can't restore one with
+its Recovery Key yet. signal-cli itself can, with its
 `register --recovery-key` command, run on signal-cli-rest-api's data while
 signal-cli-rest-api is stopped; see
 [signal-cli's documentation](https://github.com/AsamK/signal-cli/blob/master/man/signal-cli.1.adoc).
@@ -1900,9 +1929,9 @@ again.
 the Quadlets or `podman run` below, the steps are the same, with `podman exec
 -it nejomibot` in place of `docker compose exec nejomibot`: put
 `config.toml` in the data folder, start the bot, which waits for its account
-(as its log shows), register the account with `signal-account.sh setup` in
-the bot's container, then send `/help` from an admin's phone, and use
-`/allow` and the timers. The account can also be set up before the bot
+(as its log shows), register or link the account with `signal-account.sh
+setup` in the bot's container, then send `/help` from an admin's phone, and
+use `/allow` and the timers. The account can also be set up before the bot
 starts, with the tool in a container of its own
 ([how](#setting-up-and-managing-the-signal-account)).
 
