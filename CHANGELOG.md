@@ -4,6 +4,32 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `/help <command>`, as in `/help photo`: the command's page, with how to use
+  it and examples, in the chat's language, for any command the sender may
+  use. It takes the command by any of its names, with or without its period
+  or slash, an alias, an album's shortcut or a special's name. Some pages
+  say more to the admins, in a direct chat, such as `/today preview` on
+  `/today`'s.
+- `startup_notice`: set it to `false` to turn off the notice the admins get
+  at each start.
+
+### Changed
+
+- `/help` is shorter and easier to read: a line for each everyday command,
+  without what may follow it, in groups, then how to see a command's page.
+  For the admins, in a direct chat, the admin commands follow by name, a line
+  for each group, rather than a line for each way to use them and notes on
+  what follows them, which are now on the commands' pages. The admins'
+  `/help` is 32 lines rather than 73, and like everyone else's, it fits in
+  one message in every language, rather than ending behind **Read more**.
+- The welcome a new admin gets ends with how to see a command's page.
+- The admins get the notice of a start at every start, as soon as the bot is
+  ready, rather than at most once in ten minutes.
+
 ## 0.99.26 - 2026-10-25
 
 ### Changed

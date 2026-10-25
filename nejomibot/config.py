@@ -248,6 +248,9 @@ class Settings(BaseSettings):
     # commands, in a direct chat with the bot. They may make others admins,
     # with /admin add, but no command can take away what they may do.
     admins: list[Person] = []
+    # The notice they get of each start, once the bot is ready: its version,
+    # what needs their attention, and how the bot is (notices.py)
+    startup_notice: bool = True
 
     # The bot's Signal profile: set as the bot starts, where data_dir/bot.txt
     # has none of it, and kept there from then on, with every change /name,
@@ -327,11 +330,16 @@ class Settings(BaseSettings):
         return ZoneInfo(self.photos_timezone or self.timezone)
 
     @property
+    def timezone_city(self) -> str:
+        """The city that timezone is named after, as the bot's times are in
+        Stockholm time."""
+        return self.timezone.rsplit("/", 1)[-1].replace("_", " ")
+
+    @property
     def clock_zones(self) -> dict[str, ZoneInfo]:
         """The places /info shows the time in, by name."""
         if not self.clocks:
-            city = self.timezone.rsplit("/", 1)[-1].replace("_", " ")
-            return {city: self.tz}
+            return {self.timezone_city: self.tz}
         return {name: ZoneInfo(zone) for name, zone in self.clocks.items()}
 
     @property

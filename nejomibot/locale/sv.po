@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 03:16+0300\n"
+"POT-Creation-Date: 2026-10-25 04:44+0200\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -152,10 +152,10 @@ msgstr "Du är admin för den här boten nu."
 #, python-brace-format
 msgid ""
 "Here, in a direct chat with the bot, you may use every command: {help} lists "
-"them all, with what each takes. A few to start with:"
+"them all. A few to start with:"
 msgstr ""
 "Här, i en direktchatt med boten, får du använda alla kommandon: {help} "
-"listar dem alla, med vad vart och ett tar. Några att börja med:"
+"listar dem alla. Några att börja med:"
 
 #: nejomibot/admins.py
 msgid "Thank you for helping look after the bot."
@@ -1070,196 +1070,513 @@ msgid "(peak {peak})"
 msgstr "(topp {peak})"
 
 #: nejomibot/help.py
-msgid "[<album>]"
-msgstr "[<album>]"
+msgid ""
+"In a group, those of its people, the coming ones first. /today names them on "
+"the day."
+msgstr ""
+"I en grupp: de som hör till gruppen, de närmaste först. /idag nämner dem på "
+"dagen."
+
+#: nejomibot/help.py
+msgid "In a direct chat, you see all of them, numbered, with where each shows."
+msgstr "I en direktchatt ser du alla, numrerade, och var de visas."
+
+#: nejomibot/help.py
+msgid ""
+"Who may use the everyday commands: people, in a direct chat with the bot, "
+"and groups, everyone in them.\n"
+"/allowed – the list, numbered\n"
+"/allow <who> – add someone, or a group the bot is in\n"
+"/disallow 2 – take number 2 off\n"
+"<who> is a number from /contacts, a phone number, a Signal ID, a group's ID "
+"or name, or someone's name."
+msgstr ""
+"Vilka som får använda vardagskommandona: personer, i en direktchatt med "
+"boten, och grupper, alla i dem.\n"
+"/tillåtna – listan, numrerad\n"
+"/tillåt <vem> – lägg till någon, eller en grupp som boten är med i\n"
+"/neka 2 – ta bort nummer 2\n"
+"<vem> är ett nummer från /kontakter, ett telefonnummer, ett Signal-ID, en "
+"grupps ID eller namn, eller någons namn."
+
+#: nejomibot/help.py
+msgid ""
+"Admins may use every command, the admin commands in a direct chat with the "
+"bot.\n"
+"/admins – who they are, numbered\n"
+"/admin add <who> – make someone an admin, with a welcome\n"
+"/admin add <who> <language> – and the bot speaks that language with them\n"
+"/admin remove 2 – number 2 is no longer one\n"
+"<who> is a number from /contacts, a phone number, a Signal ID or a name. "
+"Only the admins in the config can add and remove admins."
+msgstr ""
+"Admins får använda alla kommandon, adminkommandona i en direktchatt med "
+"boten.\n"
+"/admins – vilka de är, numrerade\n"
+"/admin lägg till <vem> – gör någon till admin, med ett välkomstmeddelande\n"
+"/admin lägg till <vem> <språk> – och boten talar det språket med hen\n"
+"/admin ta bort 2 – nummer 2 är inte längre admin\n"
+"<vem> är ett nummer från /kontakter, ett telefonnummer, ett Signal-ID eller "
+"ett namn. Bara admins i konfigurationen kan lägga till och ta bort admins."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"Timers run commands on a schedule and post their answers, such as a daily "
+"post.\n"
+"/timers – the timers, numbered\n"
+"/timer add 08:00 1,2 /today – every day at 08:00, to chats 1 and 2 of /"
+"chats\n"
+"/timer add mon-fri 07:30 /weather; /photo – on weekdays, to you\n"
+"/timer remove 2 – remove number 2\n"
+"/timer run 2 – run it now\n"
+"More ways to say when: 08:00,18:30 · sat,sun 10:00 · {date} 15:00, once · "
+"tomorrow 08:00 · every 2h or 30m, all in {zone} time."
+msgstr ""
+"Timrar kör kommandon på schema och postar svaren, som ett dagligt inlägg.\n"
+"/timers – timrarna, numrerade\n"
+"/timer lägg till 08:00 1,2 /idag – varje dag kl. 08:00, till chatt 1 och 2 "
+"i /chats\n"
+"/timer lägg till mån-fre 07:30 /väder; /bild – på vardagar, till dig\n"
+"/timer ta bort 2 – ta bort nummer 2\n"
+"/timer kör 2 – kör den nu\n"
+"Fler sätt att ange när: 08:00,18:30 · lör,sön 10:00 · {date} 15:00, en gång "
+"· imorgon 08:00 · varje 2h eller 30m, alltid enligt tiden i {zone}."
+
+#: nejomibot/help.py
+msgid ""
+"Post to other chats, by their numbers in /chats.\n"
+"/msg 1,2 Hello! – post a text to chats 1 and 2\n"
+"/run 1 /weather; /photo – post what the commands answer to chat 1\n"
+"/run runs what a timer can, as if you sent it here."
+msgstr ""
+"Posta i andra chattar, med deras nummer i /chats.\n"
+"/skicka 1,2 Hej! – posta en text i chatt 1 och 2\n"
+"/kör 1 /väder; /bild – posta vad kommandona svarar i chatt 1\n"
+"/kör kör samma kommandon som en timer kan, som om du skickade dem här."
+
+#: nejomibot/help.py
+msgid ""
+"Specials post texts and what other commands answer, in one go.\n"
+"/specials – yours\n"
+"/special add /morning Good morning! /today + /weather; /uniquephoto – a new "
+"one, or a change\n"
+"/special shortcuts /morning /gm – other names for it; - for none\n"
+"/special everyone /morning – for everyone allowed, groups too; /help lists "
+"it\n"
+"/special admins /morning – for the admins alone again\n"
+"/special remove /morning – remove it\n"
+"Parts are separated by ; or line breaks, and text before a command heads its "
+"answer. A + in place of a ; posts the parts on either side of it in one "
+"message. Text keeps the formatting you give it."
+msgstr ""
+"Specialkommandon postar texter och vad andra kommandon svarar, i ett svep.\n"
+"/specials – dina\n"
+"/special lägg till /morning God morgon! /idag + /väder; /unikbild – ett "
+"nytt, eller en ändring\n"
+"/special genvägar /morning /gm – andra namn för det; - för inga\n"
+"/special för alla /morning – för alla tillåtna, även i grupper; /hjälp "
+"listar det\n"
+"/special för admins /morning – bara för admins igen\n"
+"/special ta bort /morning – ta bort det\n"
+"Delar skiljs åt med ; eller radbrytningar, och text före ett kommando blir "
+"rubrik för dess svar. Ett + i stället för ; postar delarna på båda sidor om "
+"det i ett meddelande. Texten behåller formateringen du ger den."
+
+#: nejomibot/help.py
+msgid ""
+"/today names them in groups, on the day.\n"
+"/birthday add 1990-03-14 Alice – a contact's, in their groups, with the age\n"
+"/birthday add 03-14 Bob – without the year, no age\n"
+"/birthday add 05-01 1,2 Grandma – someone not on Signal, in chats 1 and 2 "
+"of /chats; without numbers, in every group\n"
+"/birthday remove 2 – by its number in /birthdays\n"
+"/nameday add and /nameday remove work the same way. A contact must be saved "
+"by name, with /contacts add."
+msgstr ""
+"/idag nämner dem i grupper, på dagen.\n"
+"/födelsedag lägg till 1990-03-14 Alice – en kontakts, i hens grupper, med "
+"åldern\n"
+"/födelsedag lägg till 03-14 Bob – utan år, ingen ålder\n"
+"/födelsedag lägg till 05-01 1,2 Mormor – någon som inte har Signal, i chatt "
+"1 och 2 i /chats; utan nummer, i alla grupper\n"
+"/födelsedag ta bort 2 – med dess nummer i /födelsedagar\n"
+"/namnsdag lägg till och /namnsdag ta bort fungerar likadant. En kontakt "
+"måste vara sparad med namn, med /kontakter lägg till."
+
+#: nejomibot/help.py
+msgid ""
+"What everyone sees of the bot in Signal.\n"
+"/profile – the profile\n"
+"/name <name> – its name\n"
+"/about <text> – the text under its name\n"
+"/avatar – send a picture with this as its caption\n"
+"/username <name> – its username, and a link that starts a chat with it\n"
+"/about remove, /avatar remove and /username remove take them away. Signal "
+"adds a number to a username, as mybot.42, unless you give one."
+msgstr ""
+"Det alla ser av boten i Signal.\n"
+"/profil – profilen\n"
+"/namn <namn> – botens namn\n"
+"/om <text> – texten under botens namn\n"
+"/profilbild – skicka en bild med detta som bildtext\n"
+"/användarnamn <namn> – botens användarnamn, och en länk som startar en chatt "
+"med den\n"
+"/om ta bort, /profilbild ta bort och /användarnamn ta bort tar bort dem. "
+"Signal lägger till ett nummer till ett användarnamn, som mybot.42, om du "
+"inte anger ett."
 
 #: nejomibot/help.py
 msgid "a random photo"
 msgstr "en slumpvis vald bild"
 
 #: nejomibot/help.py
-msgid "one from then: 2017, 2017-05 or 2017-05-14 15:30"
-msgstr "en från då: 2017, 2017-05 eller 2017-05-14 15:30"
-
-#: nejomibot/help.py
-msgid "[<album>] <date>"
-msgstr "[<album>] <datum>"
-
-#: nejomibot/help.py
-msgid "a photo alone, without its caption"
-msgstr "bara bilden, utan bildtext"
-
-#: nejomibot/help.py
-msgid "[<album>] [<date>]"
-msgstr "[<album>] [<datum>]"
+msgid ""
+"The caption says when and where it was taken.\n"
+"/photo – from every album\n"
+"/photo <album> – from that album\n"
+"/photo 2017 – one taken in 2017\n"
+"/photo 2017-05-14 – one taken that day\n"
+"/photo 2017-05-14 15:30 – the one taken closest to then\n"
+"/photo <album> 2017 – both\n"
+"Give a date as exactly as you like: a year, a month (2017-05), a day, an "
+"hour (2017-05-14 15) or a minute. If none was taken then, you get the "
+"nearest, and how far off it is. /albums lists the albums."
+msgstr ""
+"Bildtexten säger när och var den togs.\n"
+"/bild – från alla album\n"
+"/bild <album> – från det albumet\n"
+"/bild 2017 – en tagen 2017\n"
+"/bild 2017-05-14 – en tagen den dagen\n"
+"/bild 2017-05-14 15:30 – den som togs närmast då\n"
+"/bild <album> 2017 – båda\n"
+"Ange ett datum så exakt du vill: ett år, en månad (2017-05), en dag, en "
+"timme (2017-05-14 15) eller en minut. Om ingen togs då får du den närmaste, "
+"och hur långt ifrån den är. /albums visar albumen."
 
 #: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr "en bild som inte skickats än"
 
 #: nejomibot/help.py
+msgid ""
+"No photo comes twice until every photo has been sent; then a new round "
+"starts. It has the same caption as /photo.\n"
+"/uniquephoto – from every album\n"
+"/uniquephoto <album> – from that album, which has a round of its own"
+msgstr ""
+"Ingen bild kommer två gånger förrän alla bilder har skickats; sedan börjar "
+"en ny omgång. Den har samma bildtext som /bild.\n"
+"/unikbild – från alla album\n"
+"/unikbild <album> – från det albumet, som har en egen omgång"
+
+#: nejomibot/help.py
+msgid "a photo without its caption"
+msgstr "en bild utan bildtext"
+
+#: nejomibot/help.py
+msgid ""
+"Picked as /photo picks it, and sent alone, without a caption or heading.\n"
+"/sphoto – from every album\n"
+"/sphoto <album> – from that album\n"
+"/sphoto 2017-05-14 – one taken then, as /photo takes dates"
+msgstr ""
+"Väljs som /bild väljer, och skickas ensam, utan bildtext eller rubrik.\n"
+"/enkelbild – från alla album\n"
+"/enkelbild <album> – från det albumet\n"
+"/enkelbild 2017-05-14 – en tagen då, som /bild tar datum"
+
+#: nejomibot/help.py
+msgid "this day, years ago"
+msgstr "den här dagen, för år sedan"
+
+#: nejomibot/help.py
+msgid ""
+"A photo taken on this day in an earlier year, or else within three days of "
+"it, under a heading that says how many years ago.\n"
+"/onthisday – from every album\n"
+"/onthisday <album> – from that album"
+msgstr ""
+"En bild tagen den här dagen ett tidigare år, annars inom tre dagar från den, "
+"under en rubrik som säger hur många år sedan.\n"
+"/dennadag – från alla album\n"
+"/dennadag <album> – från det albumet"
+
+#: nejomibot/help.py
 msgid "the albums"
 msgstr "albumen"
 
 #: nejomibot/help.py
-msgid "a photo from this day, years ago"
-msgstr "en bild från den här dagen, för år sedan"
+msgid ""
+"How many photos each album has, from which years, and its shortcuts.\n"
+"/photo <album> – a photo from that album; every photo command takes one"
+msgstr ""
+"Hur många bilder varje album har, från vilka år, och dess genvägar.\n"
+"/bild <album> – en bild från det albumet; alla bildkommandon tar ett album"
 
 #: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "hur många bilder, och hur stora"
 
 #: nejomibot/help.py
-msgid "the date, and the day's holidays and birthdays"
-msgstr "datumet, och dagens helgdagar och födelsedagar"
+msgid ""
+"How many photos there are, and how big, by file type, and how many albums.\n"
+"/cache – the whole library\n"
+"/cache <album> – that album"
+msgstr ""
+"Hur många bilder det finns, och hur stora, per filtyp, och hur många album.\n"
+"/cache – hela biblioteket\n"
+"/cache <album> – det albumet"
 
 #: nejomibot/help.py
-msgid "[<city>]"
-msgstr "[<ort>]"
+msgid "the date, holidays and birthdays"
+msgstr "datumet, helgdagar och födelsedagar"
+
+#: nejomibot/help.py
+msgid ""
+"The date and time, the day's holidays, and in a group, its birthdays and "
+"name days."
+msgstr ""
+"Datum och tid, dagens helgdagar, och i en grupp, dess födelsedagar och "
+"namnsdagar."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"/today preview – what /today says in each chat\n"
+"/today preview {date} – on another day; tomorrow works too"
+msgstr ""
+"/idag förhandsvisa – vad /idag säger i varje chatt\n"
+"/idag förhandsvisa {date} – en annan dag; imorgon fungerar också"
 
 #: nejomibot/help.py
 msgid "the weather now"
 msgstr "vädret just nu"
 
 #: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"From OpenWeatherMap, with the day's sunrise and sunset.\n"
+"/weather – in {city}\n"
+"/weather Helsinki – somewhere else\n"
+"/weather Springfield,US – the one in the US"
+msgstr ""
+"Från OpenWeatherMap, med dagens soluppgång och solnedgång.\n"
+"/väder – i {city}\n"
+"/väder Helsinki – någon annanstans\n"
+"/väder Springfield,US – den i USA"
+
+#: nejomibot/help.py
 msgid "the weather today and tomorrow"
 msgstr "vädret idag och imorgon"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"For each day, the worst weather, the lowest and highest temperatures, and "
+"the chance of rain or snow. Late in the evening, tomorrow and the day "
+"after.\n"
+"/forecast – in {city}\n"
+"/forecast Helsinki – somewhere else"
+msgstr ""
+"För varje dag: det värsta vädret, den lägsta och högsta temperaturen, och "
+"risken för regn eller snö. Sent på kvällen, imorgon och dagen därpå.\n"
+"/prognos – i {city}\n"
+"/prognos Helsinki – någon annanstans"
 
 #: nejomibot/help.py
 msgid "the time, and an exchange rate"
 msgstr "tiden, och en valutakurs"
 
 #: nejomibot/help.py
-msgid "is the bot there?"
-msgstr "är boten där?"
+msgid ""
+"The current time in one or more places, and an exchange rate, as the bot's "
+"settings have them."
+msgstr ""
+"Aktuell tid på en eller flera platser, och en valutakurs, enligt botens "
+"inställningar."
 
 #: nejomibot/help.py
-msgid "[<library>|all|list]"
-msgstr "[<bibliotek>|alla|lista]"
+msgid "reminders for this chat"
+msgstr "påminnelser för den här chatten"
 
 #: nejomibot/help.py
-msgid "a fortune"
-msgstr "en spådom"
-
-#: nejomibot/help.py
-msgid "<when> <text>"
-msgstr "<när> <text>"
-
-#: nejomibot/help.py
-msgid "a reminder, here"
-msgstr "en påminnelse, här"
-
-#: nejomibot/help.py
-msgid "[remove <n>]"
-msgstr "[ta bort <n>]"
-
-#: nejomibot/help.py
-msgid "the reminders here; remove one"
-msgstr "påminnelserna här; ta bort en"
-
-#: nejomibot/help.py
-msgid "[add <things> · remove <n>,…]"
-msgstr "[lägg till <saker> · ta bort <n>,…]"
+#, python-brace-format
+msgid ""
+"The bot posts each reminder in this chat when it's due, in {zone} time.\n"
+"/remind 18:00 Cake! – at the next 18:00\n"
+"/remind 30m Tea – in 30 minutes; 2h or 1h30m too\n"
+"/remind fri 17:00 Pizza! – on Friday; tomorrow works too\n"
+"/remind {date} 15:00 Presents – on that date\n"
+"/remind – the reminders here, numbered\n"
+"/remind remove 2 – remove number 2"
+msgstr ""
+"Boten postar varje påminnelse i den här chatten när det är dags, enligt "
+"tiden i {zone}.\n"
+"/påminn 18:00 Tårta! – nästa gång klockan är 18:00\n"
+"/påminn 30m Te – om 30 minuter; även 2h eller 1h30m\n"
+"/påminn fre 17:00 Pizza! – på fredag; imorgon fungerar också\n"
+"/påminn {date} 15:00 Julklappar – det datumet\n"
+"/påminn – påminnelserna här, numrerade\n"
+"/påminn ta bort 2 – ta bort nummer 2"
 
 #: nejomibot/help.py
 msgid "this chat's list"
 msgstr "den här chattens lista"
 
 #: nejomibot/help.py
-msgid "the birthdays, the coming ones first"
-msgstr "födelsedagarna, de närmaste först"
+msgid ""
+"A shared list, such as for shopping.\n"
+"/list – the list, numbered\n"
+"/list add milk, eggs – add things, separated by commas\n"
+"/list remove 2,5 – take numbers 2 and 5 off\n"
+"/list clear – take everything off"
+msgstr ""
+"En gemensam lista, till exempel för handling.\n"
+"/lista – listan, numrerad\n"
+"/lista lägg till mjölk, ägg – lägg till saker, åtskilda med kommatecken\n"
+"/lista ta bort 2,5 – ta bort nummer 2 och 5\n"
+"/lista töm – ta bort allt"
 
 #: nejomibot/help.py
-msgid "the name days, the coming ones first"
-msgstr "namnsdagarna, de närmaste först"
+msgid "the coming birthdays"
+msgstr "kommande födelsedagar"
 
 #: nejomibot/help.py
-msgid "[<language>]"
-msgstr "[<språk>]"
+msgid "the coming name days"
+msgstr "kommande namnsdagar"
 
 #: nejomibot/help.py
-msgid "the bot's languages; one for here"
-msgstr "botens språk; vilket den talar här"
+msgid "a fortune"
+msgstr "en spådom"
 
 #: nejomibot/help.py
-msgid "these commands"
-msgstr "de här kommandona"
+#, python-brace-format
+msgid ""
+"A random saying: a proverb, a quote or a joke.\n"
+"/fortune – from {library}\n"
+"/fortune all – from every library\n"
+"/fortune list – the libraries\n"
+"/fortune startrek – from that library"
+msgstr ""
+"Ett slumpvis valt talesätt: ett ordspråk, ett citat eller ett skämt.\n"
+"/spådom – från {library}\n"
+"/spådom alla – från alla bibliotek\n"
+"/spådom lista – biblioteken\n"
+"/spådom startrek – från det biblioteket"
+
+#: nejomibot/help.py
+msgid "the bot's language here"
+msgstr "botens språk här"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"A language is given by its code or its own name. In a group, only an admin "
+"can change it.\n"
+"/language – the languages, and the one spoken here\n"
+"/language {code} – {language} here\n"
+"/language default – the bot's own again"
+msgstr ""
+"Ett språk anges med sin kod eller sitt eget namn. I en grupp kan bara en "
+"admin ändra det.\n"
+"/språk – språken, och det som talas här\n"
+"/språk {code} – {language} här\n"
+"/språk standard – botens eget igen"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "/language 3,1 {code} – for chats 3 and 1 of /chats"
+msgstr "/språk 3,1 {code} – för chatt 3 och 1 i /chats"
+
+#: nejomibot/help.py
+msgid "is the bot there?"
+msgstr "är boten där?"
+
+#: nejomibot/help.py
+msgid "The bot answers pong!, with how long your message took to reach it."
+msgstr "Boten svarar pong!, med hur lång tid ditt meddelande tog att nå den."
+
+#: nejomibot/help.py
+msgid "the commands you can use"
+msgstr "kommandona du kan använda"
+
+#: nejomibot/help.py
+msgid "/help photo – more about /photo, and so on for every command"
+msgstr "/hjälp bild – mer om /bild, och så vidare för alla kommandon"
 
 #: nejomibot/help.py
 msgid "how the bot and the server are"
 msgstr "hur boten och servern mår"
 
 #: nejomibot/help.py
-msgid "what /today says, in each chat"
-msgstr "vad /idag säger, i varje chatt"
+msgid ""
+"Two messages: the checks, the failed ones first, then the details: the bot, "
+"Signal, the network and the server."
+msgstr ""
+"Två meddelanden: kontrollerna, de misslyckade först, sedan detaljerna: "
+"boten, Signal, nätverket och servern."
 
 #: nejomibot/help.py
-msgid "[<date>]"
-msgstr "[<datum>]"
+msgid "whether the bot's messages arrived"
+msgstr "om botens meddelanden kom fram"
 
 #: nejomibot/help.py
-msgid "an album, and the birth date for its ages"
-msgstr "ett album, och födelsedatumet för åldern"
+#, python-brace-format
+msgid ""
+"The bot's {count} latest messages, wherever it sent them, and how many in "
+"each chat got and read each one, as 📬 3/4 · 👀 2. ⏳ means nobody has "
+"confirmed it yet, ⚠️ that nobody has in 10 minutes."
+msgstr ""
+"Botens {count} senaste meddelanden, var den än skickade dem, och hur många i "
+"varje chatt som fått och läst vart och ett, som 📬 3/4 · 👀 2. ⏳ betyder "
+"att ingen har bekräftat det än, ⚠️ att ingen har gjort det på 10 minuter."
 
 #: nejomibot/help.py
-msgid "<album> [<date>|-]"
-msgstr "<album> [<datum>|-]"
+msgid "what people wrote to the bot"
+msgstr "vad folk skrev till boten"
 
 #: nejomibot/help.py
-msgid "other names for /photo <album>"
-msgstr "andra namn för /bild <album>"
+msgid ""
+"The 50 latest messages people other than the admins sent the bot in direct "
+"chats.\n"
+"/incoming – the list, numbered\n"
+"/incoming 4,9 – forward those to you, in full"
+msgstr ""
+"De 50 senaste meddelandena som andra än admins skickat till boten i "
+"direktchattar.\n"
+"/inkorg – listan, numrerad\n"
+"/inkorg 4,9 – vidarebefordra dem till dig, i sin helhet"
 
 #: nejomibot/help.py
-msgid "<album> shortcuts <names>|-"
-msgstr "<album> genvägar <namn>|-"
+msgid "delete the bot's messages"
+msgstr "radera botens meddelanden"
 
 #: nejomibot/help.py
-msgid "[<who>]"
-msgstr "[<vem>]"
-
-#: nejomibot/help.py
-msgid "who the bot knows"
-msgstr "vilka boten känner till"
-
-#: nejomibot/help.py
-msgid "<who> <name>"
-msgstr "<vem> <namn>"
-
-#: nejomibot/help.py
-msgid "add a contact, or rename"
-msgstr "lägg till en kontakt, eller byt namn"
-
-#: nejomibot/help.py
-msgid "the safety numbers, or one's"
-msgstr "säkerhetsnumren, eller ett av dem"
-
-#: nejomibot/help.py
-msgid "<who> <safety number>"
-msgstr "<vem> <säkerhetsnummer>"
-
-#: nejomibot/help.py
-msgid "mark as verified"
-msgstr "markera som verifierad"
+msgid ""
+"For everyone, within a day of sending.\n"
+"/delete – the bot's latest message here, in groups too; again for the one "
+"before\n"
+"/delete list – its 50 latest messages, wherever it sent them, numbered\n"
+"/delete 2,5 – delete those"
+msgstr ""
+"För alla, inom ett dygn från att de skickades.\n"
+"/radera – botens senaste meddelande här, även i grupper; igen för det före\n"
+"/radera lista – dess 50 senaste meddelanden, var den än skickade dem, "
+"numrerade\n"
+"/radera 2,5 – radera dem"
 
 #: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "vilka som får använda boten"
 
 #: nejomibot/help.py
-msgid "<who>"
-msgstr "<vem>"
+msgid "let someone, or a group, use the bot"
+msgstr "låt någon, eller en grupp, använda boten"
 
 #: nejomibot/help.py
-msgid "put someone, or a group, on that list"
-msgstr "lägg till någon, eller en grupp, på listan"
-
-#: nejomibot/help.py
-msgid "<n>"
-msgstr "<n>"
-
-#: nejomibot/help.py
-msgid "take someone off it"
-msgstr "ta bort någon från listan"
+msgid "take someone off the allowed list"
+msgstr "ta bort någon från listan över tillåtna"
 
 #: nejomibot/help.py
 msgid "who the admins are"
@@ -1270,246 +1587,154 @@ msgid "make someone an admin, or no longer"
 msgstr "gör någon till admin, eller inte längre"
 
 #: nejomibot/help.py
-msgid "add <who> [<language>] · remove <n>"
-msgstr "lägg till <vem> [<språk>] · ta bort <n>"
+msgid "who the bot knows"
+msgstr "vilka boten känner till"
 
 #: nejomibot/help.py
-msgid "the bot's profile"
-msgstr "botens profil"
+msgid ""
+"Everyone the bot's Signal account knows, numbered, and whether each is "
+"verified.\n"
+"/contacts – everyone\n"
+"/contacts 3 – number 3 in full, with their safety number\n"
+"/contacts add 3 Alice – save number 3 as Alice, or rename them\n"
+"/contacts add @alice.42 Alice – someone new, by username or phone number\n"
+"In place of a number, you can give a phone number, a Signal ID or its start, "
+"or a name."
+msgstr ""
+"Alla som botens Signal-konto känner till, numrerade, och om var och en är "
+"verifierad.\n"
+"/kontakter – alla\n"
+"/kontakter 3 – nummer 3 i sin helhet, med säkerhetsnumret\n"
+"/kontakter lägg till 3 Alice – spara nummer 3 som Alice, eller byt namn\n"
+"/kontakter lägg till @alice.42 Alice – någon ny, med användarnamn eller "
+"telefonnummer\n"
+"I stället för ett nummer kan du ange ett telefonnummer, ett Signal-ID eller "
+"dess början, eller ett namn."
 
 #: nejomibot/help.py
-msgid "<name>"
-msgstr "<namn>"
+msgid "the safety numbers"
+msgstr "säkerhetsnumren"
 
 #: nejomibot/help.py
-msgid "its name"
-msgstr "botens namn"
+msgid ""
+"Numbered as /contacts numbers people, with whether each is verified.\n"
+"/trust – everyone's\n"
+"/trust 3 – number 3's\n"
+"/trust 3 <safety number> – mark it verified, once it matches the one on "
+"their phone"
+msgstr ""
+"Numrerade som /kontakter numrerar folk, med om var och en är verifierad.\n"
+"/verifiera – allas\n"
+"/verifiera 3 – nummer 3:s\n"
+"/verifiera 3 <säkerhetsnummer> – markera det som verifierat, när det stämmer "
+"med det på hens telefon"
 
 #: nejomibot/help.py
-msgid "<text>"
-msgstr "<text>"
-
-#: nejomibot/help.py
-msgid "its About text"
-msgstr "botens Om-text"
-
-#: nejomibot/help.py
-msgid "its picture: send one with this as its caption"
-msgstr "botens profilbild: skicka en bild med detta som bildtext"
-
-#: nejomibot/help.py
-msgid "its username, and a link"
-msgstr "botens användarnamn, och en länk"
-
-#: nejomibot/help.py
-msgid "what it runs on a schedule"
+msgid "what the bot runs on a schedule"
 msgstr "det boten kör på schema"
+
+#: nejomibot/help.py
+msgid "add, remove or run a timer"
+msgstr "lägg till, ta bort eller kör en timer"
 
 #: nejomibot/help.py
 msgid "where timers can post"
 msgstr "vart timrar kan posta"
 
 #: nejomibot/help.py
-msgid "a new timer"
-msgstr "en ny timer"
-
-#: nejomibot/help.py
-msgid "add <when> [<chats>] <commands>"
-msgstr "lägg till <när> [<chattar>] <kommandon>"
-
-#: nejomibot/help.py
-msgid "remove <n> · run <n>"
-msgstr "ta bort <n> · kör <n>"
-
-#: nejomibot/help.py
-msgid "remove one, or run it now"
-msgstr "ta bort en, eller kör den nu"
-
-#: nejomibot/help.py
-msgid "commands of your own"
-msgstr "egna kommandon"
-
-#: nejomibot/help.py
-msgid "a new one, or a change"
-msgstr "ett nytt, eller en ändring"
-
-#: nejomibot/help.py
-msgid "add <name> <parts>"
-msgstr "lägg till <namn> <delar>"
-
-#: nejomibot/help.py
-msgid "other names for one"
-msgstr "andra namn för ett"
-
-#: nejomibot/help.py
-msgid "shortcuts <name> <names>|-"
-msgstr "genvägar <namn> <andra namn>|-"
-
-#: nejomibot/help.py
-msgid "remove <name>"
-msgstr "ta bort <namn>"
-
-#: nejomibot/help.py
-msgid "remove one"
-msgstr "ta bort ett"
-
-#: nejomibot/help.py
-msgid "for everyone allowed, or the admins alone"
-msgstr "för alla tillåtna, eller bara admins"
-
-#: nejomibot/help.py
-msgid "everyone <name> · admins <name>"
-msgstr "för alla <namn> · för admins <namn>"
-
-#: nejomibot/help.py
-msgid "<chats> <text>"
-msgstr "<chattar> <text>"
+msgid ""
+"Numbered: the groups the bot is in, then the people on the allowed list, "
+"then the admins. /timer add, /msg, /run, /language and /birthday add take "
+"these numbers."
+msgstr ""
+"Numrerade: grupperna boten är med i, sedan personerna på listan över "
+"tillåtna, sedan admins. /timer lägg till, /skicka, /kör, /språk och /"
+"födelsedag lägg till tar de här numren."
 
 #: nejomibot/help.py
 msgid "post a message to chats"
 msgstr "posta ett meddelande i chattar"
 
 #: nejomibot/help.py
-msgid "<chats> <commands>"
-msgstr "<chattar> <kommandon>"
-
-#: nejomibot/help.py
 msgid "post commands' answers to chats"
 msgstr "posta kommandons svar i chattar"
 
 #: nejomibot/help.py
-msgid "[<n>,…]"
-msgstr "[<n>,…]"
+msgid "commands of your own"
+msgstr "egna kommandon"
 
 #: nejomibot/help.py
-msgid "messages people sent it; forward some"
-msgstr "meddelanden folk skickat boten; vidarebefordra några"
+msgid "make or change a special"
+msgstr "skapa eller ändra ett specialkommando"
 
 #: nejomibot/help.py
-msgid "a birthday"
-msgstr "en födelsedag"
+msgid "add or remove a birthday"
+msgstr "lägg till eller ta bort en födelsedag"
 
 #: nejomibot/help.py
-msgid "add <date> [<chats>] <who>"
-msgstr "lägg till <datum> [<chattar>] <vem>"
+msgid "add or remove a name day"
+msgstr "lägg till eller ta bort en namnsdag"
 
 #: nejomibot/help.py
-msgid "a name day"
-msgstr "en namnsdag"
+msgid "an album, and the birth date for its ages"
+msgstr "ett album, och födelsedatumet för åldern"
 
 #: nejomibot/help.py
-msgid "remove <n>"
-msgstr "ta bort <n>"
+msgid ""
+"/album <album> – the album: its photos, years, birth date and shortcuts\n"
+"/album <album> 2019-06-15 – captions show the age of who was born then\n"
+"/album <album> - – no age\n"
+"/album <album> shortcuts /alice – /alice is then /photo <album>\n"
+"/album <album> shortcuts - – none\n"
+"/albums lists the albums."
+msgstr ""
+"/album <album> – albumet: dess bilder, år, födelsedatum och genvägar\n"
+"/album <album> 2019-06-15 – bildtexterna visar åldern på den som föddes då\n"
+"/album <album> - – ingen ålder\n"
+"/album <album> genvägar /alice – /alice blir då /bild <album>\n"
+"/album <album> genvägar - – inga\n"
+"/albums visar albumen."
 
 #: nejomibot/help.py
-msgid "remove one; /nameday too"
-msgstr "ta bort en; /namnsdag också"
+msgid "the bot's profile"
+msgstr "botens profil"
 
 #: nejomibot/help.py
-msgid "its latest messages anywhere; delete some"
-msgstr "botens senaste meddelanden överallt; radera några"
+msgid "the bot's name"
+msgstr "botens namn"
 
 #: nejomibot/help.py
-msgid "· <n>,…"
-msgstr "· <n>,…"
+msgid "the bot's About text"
+msgstr "botens Om-text"
 
 #: nejomibot/help.py
-msgid "whether its latest messages arrived"
-msgstr "om botens senaste meddelanden kom fram"
+msgid "the bot's picture"
+msgstr "botens profilbild"
 
 #: nejomibot/help.py
-msgid "delete its latest message here"
-msgstr "radera botens senaste meddelande här"
+msgid "the bot's username, and a link"
+msgstr "botens användarnamn, och en länk"
 
 #: nejomibot/help.py
 msgid "Specials"
 msgstr "Specialkommandon"
 
 #: nejomibot/help.py
-msgid ""
-"<who> – a number from /contacts or /trust, or a name, phone number or ID; /"
-"allow takes groups too"
-msgstr ""
-"<vem> – ett nummer från /kontakter eller /verifiera, eller ett namn, "
-"telefonnummer eller ID; /tillåt tar även grupper"
-
-#: nejomibot/help.py
-msgid ""
-"<n> – a number from /allowed, /admins, /timers, /delete list, /incoming, /"
-"birthdays or /namedays"
-msgstr ""
-"<n> – ett nummer från /tillåtna, /admins, /timers, /radera lista, /inkorg, /"
-"födelsedagar eller /namnsdagar"
-
-#: nejomibot/help.py
 #, python-brace-format
-msgid ""
-"<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · every 2h, "
-"in {zone} time"
-msgstr ""
-"<när> – 08:00 · mån-fre 07:30 · {date} 15:00 · imorgon 08:00 · varje 2h, "
-"enligt tiden i {zone}"
-
-#: nejomibot/help.py
-msgid ""
-"<chats> – numbers from /chats, like 1,2; a timer without them posts to you"
-msgstr ""
-"<chattar> – nummer från /chats, som 1,2; en timer utan dem postar till dig"
-
-#: nejomibot/help.py
-msgid ""
-"<date> – 1990-03-14, or 03-14 without the year; for someone not on Signal, "
-"<who> is a name, shown in <chats>, or in every group"
-msgstr ""
-"<datum> – 1990-03-14, eller 03-14 utan år; för någon som inte har Signal är "
-"<vem> ett namn, som visas i <chattar>, eller i alla grupper"
-
-#: nejomibot/help.py
-msgid ""
-"<parts> – text and commands, separated by ;, or by + for one message, e.g. "
-"Good morning! /today + /weather; /uniquephoto"
-msgstr ""
-"<delar> – text och kommandon, åtskilda med ;, eller med + för ett "
-"meddelande, t.ex. God morgon! /idag + /väder; /unikbild"
-
-#: nejomibot/help.py
-msgid ""
-"<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none, and shortcuts as /alice, or - for none"
-msgstr ""
-"<album> – ett av /albums, med namn; /album tar ett <datum> med år, eller - "
-"för inget, och genvägar som /alice, eller - för inga"
-
-#: nejomibot/help.py
-msgid "remove – after /about, /avatar or /username, takes it away"
-msgstr "ta bort – efter /om, /profilbild eller /användarnamn tar bort det"
-
-#: nejomibot/help.py
-msgid ""
-"<language> – sv, or Svenska, its own name; /language <chats> <language> "
-"gives those chats of /chats it, /admin add <who> <language> a new admin, and "
-"a group's is an admin's to change"
-msgstr ""
-"<språk> – sv, eller Svenska, dess eget namn; /språk <chattar> <språk> ger de "
-"chattarna i /chats det, /admin lägg till <vem> <språk> en ny admin, och en "
-"grupps ändras av en admin"
-
-#: nejomibot/help.py
-#, python-brace-format
-msgid "For everyone allowed ({count})"
-msgstr "För alla tillåtna ({count})"
-
-#: nejomibot/help.py
-msgid "Admins, in a direct chat"
-msgstr "Admins, i en direktchatt"
-
-#: nejomibot/help.py
-msgid "Admins, in any chat"
-msgstr "Admins, i alla chattar"
+msgid "Send {help} and a command for more about it, as {example}."
+msgstr "Skicka {help} och ett kommando för mer om det, som {example}."
 
 #: nejomibot/help.py
 msgid "Commands"
 msgstr "Kommandon"
+
+#: nejomibot/help.py
+msgid "For everyone allowed"
+msgstr "För alla tillåtna"
+
+#: nejomibot/help.py
+msgid "Admins, in a direct chat"
+msgstr "Admins, i en direktchatt"
 
 #: nejomibot/help.py
 msgid "Commands start with . or /, whichever is easier to type."
@@ -1518,6 +1743,20 @@ msgstr "Kommandon börjar med . eller /, det som är lättast att skriva."
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
 msgstr "Alla kommandon fungerar också med sina engelska namn."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "{shortcut} is short for {command}."
+msgstr "{shortcut} är en genväg till {command}."
+
+#: nejomibot/help.py
+msgid "An admin's own command: it posts these, in order."
+msgstr "En admins eget kommando: det postar de här, i tur och ordning."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "There's no command {name} here. {help} lists those you can use."
+msgstr "Det finns inget kommando {name} här. {help} listar dem du kan använda."
 
 #: nejomibot/holidays.py
 msgid "New Year's Day"

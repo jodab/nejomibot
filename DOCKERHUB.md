@@ -222,8 +222,9 @@ pencil button, then **Find by phone number**), and send it:
 ```
 
 The bot replies with the commands you may use. As its admin, you may use all
-of them, but the admin commands only in this direct chat. No reply within a
-minute? See Troubleshooting below.
+of them, but the admin commands only in this direct chat. `/help` and a
+command, as in `/help timer`, explains that command, with examples. No reply
+within a minute? See Troubleshooting below.
 
 Every command can start with a period instead of the slash, as in `.help`,
 which phone keyboards have on their first page; the bot's replies show

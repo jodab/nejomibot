@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 03:16+0300\n"
+"POT-Creation-Date: 2026-10-25 04:44+0200\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -153,11 +153,10 @@ msgstr "Vous êtes désormais administrateur de ce bot."
 #, python-brace-format
 msgid ""
 "Here, in a direct chat with the bot, you may use every command: {help} lists "
-"them all, with what each takes. A few to start with:"
+"them all. A few to start with:"
 msgstr ""
 "Ici, dans une conversation privée avec le bot, vous pouvez utiliser toutes "
-"les commandes : {help} les liste toutes, avec ce que chacune accepte. "
-"Quelques-unes pour commencer :"
+"les commandes : {help} les liste toutes. Quelques-unes pour commencer :"
 
 #: nejomibot/admins.py
 msgid "Thank you for helping look after the bot."
@@ -1109,196 +1108,531 @@ msgid "(peak {peak})"
 msgstr "(pic {peak})"
 
 #: nejomibot/help.py
-msgid "[<album>]"
-msgstr "[<album>]"
+msgid ""
+"In a group, those of its people, the coming ones first. /today names them on "
+"the day."
+msgstr ""
+"Dans un groupe, ceux de ses membres, les prochains d'abord. /aujourdhui les "
+"cite le jour même."
+
+#: nejomibot/help.py
+msgid "In a direct chat, you see all of them, numbered, with where each shows."
+msgstr ""
+"Dans une conversation privée, vous les voyez tous, numérotés, avec l'endroit "
+"où chacun apparaît."
+
+#: nejomibot/help.py
+msgid ""
+"Who may use the everyday commands: people, in a direct chat with the bot, "
+"and groups, everyone in them.\n"
+"/allowed – the list, numbered\n"
+"/allow <who> – add someone, or a group the bot is in\n"
+"/disallow 2 – take number 2 off\n"
+"<who> is a number from /contacts, a phone number, a Signal ID, a group's ID "
+"or name, or someone's name."
+msgstr ""
+"Qui peut utiliser les commandes courantes : des personnes, dans une "
+"conversation privée avec le bot, et des groupes, tous leurs membres.\n"
+"/autorisés – la liste, numérotée\n"
+"/autoriser <qui> – ajouter une personne, ou un groupe dont le bot fait "
+"partie\n"
+"/interdire 2 – retirer le numéro 2\n"
+"<qui> est un numéro de /contacts, un numéro de téléphone, un identifiant "
+"Signal, l'identifiant ou le nom d'un groupe, ou le nom de quelqu'un."
+
+#: nejomibot/help.py
+msgid ""
+"Admins may use every command, the admin commands in a direct chat with the "
+"bot.\n"
+"/admins – who they are, numbered\n"
+"/admin add <who> – make someone an admin, with a welcome\n"
+"/admin add <who> <language> – and the bot speaks that language with them\n"
+"/admin remove 2 – number 2 is no longer one\n"
+"<who> is a number from /contacts, a phone number, a Signal ID or a name. "
+"Only the admins in the config can add and remove admins."
+msgstr ""
+"Les administrateurs peuvent utiliser toutes les commandes, celles "
+"d'administration dans une conversation privée avec le bot.\n"
+"/admins – qui ils sont, numérotés\n"
+"/admin ajouter <qui> – nommer quelqu'un administrateur, avec un message de "
+"bienvenue\n"
+"/admin ajouter <qui> <langue> – et le bot lui parle dans cette langue\n"
+"/admin supprimer 2 – le numéro 2 ne l'est plus\n"
+"<qui> est un numéro de /contacts, un numéro de téléphone, un identifiant "
+"Signal ou un nom. Seuls les administrateurs de la configuration peuvent "
+"ajouter et supprimer des administrateurs."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"Timers run commands on a schedule and post their answers, such as a daily "
+"post.\n"
+"/timers – the timers, numbered\n"
+"/timer add 08:00 1,2 /today – every day at 08:00, to chats 1 and 2 of /"
+"chats\n"
+"/timer add mon-fri 07:30 /weather; /photo – on weekdays, to you\n"
+"/timer remove 2 – remove number 2\n"
+"/timer run 2 – run it now\n"
+"More ways to say when: 08:00,18:30 · sat,sun 10:00 · {date} 15:00, once · "
+"tomorrow 08:00 · every 2h or 30m, all in {zone} time."
+msgstr ""
+"Les minuteurs exécutent des commandes selon un horaire et publient leurs "
+"réponses, comme une publication quotidienne.\n"
+"/timers – les minuteurs, numérotés\n"
+"/timer ajouter 08:00 1,2 /aujourdhui – chaque jour à 08:00, dans les "
+"conversations 1 et 2 de /chats\n"
+"/timer ajouter lun-ven 07:30 /météo; /photo – en semaine, pour vous\n"
+"/timer supprimer 2 – supprimer le numéro 2\n"
+"/timer exécuter 2 – l'exécuter maintenant\n"
+"Autres façons de dire quand : 08:00,18:30 · sam,dim 10:00 · {date} 15:00, "
+"une fois · demain 08:00 · chaque 2h ou 30m, toujours à l'heure de {zone}."
+
+#: nejomibot/help.py
+msgid ""
+"Post to other chats, by their numbers in /chats.\n"
+"/msg 1,2 Hello! – post a text to chats 1 and 2\n"
+"/run 1 /weather; /photo – post what the commands answer to chat 1\n"
+"/run runs what a timer can, as if you sent it here."
+msgstr ""
+"Publier dans d'autres conversations, selon leurs numéros dans /chats.\n"
+"/envoyer 1,2 Bonjour ! – publier un texte dans les conversations 1 et 2\n"
+"/exécuter 1 /météo; /photo – publier ce que répondent les commandes dans la "
+"conversation 1\n"
+"/exécuter exécute ce qu'un minuteur peut exécuter, comme si vous l'envoyiez "
+"ici."
+
+#: nejomibot/help.py
+msgid ""
+"Specials post texts and what other commands answer, in one go.\n"
+"/specials – yours\n"
+"/special add /morning Good morning! /today + /weather; /uniquephoto – a new "
+"one, or a change\n"
+"/special shortcuts /morning /gm – other names for it; - for none\n"
+"/special everyone /morning – for everyone allowed, groups too; /help lists "
+"it\n"
+"/special admins /morning – for the admins alone again\n"
+"/special remove /morning – remove it\n"
+"Parts are separated by ; or line breaks, and text before a command heads its "
+"answer. A + in place of a ; posts the parts on either side of it in one "
+"message. Text keeps the formatting you give it."
+msgstr ""
+"Les commandes spéciales publient des textes et ce que répondent d'autres "
+"commandes, d'un seul coup.\n"
+"/specials – les vôtres\n"
+"/special ajouter /morning Bonjour ! /aujourdhui + /météo; /nouvellephoto – "
+"une nouvelle, ou une modification\n"
+"/special raccourcis /morning /gm – d'autres noms pour elle ; - pour aucun\n"
+"/special pour tous /morning – pour toutes les personnes autorisées, groupes "
+"compris ; /aide la liste\n"
+"/special pour les administrateurs /morning – de nouveau pour les "
+"administrateurs seuls\n"
+"/special supprimer /morning – la supprimer\n"
+"Les parties sont séparées par ; ou des retours à la ligne, et le texte avant "
+"une commande sert de titre à sa réponse. Un + à la place d'un ; publie les "
+"parties de chaque côté dans un seul message. Le texte garde la mise en forme "
+"que vous lui donnez."
+
+#: nejomibot/help.py
+msgid ""
+"/today names them in groups, on the day.\n"
+"/birthday add 1990-03-14 Alice – a contact's, in their groups, with the age\n"
+"/birthday add 03-14 Bob – without the year, no age\n"
+"/birthday add 05-01 1,2 Grandma – someone not on Signal, in chats 1 and 2 "
+"of /chats; without numbers, in every group\n"
+"/birthday remove 2 – by its number in /birthdays\n"
+"/nameday add and /nameday remove work the same way. A contact must be saved "
+"by name, with /contacts add."
+msgstr ""
+"/aujourdhui les cite dans les groupes, le jour même.\n"
+"/anniversaire ajouter 1990-03-14 Alice – celui d'un contact, dans ses "
+"groupes, avec l'âge\n"
+"/anniversaire ajouter 03-14 Bob – sans l'année, sans âge\n"
+"/anniversaire ajouter 05-01 1,2 Mamie – une personne qui n'est pas sur "
+"Signal, dans les conversations 1 et 2 de /chats ; sans numéros, dans tous "
+"les groupes\n"
+"/anniversaire supprimer 2 – par son numéro dans /anniversaires\n"
+"/fête ajouter et /fête supprimer fonctionnent de la même façon. Un contact "
+"doit être enregistré avec un nom, avec /contacts ajouter."
+
+#: nejomibot/help.py
+msgid ""
+"What everyone sees of the bot in Signal.\n"
+"/profile – the profile\n"
+"/name <name> – its name\n"
+"/about <text> – the text under its name\n"
+"/avatar – send a picture with this as its caption\n"
+"/username <name> – its username, and a link that starts a chat with it\n"
+"/about remove, /avatar remove and /username remove take them away. Signal "
+"adds a number to a username, as mybot.42, unless you give one."
+msgstr ""
+"Ce que tout le monde voit du bot dans Signal.\n"
+"/profil – le profil\n"
+"/nom <nom> – son nom\n"
+"/àpropos <texte> – le texte sous son nom\n"
+"/photoprofil – envoyez une image avec ceci en légende\n"
+"/pseudo <nom> – son pseudo, et un lien qui ouvre une conversation avec lui\n"
+"/àpropos supprimer, /photoprofil supprimer et /pseudo supprimer les "
+"retirent. Signal ajoute un numéro au pseudo, comme mybot.42, sauf si vous en "
+"donnez un."
 
 #: nejomibot/help.py
 msgid "a random photo"
 msgstr "une photo au hasard"
 
 #: nejomibot/help.py
-msgid "one from then: 2017, 2017-05 or 2017-05-14 15:30"
-msgstr "une de cette époque : 2017, 2017-05 ou 2017-05-14 15:30"
-
-#: nejomibot/help.py
-msgid "[<album>] <date>"
-msgstr "[<album>] <date>"
-
-#: nejomibot/help.py
-msgid "a photo alone, without its caption"
-msgstr "la photo seule, sans légende"
-
-#: nejomibot/help.py
-msgid "[<album>] [<date>]"
-msgstr "[<album>] [<date>]"
+msgid ""
+"The caption says when and where it was taken.\n"
+"/photo – from every album\n"
+"/photo <album> – from that album\n"
+"/photo 2017 – one taken in 2017\n"
+"/photo 2017-05-14 – one taken that day\n"
+"/photo 2017-05-14 15:30 – the one taken closest to then\n"
+"/photo <album> 2017 – both\n"
+"Give a date as exactly as you like: a year, a month (2017-05), a day, an "
+"hour (2017-05-14 15) or a minute. If none was taken then, you get the "
+"nearest, and how far off it is. /albums lists the albums."
+msgstr ""
+"La légende dit quand et où elle a été prise.\n"
+"/photo – de tous les albums\n"
+"/photo <album> – de cet album\n"
+"/photo 2017 – une prise en 2017\n"
+"/photo 2017-05-14 – une prise ce jour-là\n"
+"/photo 2017-05-14 15:30 – celle prise au plus près de ce moment\n"
+"/photo <album> 2017 – les deux\n"
+"Donnez une date aussi précise que vous voulez : une année, un mois "
+"(2017-05), un jour, une heure (2017-05-14 15) ou une minute. Si aucune n'a "
+"été prise alors, vous recevez la plus proche, avec l'écart. /albums liste "
+"les albums."
 
 #: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr "une photo pas encore envoyée"
 
 #: nejomibot/help.py
+msgid ""
+"No photo comes twice until every photo has been sent; then a new round "
+"starts. It has the same caption as /photo.\n"
+"/uniquephoto – from every album\n"
+"/uniquephoto <album> – from that album, which has a round of its own"
+msgstr ""
+"Aucune photo ne revient avant que toutes aient été envoyées ; puis une "
+"nouvelle série commence. Elle a la même légende que /photo.\n"
+"/nouvellephoto – de tous les albums\n"
+"/nouvellephoto <album> – de cet album, qui a sa propre série"
+
+#: nejomibot/help.py
+msgid "a photo without its caption"
+msgstr "une photo sans légende"
+
+#: nejomibot/help.py
+msgid ""
+"Picked as /photo picks it, and sent alone, without a caption or heading.\n"
+"/sphoto – from every album\n"
+"/sphoto <album> – from that album\n"
+"/sphoto 2017-05-14 – one taken then, as /photo takes dates"
+msgstr ""
+"Choisie comme /photo la choisit, et envoyée seule, sans légende ni titre.\n"
+"/photosimple – de tous les albums\n"
+"/photosimple <album> – de cet album\n"
+"/photosimple 2017-05-14 – une prise à cette date, comme /photo prend les "
+"dates"
+
+#: nejomibot/help.py
+msgid "this day, years ago"
+msgstr "ce jour, il y a des années"
+
+#: nejomibot/help.py
+msgid ""
+"A photo taken on this day in an earlier year, or else within three days of "
+"it, under a heading that says how many years ago.\n"
+"/onthisday – from every album\n"
+"/onthisday <album> – from that album"
+msgstr ""
+"Une photo prise ce jour-là une année précédente, ou sinon à trois jours "
+"près, sous un titre qui dit il y a combien d'années.\n"
+"/cejour – de tous les albums\n"
+"/cejour <album> – de cet album"
+
+#: nejomibot/help.py
 msgid "the albums"
 msgstr "les albums"
 
 #: nejomibot/help.py
-msgid "a photo from this day, years ago"
-msgstr "une photo de ce jour, il y a des années"
+msgid ""
+"How many photos each album has, from which years, and its shortcuts.\n"
+"/photo <album> – a photo from that album; every photo command takes one"
+msgstr ""
+"Combien de photos a chaque album, de quelles années, et ses raccourcis.\n"
+"/photo <album> – une photo de cet album ; toutes les commandes photo en "
+"acceptent un"
 
 #: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "combien de photos, et quel volume"
 
 #: nejomibot/help.py
-msgid "the date, and the day's holidays and birthdays"
-msgstr "la date, et les jours fériés et anniversaires du jour"
+msgid ""
+"How many photos there are, and how big, by file type, and how many albums.\n"
+"/cache – the whole library\n"
+"/cache <album> – that album"
+msgstr ""
+"Combien de photos il y a, et leur taille, par type de fichier, et combien "
+"d'albums.\n"
+"/cache – toute la photothèque\n"
+"/cache <album> – cet album"
 
 #: nejomibot/help.py
-msgid "[<city>]"
-msgstr "[<ville>]"
+msgid "the date, holidays and birthdays"
+msgstr "la date, jours fériés et anniversaires"
+
+#: nejomibot/help.py
+msgid ""
+"The date and time, the day's holidays, and in a group, its birthdays and "
+"name days."
+msgstr ""
+"La date et l'heure, les jours fériés du jour, et dans un groupe, ses "
+"anniversaires et fêtes."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"/today preview – what /today says in each chat\n"
+"/today preview {date} – on another day; tomorrow works too"
+msgstr ""
+"/aujourdhui aperçu – ce que dit /aujourdhui dans chaque conversation\n"
+"/aujourdhui aperçu {date} – un autre jour ; demain fonctionne aussi"
 
 #: nejomibot/help.py
 msgid "the weather now"
 msgstr "la météo actuelle"
 
 #: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"From OpenWeatherMap, with the day's sunrise and sunset.\n"
+"/weather – in {city}\n"
+"/weather Helsinki – somewhere else\n"
+"/weather Springfield,US – the one in the US"
+msgstr ""
+"D'OpenWeatherMap, avec le lever et le coucher du soleil du jour.\n"
+"/météo – à {city}\n"
+"/météo Helsinki – ailleurs\n"
+"/météo Springfield,US – celle des États-Unis"
+
+#: nejomibot/help.py
 msgid "the weather today and tomorrow"
 msgstr "la météo d'aujourd'hui et de demain"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"For each day, the worst weather, the lowest and highest temperatures, and "
+"the chance of rain or snow. Late in the evening, tomorrow and the day "
+"after.\n"
+"/forecast – in {city}\n"
+"/forecast Helsinki – somewhere else"
+msgstr ""
+"Pour chaque jour : le pire temps, les températures minimale et maximale, et "
+"le risque de pluie ou de neige. Tard le soir, demain et après-demain.\n"
+"/prévisions – à {city}\n"
+"/prévisions Helsinki – ailleurs"
 
 #: nejomibot/help.py
 msgid "the time, and an exchange rate"
 msgstr "l'heure, et un taux de change"
 
 #: nejomibot/help.py
-msgid "is the bot there?"
-msgstr "le bot est-il là ?"
+msgid ""
+"The current time in one or more places, and an exchange rate, as the bot's "
+"settings have them."
+msgstr ""
+"L'heure actuelle dans un ou plusieurs lieux, et un taux de change, selon les "
+"réglages du bot."
 
 #: nejomibot/help.py
-msgid "[<library>|all|list]"
-msgstr "[<recueil>|tout|liste]"
+msgid "reminders for this chat"
+msgstr "des rappels pour cette conversation"
 
 #: nejomibot/help.py
-msgid "a fortune"
-msgstr "une citation"
-
-#: nejomibot/help.py
-msgid "<when> <text>"
-msgstr "<quand> <texte>"
-
-#: nejomibot/help.py
-msgid "a reminder, here"
-msgstr "un rappel, ici"
-
-#: nejomibot/help.py
-msgid "[remove <n>]"
-msgstr "[supprimer <n>]"
-
-#: nejomibot/help.py
-msgid "the reminders here; remove one"
-msgstr "les rappels ici ; en supprimer un"
-
-#: nejomibot/help.py
-msgid "[add <things> · remove <n>,…]"
-msgstr "[ajouter <éléments> · supprimer <n>,…]"
+#, python-brace-format
+msgid ""
+"The bot posts each reminder in this chat when it's due, in {zone} time.\n"
+"/remind 18:00 Cake! – at the next 18:00\n"
+"/remind 30m Tea – in 30 minutes; 2h or 1h30m too\n"
+"/remind fri 17:00 Pizza! – on Friday; tomorrow works too\n"
+"/remind {date} 15:00 Presents – on that date\n"
+"/remind – the reminders here, numbered\n"
+"/remind remove 2 – remove number 2"
+msgstr ""
+"Le bot publie chaque rappel dans cette conversation à l'heure prévue, à "
+"l'heure de {zone}.\n"
+"/rappel 18:00 Gâteau ! – la prochaine fois qu'il est 18:00\n"
+"/rappel 30m Thé – dans 30 minutes ; aussi 2h ou 1h30m\n"
+"/rappel ven 17:00 Pizza ! – vendredi ; demain fonctionne aussi\n"
+"/rappel {date} 15:00 Cadeaux – à cette date\n"
+"/rappel – les rappels d'ici, numérotés\n"
+"/rappel supprimer 2 – supprimer le numéro 2"
 
 #: nejomibot/help.py
 msgid "this chat's list"
 msgstr "la liste de cette conversation"
 
 #: nejomibot/help.py
-msgid "the birthdays, the coming ones first"
-msgstr "les anniversaires, les prochains en premier"
+msgid ""
+"A shared list, such as for shopping.\n"
+"/list – the list, numbered\n"
+"/list add milk, eggs – add things, separated by commas\n"
+"/list remove 2,5 – take numbers 2 and 5 off\n"
+"/list clear – take everything off"
+msgstr ""
+"Une liste partagée, par exemple pour les courses.\n"
+"/liste – la liste, numérotée\n"
+"/liste ajouter lait, œufs – ajouter des éléments, séparés par des virgules\n"
+"/liste supprimer 2,5 – retirer les numéros 2 et 5\n"
+"/liste vider – tout retirer"
 
 #: nejomibot/help.py
-msgid "the name days, the coming ones first"
-msgstr "les fêtes, les prochaines en premier"
+msgid "the coming birthdays"
+msgstr "les prochains anniversaires"
 
 #: nejomibot/help.py
-msgid "[<language>]"
-msgstr "[<langue>]"
+msgid "the coming name days"
+msgstr "les prochaines fêtes"
 
 #: nejomibot/help.py
-msgid "the bot's languages; one for here"
-msgstr "les langues du bot ; celle d'ici"
+msgid "a fortune"
+msgstr "une citation"
 
 #: nejomibot/help.py
-msgid "these commands"
-msgstr "ces commandes"
+#, python-brace-format
+msgid ""
+"A random saying: a proverb, a quote or a joke.\n"
+"/fortune – from {library}\n"
+"/fortune all – from every library\n"
+"/fortune list – the libraries\n"
+"/fortune startrek – from that library"
+msgstr ""
+"Une phrase au hasard : un proverbe, une citation ou une blague.\n"
+"/citation – de {library}\n"
+"/citation tout – de tous les recueils\n"
+"/citation liste – les recueils\n"
+"/citation startrek – de ce recueil"
+
+#: nejomibot/help.py
+msgid "the bot's language here"
+msgstr "la langue du bot ici"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"A language is given by its code or its own name. In a group, only an admin "
+"can change it.\n"
+"/language – the languages, and the one spoken here\n"
+"/language {code} – {language} here\n"
+"/language default – the bot's own again"
+msgstr ""
+"Une langue se donne par son code ou par son propre nom. Dans un groupe, seul "
+"un administrateur peut la changer.\n"
+"/langue – les langues, et celle parlée ici\n"
+"/langue {code} – {language} ici\n"
+"/langue défaut – de nouveau celle du bot"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "/language 3,1 {code} – for chats 3 and 1 of /chats"
+msgstr "/langue 3,1 {code} – pour les conversations 3 et 1 de /chats"
+
+#: nejomibot/help.py
+msgid "is the bot there?"
+msgstr "le bot est-il là ?"
+
+#: nejomibot/help.py
+msgid "The bot answers pong!, with how long your message took to reach it."
+msgstr ""
+"Le bot répond pong!, avec le temps que votre message a mis pour lui parvenir."
+
+#: nejomibot/help.py
+msgid "the commands you can use"
+msgstr "les commandes que vous pouvez utiliser"
+
+#: nejomibot/help.py
+msgid "/help photo – more about /photo, and so on for every command"
+msgstr "/aide photo – plus sur /photo, et ainsi de suite pour chaque commande"
 
 #: nejomibot/help.py
 msgid "how the bot and the server are"
 msgstr "l'état du bot et du serveur"
 
 #: nejomibot/help.py
-msgid "what /today says, in each chat"
-msgstr "ce que dit /aujourdhui, dans chaque conversation"
+msgid ""
+"Two messages: the checks, the failed ones first, then the details: the bot, "
+"Signal, the network and the server."
+msgstr ""
+"Deux messages : les vérifications, les échecs d'abord, puis les détails : le "
+"bot, Signal, le réseau et le serveur."
 
 #: nejomibot/help.py
-msgid "[<date>]"
-msgstr "[<date>]"
+msgid "whether the bot's messages arrived"
+msgstr "si les messages du bot sont arrivés"
 
 #: nejomibot/help.py
-msgid "an album, and the birth date for its ages"
-msgstr "un album, et la date de naissance pour ses âges"
+#, python-brace-format
+msgid ""
+"The bot's {count} latest messages, wherever it sent them, and how many in "
+"each chat got and read each one, as 📬 3/4 · 👀 2. ⏳ means nobody has "
+"confirmed it yet, ⚠️ that nobody has in 10 minutes."
+msgstr ""
+"Les {count} derniers messages du bot, où qu'il les ait envoyés, et combien "
+"de personnes dans chaque conversation ont reçu et lu chacun, comme 📬 3/4 · "
+"👀 2. ⏳ signifie que personne ne l'a encore confirmé, ⚠️ que personne ne l'a "
+"fait en 10 minutes."
 
 #: nejomibot/help.py
-msgid "<album> [<date>|-]"
-msgstr "<album> [<date>|-]"
+msgid "what people wrote to the bot"
+msgstr "ce que les gens ont écrit au bot"
 
 #: nejomibot/help.py
-msgid "other names for /photo <album>"
-msgstr "d'autres noms pour /photo <album>"
+msgid ""
+"The 50 latest messages people other than the admins sent the bot in direct "
+"chats.\n"
+"/incoming – the list, numbered\n"
+"/incoming 4,9 – forward those to you, in full"
+msgstr ""
+"Les 50 derniers messages que des personnes autres que les administrateurs "
+"ont envoyés au bot en conversation privée.\n"
+"/reçus – la liste, numérotée\n"
+"/reçus 4,9 – vous les transférer, en entier"
 
 #: nejomibot/help.py
-msgid "<album> shortcuts <names>|-"
-msgstr "<album> raccourcis <noms>|-"
+msgid "delete the bot's messages"
+msgstr "supprimer les messages du bot"
 
 #: nejomibot/help.py
-msgid "[<who>]"
-msgstr "[<qui>]"
-
-#: nejomibot/help.py
-msgid "who the bot knows"
-msgstr "qui le bot connaît"
-
-#: nejomibot/help.py
-msgid "<who> <name>"
-msgstr "<qui> <nom>"
-
-#: nejomibot/help.py
-msgid "add a contact, or rename"
-msgstr "ajouter un contact, ou le renommer"
-
-#: nejomibot/help.py
-msgid "the safety numbers, or one's"
-msgstr "les numéros de sécurité, ou celui d'une personne"
-
-#: nejomibot/help.py
-msgid "<who> <safety number>"
-msgstr "<qui> <numéro de sécurité>"
-
-#: nejomibot/help.py
-msgid "mark as verified"
-msgstr "marquer comme vérifié"
+msgid ""
+"For everyone, within a day of sending.\n"
+"/delete – the bot's latest message here, in groups too; again for the one "
+"before\n"
+"/delete list – its 50 latest messages, wherever it sent them, numbered\n"
+"/delete 2,5 – delete those"
+msgstr ""
+"Pour tout le monde, dans la journée suivant l'envoi.\n"
+"/supprimer – le dernier message du bot ici, groupes compris ; encore pour le "
+"précédent\n"
+"/supprimer liste – ses 50 derniers messages, où qu'il les ait envoyés, "
+"numérotés\n"
+"/supprimer 2,5 – les supprimer"
 
 #: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "qui peut utiliser le bot"
 
 #: nejomibot/help.py
-msgid "<who>"
-msgstr "<qui>"
+msgid "let someone, or a group, use the bot"
+msgstr "laisser une personne, ou un groupe, utiliser le bot"
 
 #: nejomibot/help.py
-msgid "put someone, or a group, on that list"
-msgstr "ajouter une personne, ou un groupe, à cette liste"
-
-#: nejomibot/help.py
-msgid "<n>"
-msgstr "<n>"
-
-#: nejomibot/help.py
-msgid "take someone off it"
-msgstr "retirer quelqu'un de la liste"
+msgid "take someone off the allowed list"
+msgstr "retirer quelqu'un de la liste des autorisés"
 
 #: nejomibot/help.py
 msgid "who the admins are"
@@ -1309,249 +1643,156 @@ msgid "make someone an admin, or no longer"
 msgstr "nommer quelqu'un administrateur, ou ne plus"
 
 #: nejomibot/help.py
-msgid "add <who> [<language>] · remove <n>"
-msgstr "ajouter <qui> [<langue>] · supprimer <n>"
+msgid "who the bot knows"
+msgstr "qui le bot connaît"
 
 #: nejomibot/help.py
-msgid "the bot's profile"
-msgstr "le profil du bot"
+msgid ""
+"Everyone the bot's Signal account knows, numbered, and whether each is "
+"verified.\n"
+"/contacts – everyone\n"
+"/contacts 3 – number 3 in full, with their safety number\n"
+"/contacts add 3 Alice – save number 3 as Alice, or rename them\n"
+"/contacts add @alice.42 Alice – someone new, by username or phone number\n"
+"In place of a number, you can give a phone number, a Signal ID or its start, "
+"or a name."
+msgstr ""
+"Tous ceux que connaît le compte Signal du bot, numérotés, et si chacun est "
+"vérifié.\n"
+"/contacts – tout le monde\n"
+"/contacts 3 – le numéro 3 en entier, avec son numéro de sécurité\n"
+"/contacts ajouter 3 Alice – enregistrer le numéro 3 comme Alice, ou le "
+"renommer\n"
+"/contacts ajouter @alice.42 Alice – une nouvelle personne, par pseudo ou "
+"numéro de téléphone\n"
+"Au lieu d'un numéro, vous pouvez donner un numéro de téléphone, un "
+"identifiant Signal ou son début, ou un nom."
 
 #: nejomibot/help.py
-msgid "<name>"
-msgstr "<nom>"
+msgid "the safety numbers"
+msgstr "les numéros de sécurité"
 
 #: nejomibot/help.py
-msgid "its name"
-msgstr "son nom"
+msgid ""
+"Numbered as /contacts numbers people, with whether each is verified.\n"
+"/trust – everyone's\n"
+"/trust 3 – number 3's\n"
+"/trust 3 <safety number> – mark it verified, once it matches the one on "
+"their phone"
+msgstr ""
+"Numérotés comme dans /contacts, avec si chacun est vérifié.\n"
+"/vérifier – ceux de tout le monde\n"
+"/vérifier 3 – celui du numéro 3\n"
+"/vérifier 3 <numéro de sécurité> – le marquer comme vérifié, une fois qu'il "
+"correspond à celui sur son téléphone"
 
 #: nejomibot/help.py
-msgid "<text>"
-msgstr "<texte>"
+msgid "what the bot runs on a schedule"
+msgstr "ce que le bot exécute selon un horaire"
 
 #: nejomibot/help.py
-msgid "its About text"
-msgstr "son texte « À propos »"
-
-#: nejomibot/help.py
-msgid "its picture: send one with this as its caption"
-msgstr "sa photo : envoyez-en une avec cette commande en légende"
-
-#: nejomibot/help.py
-msgid "its username, and a link"
-msgstr "son pseudo, et un lien"
-
-#: nejomibot/help.py
-msgid "what it runs on a schedule"
-msgstr "ce qu'il exécute selon un horaire"
+msgid "add, remove or run a timer"
+msgstr "ajouter, supprimer ou exécuter un minuteur"
 
 #: nejomibot/help.py
 msgid "where timers can post"
 msgstr "où les minuteurs peuvent publier"
 
 #: nejomibot/help.py
-msgid "a new timer"
-msgstr "un nouveau minuteur"
-
-#: nejomibot/help.py
-msgid "add <when> [<chats>] <commands>"
-msgstr "ajouter <quand> [<conversations>] <commandes>"
-
-#: nejomibot/help.py
-msgid "remove <n> · run <n>"
-msgstr "supprimer <n> · exécuter <n>"
-
-#: nejomibot/help.py
-msgid "remove one, or run it now"
-msgstr "en supprimer un, ou l'exécuter maintenant"
-
-#: nejomibot/help.py
-msgid "commands of your own"
-msgstr "vos propres commandes"
-
-#: nejomibot/help.py
-msgid "a new one, or a change"
-msgstr "une nouvelle, ou une modification"
-
-#: nejomibot/help.py
-msgid "add <name> <parts>"
-msgstr "ajouter <nom> <parties>"
-
-#: nejomibot/help.py
-msgid "other names for one"
-msgstr "d'autres noms pour l'une d'elles"
-
-#: nejomibot/help.py
-msgid "shortcuts <name> <names>|-"
-msgstr "raccourcis <nom> <noms>|-"
-
-#: nejomibot/help.py
-msgid "remove <name>"
-msgstr "supprimer <nom>"
-
-#: nejomibot/help.py
-msgid "remove one"
-msgstr "en supprimer une"
-
-#: nejomibot/help.py
-msgid "for everyone allowed, or the admins alone"
-msgstr "pour toutes les personnes autorisées, ou les administrateurs seuls"
-
-#: nejomibot/help.py
-msgid "everyone <name> · admins <name>"
-msgstr "pour tous <nom> · pour les administrateurs <nom>"
-
-#: nejomibot/help.py
-msgid "<chats> <text>"
-msgstr "<conversations> <texte>"
+msgid ""
+"Numbered: the groups the bot is in, then the people on the allowed list, "
+"then the admins. /timer add, /msg, /run, /language and /birthday add take "
+"these numbers."
+msgstr ""
+"Numérotées : les groupes dont le bot fait partie, puis les personnes de la "
+"liste des autorisés, puis les administrateurs. /timer ajouter, /envoyer, /"
+"exécuter, /langue et /anniversaire ajouter prennent ces numéros."
 
 #: nejomibot/help.py
 msgid "post a message to chats"
 msgstr "publier un message dans des conversations"
 
 #: nejomibot/help.py
-msgid "<chats> <commands>"
-msgstr "<conversations> <commandes>"
-
-#: nejomibot/help.py
 msgid "post commands' answers to chats"
 msgstr "publier les réponses de commandes dans des conversations"
 
 #: nejomibot/help.py
-msgid "[<n>,…]"
-msgstr "[<n>,…]"
+msgid "commands of your own"
+msgstr "vos propres commandes"
 
 #: nejomibot/help.py
-msgid "messages people sent it; forward some"
-msgstr "les messages qu'on lui a envoyés ; en transférer"
+msgid "make or change a special"
+msgstr "créer ou modifier une commande spéciale"
 
 #: nejomibot/help.py
-msgid "a birthday"
-msgstr "un anniversaire"
+msgid "add or remove a birthday"
+msgstr "ajouter ou supprimer un anniversaire"
 
 #: nejomibot/help.py
-msgid "add <date> [<chats>] <who>"
-msgstr "ajouter <date> [<conversations>] <qui>"
+msgid "add or remove a name day"
+msgstr "ajouter ou supprimer une fête"
 
 #: nejomibot/help.py
-msgid "a name day"
-msgstr "une fête"
+msgid "an album, and the birth date for its ages"
+msgstr "un album, et la date de naissance pour ses âges"
 
 #: nejomibot/help.py
-msgid "remove <n>"
-msgstr "supprimer <n>"
+msgid ""
+"/album <album> – the album: its photos, years, birth date and shortcuts\n"
+"/album <album> 2019-06-15 – captions show the age of who was born then\n"
+"/album <album> - – no age\n"
+"/album <album> shortcuts /alice – /alice is then /photo <album>\n"
+"/album <album> shortcuts - – none\n"
+"/albums lists the albums."
+msgstr ""
+"/album <album> – l'album : ses photos, années, date de naissance et "
+"raccourcis\n"
+"/album <album> 2019-06-15 – les légendes montrent l'âge de qui est né alors\n"
+"/album <album> - – pas d'âge\n"
+"/album <album> raccourcis /alice – /alice devient /photo <album>\n"
+"/album <album> raccourcis - – aucun\n"
+"/albums liste les albums."
 
 #: nejomibot/help.py
-msgid "remove one; /nameday too"
-msgstr "en supprimer un ; /fête aussi"
+msgid "the bot's profile"
+msgstr "le profil du bot"
 
 #: nejomibot/help.py
-msgid "its latest messages anywhere; delete some"
-msgstr "ses derniers messages partout ; en supprimer"
+msgid "the bot's name"
+msgstr "le nom du bot"
 
 #: nejomibot/help.py
-msgid "· <n>,…"
-msgstr "· <n>,…"
+msgid "the bot's About text"
+msgstr "le texte « À propos » du bot"
 
 #: nejomibot/help.py
-msgid "whether its latest messages arrived"
-msgstr "si ses derniers messages sont arrivés"
+msgid "the bot's picture"
+msgstr "la photo de profil du bot"
 
 #: nejomibot/help.py
-msgid "delete its latest message here"
-msgstr "supprimer son dernier message ici"
+msgid "the bot's username, and a link"
+msgstr "le pseudo du bot, et un lien"
 
 #: nejomibot/help.py
 msgid "Specials"
 msgstr "Commandes spéciales"
 
 #: nejomibot/help.py
-msgid ""
-"<who> – a number from /contacts or /trust, or a name, phone number or ID; /"
-"allow takes groups too"
-msgstr ""
-"<qui> – un numéro de /contacts ou /vérifier, ou un nom, un numéro de "
-"téléphone ou un identifiant ; /autoriser accepte aussi les groupes"
-
-#: nejomibot/help.py
-msgid ""
-"<n> – a number from /allowed, /admins, /timers, /delete list, /incoming, /"
-"birthdays or /namedays"
-msgstr ""
-"<n> – un numéro de /autorisés, /admins, /timers, /supprimer liste, /reçus, /"
-"anniversaires ou /fêtes"
-
-#: nejomibot/help.py
 #, python-brace-format
-msgid ""
-"<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · every 2h, "
-"in {zone} time"
-msgstr ""
-"<quand> – 08:00 · lun-ven 07:30 · {date} 15:00 · demain 08:00 · chaque 2h, à "
-"l'heure de {zone}"
-
-#: nejomibot/help.py
-msgid ""
-"<chats> – numbers from /chats, like 1,2; a timer without them posts to you"
-msgstr ""
-"<conversations> – des numéros de /chats, comme 1,2 ; sans eux, un minuteur "
-"vous écrit à vous"
-
-#: nejomibot/help.py
-msgid ""
-"<date> – 1990-03-14, or 03-14 without the year; for someone not on Signal, "
-"<who> is a name, shown in <chats>, or in every group"
-msgstr ""
-"<date> – 1990-03-14, ou 03-14 sans l'année ; pour une personne qui n'est pas "
-"sur Signal, <qui> est un nom, affiché dans <conversations>, ou dans tous les "
-"groupes"
-
-#: nejomibot/help.py
-msgid ""
-"<parts> – text and commands, separated by ;, or by + for one message, e.g. "
-"Good morning! /today + /weather; /uniquephoto"
-msgstr ""
-"<parties> – du texte et des commandes, séparés par ; ou par + pour un seul "
-"message, par exemple Bonjour ! /aujourdhui + /météo ; /nouvellephoto"
-
-#: nejomibot/help.py
-msgid ""
-"<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none, and shortcuts as /alice, or - for none"
-msgstr ""
-"<album> – un des /albums, par son nom ; /album accepte une <date> avec "
-"l'année, ou - pour aucune, et des raccourcis comme /alice, ou - pour aucun"
-
-#: nejomibot/help.py
-msgid "remove – after /about, /avatar or /username, takes it away"
-msgstr "supprimer – après /àpropos, /photoprofil ou /pseudo, le retire"
-
-#: nejomibot/help.py
-msgid ""
-"<language> – sv, or Svenska, its own name; /language <chats> <language> "
-"gives those chats of /chats it, /admin add <who> <language> a new admin, and "
-"a group's is an admin's to change"
-msgstr ""
-"<langue> – fr, ou Français, son propre nom ; /langue <conversations> "
-"<langue> la donne à ces conversations de /chats, /admin ajouter <qui> "
-"<langue> à un nouvel administrateur, et celle d'un groupe est modifiée par "
-"un administrateur"
-
-#: nejomibot/help.py
-#, python-brace-format
-msgid "For everyone allowed ({count})"
-msgstr "Pour toutes les personnes autorisées ({count})"
-
-#: nejomibot/help.py
-msgid "Admins, in a direct chat"
-msgstr "Administrateurs, en conversation privée"
-
-#: nejomibot/help.py
-msgid "Admins, in any chat"
-msgstr "Administrateurs, dans toute conversation"
+msgid "Send {help} and a command for more about it, as {example}."
+msgstr "Envoyez {help} et une commande pour en savoir plus, comme {example}."
 
 #: nejomibot/help.py
 msgid "Commands"
 msgstr "Commandes"
+
+#: nejomibot/help.py
+msgid "For everyone allowed"
+msgstr "Pour toutes les personnes autorisées"
+
+#: nejomibot/help.py
+msgid "Admins, in a direct chat"
+msgstr "Administrateurs, en conversation privée"
 
 #: nejomibot/help.py
 msgid "Commands start with . or /, whichever is easier to type."
@@ -1561,6 +1802,23 @@ msgstr ""
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
 msgstr "Chaque commande accepte aussi son nom anglais."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "{shortcut} is short for {command}."
+msgstr "{shortcut} est un raccourci pour {command}."
+
+#: nejomibot/help.py
+msgid "An admin's own command: it posts these, in order."
+msgstr ""
+"Une commande propre à un administrateur : elle publie ceci, dans l'ordre."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "There's no command {name} here. {help} lists those you can use."
+msgstr ""
+"Il n'y a pas de commande {name} ici. {help} liste celles que vous pouvez "
+"utiliser."
 
 #: nejomibot/holidays.py
 msgid "New Year's Day"

@@ -297,11 +297,15 @@ async def test_a_new_admin_is_welcomed(chat: Chat) -> None:
         "You're an admin of this bot now.",
         "",
         "Here, in a direct chat with the bot, you may use every command: /help "
-        "lists them all, with what each takes. A few to start with:",
+        "lists them all. A few to start with:",
     ]
-    # As /help shows them
+    # As /help shows them, and how to see more of each
     assert lines[4] == "🩺 `/status` – how the bot and the server are (/test)"
-    assert lines[-1] == "Thank you for helping look after the bot."
+    assert lines[-3:] == [
+        "Send `/help` and a command for more about it, as `/help photo`.",
+        "",
+        "Thank you for helping look after the bot.",
+    ]
 
 
 def test_the_welcome_names_who_made_them_an_admin() -> None:

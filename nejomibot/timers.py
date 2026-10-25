@@ -151,7 +151,7 @@ def when_help() -> str:
 
 
 def usage() -> str:
-    zone = get_settings().timezone.rsplit("/", 1)[-1].replace("_", " ")
+    zone = get_settings().timezone_city
     return "\n".join(
         [
             _("/chats: where timers can post, numbered"),

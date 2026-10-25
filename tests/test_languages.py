@@ -157,9 +157,9 @@ async def test_commands_answer_in_the_chats_language(
     await send("/help", handler=Help())
     await send("/help", sender=BOB, handler=Help())
     swedish, english = texts(answers)
-    assert swedish.startswith("**Kommandon**\n📷 `/bild [<album>]`")
-    assert swedish.endswith("Alla kommandon fungerar också med sina engelska namn.")
-    assert english.startswith("**Commands**\n📷 `/photo [<album>]`")
+    assert swedish.startswith("**Kommandon**\n📷 `/bild` – en slumpvis vald bild\n")
+    assert swedish.endswith("som `/hjälp bild`.")
+    assert english.startswith("**Commands**\n📷 `/photo` – a random photo\n")
 
 
 def test_a_line_it_can_t_read_is_left_alone() -> None:

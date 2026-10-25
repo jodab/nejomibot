@@ -38,7 +38,7 @@ from .commands import (
     undo_with,
 )
 from .config import SIGNAL_ID, get_settings
-from .help import ADMIN, EVERYDAY, command_line, shown_name
+from .help import ENTRIES, command_line, more_text, shown_name
 from .i18n import _, chat_language, speaking
 from .languages import language_named, named, set_language
 from .messages import Outcome, escape, send, unreadable_text
@@ -130,14 +130,16 @@ def welcome_text(adder: str | None) -> str:
         made = _("You're an admin of this bot now.")
     start = _(
         "Here, in a direct chat with the bot, you may use every command: {help} "
-        "lists them all, with what each takes. A few to start with:"
+        "lists them all. A few to start with:"
     ).format(help=shown_name("/help"))
     lines += [escape(made), "", escape(start)]
+    lines += [command_line(ENTRIES[name]) for name in WELCOME_COMMANDS]
     lines += [
-        command_line(next(line for line in EVERYDAY + ADMIN if line.name == name))
-        for name in WELCOME_COMMANDS
+        "",
+        more_text(),
+        "",
+        escape(_("Thank you for helping look after the bot.")),
     ]
-    lines += ["", escape(_("Thank you for helping look after the bot."))]
     return "\n".join(lines)
 
 

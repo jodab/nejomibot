@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 03:16+0300\n"
+"POT-Creation-Date: 2026-10-25 04:44+0200\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -151,10 +151,10 @@ msgstr "Olet nyt tämän botin ylläpitäjä."
 #, python-brace-format
 msgid ""
 "Here, in a direct chat with the bot, you may use every command: {help} lists "
-"them all, with what each takes. A few to start with:"
+"them all. A few to start with:"
 msgstr ""
 "Täällä, yksityiskeskustelussa botin kanssa, voit käyttää kaikkia komentoja: "
-"{help} luettelee ne kaikki ja kertoo, mitä kukin ottaa. Muutama alkuun:"
+"{help} luettelee ne kaikki. Muutama alkuun:"
 
 #: nejomibot/admins.py
 msgid "Thank you for helping look after the bot."
@@ -1075,196 +1075,524 @@ msgid "(peak {peak})"
 msgstr "(huippu {peak})"
 
 #: nejomibot/help.py
-msgid "[<album>]"
-msgstr "[<albumi>]"
+msgid ""
+"In a group, those of its people, the coming ones first. /today names them on "
+"the day."
+msgstr ""
+"Ryhmässä: ryhmän jäsenten omat, lähimmät ensin. /tänään mainitsee ne "
+"kyseisenä päivänä."
+
+#: nejomibot/help.py
+msgid "In a direct chat, you see all of them, numbered, with where each shows."
+msgstr ""
+"Yksityiskeskustelussa näet ne kaikki, numeroituna, ja missä kukin näkyy."
+
+#: nejomibot/help.py
+msgid ""
+"Who may use the everyday commands: people, in a direct chat with the bot, "
+"and groups, everyone in them.\n"
+"/allowed – the list, numbered\n"
+"/allow <who> – add someone, or a group the bot is in\n"
+"/disallow 2 – take number 2 off\n"
+"<who> is a number from /contacts, a phone number, a Signal ID, a group's ID "
+"or name, or someone's name."
+msgstr ""
+"Kuka saa käyttää arkikomentoja: henkilöt, yksityiskeskustelussa botin "
+"kanssa, ja ryhmät, kaikki niiden jäsenet.\n"
+"/sallitut – lista, numeroituna\n"
+"/salli <kuka> – lisää joku, tai ryhmä, jossa botti on\n"
+"/estä 2 – poista numero 2\n"
+"<kuka> on numero listasta /yhteystiedot, puhelinnumero, Signal-tunnus, "
+"ryhmän tunnus tai nimi, tai jonkun nimi."
+
+#: nejomibot/help.py
+msgid ""
+"Admins may use every command, the admin commands in a direct chat with the "
+"bot.\n"
+"/admins – who they are, numbered\n"
+"/admin add <who> – make someone an admin, with a welcome\n"
+"/admin add <who> <language> – and the bot speaks that language with them\n"
+"/admin remove 2 – number 2 is no longer one\n"
+"<who> is a number from /contacts, a phone number, a Signal ID or a name. "
+"Only the admins in the config can add and remove admins."
+msgstr ""
+"Ylläpitäjät saavat käyttää kaikkia komentoja, ylläpitokomentoja "
+"yksityiskeskustelussa botin kanssa.\n"
+"/admins – keitä he ovat, numeroituna\n"
+"/admin lisää <kuka> – tee jostakusta ylläpitäjä, tervetuloviestin kera\n"
+"/admin lisää <kuka> <kieli> – ja botti puhuu hänelle sitä kieltä\n"
+"/admin poista 2 – numero 2 ei ole enää ylläpitäjä\n"
+"<kuka> on numero listasta /yhteystiedot, puhelinnumero, Signal-tunnus tai "
+"nimi. Vain asetusten ylläpitäjät voivat lisätä ja poistaa ylläpitäjiä."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"Timers run commands on a schedule and post their answers, such as a daily "
+"post.\n"
+"/timers – the timers, numbered\n"
+"/timer add 08:00 1,2 /today – every day at 08:00, to chats 1 and 2 of /"
+"chats\n"
+"/timer add mon-fri 07:30 /weather; /photo – on weekdays, to you\n"
+"/timer remove 2 – remove number 2\n"
+"/timer run 2 – run it now\n"
+"More ways to say when: 08:00,18:30 · sat,sun 10:00 · {date} 15:00, once · "
+"tomorrow 08:00 · every 2h or 30m, all in {zone} time."
+msgstr ""
+"Ajastimet suorittavat komentoja aikataulussa ja julkaisevat niiden "
+"vastaukset, kuten päivittäisen julkaisun.\n"
+"/timers – ajastimet, numeroituna\n"
+"/timer lisää 08:00 1,2 /tänään – joka päivä klo 08:00, keskusteluihin 1 ja 2 "
+"listasta /chats\n"
+"/timer lisää ma-pe 07:30 /sää; /kuva – arkipäivisin, sinulle\n"
+"/timer poista 2 – poista numero 2\n"
+"/timer suorita 2 – suorita se nyt\n"
+"Lisää tapoja ilmaista milloin: 08:00,18:30 · la,su 10:00 · {date} 15:00, "
+"kerran · huomenna 08:00 · joka 2h tai 30m, aina aikavyöhykkeen {zone} mukaan."
+
+#: nejomibot/help.py
+msgid ""
+"Post to other chats, by their numbers in /chats.\n"
+"/msg 1,2 Hello! – post a text to chats 1 and 2\n"
+"/run 1 /weather; /photo – post what the commands answer to chat 1\n"
+"/run runs what a timer can, as if you sent it here."
+msgstr ""
+"Julkaise muihin keskusteluihin, niiden numeroilla listasta /chats.\n"
+"/lähetä 1,2 Hei! – julkaise teksti keskusteluihin 1 ja 2\n"
+"/suorita 1 /sää; /kuva – julkaise komentojen vastaukset keskusteluun 1\n"
+"Komento /suorita suorittaa samat komennot kuin ajastin, ikään kuin olisit "
+"lähettänyt ne täällä."
+
+#: nejomibot/help.py
+msgid ""
+"Specials post texts and what other commands answer, in one go.\n"
+"/specials – yours\n"
+"/special add /morning Good morning! /today + /weather; /uniquephoto – a new "
+"one, or a change\n"
+"/special shortcuts /morning /gm – other names for it; - for none\n"
+"/special everyone /morning – for everyone allowed, groups too; /help lists "
+"it\n"
+"/special admins /morning – for the admins alone again\n"
+"/special remove /morning – remove it\n"
+"Parts are separated by ; or line breaks, and text before a command heads its "
+"answer. A + in place of a ; posts the parts on either side of it in one "
+"message. Text keeps the formatting you give it."
+msgstr ""
+"Erikoiskomennot julkaisevat tekstejä ja muiden komentojen vastauksia, "
+"yhdellä kertaa.\n"
+"/specials – omasi\n"
+"/special lisää /morning Huomenta! /tänään + /sää; /uusikuva – uusi, tai "
+"muutos\n"
+"/special oikopolut /morning /gm – sille muita nimiä; - ei yhtään\n"
+"/special kaikille /morning – kaikille sallituille, myös ryhmissä; /apu "
+"luettelee sen\n"
+"/special ylläpitäjille /morning – taas vain ylläpitäjille\n"
+"/special poista /morning – poista se\n"
+"Osat erotetaan merkillä ; tai rivinvaihdoilla, ja komentoa edeltävä teksti "
+"on sen vastauksen otsikko. Merkki + merkin ; tilalla julkaisee molemmin "
+"puolin olevat osat yhdessä viestissä. Teksti säilyttää muotoilun, jonka "
+"sille annat."
+
+#: nejomibot/help.py
+msgid ""
+"/today names them in groups, on the day.\n"
+"/birthday add 1990-03-14 Alice – a contact's, in their groups, with the age\n"
+"/birthday add 03-14 Bob – without the year, no age\n"
+"/birthday add 05-01 1,2 Grandma – someone not on Signal, in chats 1 and 2 "
+"of /chats; without numbers, in every group\n"
+"/birthday remove 2 – by its number in /birthdays\n"
+"/nameday add and /nameday remove work the same way. A contact must be saved "
+"by name, with /contacts add."
+msgstr ""
+"/tänään mainitsee ne ryhmissä, kyseisenä päivänä.\n"
+"/syntymäpäivä lisää 1990-03-14 Alice – yhteystiedon, hänen ryhmissään, iän "
+"kanssa\n"
+"/syntymäpäivä lisää 03-14 Bob – ilman vuotta, ei ikää\n"
+"/syntymäpäivä lisää 05-01 1,2 Mummo – joku, joka ei ole Signalissa, "
+"keskusteluissa 1 ja 2 listasta /chats; ilman numeroita kaikissa ryhmissä\n"
+"/syntymäpäivä poista 2 – sen numerolla listassa /syntymäpäivät\n"
+"/nimipäivä lisää ja /nimipäivä poista toimivat samoin. Yhteystiedon on "
+"oltava tallennettu nimellä, komennolla /yhteystiedot lisää."
+
+#: nejomibot/help.py
+msgid ""
+"What everyone sees of the bot in Signal.\n"
+"/profile – the profile\n"
+"/name <name> – its name\n"
+"/about <text> – the text under its name\n"
+"/avatar – send a picture with this as its caption\n"
+"/username <name> – its username, and a link that starts a chat with it\n"
+"/about remove, /avatar remove and /username remove take them away. Signal "
+"adds a number to a username, as mybot.42, unless you give one."
+msgstr ""
+"Mitä kaikki näkevät botista Signalissa.\n"
+"/profiili – profiili\n"
+"/nimi <nimi> – botin nimi\n"
+"/tietoja <teksti> – teksti botin nimen alla\n"
+"/profiilikuva – lähetä kuva, jonka kuvateksti on tämä\n"
+"/käyttäjänimi <nimi> – botin käyttäjänimi, ja linkki, joka aloittaa "
+"keskustelun sen kanssa\n"
+"/tietoja poista, /profiilikuva poista ja /käyttäjänimi poista poistavat ne. "
+"Signal lisää käyttäjänimeen numeron, kuten mybot.42, ellet anna sitä itse."
 
 #: nejomibot/help.py
 msgid "a random photo"
 msgstr "satunnainen kuva"
 
 #: nejomibot/help.py
-msgid "one from then: 2017, 2017-05 or 2017-05-14 15:30"
-msgstr "yksi siltä ajalta: 2017, 2017-05 tai 2017-05-14 15:30"
-
-#: nejomibot/help.py
-msgid "[<album>] <date>"
-msgstr "[<albumi>] <päivämäärä>"
-
-#: nejomibot/help.py
-msgid "a photo alone, without its caption"
-msgstr "pelkkä kuva, ilman kuvatekstiä"
-
-#: nejomibot/help.py
-msgid "[<album>] [<date>]"
-msgstr "[<albumi>] [<päivämäärä>]"
+msgid ""
+"The caption says when and where it was taken.\n"
+"/photo – from every album\n"
+"/photo <album> – from that album\n"
+"/photo 2017 – one taken in 2017\n"
+"/photo 2017-05-14 – one taken that day\n"
+"/photo 2017-05-14 15:30 – the one taken closest to then\n"
+"/photo <album> 2017 – both\n"
+"Give a date as exactly as you like: a year, a month (2017-05), a day, an "
+"hour (2017-05-14 15) or a minute. If none was taken then, you get the "
+"nearest, and how far off it is. /albums lists the albums."
+msgstr ""
+"Kuvateksti kertoo, milloin ja missä kuva otettiin.\n"
+"/kuva – kaikista albumeista\n"
+"/kuva <albumi> – siitä albumista\n"
+"/kuva 2017 – vuonna 2017 otettu\n"
+"/kuva 2017-05-14 – sinä päivänä otettu\n"
+"/kuva 2017-05-14 15:30 – lähimpänä sitä hetkeä otettu\n"
+"/kuva <albumi> 2017 – molemmat\n"
+"Anna päivämäärä niin tarkasti kuin haluat: vuosi, kuukausi (2017-05), päivä, "
+"tunti (2017-05-14 15) tai minuutti. Jos silloin ei otettu yhtään, saat "
+"lähimmän, ja tiedon siitä, kuinka kaukana se on. /albumit luettelee albumit."
 
 #: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr "kuva, jota ei ole vielä lähetetty"
 
 #: nejomibot/help.py
+msgid ""
+"No photo comes twice until every photo has been sent; then a new round "
+"starts. It has the same caption as /photo.\n"
+"/uniquephoto – from every album\n"
+"/uniquephoto <album> – from that album, which has a round of its own"
+msgstr ""
+"Mikään kuva ei tule kahdesti, ennen kuin kaikki on lähetetty; sitten alkaa "
+"uusi kierros. Sillä on sama kuvateksti kuin komennolla /kuva.\n"
+"/uusikuva – kaikista albumeista\n"
+"/uusikuva <albumi> – siitä albumista, jolla on oma kierroksensa"
+
+#: nejomibot/help.py
+msgid "a photo without its caption"
+msgstr "kuva ilman kuvatekstiä"
+
+#: nejomibot/help.py
+msgid ""
+"Picked as /photo picks it, and sent alone, without a caption or heading.\n"
+"/sphoto – from every album\n"
+"/sphoto <album> – from that album\n"
+"/sphoto 2017-05-14 – one taken then, as /photo takes dates"
+msgstr ""
+"Valitaan samoin kuin /kuva valitsee, ja lähetetään yksinään, ilman "
+"kuvatekstiä tai otsikkoa.\n"
+"/pelkkäkuva – kaikista albumeista\n"
+"/pelkkäkuva <albumi> – siitä albumista\n"
+"/pelkkäkuva 2017-05-14 – silloin otettu, päivämäärät kuten komennossa /kuva"
+
+#: nejomibot/help.py
+msgid "this day, years ago"
+msgstr "tämä päivä vuosia sitten"
+
+#: nejomibot/help.py
+msgid ""
+"A photo taken on this day in an earlier year, or else within three days of "
+"it, under a heading that says how many years ago.\n"
+"/onthisday – from every album\n"
+"/onthisday <album> – from that album"
+msgstr ""
+"Kuva, joka on otettu tänä päivänä aiempana vuonna, tai muuten enintään kolme "
+"päivää ennen tai jälkeen, otsikolla, joka kertoo, kuinka monta vuotta "
+"sitten.\n"
+"/tänäpäivänä – kaikista albumeista\n"
+"/tänäpäivänä <albumi> – siitä albumista"
+
+#: nejomibot/help.py
 msgid "the albums"
 msgstr "albumit"
 
 #: nejomibot/help.py
-msgid "a photo from this day, years ago"
-msgstr "kuva tältä päivältä vuosien takaa"
+msgid ""
+"How many photos each album has, from which years, and its shortcuts.\n"
+"/photo <album> – a photo from that album; every photo command takes one"
+msgstr ""
+"Kuinka monta kuvaa kussakin albumissa on, miltä vuosilta, ja sen oikopolut.\n"
+"/kuva <albumi> – kuva siitä albumista; jokainen kuvakomento ottaa albumin"
 
 #: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "montako kuvaa, ja kuinka suuria"
 
 #: nejomibot/help.py
-msgid "the date, and the day's holidays and birthdays"
-msgstr "päivämäärä sekä päivän juhlapäivät ja syntymäpäivät"
+msgid ""
+"How many photos there are, and how big, by file type, and how many albums.\n"
+"/cache – the whole library\n"
+"/cache <album> – that album"
+msgstr ""
+"Kuinka monta kuvaa on, ja kuinka suuria, tiedostotyypeittäin, ja kuinka "
+"monta albumia.\n"
+"/cache – koko kirjasto\n"
+"/cache <albumi> – se albumi"
 
 #: nejomibot/help.py
-msgid "[<city>]"
-msgstr "[<paikka>]"
+msgid "the date, holidays and birthdays"
+msgstr "päivämäärä, juhlapäivät ja syntymäpäivät"
+
+#: nejomibot/help.py
+msgid ""
+"The date and time, the day's holidays, and in a group, its birthdays and "
+"name days."
+msgstr ""
+"Päivämäärä ja kellonaika, päivän juhlapäivät, ja ryhmässä sen syntymäpäivät "
+"ja nimipäivät."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"/today preview – what /today says in each chat\n"
+"/today preview {date} – on another day; tomorrow works too"
+msgstr ""
+"/tänään esikatsele – mitä /tänään sanoo kussakin keskustelussa\n"
+"/tänään esikatsele {date} – toisena päivänä; huomenna toimii myös"
 
 #: nejomibot/help.py
 msgid "the weather now"
 msgstr "sää nyt"
 
 #: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"From OpenWeatherMap, with the day's sunrise and sunset.\n"
+"/weather – in {city}\n"
+"/weather Helsinki – somewhere else\n"
+"/weather Springfield,US – the one in the US"
+msgstr ""
+"OpenWeatherMapista, päivän auringonnousun ja -laskun kera.\n"
+"/sää – paikassa {city}\n"
+"/sää Helsinki – muualla\n"
+"/sää Springfield,US – Yhdysvaltojen Springfield"
+
+#: nejomibot/help.py
 msgid "the weather today and tomorrow"
 msgstr "sää tänään ja huomenna"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"For each day, the worst weather, the lowest and highest temperatures, and "
+"the chance of rain or snow. Late in the evening, tomorrow and the day "
+"after.\n"
+"/forecast – in {city}\n"
+"/forecast Helsinki – somewhere else"
+msgstr ""
+"Kullekin päivälle: huonoin sää, alin ja ylin lämpötila, ja sateen tai lumen "
+"todennäköisyys. Myöhään illalla huominen ja ylihuominen.\n"
+"/ennuste – paikassa {city}\n"
+"/ennuste Helsinki – muualla"
 
 #: nejomibot/help.py
 msgid "the time, and an exchange rate"
 msgstr "kellonaika ja valuuttakurssi"
 
 #: nejomibot/help.py
-msgid "is the bot there?"
-msgstr "onko botti paikalla?"
+msgid ""
+"The current time in one or more places, and an exchange rate, as the bot's "
+"settings have them."
+msgstr ""
+"Kellonaika yhdessä tai useammassa paikassa, ja valuuttakurssi, botin "
+"asetusten mukaan."
 
 #: nejomibot/help.py
-msgid "[<library>|all|list]"
-msgstr "[<kokoelma>|kaikki|lista]"
+msgid "reminders for this chat"
+msgstr "muistutuksia tähän keskusteluun"
 
 #: nejomibot/help.py
-msgid "a fortune"
-msgstr "mietelause"
-
-#: nejomibot/help.py
-msgid "<when> <text>"
-msgstr "<milloin> <teksti>"
-
-#: nejomibot/help.py
-msgid "a reminder, here"
-msgstr "muistutus, täällä"
-
-#: nejomibot/help.py
-msgid "[remove <n>]"
-msgstr "[poista <n>]"
-
-#: nejomibot/help.py
-msgid "the reminders here; remove one"
-msgstr "täkäläiset muistutukset; poista yksi"
-
-#: nejomibot/help.py
-msgid "[add <things> · remove <n>,…]"
-msgstr "[lisää <asiat> · poista <n>,…]"
+#, python-brace-format
+msgid ""
+"The bot posts each reminder in this chat when it's due, in {zone} time.\n"
+"/remind 18:00 Cake! – at the next 18:00\n"
+"/remind 30m Tea – in 30 minutes; 2h or 1h30m too\n"
+"/remind fri 17:00 Pizza! – on Friday; tomorrow works too\n"
+"/remind {date} 15:00 Presents – on that date\n"
+"/remind – the reminders here, numbered\n"
+"/remind remove 2 – remove number 2"
+msgstr ""
+"Botti julkaisee kunkin muistutuksen tässä keskustelussa, kun sen aika on, "
+"aikavyöhykkeen {zone} mukaan.\n"
+"/muistuta 18:00 Kakku! – seuraavan kerran klo 18:00\n"
+"/muistuta 30m Tee – 30 minuutin päästä; myös 2h tai 1h30m\n"
+"/muistuta pe 17:00 Pizzaa! – perjantaina; huomenna toimii myös\n"
+"/muistuta {date} 15:00 Lahjat – sinä päivänä\n"
+"/muistuta – täkäläiset muistutukset, numeroituna\n"
+"/muistuta poista 2 – poista numero 2"
 
 #: nejomibot/help.py
 msgid "this chat's list"
 msgstr "tämän keskustelun lista"
 
 #: nejomibot/help.py
-msgid "the birthdays, the coming ones first"
-msgstr "syntymäpäivät, lähimmät ensin"
+msgid ""
+"A shared list, such as for shopping.\n"
+"/list – the list, numbered\n"
+"/list add milk, eggs – add things, separated by commas\n"
+"/list remove 2,5 – take numbers 2 and 5 off\n"
+"/list clear – take everything off"
+msgstr ""
+"Yhteinen lista, esimerkiksi ostoksille.\n"
+"/lista – lista, numeroituna\n"
+"/lista lisää maito, munat – lisää asioita, pilkuilla erotettuina\n"
+"/lista poista 2,5 – poista numerot 2 ja 5\n"
+"/lista tyhjennä – poista kaikki"
 
 #: nejomibot/help.py
-msgid "the name days, the coming ones first"
-msgstr "nimipäivät, lähimmät ensin"
+msgid "the coming birthdays"
+msgstr "tulevat syntymäpäivät"
 
 #: nejomibot/help.py
-msgid "[<language>]"
-msgstr "[<kieli>]"
+msgid "the coming name days"
+msgstr "tulevat nimipäivät"
 
 #: nejomibot/help.py
-msgid "the bot's languages; one for here"
-msgstr "botin kielet; yksi tänne"
+msgid "a fortune"
+msgstr "mietelause"
 
 #: nejomibot/help.py
-msgid "these commands"
-msgstr "nämä komennot"
+#, python-brace-format
+msgid ""
+"A random saying: a proverb, a quote or a joke.\n"
+"/fortune – from {library}\n"
+"/fortune all – from every library\n"
+"/fortune list – the libraries\n"
+"/fortune startrek – from that library"
+msgstr ""
+"Satunnainen sanonta: sananlasku, lainaus tai vitsi.\n"
+"/mietelause – kokoelmasta {library}\n"
+"/mietelause kaikki – kaikista kokoelmista\n"
+"/mietelause lista – kokoelmat\n"
+"/mietelause startrek – siitä kokoelmasta"
+
+#: nejomibot/help.py
+msgid "the bot's language here"
+msgstr "botin kieli täällä"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"A language is given by its code or its own name. In a group, only an admin "
+"can change it.\n"
+"/language – the languages, and the one spoken here\n"
+"/language {code} – {language} here\n"
+"/language default – the bot's own again"
+msgstr ""
+"Kieli annetaan sen koodilla tai omalla nimellä. Ryhmässä vain ylläpitäjä voi "
+"vaihtaa sen.\n"
+"/kieli – kielet, ja täällä puhuttu\n"
+"/kieli {code} – {language} täällä\n"
+"/kieli oletus – taas botin oma"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "/language 3,1 {code} – for chats 3 and 1 of /chats"
+msgstr "/kieli 3,1 {code} – keskusteluille 3 ja 1 listasta /chats"
+
+#: nejomibot/help.py
+msgid "is the bot there?"
+msgstr "onko botti paikalla?"
+
+#: nejomibot/help.py
+msgid "The bot answers pong!, with how long your message took to reach it."
+msgstr ""
+"Botti vastaa pong!, ja kertoo, kuinka kauan viestisi kesti tulla perille."
+
+#: nejomibot/help.py
+msgid "the commands you can use"
+msgstr "komennot, joita voit käyttää"
+
+#: nejomibot/help.py
+msgid "/help photo – more about /photo, and so on for every command"
+msgstr ""
+"/apu kuva – lisää komennosta /kuva, ja niin edelleen jokaisesta komennosta"
 
 #: nejomibot/help.py
 msgid "how the bot and the server are"
 msgstr "miten botti ja palvelin voivat"
 
 #: nejomibot/help.py
-msgid "what /today says, in each chat"
-msgstr "mitä /tänään sanoo, kussakin keskustelussa"
+msgid ""
+"Two messages: the checks, the failed ones first, then the details: the bot, "
+"Signal, the network and the server."
+msgstr ""
+"Kaksi viestiä: tarkistukset, epäonnistuneet ensin, sitten tiedot: botti, "
+"Signal, verkko ja palvelin."
 
 #: nejomibot/help.py
-msgid "[<date>]"
-msgstr "[<päivämäärä>]"
+msgid "whether the bot's messages arrived"
+msgstr "tulivatko botin viestit perille"
 
 #: nejomibot/help.py
-msgid "an album, and the birth date for its ages"
-msgstr "albumi ja syntymäpäivä sen ikiä varten"
+#, python-brace-format
+msgid ""
+"The bot's {count} latest messages, wherever it sent them, and how many in "
+"each chat got and read each one, as 📬 3/4 · 👀 2. ⏳ means nobody has "
+"confirmed it yet, ⚠️ that nobody has in 10 minutes."
+msgstr ""
+"Botin {count} viimeisintä viestiä, minne se ne lähettikin, ja kuinka moni "
+"kussakin keskustelussa sai ja luki kunkin, kuten 📬 3/4 · 👀 2. ⏳ "
+"tarkoittaa, ettei kukaan ole vielä vahvistanut sitä, ⚠️ ettei kukaan ole "
+"tehnyt sitä 10 minuutissa."
 
 #: nejomibot/help.py
-msgid "<album> [<date>|-]"
-msgstr "<albumi> [<päivämäärä>|-]"
+msgid "what people wrote to the bot"
+msgstr "mitä ihmiset kirjoittivat botille"
 
 #: nejomibot/help.py
-msgid "other names for /photo <album>"
-msgstr "muita nimiä komennolle /kuva <albumi>"
+msgid ""
+"The 50 latest messages people other than the admins sent the bot in direct "
+"chats.\n"
+"/incoming – the list, numbered\n"
+"/incoming 4,9 – forward those to you, in full"
+msgstr ""
+"50 viimeisintä viestiä, jotka muut kuin ylläpitäjät lähettivät botille "
+"yksityiskeskusteluissa.\n"
+"/saapuneet – lista, numeroituna\n"
+"/saapuneet 4,9 – välitä ne sinulle kokonaisina"
 
 #: nejomibot/help.py
-msgid "<album> shortcuts <names>|-"
-msgstr "<albumi> oikopolut <nimet>|-"
+msgid "delete the bot's messages"
+msgstr "poista botin viestit"
 
 #: nejomibot/help.py
-msgid "[<who>]"
-msgstr "[<kuka>]"
-
-#: nejomibot/help.py
-msgid "who the bot knows"
-msgstr "ketä botti tuntee"
-
-#: nejomibot/help.py
-msgid "<who> <name>"
-msgstr "<kuka> <nimi>"
-
-#: nejomibot/help.py
-msgid "add a contact, or rename"
-msgstr "lisää yhteystieto tai nimeä uudelleen"
-
-#: nejomibot/help.py
-msgid "the safety numbers, or one's"
-msgstr "turvanumerot, tai yhden henkilön"
-
-#: nejomibot/help.py
-msgid "<who> <safety number>"
-msgstr "<kuka> <turvanumero>"
-
-#: nejomibot/help.py
-msgid "mark as verified"
-msgstr "merkitse vahvistetuksi"
+msgid ""
+"For everyone, within a day of sending.\n"
+"/delete – the bot's latest message here, in groups too; again for the one "
+"before\n"
+"/delete list – its 50 latest messages, wherever it sent them, numbered\n"
+"/delete 2,5 – delete those"
+msgstr ""
+"Kaikilta, vuorokauden sisällä lähettämisestä.\n"
+"/poista – botin viimeisin viesti täällä, myös ryhmissä; uudelleen sitä "
+"edeltävälle\n"
+"/poista lista – sen 50 viimeisintä viestiä, minne se ne lähettikin, "
+"numeroituna\n"
+"/poista 2,5 – poista ne"
 
 #: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "kuka saa käyttää bottia"
 
 #: nejomibot/help.py
-msgid "<who>"
-msgstr "<kuka>"
+msgid "let someone, or a group, use the bot"
+msgstr "anna jonkun, tai ryhmän, käyttää bottia"
 
 #: nejomibot/help.py
-msgid "put someone, or a group, on that list"
-msgstr "lisää joku tai ryhmä listalle"
-
-#: nejomibot/help.py
-msgid "<n>"
-msgstr "<n>"
-
-#: nejomibot/help.py
-msgid "take someone off it"
-msgstr "poista joku listalta"
+msgid "take someone off the allowed list"
+msgstr "poista joku sallittujen listalta"
 
 #: nejomibot/help.py
 msgid "who the admins are"
@@ -1275,251 +1603,156 @@ msgid "make someone an admin, or no longer"
 msgstr "tee jostakusta ylläpitäjä, tai lopeta se"
 
 #: nejomibot/help.py
-msgid "add <who> [<language>] · remove <n>"
-msgstr "lisää <kuka> [<kieli>] · poista <n>"
+msgid "who the bot knows"
+msgstr "ketä botti tuntee"
 
 #: nejomibot/help.py
-msgid "the bot's profile"
-msgstr "botin profiili"
+msgid ""
+"Everyone the bot's Signal account knows, numbered, and whether each is "
+"verified.\n"
+"/contacts – everyone\n"
+"/contacts 3 – number 3 in full, with their safety number\n"
+"/contacts add 3 Alice – save number 3 as Alice, or rename them\n"
+"/contacts add @alice.42 Alice – someone new, by username or phone number\n"
+"In place of a number, you can give a phone number, a Signal ID or its start, "
+"or a name."
+msgstr ""
+"Kaikki, jotka botin Signal-tili tuntee, numeroituna, ja onko kukin "
+"vahvistettu.\n"
+"/yhteystiedot – kaikki\n"
+"/yhteystiedot 3 – numero 3 kokonaan, turvanumeron kera\n"
+"/yhteystiedot lisää 3 Alice – tallenna numero 3 nimellä Alice, tai nimeä "
+"uudelleen\n"
+"/yhteystiedot lisää @alice.42 Alice – joku uusi, käyttäjänimellä tai "
+"puhelinnumerolla\n"
+"Numeron sijaan voit antaa puhelinnumeron, Signal-tunnuksen tai sen alun, tai "
+"nimen."
 
 #: nejomibot/help.py
-msgid "<name>"
-msgstr "<nimi>"
+msgid "the safety numbers"
+msgstr "turvanumerot"
 
 #: nejomibot/help.py
-msgid "its name"
-msgstr "sen nimi"
+msgid ""
+"Numbered as /contacts numbers people, with whether each is verified.\n"
+"/trust – everyone's\n"
+"/trust 3 – number 3's\n"
+"/trust 3 <safety number> – mark it verified, once it matches the one on "
+"their phone"
+msgstr ""
+"Numeroituna samoin kuin listassa /yhteystiedot, ja onko kukin vahvistettu.\n"
+"/vahvista – kaikkien\n"
+"/vahvista 3 – numeron 3\n"
+"/vahvista 3 <turvanumero> – merkitse se vahvistetuksi, kun se vastaa hänen "
+"puhelimessaan olevaa"
 
 #: nejomibot/help.py
-msgid "<text>"
-msgstr "<teksti>"
+msgid "what the bot runs on a schedule"
+msgstr "mitä botti suorittaa aikataulussa"
 
 #: nejomibot/help.py
-msgid "its About text"
-msgstr "sen Tietoja-teksti"
-
-#: nejomibot/help.py
-msgid "its picture: send one with this as its caption"
-msgstr "sen kuva: lähetä kuva, jonka kuvatekstinä on tämä"
-
-#: nejomibot/help.py
-msgid "its username, and a link"
-msgstr "sen käyttäjänimi ja linkki"
-
-#: nejomibot/help.py
-msgid "what it runs on a schedule"
-msgstr "mitä se suorittaa aikataulussa"
+msgid "add, remove or run a timer"
+msgstr "lisää, poista tai suorita ajastin"
 
 #: nejomibot/help.py
 msgid "where timers can post"
 msgstr "minne ajastimet voivat julkaista"
 
 #: nejomibot/help.py
-msgid "a new timer"
-msgstr "uusi ajastin"
-
-#: nejomibot/help.py
-msgid "add <when> [<chats>] <commands>"
-msgstr "lisää <milloin> [<keskustelut>] <komennot>"
-
-#: nejomibot/help.py
-msgid "remove <n> · run <n>"
-msgstr "poista <n> · suorita <n>"
-
-#: nejomibot/help.py
-msgid "remove one, or run it now"
-msgstr "poista yksi tai suorita se nyt"
-
-#: nejomibot/help.py
-msgid "commands of your own"
-msgstr "omat komennot"
-
-#: nejomibot/help.py
-msgid "a new one, or a change"
-msgstr "uusi, tai muutos"
-
-#: nejomibot/help.py
-msgid "add <name> <parts>"
-msgstr "lisää <nimi> <osat>"
-
-#: nejomibot/help.py
-msgid "other names for one"
-msgstr "muita nimiä yhdelle"
-
-#: nejomibot/help.py
-msgid "shortcuts <name> <names>|-"
-msgstr "oikopolut <nimi> <nimet>|-"
-
-#: nejomibot/help.py
-msgid "remove <name>"
-msgstr "poista <nimi>"
-
-#: nejomibot/help.py
-msgid "remove one"
-msgstr "poista yksi"
-
-#: nejomibot/help.py
-msgid "for everyone allowed, or the admins alone"
-msgstr "kaikille sallituille, tai vain ylläpitäjille"
-
-#: nejomibot/help.py
-msgid "everyone <name> · admins <name>"
-msgstr "kaikille <nimi> · ylläpitäjille <nimi>"
-
-#: nejomibot/help.py
-msgid "<chats> <text>"
-msgstr "<keskustelut> <teksti>"
+msgid ""
+"Numbered: the groups the bot is in, then the people on the allowed list, "
+"then the admins. /timer add, /msg, /run, /language and /birthday add take "
+"these numbers."
+msgstr ""
+"Numeroituna: ryhmät, joissa botti on, sitten sallittujen listan henkilöt, "
+"sitten ylläpitäjät. /timer lisää, /lähetä, /suorita, /kieli ja /syntymäpäivä "
+"lisää ottavat nämä numerot."
 
 #: nejomibot/help.py
 msgid "post a message to chats"
 msgstr "julkaise viesti keskusteluihin"
 
 #: nejomibot/help.py
-msgid "<chats> <commands>"
-msgstr "<keskustelut> <komennot>"
-
-#: nejomibot/help.py
 msgid "post commands' answers to chats"
 msgstr "julkaise komentojen vastaukset keskusteluihin"
 
 #: nejomibot/help.py
-msgid "[<n>,…]"
-msgstr "[<n>,…]"
+msgid "commands of your own"
+msgstr "omat komennot"
 
 #: nejomibot/help.py
-msgid "messages people sent it; forward some"
-msgstr "ihmisten sille lähettämät viestit; välitä joitakin"
+msgid "make or change a special"
+msgstr "luo tai muuta erikoiskomento"
 
 #: nejomibot/help.py
-msgid "a birthday"
-msgstr "syntymäpäivä"
+msgid "add or remove a birthday"
+msgstr "lisää tai poista syntymäpäivä"
 
 #: nejomibot/help.py
-msgid "add <date> [<chats>] <who>"
-msgstr "lisää <päivämäärä> [<keskustelut>] <kuka>"
+msgid "add or remove a name day"
+msgstr "lisää tai poista nimipäivä"
 
 #: nejomibot/help.py
-msgid "a name day"
-msgstr "nimipäivä"
+msgid "an album, and the birth date for its ages"
+msgstr "albumi ja syntymäpäivä sen ikiä varten"
 
 #: nejomibot/help.py
-msgid "remove <n>"
-msgstr "poista <n>"
+msgid ""
+"/album <album> – the album: its photos, years, birth date and shortcuts\n"
+"/album <album> 2019-06-15 – captions show the age of who was born then\n"
+"/album <album> - – no age\n"
+"/album <album> shortcuts /alice – /alice is then /photo <album>\n"
+"/album <album> shortcuts - – none\n"
+"/albums lists the albums."
+msgstr ""
+"/album <albumi> – albumi: sen kuvat, vuodet, syntymäpäivä ja oikopolut\n"
+"/album <albumi> 2019-06-15 – kuvatekstit näyttävät silloin syntyneen iän\n"
+"/album <albumi> - – ei ikää\n"
+"/album <albumi> oikopolut /alice – /alice on silloin /kuva <albumi>\n"
+"/album <albumi> oikopolut - – ei yhtään\n"
+"/albumit luettelee albumit."
 
 #: nejomibot/help.py
-msgid "remove one; /nameday too"
-msgstr "poista yksi; myös /nimipäivä"
+msgid "the bot's profile"
+msgstr "botin profiili"
 
 #: nejomibot/help.py
-msgid "its latest messages anywhere; delete some"
-msgstr "sen viimeisimmät viestit missä tahansa; poista joitakin"
+msgid "the bot's name"
+msgstr "botin nimi"
 
 #: nejomibot/help.py
-msgid "· <n>,…"
-msgstr "· <n>,…"
+msgid "the bot's About text"
+msgstr "botin Tietoja-teksti"
 
 #: nejomibot/help.py
-msgid "whether its latest messages arrived"
-msgstr "tulivatko sen viimeisimmät viestit perille"
+msgid "the bot's picture"
+msgstr "botin profiilikuva"
 
 #: nejomibot/help.py
-msgid "delete its latest message here"
-msgstr "poista sen viimeisin viesti täältä"
+msgid "the bot's username, and a link"
+msgstr "botin käyttäjänimi, ja linkki"
 
 #: nejomibot/help.py
 msgid "Specials"
 msgstr "Erikoiskomennot"
 
 #: nejomibot/help.py
-msgid ""
-"<who> – a number from /contacts or /trust, or a name, phone number or ID; /"
-"allow takes groups too"
-msgstr ""
-"<kuka> – numero listasta /yhteystiedot tai /vahvista, tai nimi, "
-"puhelinnumero tai tunnus; /salli ottaa myös ryhmiä"
-
-#: nejomibot/help.py
-msgid ""
-"<n> – a number from /allowed, /admins, /timers, /delete list, /incoming, /"
-"birthdays or /namedays"
-msgstr ""
-"<n> – numero listasta /sallitut, /admins, /timers, /poista lista, /"
-"saapuneet, /syntymäpäivät tai /nimipäivät"
-
-#: nejomibot/help.py
 #, python-brace-format
-msgid ""
-"<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · every 2h, "
-"in {zone} time"
+msgid "Send {help} and a command for more about it, as {example}."
 msgstr ""
-"<milloin> – 08:00 · ma-pe 07:30 · {date} 15:00 · huomenna 08:00 · joka 2h, "
-"aikavyöhykkeen {zone} mukaan"
-
-#: nejomibot/help.py
-msgid ""
-"<chats> – numbers from /chats, like 1,2; a timer without them posts to you"
-msgstr ""
-"<keskustelut> – numeroita listasta /chats, kuten 1,2; ajastin ilman niitä "
-"julkaisee sinulle"
-
-#: nejomibot/help.py
-msgid ""
-"<date> – 1990-03-14, or 03-14 without the year; for someone not on Signal, "
-"<who> is a name, shown in <chats>, or in every group"
-msgstr ""
-"<päivämäärä> – 1990-03-14 tai 03-14 ilman vuotta; jollekulle, joka ei ole "
-"Signalissa, <kuka> on nimi, joka näytetään kohteissa <keskustelut> tai "
-"kaikissa ryhmissä"
-
-#: nejomibot/help.py
-msgid ""
-"<parts> – text and commands, separated by ;, or by + for one message, e.g. "
-"Good morning! /today + /weather; /uniquephoto"
-msgstr ""
-"<osat> – tekstiä ja komentoja, erotettuina merkillä ; tai merkillä + yhteen "
-"viestiin, esimerkiksi Huomenta! /tänään + /sää; /uusikuva"
-
-#: nejomibot/help.py
-msgid ""
-"<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none, and shortcuts as /alice, or - for none"
-msgstr ""
-"<albumi> – yksi listasta /albumit, nimellä; /album ottaa päivämäärän "
-"(<päivämäärä>) vuoden kanssa, tai - ei päivämäärää, sekä oikopolkuja kuten /"
-"alice, tai - ei yhtään"
-
-#: nejomibot/help.py
-msgid "remove – after /about, /avatar or /username, takes it away"
-msgstr ""
-"poista – komentojen /tietoja, /profiilikuva tai /käyttäjänimi jälkeen "
-"poistaa sen"
-
-#: nejomibot/help.py
-msgid ""
-"<language> – sv, or Svenska, its own name; /language <chats> <language> "
-"gives those chats of /chats it, /admin add <who> <language> a new admin, and "
-"a group's is an admin's to change"
-msgstr ""
-"<kieli> – fi, tai Suomi, sen oma nimi; /kieli <keskustelut> <kieli> antaa "
-"sen niille keskusteluille listassa /chats, /admin lisää <kuka> <kieli> "
-"uudelle ylläpitäjälle, ja ryhmän kielen vaihtaa ylläpitäjä"
-
-#: nejomibot/help.py
-#, python-brace-format
-msgid "For everyone allowed ({count})"
-msgstr "Kaikille sallituille ({count})"
-
-#: nejomibot/help.py
-msgid "Admins, in a direct chat"
-msgstr "Ylläpitäjät, yksityiskeskustelussa"
-
-#: nejomibot/help.py
-msgid "Admins, in any chat"
-msgstr "Ylläpitäjät, missä tahansa keskustelussa"
+"Lähetä {help} ja komento saadaksesi siitä lisää tietoa, kuten {example}."
 
 #: nejomibot/help.py
 msgid "Commands"
 msgstr "Komennot"
+
+#: nejomibot/help.py
+msgid "For everyone allowed"
+msgstr "Kaikille sallituille"
+
+#: nejomibot/help.py
+msgid "Admins, in a direct chat"
+msgstr "Ylläpitäjät, yksityiskeskustelussa"
 
 #: nejomibot/help.py
 msgid "Commands start with . or /, whichever is easier to type."
@@ -1528,6 +1761,21 @@ msgstr "Komennot alkavat merkillä . tai /, kumpi on helpompi kirjoittaa."
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
 msgstr "Jokainen komento toimii myös englanninkielisellä nimellään."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "{shortcut} is short for {command}."
+msgstr "{shortcut} on oikopolku komentoon {command}."
+
+#: nejomibot/help.py
+msgid "An admin's own command: it posts these, in order."
+msgstr "Ylläpitäjän oma komento: se julkaisee nämä, järjestyksessä."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "There's no command {name} here. {help} lists those you can use."
+msgstr ""
+"Täällä ei ole komentoa {name}. {help} luettelee ne, joita voit käyttää."
 
 #: nejomibot/holidays.py
 msgid "New Year's Day"

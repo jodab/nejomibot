@@ -101,7 +101,7 @@ def now() -> datetime:
 
 
 def usage() -> str:
-    zone = get_settings().timezone.rsplit("/", 1)[-1].replace("_", " ")
+    zone = get_settings().timezone_city
     date = example_date(now().date())
     return "\n".join(
         [

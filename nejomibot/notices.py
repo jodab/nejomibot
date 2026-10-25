@@ -6,13 +6,11 @@ find out late:
   (a crash, a kill, a power cut), that messages may be lost. Then what needs
   their attention, such as lines of the bot's files it can't read, or a
   clock that isn't synchronized, and how the bot is: its timers, chats,
-  photos and memory, its versions, and where it runs. Once in QUIET
-  at most, but after an update: a start sooner after the last told waits
-  till then, so a crash loop can't flood the admins, nor run into Signal's
-  rate limits; should the bot stop meanwhile, the next start tells instead.
-  It knows from data_dir/run.json, which it writes as it starts, as it
-  tells, and as it stops. In debug mode, which keeps no files from one
-  start to the next, each start tells.
+  photos and memory, its versions, and where it runs. Every start tells
+  them, at once, unless startup_notice is false. The run before is in
+  data_dir/run.json, which the bot writes as it starts and as it stops; in
+  debug mode, which keeps no files from one start to the next, there's
+  none.
 - When Signal starts rate-limiting the bot, how to lift the limit: once in
   six hours at most, and tried once, not kept to send later, as it may not
   get through either. The health check says so too, while messages wait.
@@ -66,8 +64,6 @@ logger = logging.getLogger(__name__)
 
 RUN_FILE = "run.json"  # in data_dir
 RATE_LIMIT_AGAIN = timedelta(hours=6)
-# The least time between two notices of a start, but for an update's
-QUIET = timedelta(minutes=10)
 
 
 class Run(BaseModel):
@@ -76,7 +72,6 @@ class Run(BaseModel):
     version: str
     started: datetime
     stopped: datetime | None = None  # when, if it stopped cleanly
-    told: datetime | None = None  # when the admins last heard of a start
 
 
 def read_run() -> Run | None:
@@ -313,11 +308,7 @@ class Notices:
         """Note this run, beside the one before, and tell the admins once the
         bot is ready."""
         self.previous = read_run()
-        self.run = Run(
-            version=version("nejomibot"),
-            started=STARTED,
-            told=self.previous.told if self.previous else None,
-        )
+        self.run = Run(version=version("nejomibot"), started=STARTED)
         save_run(self.run)
         if previous := self.previous:
             self.looked = previous.stopped or previous.started
@@ -348,12 +339,14 @@ class Notices:
         task.add_done_callback(self.tasks.discard)
 
     async def serve(self, bot: SignalBot) -> None:
-        """Once signalbot is ready: tell the admins of the start, beside what
-        follows, then look at the safety numbers every healthcheck_minutes."""
+        """Once signalbot is ready: tell the admins of the start, unless
+        startup_notice is false, beside what follows, then look at the safety
+        numbers every healthcheck_minutes."""
         await bot.wait_until_ready()
         ready = datetime.now(UTC)
         logger.info("Ready, %.1f s after the start", (ready - STARTED).total_seconds())
-        self.spawn(self.tell_of_start(bot, ready))
+        if get_settings().startup_notice:
+            self.spawn(self.tell_of_start(bot, ready))
         await self.look_at_safety_numbers(bot)
         bot.scheduler.add_job(  # pyright: ignore[reportUnknownMemberType]
             self.look_at_safety_numbers,
@@ -367,23 +360,9 @@ class Notices:
             replace_existing=True,
         )
 
-    def delay(self, now: datetime) -> timedelta:
-        """How long to wait before telling the admins of this start: not at
-        all after an update, else until QUIET after they last heard of one."""
-        run, previous = self.run, self.previous
-        if run is None or run.told is None:
-            return timedelta()
-        if previous is not None and previous.version != run.version:
-            return timedelta()
-        # QUIET at most, should the clock have been set back since
-        return max(min(run.told + QUIET - now, QUIET), timedelta())
-
     async def tell_of_start(self, bot: SignalBot, ready: datetime) -> None:
-        """Tell the admins of this start, which was ready then, once its
-        delay is over. Never raises."""
-        if (wait := self.delay(datetime.now(UTC))) > timedelta():
-            logger.info("Telling the admins of the start in %d s", wait.total_seconds())
-            await asyncio.sleep(wait.total_seconds())
+        """Tell the admins of this start, which was ready then. Never
+        raises."""
         if (run := self.run) is None:
             return
         previous = self.previous
@@ -394,8 +373,6 @@ class Notices:
             return
         logger.info("Telling the admins of the start")
         await tell(bot, texts, styled=True)
-        self.run = run.model_copy(update={"told": datetime.now(UTC)})
-        save_run(self.run)
 
     async def rate_limited(self, bot: SignalBot) -> None:
         """Tell the admins that Signal rate-limits the bot, once in

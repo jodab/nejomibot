@@ -10,19 +10,6 @@ lack. What has been done is in [CHANGELOG.md](CHANGELOG.md).
   on 0.99.x, and `tools/release.sh` stops on minor and major releases:
   remove its guard (after the usage check) when the time comes.
 
-## Planned
-
-- [ ] **`/help <command>`, a command's help in full** (the owner's request,
-  2026-10-25): what the command does and what may follow it, in a few
-  lines, with examples of its use, in the chat's language, for a command
-  the asker may use, as `/help` lists them; by its name in any language, an
-  alias or a shortcut, starting with `.` or `/` as every command may.
-  `/help` takes nothing after it now. The README's tables and the usage
-  text each command answers when it can't make out what follows it
-  (`photo_usage()`, `username_usage()` and the rest) are where to start,
-  and a test should check that every command has its help, as one does
-  for its line in `/help`.
-
 ## Accounts without a phone number
 
 The bot should run on an account without a phone number, such as one

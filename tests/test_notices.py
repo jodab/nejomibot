@@ -16,7 +16,6 @@ from nejomibot.config import get_settings
 from nejomibot.health import Check
 from nejomibot.messages import Outcome
 from nejomibot.notices import (
-    QUIET,
     RATE_LIMIT_AGAIN,
     Notices,
     Run,
@@ -165,33 +164,6 @@ async def test_a_start_s_notice_in_debug_mode(
     ]
 
 
-@pytest.mark.parametrize(
-    ("previous", "told", "delay"),
-    [
-        # A first start, or debug mode, or the admins never told
-        (None, None, timedelta()),
-        # Told 3 minutes ago: the rest of QUIET
-        (
-            Run(version="0.99.0", started=STARTED),
-            NOW - timedelta(minutes=3),
-            timedelta(minutes=7),
-        ),
-        (Run(version="0.99.0", started=STARTED), NOW - QUIET, timedelta()),
-        # An update tells at once
-        (Run(version="0.98.0", started=STARTED), NOW, timedelta()),
-        # QUIET at most, should the clock have been set back since
-        (Run(version="0.99.0", started=STARTED), NOW + timedelta(hours=5), QUIET),
-    ],
-)
-def test_a_start_is_told_once_in_quiet_at_most(
-    previous: Run | None, told: datetime | None, delay: timedelta
-) -> None:
-    keeper = Notices()
-    keeper.previous = previous
-    keeper.run = Run(version="0.99.0", started=NOW, told=told)
-    assert keeper.delay(NOW) == delay
-
-
 async def test_telling_of_a_start(
     bot: SignalBot, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -210,13 +182,11 @@ async def test_telling_of_a_start(
     assert message.text_mode == TextMode.STYLED
     started = f"🟢 **nejomibot {version('nejomibot')} started**"
     assert (message.text or "").startswith(started)
-    # Kept, so the next start knows when the admins last heard of one
-    run = read_run()
-    assert run is not None and run.told is not None
+    # The next start tells them too, at once, however soon it comes
     again = Notices()
     again.start(bot)
-    assert again.run is not None and again.run.told == run.told
-    assert again.delay(datetime.now(UTC)) > QUIET - timedelta(minutes=1)
+    await again.tell_of_start(bot, datetime.now(UTC))
+    assert len(sent) == 2
 
 
 @pytest.mark.usefixtures("outbox")
@@ -336,3 +306,27 @@ async def test_served_once_ready(
     job = cast(Any, bot.scheduler.get_job("notices-safety-numbers"))  # pyright: ignore[reportUnknownMemberType]
     assert job is not None
     assert str(job.trigger) == "interval[0:05:00]"
+
+
+async def test_no_notice_of_a_start_if_turned_off(
+    bot: SignalBot,
+    signal_api: FakeApi,
+    told: list[tuple[str, str]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # startup_notice = false; the safety numbers are still looked at
+    monkeypatch.setenv("NEJOMIBOT_STARTUP_NOTICE", "false")
+    get_settings.cache_clear()
+
+    async def ready() -> None:
+        pass
+
+    monkeypatch.setattr(bot, "wait_until_ready", ready)
+    keeper = Notices()
+    keeper.start(bot)
+    keeper.looked = datetime.now(UTC)
+    await keeper.serve(bot)
+    await asyncio.gather(*keeper.tasks)
+    assert told == []
+    job = cast(Any, bot.scheduler.get_job("notices-safety-numbers"))  # pyright: ignore[reportUnknownMemberType]
+    assert job is not None

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 03:16+0300\n"
+"POT-Creation-Date: 2026-10-25 04:44+0200\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -155,11 +155,10 @@ msgstr "Είστε πλέον διαχειριστής αυτού του bot."
 #, python-brace-format
 msgid ""
 "Here, in a direct chat with the bot, you may use every command: {help} lists "
-"them all, with what each takes. A few to start with:"
+"them all. A few to start with:"
 msgstr ""
 "Εδώ, σε προσωπική συνομιλία με το bot, μπορείτε να χρησιμοποιείτε όλες τις "
-"εντολές: το {help} τις παραθέτει όλες, με ό,τι δέχεται η καθεμία. Μερικές "
-"για αρχή:"
+"εντολές: το {help} τις παραθέτει όλες. Μερικές για αρχή:"
 
 #: nejomibot/admins.py
 msgid "Thank you for helping look after the bot."
@@ -1095,196 +1094,532 @@ msgid "(peak {peak})"
 msgstr "(μέγιστο {peak})"
 
 #: nejomibot/help.py
-msgid "[<album>]"
-msgstr "[<άλμπουμ>]"
+msgid ""
+"In a group, those of its people, the coming ones first. /today names them on "
+"the day."
+msgstr ""
+"Σε μια ομάδα, μόνο των μελών της, με πρώτες τις πλησιέστερες ημερομηνίες. "
+"Την ίδια την ημέρα εμφανίζονται και στο /σήμερα."
+
+#: nejomibot/help.py
+msgid "In a direct chat, you see all of them, numbered, with where each shows."
+msgstr ""
+"Σε προσωπική συνομιλία βλέπετε όλες τις καταχωρίσεις, αριθμημένες, και πού "
+"εμφανίζεται η καθεμία."
+
+#: nejomibot/help.py
+msgid ""
+"Who may use the everyday commands: people, in a direct chat with the bot, "
+"and groups, everyone in them.\n"
+"/allowed – the list, numbered\n"
+"/allow <who> – add someone, or a group the bot is in\n"
+"/disallow 2 – take number 2 off\n"
+"<who> is a number from /contacts, a phone number, a Signal ID, a group's ID "
+"or name, or someone's name."
+msgstr ""
+"Ποιοι μπορούν να χρησιμοποιούν τις καθημερινές εντολές: άτομα, σε προσωπική "
+"συνομιλία με το bot, και ομάδες, όλα τα μέλη τους.\n"
+"/επιτρεπόμενοι – η λίστα, αριθμημένη\n"
+"/επίτρεψε <ποιος> – προσθήκη ατόμου, ή ομάδας όπου βρίσκεται το bot\n"
+"/απαγόρευσε 2 – αφαίρεση του αριθμού 2\n"
+"Το <ποιος> είναι αριθμός από τις /επαφές, αριθμός τηλεφώνου, Signal ID, ID ή "
+"όνομα ομάδας, ή όνομα ατόμου."
+
+#: nejomibot/help.py
+msgid ""
+"Admins may use every command, the admin commands in a direct chat with the "
+"bot.\n"
+"/admins – who they are, numbered\n"
+"/admin add <who> – make someone an admin, with a welcome\n"
+"/admin add <who> <language> – and the bot speaks that language with them\n"
+"/admin remove 2 – number 2 is no longer one\n"
+"<who> is a number from /contacts, a phone number, a Signal ID or a name. "
+"Only the admins in the config can add and remove admins."
+msgstr ""
+"Οι διαχειριστές μπορούν να χρησιμοποιούν όλες τις εντολές, τις εντολές "
+"διαχείρισης σε προσωπική συνομιλία με το bot.\n"
+"/admins – ποιοι είναι, αριθμημένοι\n"
+"/admin πρόσθεσε <ποιος> – ορισμός διαχειριστή, με μήνυμα καλωσορίσματος\n"
+"/admin πρόσθεσε <ποιος> <γλώσσα> – και το bot μιλά μαζί του σε αυτή τη "
+"γλώσσα\n"
+"/admin αφαίρεσε 2 – ο αριθμός 2 παύει να είναι διαχειριστής\n"
+"Το <ποιος> είναι αριθμός από τις /επαφές, αριθμός τηλεφώνου, Signal ID ή "
+"όνομα. Μόνο οι διαχειριστές των ρυθμίσεων μπορούν να προσθέτουν και να "
+"αφαιρούν διαχειριστές."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"Timers run commands on a schedule and post their answers, such as a daily "
+"post.\n"
+"/timers – the timers, numbered\n"
+"/timer add 08:00 1,2 /today – every day at 08:00, to chats 1 and 2 of /"
+"chats\n"
+"/timer add mon-fri 07:30 /weather; /photo – on weekdays, to you\n"
+"/timer remove 2 – remove number 2\n"
+"/timer run 2 – run it now\n"
+"More ways to say when: 08:00,18:30 · sat,sun 10:00 · {date} 15:00, once · "
+"tomorrow 08:00 · every 2h or 30m, all in {zone} time."
+msgstr ""
+"Οι χρονοδιακόπτες εκτελούν εντολές προγραμματισμένα και δημοσιεύουν τις "
+"απαντήσεις τους, όπως μια καθημερινή ανάρτηση.\n"
+"/timers – οι χρονοδιακόπτες, αριθμημένοι\n"
+"/timer πρόσθεσε 08:00 1,2 /σήμερα – κάθε μέρα στις 08:00, στις συνομιλίες 1 "
+"και 2 του /chats\n"
+"/timer πρόσθεσε δευ-παρ 07:30 /καιρός; /φωτογραφία – τις καθημερινές, σε "
+"εσάς\n"
+"/timer αφαίρεσε 2 – αφαίρεση του αριθμού 2\n"
+"/timer εκτέλεσε 2 – εκτέλεση τώρα\n"
+"Άλλοι τρόποι για το πότε: 08:00,18:30 · σαβ,κυρ 10:00 · {date} 15:00, μία "
+"φορά · αύριο 08:00 · κάθε 2h ή 30m, πάντα σε ώρα {zone}."
+
+#: nejomibot/help.py
+msgid ""
+"Post to other chats, by their numbers in /chats.\n"
+"/msg 1,2 Hello! – post a text to chats 1 and 2\n"
+"/run 1 /weather; /photo – post what the commands answer to chat 1\n"
+"/run runs what a timer can, as if you sent it here."
+msgstr ""
+"Δημοσίευση σε άλλες συνομιλίες, με τους αριθμούς τους στο /chats.\n"
+"/μήνυμα 1,2 Γεια σας! – δημοσίευση κειμένου στις συνομιλίες 1 και 2\n"
+"/εκτέλεση 1 /καιρός; /φωτογραφία – δημοσίευση των απαντήσεων των εντολών στη "
+"συνομιλία 1\n"
+"Το /εκτέλεση εκτελεί ό,τι μπορεί ένας χρονοδιακόπτης, σαν να το στέλνατε εδώ."
+
+#: nejomibot/help.py
+msgid ""
+"Specials post texts and what other commands answer, in one go.\n"
+"/specials – yours\n"
+"/special add /morning Good morning! /today + /weather; /uniquephoto – a new "
+"one, or a change\n"
+"/special shortcuts /morning /gm – other names for it; - for none\n"
+"/special everyone /morning – for everyone allowed, groups too; /help lists "
+"it\n"
+"/special admins /morning – for the admins alone again\n"
+"/special remove /morning – remove it\n"
+"Parts are separated by ; or line breaks, and text before a command heads its "
+"answer. A + in place of a ; posts the parts on either side of it in one "
+"message. Text keeps the formatting you give it."
+msgstr ""
+"Οι ειδικές εντολές δημοσιεύουν κείμενα και τις απαντήσεις άλλων εντολών, με "
+"μία κίνηση.\n"
+"/specials – οι δικές σας\n"
+"/special πρόσθεσε /morning Καλημέρα! /σήμερα + /καιρός; /νέαφωτο – νέα, ή "
+"αλλαγή\n"
+"/special συντομεύσεις /morning /gm – άλλα ονόματα για αυτή· - για κανένα\n"
+"/special για όλους /morning – για όλους τους επιτρεπόμενους, και σε ομάδες· "
+"το /βοήθεια την παραθέτει\n"
+"/special για διαχειριστές /morning – ξανά μόνο για τους διαχειριστές\n"
+"/special αφαίρεσε /morning – αφαίρεσή της\n"
+"Τα μέρη χωρίζονται με ; ή αλλαγές γραμμής, και το κείμενο πριν από μια "
+"εντολή γίνεται επικεφαλίδα της απάντησής της. Ένα + στη θέση του ; "
+"δημοσιεύει τα μέρη εκατέρωθεν σε ένα μήνυμα. Το κείμενο διατηρεί τη "
+"μορφοποίηση που του δίνετε."
+
+#: nejomibot/help.py
+msgid ""
+"/today names them in groups, on the day.\n"
+"/birthday add 1990-03-14 Alice – a contact's, in their groups, with the age\n"
+"/birthday add 03-14 Bob – without the year, no age\n"
+"/birthday add 05-01 1,2 Grandma – someone not on Signal, in chats 1 and 2 "
+"of /chats; without numbers, in every group\n"
+"/birthday remove 2 – by its number in /birthdays\n"
+"/nameday add and /nameday remove work the same way. A contact must be saved "
+"by name, with /contacts add."
+msgstr ""
+"Εμφανίζονται στο /σήμερα, στις ομάδες, την ίδια την ημέρα.\n"
+"/birthday πρόσθεσε 1990-03-14 Alice – γενέθλια επαφής, στις ομάδες της, με "
+"την ηλικία\n"
+"/birthday πρόσθεσε 03-14 Bob – χωρίς έτος, χωρίς ηλικία\n"
+"/birthday πρόσθεσε 05-01 1,2 Γιαγιά – κάποιου χωρίς Signal, στις συνομιλίες "
+"1 και 2 του /chats· χωρίς αριθμούς, σε όλες τις ομάδες\n"
+"/birthday αφαίρεσε 2 – με τον αριθμό στα /γενέθλια\n"
+"Τα /γιορτή πρόσθεσε και /γιορτή αφαίρεσε λειτουργούν με τον ίδιο τρόπο. Η "
+"επαφή πρέπει να είναι αποθηκευμένη με όνομα, με το /επαφές πρόσθεσε."
+
+#: nejomibot/help.py
+msgid ""
+"What everyone sees of the bot in Signal.\n"
+"/profile – the profile\n"
+"/name <name> – its name\n"
+"/about <text> – the text under its name\n"
+"/avatar – send a picture with this as its caption\n"
+"/username <name> – its username, and a link that starts a chat with it\n"
+"/about remove, /avatar remove and /username remove take them away. Signal "
+"adds a number to a username, as mybot.42, unless you give one."
+msgstr ""
+"Ό,τι βλέπουν όλοι από το bot στο Signal.\n"
+"/προφίλ – το προφίλ\n"
+"/όνομα <όνομα> – το όνομά του\n"
+"/σχετικά <κείμενο> – το κείμενο κάτω από το όνομά του\n"
+"/εικόνα – στείλτε μια εικόνα με αυτό ως λεζάντα\n"
+"/όνομαχρήστη <όνομα> – το όνομα χρήστη του, και ένας σύνδεσμος που ανοίγει "
+"συνομιλία μαζί του\n"
+"Τα /σχετικά αφαίρεσε, /εικόνα αφαίρεσε και /όνομαχρήστη αφαίρεσε τα "
+"αφαιρούν. Το Signal προσθέτει έναν αριθμό στο όνομα χρήστη, όπως mybot.42, "
+"εκτός αν δώσετε εσείς έναν."
 
 #: nejomibot/help.py
 msgid "a random photo"
 msgstr "μια τυχαία φωτογραφία"
 
 #: nejomibot/help.py
-msgid "one from then: 2017, 2017-05 or 2017-05-14 15:30"
-msgstr "μία από τότε: 2017, 2017-05 ή 2017-05-14 15:30"
-
-#: nejomibot/help.py
-msgid "[<album>] <date>"
-msgstr "[<άλμπουμ>] <ημερομηνία>"
-
-#: nejomibot/help.py
-msgid "a photo alone, without its caption"
-msgstr "μόνο η φωτογραφία, χωρίς λεζάντα"
-
-#: nejomibot/help.py
-msgid "[<album>] [<date>]"
-msgstr "[<άλμπουμ>] [<ημερομηνία>]"
+msgid ""
+"The caption says when and where it was taken.\n"
+"/photo – from every album\n"
+"/photo <album> – from that album\n"
+"/photo 2017 – one taken in 2017\n"
+"/photo 2017-05-14 – one taken that day\n"
+"/photo 2017-05-14 15:30 – the one taken closest to then\n"
+"/photo <album> 2017 – both\n"
+"Give a date as exactly as you like: a year, a month (2017-05), a day, an "
+"hour (2017-05-14 15) or a minute. If none was taken then, you get the "
+"nearest, and how far off it is. /albums lists the albums."
+msgstr ""
+"Η λεζάντα λέει πότε και πού τραβήχτηκε.\n"
+"/φωτογραφία – από όλα τα άλμπουμ\n"
+"/φωτογραφία <άλμπουμ> – από αυτό το άλμπουμ\n"
+"/φωτογραφία 2017 – μία από το 2017\n"
+"/φωτογραφία 2017-05-14 – μία από εκείνη τη μέρα\n"
+"/φωτογραφία 2017-05-14 15:30 – αυτή που τραβήχτηκε πιο κοντά σε εκείνη τη "
+"στιγμή\n"
+"/φωτογραφία <άλμπουμ> 2017 – και τα δύο\n"
+"Δώστε ημερομηνία όσο ακριβή θέλετε: έτος, μήνα (2017-05), μέρα, ώρα "
+"(2017-05-14 15) ή λεπτό. Αν δεν τραβήχτηκε καμία τότε, λαμβάνετε την "
+"πλησιέστερη, και πόσο απέχει. Το /άλμπουμ δείχνει τα άλμπουμ."
 
 #: nejomibot/help.py
 msgid "a photo not sent yet"
 msgstr "μια φωτογραφία που δεν έχει σταλεί ακόμη"
 
 #: nejomibot/help.py
+msgid ""
+"No photo comes twice until every photo has been sent; then a new round "
+"starts. It has the same caption as /photo.\n"
+"/uniquephoto – from every album\n"
+"/uniquephoto <album> – from that album, which has a round of its own"
+msgstr ""
+"Καμία φωτογραφία δεν επαναλαμβάνεται πριν σταλούν όλες· μετά αρχίζει νέος "
+"γύρος. Έχει την ίδια λεζάντα με το /φωτογραφία.\n"
+"/νέαφωτο – από όλα τα άλμπουμ\n"
+"/νέαφωτο <άλμπουμ> – από αυτό το άλμπουμ, που έχει δικό του γύρο"
+
+#: nejomibot/help.py
+msgid "a photo without its caption"
+msgstr "μια φωτογραφία χωρίς λεζάντα"
+
+#: nejomibot/help.py
+msgid ""
+"Picked as /photo picks it, and sent alone, without a caption or heading.\n"
+"/sphoto – from every album\n"
+"/sphoto <album> – from that album\n"
+"/sphoto 2017-05-14 – one taken then, as /photo takes dates"
+msgstr ""
+"Επιλέγεται όπως στο /φωτογραφία, και στέλνεται μόνη, χωρίς λεζάντα ή "
+"επικεφαλίδα.\n"
+"/απλήφωτο – από όλα τα άλμπουμ\n"
+"/απλήφωτο <άλμπουμ> – από αυτό το άλμπουμ\n"
+"/απλήφωτο 2017-05-14 – μία από τότε, με ημερομηνίες όπως στο /φωτογραφία"
+
+#: nejomibot/help.py
+msgid "this day, years ago"
+msgstr "σαν σήμερα, παλαιότερα χρόνια"
+
+#: nejomibot/help.py
+msgid ""
+"A photo taken on this day in an earlier year, or else within three days of "
+"it, under a heading that says how many years ago.\n"
+"/onthisday – from every album\n"
+"/onthisday <album> – from that album"
+msgstr ""
+"Μια φωτογραφία από αυτήν τη μέρα σε προηγούμενο έτος, ή αλλιώς έως τρεις "
+"μέρες πριν ή μετά, με επικεφαλίδα που λέει πριν από πόσα χρόνια.\n"
+"/σανσήμερα – από όλα τα άλμπουμ\n"
+"/σανσήμερα <άλμπουμ> – από αυτό το άλμπουμ"
+
+#: nejomibot/help.py
 msgid "the albums"
 msgstr "τα άλμπουμ"
 
 #: nejomibot/help.py
-msgid "a photo from this day, years ago"
-msgstr "μια φωτογραφία από αυτήν τη μέρα, παλαιότερων ετών"
+msgid ""
+"How many photos each album has, from which years, and its shortcuts.\n"
+"/photo <album> – a photo from that album; every photo command takes one"
+msgstr ""
+"Πόσες φωτογραφίες έχει κάθε άλμπουμ, από ποια χρόνια, και τις συντομεύσεις "
+"του.\n"
+"/φωτογραφία <άλμπουμ> – μια φωτογραφία από αυτό το άλμπουμ· κάθε εντολή "
+"φωτογραφιών δέχεται άλμπουμ"
 
 #: nejomibot/help.py
 msgid "how many photos, and how big"
 msgstr "πόσες φωτογραφίες, και τι μέγεθος"
 
 #: nejomibot/help.py
-msgid "the date, and the day's holidays and birthdays"
-msgstr "η ημερομηνία, και οι αργίες και τα γενέθλια της ημέρας"
+msgid ""
+"How many photos there are, and how big, by file type, and how many albums.\n"
+"/cache – the whole library\n"
+"/cache <album> – that album"
+msgstr ""
+"Πόσες φωτογραφίες υπάρχουν, και πόσο χώρο πιάνουν, ανά τύπο αρχείου, και "
+"πόσα άλμπουμ.\n"
+"/cache – όλη η βιβλιοθήκη\n"
+"/cache <άλμπουμ> – αυτό το άλμπουμ"
 
 #: nejomibot/help.py
-msgid "[<city>]"
-msgstr "[<πόλη>]"
+msgid "the date, holidays and birthdays"
+msgstr "η ημερομηνία, αργίες και γενέθλια"
+
+#: nejomibot/help.py
+msgid ""
+"The date and time, the day's holidays, and in a group, its birthdays and "
+"name days."
+msgstr ""
+"Η ημερομηνία και η ώρα, οι αργίες της ημέρας, και σε μια ομάδα, τα γενέθλια "
+"και οι γιορτές της."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"/today preview – what /today says in each chat\n"
+"/today preview {date} – on another day; tomorrow works too"
+msgstr ""
+"/σήμερα προεπισκόπηση – τι δείχνει το /σήμερα σε κάθε συνομιλία\n"
+"/σήμερα προεπισκόπηση {date} – άλλη μέρα· δέχεται και το αύριο"
 
 #: nejomibot/help.py
 msgid "the weather now"
 msgstr "ο καιρός τώρα"
 
 #: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"From OpenWeatherMap, with the day's sunrise and sunset.\n"
+"/weather – in {city}\n"
+"/weather Helsinki – somewhere else\n"
+"/weather Springfield,US – the one in the US"
+msgstr ""
+"Από το OpenWeatherMap, με την ανατολή και τη δύση του ηλίου της ημέρας.\n"
+"/καιρός – στην τοποθεσία {city}\n"
+"/καιρός Helsinki – κάπου αλλού\n"
+"/καιρός Springfield,US – αυτό των ΗΠΑ"
+
+#: nejomibot/help.py
 msgid "the weather today and tomorrow"
 msgstr "ο καιρός σήμερα και αύριο"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"For each day, the worst weather, the lowest and highest temperatures, and "
+"the chance of rain or snow. Late in the evening, tomorrow and the day "
+"after.\n"
+"/forecast – in {city}\n"
+"/forecast Helsinki – somewhere else"
+msgstr ""
+"Για κάθε μέρα: ο χειρότερος καιρός, η ελάχιστη και η μέγιστη θερμοκρασία, "
+"και η πιθανότητα βροχής ή χιονιού. Αργά το βράδυ, αύριο και μεθαύριο.\n"
+"/πρόγνωση – στην τοποθεσία {city}\n"
+"/πρόγνωση Helsinki – κάπου αλλού"
 
 #: nejomibot/help.py
 msgid "the time, and an exchange rate"
 msgstr "η ώρα, και μια ισοτιμία"
 
 #: nejomibot/help.py
-msgid "is the bot there?"
-msgstr "είναι εδώ το bot;"
+msgid ""
+"The current time in one or more places, and an exchange rate, as the bot's "
+"settings have them."
+msgstr ""
+"Η τρέχουσα ώρα σε ένα ή περισσότερα μέρη, και μια ισοτιμία, όπως ορίζουν οι "
+"ρυθμίσεις του bot."
 
 #: nejomibot/help.py
-msgid "[<library>|all|list]"
-msgstr "[<συλλογή>|όλα|λίστα]"
+msgid "reminders for this chat"
+msgstr "υπενθυμίσεις για αυτή τη συνομιλία"
 
 #: nejomibot/help.py
-msgid "a fortune"
-msgstr "ένα γνωμικό"
-
-#: nejomibot/help.py
-msgid "<when> <text>"
-msgstr "<πότε> <κείμενο>"
-
-#: nejomibot/help.py
-msgid "a reminder, here"
-msgstr "μια υπενθύμιση, εδώ"
-
-#: nejomibot/help.py
-msgid "[remove <n>]"
-msgstr "[αφαίρεσε <n>]"
-
-#: nejomibot/help.py
-msgid "the reminders here; remove one"
-msgstr "οι υπενθυμίσεις εδώ· αφαίρεση μίας"
-
-#: nejomibot/help.py
-msgid "[add <things> · remove <n>,…]"
-msgstr "[πρόσθεσε <πράγματα> · αφαίρεσε <n>,…]"
+#, python-brace-format
+msgid ""
+"The bot posts each reminder in this chat when it's due, in {zone} time.\n"
+"/remind 18:00 Cake! – at the next 18:00\n"
+"/remind 30m Tea – in 30 minutes; 2h or 1h30m too\n"
+"/remind fri 17:00 Pizza! – on Friday; tomorrow works too\n"
+"/remind {date} 15:00 Presents – on that date\n"
+"/remind – the reminders here, numbered\n"
+"/remind remove 2 – remove number 2"
+msgstr ""
+"Το bot δημοσιεύει κάθε υπενθύμιση σε αυτή τη συνομιλία όταν έρθει η ώρα της, "
+"σε ώρα {zone}.\n"
+"/υπενθύμιση 18:00 Τούρτα! – την επόμενη φορά που θα είναι 18:00\n"
+"/υπενθύμιση 30m Τσάι – σε 30 λεπτά· επίσης 2h ή 1h30m\n"
+"/υπενθύμιση παρ 17:00 Πίτσα! – την Παρασκευή· δέχεται και το αύριο\n"
+"/υπενθύμιση {date} 15:00 Δώρα – εκείνη την ημερομηνία\n"
+"/υπενθύμιση – οι υπενθυμίσεις εδώ, αριθμημένες\n"
+"/υπενθύμιση αφαίρεσε 2 – αφαίρεση του αριθμού 2"
 
 #: nejomibot/help.py
 msgid "this chat's list"
 msgstr "η λίστα αυτής της συνομιλίας"
 
 #: nejomibot/help.py
-msgid "the birthdays, the coming ones first"
-msgstr "τα γενέθλια, τα επόμενα πρώτα"
+msgid ""
+"A shared list, such as for shopping.\n"
+"/list – the list, numbered\n"
+"/list add milk, eggs – add things, separated by commas\n"
+"/list remove 2,5 – take numbers 2 and 5 off\n"
+"/list clear – take everything off"
+msgstr ""
+"Μια κοινή λίστα, για παράδειγμα για ψώνια.\n"
+"/λίστα – η λίστα, αριθμημένη\n"
+"/λίστα πρόσθεσε γάλα, αυγά – προσθήκη πραγμάτων, χωρισμένων με κόμμα\n"
+"/λίστα αφαίρεσε 2,5 – αφαίρεση των αριθμών 2 και 5\n"
+"/λίστα καθάρισε – αφαίρεση όλων"
 
 #: nejomibot/help.py
-msgid "the name days, the coming ones first"
-msgstr "οι ονομαστικές γιορτές, οι επόμενες πρώτα"
+msgid "the coming birthdays"
+msgstr "τα επόμενα γενέθλια"
 
 #: nejomibot/help.py
-msgid "[<language>]"
-msgstr "[<γλώσσα>]"
+msgid "the coming name days"
+msgstr "οι επόμενες ονομαστικές γιορτές"
 
 #: nejomibot/help.py
-msgid "the bot's languages; one for here"
-msgstr "οι γλώσσες του bot· μία για εδώ"
+msgid "a fortune"
+msgstr "ένα γνωμικό"
 
 #: nejomibot/help.py
-msgid "these commands"
-msgstr "αυτές οι εντολές"
+#, python-brace-format
+msgid ""
+"A random saying: a proverb, a quote or a joke.\n"
+"/fortune – from {library}\n"
+"/fortune all – from every library\n"
+"/fortune list – the libraries\n"
+"/fortune startrek – from that library"
+msgstr ""
+"Ένα τυχαίο ρητό: παροιμία, απόφθεγμα ή αστείο.\n"
+"/γνωμικό – από τη συλλογή {library}\n"
+"/γνωμικό όλα – από όλες τις συλλογές\n"
+"/γνωμικό λίστα – οι συλλογές\n"
+"/γνωμικό startrek – από αυτή τη συλλογή"
+
+#: nejomibot/help.py
+msgid "the bot's language here"
+msgstr "η γλώσσα του bot εδώ"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid ""
+"A language is given by its code or its own name. In a group, only an admin "
+"can change it.\n"
+"/language – the languages, and the one spoken here\n"
+"/language {code} – {language} here\n"
+"/language default – the bot's own again"
+msgstr ""
+"Μια γλώσσα δίνεται με τον κωδικό της ή με το δικό της όνομα. Σε μια ομάδα, "
+"μόνο ένας διαχειριστής μπορεί να την αλλάξει.\n"
+"/γλώσσα – οι γλώσσες, και αυτή που μιλιέται εδώ\n"
+"/γλώσσα {code} – {language} εδώ\n"
+"/γλώσσα προεπιλογή – ξανά η γλώσσα του bot"
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "/language 3,1 {code} – for chats 3 and 1 of /chats"
+msgstr "/γλώσσα 3,1 {code} – για τις συνομιλίες 3 και 1 του /chats"
+
+#: nejomibot/help.py
+msgid "is the bot there?"
+msgstr "είναι εδώ το bot;"
+
+#: nejomibot/help.py
+msgid "The bot answers pong!, with how long your message took to reach it."
+msgstr ""
+"Το bot απαντά pong!, με τον χρόνο που χρειάστηκε το μήνυμά σας για να φτάσει."
+
+#: nejomibot/help.py
+msgid "the commands you can use"
+msgstr "οι εντολές που μπορείτε να χρησιμοποιήσετε"
+
+#: nejomibot/help.py
+msgid "/help photo – more about /photo, and so on for every command"
+msgstr ""
+"/βοήθεια φωτογραφία – περισσότερα για το /φωτογραφία, και ομοίως για κάθε "
+"εντολή"
 
 #: nejomibot/help.py
 msgid "how the bot and the server are"
 msgstr "η κατάσταση του bot και του διακομιστή"
 
 #: nejomibot/help.py
-msgid "what /today says, in each chat"
-msgstr "τι δείχνει το /σήμερα, σε κάθε συνομιλία"
+msgid ""
+"Two messages: the checks, the failed ones first, then the details: the bot, "
+"Signal, the network and the server."
+msgstr ""
+"Δύο μηνύματα: οι έλεγχοι, πρώτα οι αποτυχημένοι, και μετά οι λεπτομέρειες: "
+"το bot, το Signal, το δίκτυο και ο διακομιστής."
 
 #: nejomibot/help.py
-msgid "[<date>]"
-msgstr "[<ημερομηνία>]"
+msgid "whether the bot's messages arrived"
+msgstr "αν παραδόθηκαν τα μηνύματα του bot"
 
 #: nejomibot/help.py
-msgid "an album, and the birth date for its ages"
-msgstr "ένα άλμπουμ, και η ημερομηνία γέννησης για τις ηλικίες του"
+#, python-brace-format
+msgid ""
+"The bot's {count} latest messages, wherever it sent them, and how many in "
+"each chat got and read each one, as 📬 3/4 · 👀 2. ⏳ means nobody has "
+"confirmed it yet, ⚠️ that nobody has in 10 minutes."
+msgstr ""
+"Τα {count} τελευταία μηνύματα του bot, όπου κι αν τα έστειλε, και πόσοι σε "
+"κάθε συνομιλία έλαβαν και διάβασαν το καθένα, όπως 📬 3/4 · 👀 2. Το ⏳ "
+"σημαίνει ότι κανείς δεν το έχει επιβεβαιώσει ακόμη, το ⚠️ ότι κανείς δεν το "
+"έκανε μέσα σε 10 λεπτά."
 
 #: nejomibot/help.py
-msgid "<album> [<date>|-]"
-msgstr "<άλμπουμ> [<ημερομηνία>|-]"
+msgid "what people wrote to the bot"
+msgstr "τι έγραψαν στο bot"
 
 #: nejomibot/help.py
-msgid "other names for /photo <album>"
-msgstr "άλλα ονόματα για το /φωτογραφία <άλμπουμ>"
+msgid ""
+"The 50 latest messages people other than the admins sent the bot in direct "
+"chats.\n"
+"/incoming – the list, numbered\n"
+"/incoming 4,9 – forward those to you, in full"
+msgstr ""
+"Τα 50 τελευταία μηνύματα που έστειλαν στο bot σε προσωπικές συνομιλίες όσοι "
+"δεν είναι διαχειριστές.\n"
+"/εισερχόμενα – η λίστα, αριθμημένη\n"
+"/εισερχόμενα 4,9 – προώθησή τους σε εσάς, ολόκληρα"
 
 #: nejomibot/help.py
-msgid "<album> shortcuts <names>|-"
-msgstr "<άλμπουμ> συντομεύσεις <ονόματα>|-"
+msgid "delete the bot's messages"
+msgstr "διαγραφή μηνυμάτων του bot"
 
 #: nejomibot/help.py
-msgid "[<who>]"
-msgstr "[<ποιος>]"
-
-#: nejomibot/help.py
-msgid "who the bot knows"
-msgstr "ποιους γνωρίζει το bot"
-
-#: nejomibot/help.py
-msgid "<who> <name>"
-msgstr "<ποιος> <όνομα>"
-
-#: nejomibot/help.py
-msgid "add a contact, or rename"
-msgstr "προσθήκη ή μετονομασία επαφής"
-
-#: nejomibot/help.py
-msgid "the safety numbers, or one's"
-msgstr "οι αριθμοί ασφαλείας, ή ενός"
-
-#: nejomibot/help.py
-msgid "<who> <safety number>"
-msgstr "<ποιος> <αριθμός ασφαλείας>"
-
-#: nejomibot/help.py
-msgid "mark as verified"
-msgstr "σήμανση ως επαληθευμένου"
+msgid ""
+"For everyone, within a day of sending.\n"
+"/delete – the bot's latest message here, in groups too; again for the one "
+"before\n"
+"/delete list – its 50 latest messages, wherever it sent them, numbered\n"
+"/delete 2,5 – delete those"
+msgstr ""
+"Για όλους, εντός 24 ωρών από την αποστολή.\n"
+"/διαγραφή – το τελευταίο μήνυμα του bot εδώ, και σε ομάδες· ξανά για το "
+"προηγούμενο\n"
+"/διαγραφή λίστα – τα 50 τελευταία του μηνύματα, όπου κι αν τα έστειλε, "
+"αριθμημένα\n"
+"/διαγραφή 2,5 – διαγραφή αυτών"
 
 #: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "ποιοι μπορούν να χρησιμοποιούν το bot"
 
 #: nejomibot/help.py
-msgid "<who>"
-msgstr "<ποιος>"
+msgid "let someone, or a group, use the bot"
+msgstr "άδεια σε άτομο ή ομάδα να χρησιμοποιεί το bot"
 
 #: nejomibot/help.py
-msgid "put someone, or a group, on that list"
-msgstr "προσθήκη ατόμου ή ομάδας σε αυτή τη λίστα"
-
-#: nejomibot/help.py
-msgid "<n>"
-msgstr "<n>"
-
-#: nejomibot/help.py
-msgid "take someone off it"
-msgstr "αφαίρεση από αυτή"
+msgid "take someone off the allowed list"
+msgstr "αφαίρεση ατόμου από τη λίστα επιτρεπόμενων"
 
 #: nejomibot/help.py
 msgid "who the admins are"
@@ -1295,249 +1630,157 @@ msgid "make someone an admin, or no longer"
 msgstr "ορισμός ή αφαίρεση διαχειριστή"
 
 #: nejomibot/help.py
-msgid "add <who> [<language>] · remove <n>"
-msgstr "πρόσθεσε <ποιος> [<γλώσσα>] · αφαίρεσε <n>"
+msgid "who the bot knows"
+msgstr "ποιους γνωρίζει το bot"
 
 #: nejomibot/help.py
-msgid "the bot's profile"
-msgstr "το προφίλ του bot"
+msgid ""
+"Everyone the bot's Signal account knows, numbered, and whether each is "
+"verified.\n"
+"/contacts – everyone\n"
+"/contacts 3 – number 3 in full, with their safety number\n"
+"/contacts add 3 Alice – save number 3 as Alice, or rename them\n"
+"/contacts add @alice.42 Alice – someone new, by username or phone number\n"
+"In place of a number, you can give a phone number, a Signal ID or its start, "
+"or a name."
+msgstr ""
+"Όλοι όσοι γνωρίζει ο λογαριασμός Signal του bot, αριθμημένοι, και αν ο "
+"καθένας είναι επαληθευμένος.\n"
+"/επαφές – όλοι\n"
+"/επαφές 3 – ο αριθμός 3 αναλυτικά, με τον αριθμό ασφαλείας του\n"
+"/επαφές πρόσθεσε 3 Alice – αποθήκευση του αριθμού 3 ως Alice, ή μετονομασία\n"
+"/επαφές πρόσθεσε @alice.42 Alice – κάποιος νέος, με όνομα χρήστη ή αριθμό "
+"τηλεφώνου\n"
+"Αντί για αριθμό, μπορείτε να δώσετε αριθμό τηλεφώνου, Signal ID ή την αρχή "
+"του, ή όνομα."
 
 #: nejomibot/help.py
-msgid "<name>"
-msgstr "<όνομα>"
+msgid "the safety numbers"
+msgstr "οι αριθμοί ασφαλείας"
 
 #: nejomibot/help.py
-msgid "its name"
-msgstr "το όνομά του"
+msgid ""
+"Numbered as /contacts numbers people, with whether each is verified.\n"
+"/trust – everyone's\n"
+"/trust 3 – number 3's\n"
+"/trust 3 <safety number> – mark it verified, once it matches the one on "
+"their phone"
+msgstr ""
+"Αριθμημένοι όπως στις /επαφές, και αν ο καθένας είναι επαληθευμένος.\n"
+"/επαλήθευση – όλων\n"
+"/επαλήθευση 3 – του αριθμού 3\n"
+"/επαλήθευση 3 <αριθμός ασφαλείας> – σήμανση ως επαληθευμένου, όταν ταιριάζει "
+"με αυτόν στο τηλέφωνό του"
 
 #: nejomibot/help.py
-msgid "<text>"
-msgstr "<κείμενο>"
+msgid "what the bot runs on a schedule"
+msgstr "τι εκτελεί το bot προγραμματισμένα"
 
 #: nejomibot/help.py
-msgid "its About text"
-msgstr "το κείμενο «Σχετικά»"
-
-#: nejomibot/help.py
-msgid "its picture: send one with this as its caption"
-msgstr "η εικόνα του: στείλτε μία με αυτό ως λεζάντα"
-
-#: nejomibot/help.py
-msgid "its username, and a link"
-msgstr "το όνομα χρήστη του, και ένας σύνδεσμος"
-
-#: nejomibot/help.py
-msgid "what it runs on a schedule"
-msgstr "τι εκτελεί προγραμματισμένα"
+msgid "add, remove or run a timer"
+msgstr "προσθήκη, αφαίρεση ή εκτέλεση χρονοδιακόπτη"
 
 #: nejomibot/help.py
 msgid "where timers can post"
 msgstr "πού μπορούν να δημοσιεύουν οι χρονοδιακόπτες"
 
 #: nejomibot/help.py
-msgid "a new timer"
-msgstr "νέος χρονοδιακόπτης"
-
-#: nejomibot/help.py
-msgid "add <when> [<chats>] <commands>"
-msgstr "πρόσθεσε <πότε> [<συνομιλίες>] <εντολές>"
-
-#: nejomibot/help.py
-msgid "remove <n> · run <n>"
-msgstr "αφαίρεσε <n> · εκτέλεσε <n>"
-
-#: nejomibot/help.py
-msgid "remove one, or run it now"
-msgstr "αφαίρεση ενός, ή εκτέλεση τώρα"
-
-#: nejomibot/help.py
-msgid "commands of your own"
-msgstr "δικές σας εντολές"
-
-#: nejomibot/help.py
-msgid "a new one, or a change"
-msgstr "νέα, ή αλλαγή"
-
-#: nejomibot/help.py
-msgid "add <name> <parts>"
-msgstr "πρόσθεσε <όνομα> <μέρη>"
-
-#: nejomibot/help.py
-msgid "other names for one"
-msgstr "άλλα ονόματα για μία"
-
-#: nejomibot/help.py
-msgid "shortcuts <name> <names>|-"
-msgstr "συντομεύσεις <όνομα> <ονόματα>|-"
-
-#: nejomibot/help.py
-msgid "remove <name>"
-msgstr "αφαίρεσε <όνομα>"
-
-#: nejomibot/help.py
-msgid "remove one"
-msgstr "αφαίρεση μίας"
-
-#: nejomibot/help.py
-msgid "for everyone allowed, or the admins alone"
-msgstr "για όλους τους επιτρεπόμενους, ή μόνο για τους διαχειριστές"
-
-#: nejomibot/help.py
-msgid "everyone <name> · admins <name>"
-msgstr "για όλους <όνομα> · για διαχειριστές <όνομα>"
-
-#: nejomibot/help.py
-msgid "<chats> <text>"
-msgstr "<συνομιλίες> <κείμενο>"
+msgid ""
+"Numbered: the groups the bot is in, then the people on the allowed list, "
+"then the admins. /timer add, /msg, /run, /language and /birthday add take "
+"these numbers."
+msgstr ""
+"Αριθμημένες: οι ομάδες όπου βρίσκεται το bot, μετά τα άτομα της λίστας "
+"επιτρεπόμενων, μετά οι διαχειριστές. Τα /timer πρόσθεσε, /μήνυμα, /"
+"εκτέλεση, /γλώσσα και /birthday πρόσθεσε δέχονται αυτούς τους αριθμούς."
 
 #: nejomibot/help.py
 msgid "post a message to chats"
 msgstr "δημοσίευση μηνύματος σε συνομιλίες"
 
 #: nejomibot/help.py
-msgid "<chats> <commands>"
-msgstr "<συνομιλίες> <εντολές>"
-
-#: nejomibot/help.py
 msgid "post commands' answers to chats"
 msgstr "δημοσίευση απαντήσεων εντολών σε συνομιλίες"
 
 #: nejomibot/help.py
-msgid "[<n>,…]"
-msgstr "[<n>,…]"
+msgid "commands of your own"
+msgstr "δικές σας εντολές"
 
 #: nejomibot/help.py
-msgid "messages people sent it; forward some"
-msgstr "μηνύματα που του έστειλαν· προώθηση ορισμένων"
+msgid "make or change a special"
+msgstr "δημιουργία ή αλλαγή ειδικής εντολής"
 
 #: nejomibot/help.py
-msgid "a birthday"
-msgstr "γενέθλια"
+msgid "add or remove a birthday"
+msgstr "προσθήκη ή αφαίρεση γενεθλίων"
 
 #: nejomibot/help.py
-msgid "add <date> [<chats>] <who>"
-msgstr "πρόσθεσε <ημερομηνία> [<συνομιλίες>] <ποιος>"
+msgid "add or remove a name day"
+msgstr "προσθήκη ή αφαίρεση ονομαστικής γιορτής"
 
 #: nejomibot/help.py
-msgid "a name day"
-msgstr "ονομαστική γιορτή"
+msgid "an album, and the birth date for its ages"
+msgstr "ένα άλμπουμ, και η ημερομηνία γέννησης για τις ηλικίες του"
 
 #: nejomibot/help.py
-msgid "remove <n>"
-msgstr "αφαίρεσε <n>"
+msgid ""
+"/album <album> – the album: its photos, years, birth date and shortcuts\n"
+"/album <album> 2019-06-15 – captions show the age of who was born then\n"
+"/album <album> - – no age\n"
+"/album <album> shortcuts /alice – /alice is then /photo <album>\n"
+"/album <album> shortcuts - – none\n"
+"/albums lists the albums."
+msgstr ""
+"/album <άλμπουμ> – το άλμπουμ: οι φωτογραφίες του, τα χρόνια, η ημερομηνία "
+"γέννησης και οι συντομεύσεις\n"
+"/album <άλμπουμ> 2019-06-15 – οι λεζάντες δείχνουν την ηλικία όποιου "
+"γεννήθηκε τότε\n"
+"/album <άλμπουμ> - – χωρίς ηλικία\n"
+"/album <άλμπουμ> συντομεύσεις /alice – το /alice γίνεται /φωτογραφία "
+"<άλμπουμ>\n"
+"/album <άλμπουμ> συντομεύσεις - – καμία\n"
+"Το /άλμπουμ δείχνει τα άλμπουμ."
 
 #: nejomibot/help.py
-msgid "remove one; /nameday too"
-msgstr "αφαίρεση· και για το /γιορτή"
+msgid "the bot's profile"
+msgstr "το προφίλ του bot"
 
 #: nejomibot/help.py
-msgid "its latest messages anywhere; delete some"
-msgstr "τα τελευταία του μηνύματα παντού· διαγραφή ορισμένων"
+msgid "the bot's name"
+msgstr "το όνομα του bot"
 
 #: nejomibot/help.py
-msgid "· <n>,…"
-msgstr "· <n>,…"
+msgid "the bot's About text"
+msgstr "το κείμενο «Σχετικά» του bot"
 
 #: nejomibot/help.py
-msgid "whether its latest messages arrived"
-msgstr "αν παραδόθηκαν τα τελευταία του μηνύματα"
+msgid "the bot's picture"
+msgstr "η εικόνα του bot"
 
 #: nejomibot/help.py
-msgid "delete its latest message here"
-msgstr "διαγραφή του τελευταίου του μηνύματος εδώ"
+msgid "the bot's username, and a link"
+msgstr "το όνομα χρήστη του bot, και ένας σύνδεσμος"
 
 #: nejomibot/help.py
 msgid "Specials"
 msgstr "Ειδικές εντολές"
 
 #: nejomibot/help.py
-msgid ""
-"<who> – a number from /contacts or /trust, or a name, phone number or ID; /"
-"allow takes groups too"
-msgstr ""
-"<ποιος> – αριθμός από τις /επαφές ή το /επαλήθευση, ή όνομα, αριθμός "
-"τηλεφώνου ή ID· το /επίτρεψε δέχεται και ομάδες"
-
-#: nejomibot/help.py
-msgid ""
-"<n> – a number from /allowed, /admins, /timers, /delete list, /incoming, /"
-"birthdays or /namedays"
-msgstr ""
-"<n> – αριθμός από τα /επιτρεπόμενοι, /admins, /timers, /διαγραφή λίστα, /"
-"εισερχόμενα, /γενέθλια ή /γιορτές"
-
-#: nejomibot/help.py
 #, python-brace-format
-msgid ""
-"<when> – 08:00 · mon-fri 07:30 · {date} 15:00 · tomorrow 08:00 · every 2h, "
-"in {zone} time"
-msgstr ""
-"<πότε> – 08:00 · δευ-παρ 07:30 · {date} 15:00 · αύριο 08:00 · κάθε 2h, σε "
-"ώρα {zone}"
-
-#: nejomibot/help.py
-msgid ""
-"<chats> – numbers from /chats, like 1,2; a timer without them posts to you"
-msgstr ""
-"<συνομιλίες> – αριθμοί από το /chats, π.χ. 1,2· ένας χρονοδιακόπτης χωρίς "
-"αυτούς δημοσιεύει σε εσάς"
-
-#: nejomibot/help.py
-msgid ""
-"<date> – 1990-03-14, or 03-14 without the year; for someone not on Signal, "
-"<who> is a name, shown in <chats>, or in every group"
-msgstr ""
-"<ημερομηνία> – 1990-03-14, ή 03-14 χωρίς έτος· για κάποιον χωρίς Signal, το "
-"<ποιος> είναι όνομα, που εμφανίζεται στις <συνομιλίες>, ή σε όλες τις ομάδες"
-
-#: nejomibot/help.py
-msgid ""
-"<parts> – text and commands, separated by ;, or by + for one message, e.g. "
-"Good morning! /today + /weather; /uniquephoto"
-msgstr ""
-"<μέρη> – κείμενο και εντολές, χωρισμένα με ;, ή με + για ένα μήνυμα, π.χ. "
-"Καλημέρα! /σήμερα + /καιρός; /νέαφωτο"
-
-#: nejomibot/help.py
-msgid ""
-"<album> – one of /albums, by name; /album takes a <date> with its year, or - "
-"for none, and shortcuts as /alice, or - for none"
-msgstr ""
-"<άλμπουμ> – ένα από το /άλμπουμ, με το όνομά του· το /album δέχεται "
-"<ημερομηνία> με έτος, ή - για καμία, και συντομεύσεις όπως /alice, ή - για "
-"καμία"
-
-#: nejomibot/help.py
-msgid "remove – after /about, /avatar or /username, takes it away"
-msgstr "αφαίρεσε – μετά από /σχετικά, /εικόνα ή /όνομαχρήστη, το αφαιρεί"
-
-#: nejomibot/help.py
-msgid ""
-"<language> – sv, or Svenska, its own name; /language <chats> <language> "
-"gives those chats of /chats it, /admin add <who> <language> a new admin, and "
-"a group's is an admin's to change"
-msgstr ""
-"<γλώσσα> – el, ή Ελληνικά, το δικό της όνομα· το /γλώσσα <συνομιλίες> "
-"<γλώσσα> την ορίζει για αυτές τις συνομιλίες του /chats, το /admin πρόσθεσε "
-"<ποιος> <γλώσσα> για έναν νέο διαχειριστή, και τη γλώσσα μιας ομάδας την "
-"αλλάζει διαχειριστής"
-
-#: nejomibot/help.py
-#, python-brace-format
-msgid "For everyone allowed ({count})"
-msgstr "Για όλους τους επιτρεπόμενους ({count})"
-
-#: nejomibot/help.py
-msgid "Admins, in a direct chat"
-msgstr "Διαχειριστές, σε προσωπική συνομιλία"
-
-#: nejomibot/help.py
-msgid "Admins, in any chat"
-msgstr "Διαχειριστές, σε κάθε συνομιλία"
+msgid "Send {help} and a command for more about it, as {example}."
+msgstr "Στείλτε το {help} και μια εντολή για περισσότερα, όπως {example}."
 
 #: nejomibot/help.py
 msgid "Commands"
 msgstr "Εντολές"
+
+#: nejomibot/help.py
+msgid "For everyone allowed"
+msgstr "Για όλους τους επιτρεπόμενους"
+
+#: nejomibot/help.py
+msgid "Admins, in a direct chat"
+msgstr "Διαχειριστές, σε προσωπική συνομιλία"
 
 #: nejomibot/help.py
 msgid "Commands start with . or /, whichever is easier to type."
@@ -1546,6 +1789,22 @@ msgstr "Οι εντολές ξεκινούν με . ή /, όποιο πληκτ�
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
 msgstr "Κάθε εντολή δέχεται και το αγγλικό της όνομα."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "{shortcut} is short for {command}."
+msgstr "Το {shortcut} είναι συντόμευση για το {command}."
+
+#: nejomibot/help.py
+msgid "An admin's own command: it posts these, in order."
+msgstr "Δική εντολή κάποιου διαχειριστή: δημοσιεύει αυτά, με τη σειρά."
+
+#: nejomibot/help.py
+#, python-brace-format
+msgid "There's no command {name} here. {help} lists those you can use."
+msgstr ""
+"Δεν υπάρχει εντολή {name} εδώ. Το {help} παραθέτει όσες μπορείτε να "
+"χρησιμοποιήσετε."
 
 #: nejomibot/holidays.py
 msgid "New Year's Day"

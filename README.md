@@ -191,10 +191,11 @@ the Signal account](#setting-up-and-managing-the-signal-account).
 On your phone, start a new chat in Signal with the bot's number (tap the
 pencil button, then **Find by phone number**) and send it `/help`. The bot
 replies with the commands you may use. As its admin, you may use all of
-them, but the admin commands only in this direct chat. Every command can
-start with a period instead of the slash, as in `.help`, which phone
-keyboards have on their first page; the bot's replies show commands that
-way.
+them, but the admin commands only in this direct chat. `/help` and a
+command, as in `/help timer`, explains that command, with examples. Every
+command can start with a period instead of the slash, as in `.help`, which
+phone keyboards have on their first page; the bot's replies show commands
+that way.
 
 ### Step 7: Add the bot to your groups
 
@@ -306,7 +307,7 @@ Everyday commands, for everyone the bot may talk to:
 | `/birthdays` | In a group, the birthdays for that group, upcoming ones first; for admins in a direct chat, all birthdays, numbered (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/namedays` | The name days, listed the same way as `/birthdays` lists the birthdays |
 | `/language`, `/language <language>`, `/language default` | The languages the bot speaks, and the one it speaks in this chat. Given a language, by its code or its own name, such as `sv` or `Svenska`, the bot speaks that language in this chat; `default` returns to the `language` setting. In a direct chat, the language is the sender's own choice; in a group, only an admin can change it (see [Languages](#languages)) |
-| `/help` | The commands the sender may use, one per line, and the [specials](#specials) the admins let everyone use |
+| `/help`, `/help <command>` | The commands the sender may use, a short line each, and the [specials](#specials) the admins let everyone use; for an admin in a direct chat, the admin commands too, by name. `/help photo` explains one command, with examples, by any of its names (see [Help](#help)) |
 
 Everyone the bot may talk to can also use the specials that the admins let
 everyone use, with `/special everyone`: they are listed under Specials in
@@ -380,6 +381,33 @@ or `radera` is `remove`, `lista` is `list`, `töm` is `clear`, `kör` is
 `everyone` and `admins`, as in `/lista lägg till mjölk` or `/timer ta bort
 3`. The English words work too, in any language.
 
+### Help
+
+`/help` lists the commands the sender may use, a short line each, in groups:
+the photos, the day and the weather, reminders and lists, and the rest. Each
+line gives the command's other names, the bot's own and the configuration's
+aliases, after what it does. The [specials](#specials) the admins let
+everyone use follow, and for an admin in a direct chat, the admin commands,
+by name, a line for each group. It fits in one message, in every language.
+
+`/help` and a command shows that command's page: its line, then how to use
+it, with examples, and on some pages more for the admins, in a direct chat:
+
+```
+📝 .list – this chat's list
+A shared list, such as for shopping.
+.list – the list, numbered
+.list add milk, eggs – add things, separated by commas
+.list remove 2,5 – take numbers 2 and 5 off
+.list clear – take everything off
+```
+
+The command can be given by any of its names, with or without its period
+or slash: `/help list`, `/help .lista` or an alias. An album's shortcut
+shows the page of `/photo`, after what the shortcut stands for, and a
+special's name shows what the special posts. `/help` explains only the
+commands the sender may use, as it lists them.
+
 ### Who may use what
 
 The admins, meaning those listed in the `admins` setting and those they add,
@@ -416,8 +444,9 @@ The admins in the configuration can make other people admins, in a direct
 chat with the bot: `/admin add <who>`, with `<who>` as `/contacts` accepts
 it, and `/admin remove <n>`, by their number in `/admins`, which lists every
 admin. A new admin receives a welcome message from the bot in a direct chat:
-who made them an admin, that `/help` lists every command, and a few commands
-to start with, as `/help` shows them. The welcome is in their language, or
+who made them an admin, that `/help` lists every command, a few commands to
+start with, as `/help` shows them, and how to see more about any of them.
+The welcome is in their language, or
 in the language given after them, as in `/admin add 3 sv`, which the bot
 then uses with them from then on. Added admins may use every command, as the
 configuration's admins may, except that they can't add or remove admins,
@@ -552,8 +581,8 @@ within those 10 minutes.
 A message longer than 2,000 bytes is sent the way Signal's apps send one:
 signal-cli puts the beginning of the text in the message and the full text
 in a text attachment, which the apps show behind **Read more**, so nothing
-is cut off or rejected, and it stays a single message. The admins' `/help`
-is such a message. A long message sent to the bot also arrives in full:
+is cut off or rejected, and it stays a single message. A long message sent
+to the bot also arrives in full:
 signal-cli fetches its text even with `JSON_RPC_IGNORE_ATTACHMENTS=true`.
 
 ### The weather
@@ -1460,13 +1489,10 @@ with each of them, about things they would otherwise find out too late:
   🖥️ Podman on bothost · aarch64
   ```
 
-  This notice is sent at most once every ten minutes, except after an
-  update: when the bot starts again sooner after the last start the admins
-  heard about, it reports once the ten minutes are up, so that a crash loop
-  can neither flood them nor run into Signal's rate limits; if the bot stops
-  before then, the next start reports instead. The bot keeps track of this
-  in `data_dir/run.json`, which it writes when it starts, when it reports,
-  and when it stops.
+  Every start sends this notice, as soon as the bot is ready. To turn it
+  off, set `startup_notice = false`; `/status` shows the same. The bot
+  knows the previous run's version and whether it stopped cleanly from
+  `data_dir/run.json`, which it writes when it starts and when it stops.
 - **Signal rate-limits the bot.** When this begins, the notice says how to
   lift the limit: `signal-account.sh rate-limit --to <your number>`,
   followed by a captcha, and then any command to the bot, which has it try

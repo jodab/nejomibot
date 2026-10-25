@@ -113,6 +113,10 @@ send_retry_hours = 3
 admins = [
     "+46700000001",  # you
 ]
+# Each start, once the bot is ready, the admins above get a notice: the
+# version, anything that needs their attention, and how the bot is. false
+# turns it off; /status shows the same.
+# startup_notice = true
 
 # The bot's Signal profile, which the bot sets as it starts: its name, About,
 # avatar (a picture file, which the bot makes square) and username, which

@@ -77,13 +77,17 @@ def set_language(chats: list[str], code: str | None) -> None:
     undo_with(lambda: kept.revert(change))
 
 
+def another_language() -> str:
+    """The code of a language other than the one spoken here, for an
+    example."""
+    return next((each for each in languages() if each != spoken()), spoken())
+
+
 def usage() -> str:
-    # Another than the one spoken here, for the example
-    code = next((each for each in languages() if each != spoken()), spoken())
     return _(
         "/language <language>: the bot speaks it here, as /language {code}; "
         "/language default: its own again."
-    ).format(code=code)
+    ).format(code=another_language())
 
 
 async def listing(context: DataMessageContext) -> str:
