@@ -458,7 +458,12 @@ for `/photo <date>`, `/albums` and `/onthisday`, which `index()` reads in the
 background once the bot has started (the owner's decision, 2026-10-25), a
 chunk at a time (`remember()`), so a stop waits for one chunk at most; each
 call of `moments()` then reads only what was added or changed, and forgets
-what was removed. `/photo <date>` is as exact
+what was removed. Between runs the index is kept in
+`data_dir/photo-index.txt` (`load_index()`, `save_index()`, written only when
+photos were read or removed), whose first line has the time zones its
+moments are in (`index_key()`): a change of either, or of `INDEX_FORMAT`,
+reads every photo anew. Bump `INDEX_FORMAT` when what `exif_datetime()`
+makes of a photo changes. `/photo <date>` is as exact
 as it is given (the owner's decision, 2026-10-23): a year, month, day or
 hour (`Period`) gives a random photo from that period, or else from the
 nearest period of the same size that has photos; to the minute, the photo
@@ -573,8 +578,8 @@ sender since 787d204e, as signalbot passes `phone_number` on only there, and
 
 **Files the bot keeps**: `allowed.txt`, `admins.txt`, `timers.txt`,
 `specials.txt`, `reminders.txt`, `lists.txt`, `birthdays.txt`, `albums.txt`,
-`languages.txt`, `sent-photos.txt`, `album-rounds.txt`, `bot.txt` (and
-`bot-avatar.*`), `run.json` and `outbox/` in `data_dir`,
+`languages.txt`, `sent-photos.txt`, `album-rounds.txt`, `photo-index.txt`,
+`bot.txt` (and `bot-avatar.*`), `run.json` and `outbox/` in `data_dir`,
 written through `files.write_privately` (mode 0600, a `mkstemp` temporary
 file, fsync, replace, then an fsync of the folder; `replace_privately` for
 any writer) or `files.append_privately`. In the line-based files, hand
@@ -782,6 +787,13 @@ in the bot's languages (`weather.Place.names`).
   and after the commands 88.1 to 89.5 MB against 89.9 to 90.4 MB. While it's
   read, the event loop's requests take 0.37 ms against 0.16 ms (the GIL),
   and the start is as quick (ready 0.75 s against 0.69 s).
+- **2026-10-25, the photo index kept between runs:** on the owner's
+  Raspberry Pi 4, 0.99.25's background index read 7,671 real photos in
+  46.6 s at each start, and a `/albums` sent 25 s after the start waited
+  22 s for it (the next took 0.95 s, receipts and reply included). Kept in
+  `photo-index.txt`, the 7,600 made-up photos' index takes 0.04 s to start
+  from, against 0.66 s to read (desktop, disk cache warm): the file is
+  0.52 MB and loads in 9 ms.
 - **2026-10-25, the read receipt and typing beside the command** (measured
   as above, with the fake API taking 0.2 s for each, as the Pi does): the
   slower commands, which show the bot typing, answer in about 203 ms against

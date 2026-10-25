@@ -15,8 +15,10 @@ in the nearest year, month, day or hour that has some; to the minute, as
 /photo Alice 2024-06-01 15:00, the one taken nearest that moment, in the
 bot's timezone, as captions have it. When each photo was taken is read
 from its header in the background once the bot has started (index()), and
-kept while it runs (moments()), about 400 bytes a photo; a photo added or
-changed later is read when one of these commands next needs it.
+kept while it runs (moments()), about 400 bytes a photo, and between runs in
+data_dir/photo-index.txt, so a start reads only the photos added or changed
+since; a photo added or changed later is read when one of these commands
+next needs it.
 
 /uniquephoto picks among the photos not sent yet in this round, and counts
 toward it: none twice until every photo has been sent, then a new round
@@ -71,6 +73,16 @@ EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp")
 HEIF = (".heic", ".heif")
 MAX_ATTEMPTS = 5
 INDEX_CHUNK = 100  # photos read at a time in the background (index())
+INDEX_FILE = "photo-index.txt"  # in data_dir, the index between runs
+# Its first line but comments: the time zones its moments are in, and what
+# they're made of, so that a change of either reads every photo anew
+INDEX_FORMAT = "v1"
+INDEX_HEADER = [
+    "# When each photo was taken, as the bot read it: the photo's mtime and size",
+    "# then, the moment (- if it doesn't say), and its path in the library. The",
+    "# bot reads it as it starts, and writes it anew when photos are added,",
+    "# changed or removed; without it, a start reads every photo again.",
+]
 EXIF_TIME = "%Y:%m:%d %H:%M:%S"
 UTC_OFFSET = re.compile(r"^[+-]\d{2}:\d{2}$")
 MAX_ZONE_SHIFT = timedelta(hours=14)  # the farthest any time zone is from UTC
@@ -133,11 +145,16 @@ def scan_photos() -> list[Path]:
     return found
 
 
+def library_prefix() -> str:
+    """photos_dir as the start of the text of a photo's path."""
+    return f"{str(get_settings().photos_dir).rstrip('/')}/"
+
+
 def library_name(path: Path) -> str:
     """The photo's path in the library, as the file of those sent lists it.
     Its start taken off as text, as pathlib's relative_to() takes a hundred
     times as long, which a library of thousands of photos feels."""
-    return str(path).removeprefix(f"{str(get_settings().photos_dir).rstrip('/')}/")
+    return str(path).removeprefix(library_prefix())
 
 
 # Albums
@@ -469,48 +486,139 @@ def entry_for(path: Path) -> tuple[int, int, datetime | None] | None:
 def moments(photos: list[Path]) -> dict[Path, datetime]:
     """When each photo of the library, as scan_photos() lists it, was taken,
     if known. Photos read before and unchanged since aren't read again; those
-    gone are forgotten. Blocking."""
+    gone are forgotten, and photo-index.txt is written anew if any were.
+    Blocking."""
     found: dict[Path, datetime] = {}
     with reading:
         seen: dict[str, tuple[int, int, datetime | None]] = {}
+        read = 0
         for path in photos:
             if (entry := entry_for(path)) is None:
                 continue
-            seen[str(path)] = entry
+            name = str(path)
+            read += entry is not taken.get(name)
+            seen[name] = entry
             if entry[2]:
                 found[path] = entry[2]
+        changed = read or len(seen) != len(taken)
         taken.clear()
         taken.update(seen)
+    if changed:
+        save_index()
     return found
 
 
-def remember(photos: list[Path]) -> None:
+def remember(photos: list[Path]) -> int:
     """Read when these photos were taken, those new or changed since, for
-    moments(), which keeps the rest. Blocking."""
+    moments(), which keeps the rest. How many it read. Blocking."""
+    read = 0
     with reading:
         for path in photos:
-            if entry := entry_for(path):
-                taken[str(path)] = entry
+            if (entry := entry_for(path)) and entry is not taken.get(name := str(path)):
+                taken[name] = entry
+                read += 1
+    return read
+
+
+def forget_others(library: list[Path]) -> int:
+    """Forget the photos that aren't in the library any more. How many."""
+    names = {str(path) for path in library}
+    with reading:
+        gone = [name for name in taken if name not in names]
+        for name in gone:
+            del taken[name]
+    return len(gone)
+
+
+def index_key() -> str:
+    settings = get_settings()
+    return f"{INDEX_FORMAT} {settings.tz.key} {settings.photos_tz.key}"
+
+
+def load_index() -> int:
+    """What photo-index.txt has, for the photos not read since; nothing if
+    it's for other time zones. How many photos it has. Blocking."""
+    path = get_settings().data_file(INDEX_FILE)
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return 0
+    except (OSError, UnicodeError) as e:
+        logger.warning("Could not read %s: %r", path, e)
+        return 0
+    lines = [line for line in lines if line and not line.startswith("#")]
+    if not lines or lines[0] != index_key():
+        return 0
+    prefix, tz = library_prefix(), get_settings().tz
+    loaded: dict[str, tuple[int, int, datetime | None]] = {}
+    for line in lines[1:]:
+        try:
+            mtime, size, moment, name = line.split(" ", 3)
+            when = None if moment == "-" else datetime.fromisoformat(moment)
+            loaded[prefix + name] = (
+                int(mtime),
+                int(size),
+                when and when.astimezone(tz),
+            )
+        except ValueError:
+            continue  # read again
+    with reading:
+        for name, entry in loaded.items():
+            taken.setdefault(name, entry)
+    return len(loaded)
+
+
+def save_index() -> None:
+    """Write the index to photo-index.txt. Never raises."""
+    prefix = library_prefix()
+    with reading:
+        entries = list(taken.items())
+    lines = [
+        *INDEX_HEADER,
+        index_key(),
+        *(
+            f"{mtime} {size} {moment.isoformat() if moment else '-'} "
+            + name.removeprefix(prefix)
+            for name, (mtime, size, moment) in entries
+            if name.startswith(prefix)
+        ),
+    ]
+    path = get_settings().data_file(INDEX_FILE)
+    try:
+        write_privately(path, "".join(f"{line}\n" for line in lines))
+    except OSError as e:
+        logger.warning("Could not write %s: %r", path, e)
 
 
 async def index() -> None:
     """Read when each photo was taken, once the bot has started, so that the
-    first /photo with a date, /albums or /onthisday needn't. A chunk at a
-    time, so a command can go first, and a stop waits for one chunk at most.
-    Photos added or changed later are read by the next of those commands,
-    and those removed are forgotten."""
+    first /photo with a date, /albums or /onthisday needn't: those that
+    photo-index.txt doesn't have as they are, then that file anew. A chunk
+    at a time, so a command can go first, and a stop waits for one chunk at
+    most. Photos added or changed later are read by the next of those
+    commands, and those removed are forgotten."""
     logger.info("Reading when the photos were taken")
     clock = asyncio.get_running_loop()
     began = clock.time()
     try:
+        known = await asyncio.to_thread(load_index)
         library = await asyncio.to_thread(scan_photos)
+        read = 0
         for start in range(0, len(library), INDEX_CHUNK):
-            await asyncio.to_thread(remember, library[start : start + INDEX_CHUNK])
+            chunk = library[start : start + INDEX_CHUNK]
+            read += await asyncio.to_thread(remember, chunk)
+        gone = await asyncio.to_thread(forget_others, library)
+        if read or gone or not known:
+            await asyncio.to_thread(save_index)
     except Exception as e:
         log_failure(logger, "Reading when the photos were taken", e)
         return
     logger.info(
-        "Read when %d photos were taken, in %.1f s", len(library), clock.time() - began
+        "Read when %d photos were taken, %d of them from %s, in %.1f s",
+        len(library),
+        len(library) - read,
+        INDEX_FILE,
+        clock.time() - began,
     )
 
 

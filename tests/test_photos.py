@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import os
 import threading
 from datetime import date, datetime
 from pathlib import Path
@@ -395,9 +396,9 @@ async def test_the_index_is_read_in_the_background_a_chunk_at_a_time(
     chunks: list[int] = []
     remember = photos.remember
 
-    def remembering(paths: list[Path]) -> None:
+    def remembering(paths: list[Path]) -> int:
         chunks.append(len(paths))
-        remember(paths)
+        return remember(paths)
 
     monkeypatch.setattr(photos, "remember", remembering)
     monkeypatch.setattr(photos, "INDEX_CHUNK", 3)
@@ -434,10 +435,11 @@ async def test_a_stop_waits_for_one_chunk_at_most(
     release = threading.Event()
     chunks: list[list[Path]] = []
 
-    def remembering(paths: list[Path]) -> None:
+    def remembering(paths: list[Path]) -> int:
         chunks.append(paths)
         loop.call_soon_threadsafe(reading.set)
         release.wait(5)
+        return 0
 
     monkeypatch.setattr(photos, "remember", remembering)
     task = asyncio.create_task(photos.index())
@@ -458,6 +460,108 @@ async def test_the_index_logs_what_fails(
     monkeypatch.setattr(photos, "scan_photos", failing)
     await photos.index()
     assert "Reading when the photos were taken failed" in caplog.text
+
+
+def index_lines() -> list[str]:
+    """photo-index.txt but its comments."""
+    text = get_settings().data_file(photos.INDEX_FILE).read_text(encoding="utf-8")
+    return [line for line in text.splitlines() if not line.startswith("#")]
+
+
+def restart() -> None:
+    """As at a start: nothing in memory."""
+    photos.taken.clear()
+
+
+async def test_the_index_is_kept_between_starts(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_photos(photos_dir, "a.jpg", "Alice/b.jpg", taken=TAKEN)
+    make_photos(photos_dir, "c.jpg")  # which doesn't say when it was taken
+    await photos.index()
+    before = photos.moments(photos.scan_photos())
+    lines = index_lines()
+    assert lines[0] == "v1 Europe/Stockholm Europe/Stockholm"
+    assert sorted(line.split(" ", 3)[2:] for line in lines[1:]) == [
+        ["-", "c.jpg"],
+        ["2024-06-01T08:00:00+02:00", "Alice/b.jpg"],
+        ["2024-06-01T08:00:00+02:00", "a.jpg"],
+    ]
+    path = get_settings().data_file(photos.INDEX_FILE)
+    assert path.stat().st_mode & 0o777 == 0o600
+    restart()
+    read = counting_reads(monkeypatch)
+    await photos.index()
+    assert read == []
+    assert photos.moments(photos.scan_photos()) == before
+
+
+async def test_a_start_reads_only_what_changed_since(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_photos(photos_dir, "a.jpg", "b.jpg", "c.jpg", taken=TAKEN)
+    await photos.index()
+    restart()
+    make_photos(photos_dir, "d.jpg", taken=TAKEN)  # added
+    make_jpeg(photos_dir / "b.jpg", "2020:01:01 12:00:00", "+01:00")  # changed
+    os.utime(photos_dir / "b.jpg", ns=(0, 1))
+    (photos_dir / "c.jpg").unlink()  # removed
+    read = counting_reads(monkeypatch)
+    await photos.index()
+    assert sorted(read) == ["b.jpg", "d.jpg"]
+    assert sorted(line.rsplit(" ", 1)[1] for line in index_lines()[1:]) == [
+        "a.jpg",
+        "b.jpg",
+        "d.jpg",
+    ]
+
+
+async def test_other_time_zones_read_every_photo_anew(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_photos(photos_dir, "a.jpg", "b.jpg", taken=TAKEN)
+    await photos.index()
+    restart()
+    monkeypatch.setenv("NEJOMIBOT_TIMEZONE", "Europe/Helsinki")
+    get_settings.cache_clear()
+    read = counting_reads(monkeypatch)
+    await photos.index()
+    assert sorted(read) == ["a.jpg", "b.jpg"]
+    assert index_lines()[0] == "v1 Europe/Helsinki Europe/Helsinki"
+
+
+async def test_a_line_it_cant_read_is_a_photo_read_again(
+    photos_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_photos(photos_dir, "a.jpg", "b.jpg", taken=TAKEN)
+    await photos.index()
+    restart()
+    path = get_settings().data_file(photos.INDEX_FILE)
+    lines = path.read_text(encoding="utf-8").splitlines()
+    path.write_text(
+        "\n".join(
+            "garbled b.jpg" if line.endswith(" b.jpg") else line for line in lines
+        )
+        + "\n"
+    )
+    read = counting_reads(monkeypatch)
+    await photos.index()
+    assert read == ["b.jpg"]
+
+
+async def test_commands_write_the_index_only_when_it_changes(
+    photos_dir: Path,
+) -> None:
+    make_photos(photos_dir, "a.jpg", taken=TAKEN)
+    await photos.index()
+    path = get_settings().data_file(photos.INDEX_FILE)
+    os.utime(path, ns=(0, 0))
+    photos.moments(photos.scan_photos())
+    assert path.stat().st_mtime_ns == 0  # as it was
+    make_photos(photos_dir, "b.jpg", taken=TAKEN)
+    photos.moments(photos.scan_photos())
+    assert path.stat().st_mtime_ns != 0
+    assert len(index_lines()) == 3
 
 
 def test_library_names(photos_dir: Path) -> None:

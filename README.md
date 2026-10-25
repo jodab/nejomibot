@@ -673,11 +673,14 @@ from that album only. A photo that doesn't record when it was taken is never
 the nearest, but can still be picked at random. The time a photo was taken
 is the one its caption shows: the bot reads it for each photo, from the
 file's header, in the background as it starts, and keeps it in memory, about
-400 bytes per photo. It reads a photo again only when its file changes, and a
-photo added later when one of these commands first needs it. Until it has
-read them all, which takes about 2.5 seconds for 7,600 photos on a desktop
-computer whose disk cache holds them, a `/photo` with a date, `/albums` or
-`/onthisday` waits for it.
+400 bytes per photo, and between starts in `data_dir/photo-index.txt`. A
+start reads only the photos added or changed since; the bot also reads a
+photo again when its file changes, and a photo added later when one of these
+commands first needs it. Reading every photo, as the first start does, took
+47 seconds for 7,671 photos on a Raspberry Pi 4, and until it has read them,
+a `/photo` with a date, `/albums` or `/onthisday` waits for it. Deleting
+`photo-index.txt` only makes the next start read every photo again, as does
+a change of `timezone` or `photos_timezone`.
 
 JPEG and the other formats are sent as they are. HEIC/HEIF photos are
 converted to JPEG on the fly, with a warning in the log, since not every

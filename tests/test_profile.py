@@ -589,3 +589,26 @@ async def test_an_avatar_it_cant_read_leaves_the_rest(
     assert update["name"] == "Other"
     assert base64.b64decode(update["base64_avatar"]) == AVATAR
     assert "Could not read the avatar" in caplog.text
+
+
+async def test_without_settings_or_bot_txt_the_profile_is_left_alone(
+    profiles: Profiles,
+) -> None:
+    await profile.set_kept_profile()
+    assert profiles.updates() == []
+    assert profiles.api.bodies("POST", USERNAME) == []
+    assert profiles.api.bodies("DELETE", USERNAME) == []
+    assert not get_settings().data_file("bot.txt").exists()
+
+
+async def test_a_failure_is_logged_and_the_bot_goes_on(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    async def unreachable() -> Contact:
+        raise OSError("Connection refused")
+
+    monkeypatch.setattr(profile, "fetch_me", unreachable)
+    monkeypatch.setenv("NEJOMIBOT_BOT_NAME", "Nejomi")
+    get_settings.cache_clear()
+    await profile.set_kept_profile()  # doesn't raise
+    assert "Setting the profile bot.txt has failed" in caplog.text

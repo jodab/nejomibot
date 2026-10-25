@@ -4,6 +4,17 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- The bot keeps when each photo was taken in `data_dir/photo-index.txt`, so
+  a start reads only the photos added or changed since, rather than every
+  photo: on a Raspberry Pi 4 that took 47 seconds for 7,671 photos at each
+  start, and a `/photo` with a date, `/albums` or `/onthisday` sent
+  meanwhile waited for it. The first start after the update still reads
+  them all.
+
 ## 0.99.25 - 2026-10-25
 
 ### Added

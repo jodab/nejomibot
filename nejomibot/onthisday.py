@@ -6,8 +6,8 @@ count toward the round of /uniquephoto.
 
 When each photo was taken comes from its EXIF, as its caption has it, in the
 bot's timezone, read for each photo in the background once the bot has
-started (photos.index()), and again only for a photo added or changed since
-(photos.moments()).
+started (photos.index()), and kept between runs in photo-index.txt, so only
+a photo added or changed since is read again (photos.moments()).
 """
 
 import asyncio
