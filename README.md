@@ -35,8 +35,9 @@ Signal.
   admins manage it from a direct chat, and by default, the log contains no
   phone numbers or message text.
 - 🛠️ **Admin tools in Signal:** contacts and safety numbers, the bot's
-  profile, posting to other chats, deleting the bot's messages, delivery and
-  read receipts, and the latest messages people have sent the bot.
+  profile, posting to other chats, mentioning everyone in a group, deleting
+  the bot's messages, delivery and read receipts, and the latest messages
+  people have sent the bot.
 - 🩺 **Reliable and light:** health checks with alerts, notices to the admins,
   messages retried until they get through, and a small container image for
   x86 and ARM that runs in about 80 MB of memory.
@@ -360,6 +361,7 @@ For admins, in any chat, including groups:
 | Command | Reply |
 |---|---|
 | `/delete` | Deletes the bot's latest message in the chat for everyone; sent again, it deletes the one before, and so on |
+| `/mention all`, `/mention all <text>` | In a group, mentions everyone in it but you and the bot, which notifies them even if they have muted the group; a text, such as `/mention all Dinner's ready!`, comes first (see [Mentions](#mentions)) |
 
 Commands can have other names: a few that the bot has always had (`/test`
 for `/status`, `/time` for `/info`, `/safety` for `/contacts`, and `/day` for
@@ -770,7 +772,9 @@ for everyone in it:
 ```
 
 When a reminder is due, in the bot's `timezone`, the bot posts "⏰ Pick up
-Bob" in the chat; it checks at the start of every minute. A chat can have at
+Bob" in the chat; in a group, "⏰ @Alice Pick up Bob", mentioning whoever set
+it (see [Mentions](#mentions)). It checks at the start of every minute. A
+chat can have at
 most 20 reminders, at most a year ahead; for a weekly reminder, an admin can
 set up a [timer](#timers). A reminder that fell due while the bot was down
 is posted once the bot is back up, with a note that it is late; if it is
@@ -793,8 +797,27 @@ A list holds at most 100 items. In Swedish, the command is `/lista`.
 Reminders and lists are stored in `data_dir/reminders.txt` and
 `data_dir/lists.txt`, one per line, and the files can be edited by hand: the
 bot reads them again when they change, and leaves comments and lines it
-can't read as they are. Timers, specials and `/run` can't run these
-commands, because each chat's reminders and list are its own.
+can't read as they are. A reminder's line also says who set it, by Signal ID
+or phone number; a line without it is read too, as one whose reminder
+mentions nobody. Timers, specials and `/run` can't run these commands,
+because each chat's reminders and list are its own.
+
+### Mentions
+
+A mention, @ and a name in a group, notifies that person even if they have
+muted the group, which no other message does. The bot keeps the mentions
+that people type into its commands: `/remind 18:00 @Bob Call Grandma`
+posts a reminder that mentions Bob, and an item added with `/list add`
+shows the mention it was given. A reminder in a group also mentions whoever
+set it. In its files, the bot writes a mention as `<@ID>`, by Signal ID or
+phone number, and you can write one by hand the same way.
+
+`/mention all` works in every group the bot is in, but only for admins;
+from anyone else, it is ignored. The bot posts 📣, then a mention of
+everyone in the group but you and itself; a text after the command comes
+first, as in `/mention all Dinner's ready!`. Timers, specials and `/run` can
+run it too: each group they post to gets its own members mentioned, and a
+direct chat the text alone. In Swedish, the command is `/nämn alla`.
 
 ### Birthdays, name days and holidays
 
@@ -2020,7 +2043,8 @@ nejomibot/
   today.py      /today, /today preview: the day's holidays and birthdays
   specials.py   /specials, /special: several posts in one command
   messages.py   sending through signalbot, the outbox, and the wording of errors
-  styles.py     Signal's text styles, as signal-cli-rest-api's marks
+  styles.py     Signal's text styles and mentions, as signal-cli-rest-api takes them
+  mentions.py   /mention all: everyone in a group
   rest.py       what signalbot can't do: direct requests to signal-cli-rest-api
   client.py     the HTTP session for the bot's own requests
   receipts.py   read receipts and the typing indicator

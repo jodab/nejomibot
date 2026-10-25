@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 14:05+0200\n"
+"POT-Creation-Date: 2026-10-25 20:38+0200\n"
 "Language-Team: Danish\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -125,8 +125,8 @@ msgid ""
 "/admin add <who> adds one, /admin remove <n> removes one; only the admins in "
 "the config can."
 msgstr ""
-"/admin tilføj <hvem> tilføjer én, /admin fjern <n> fjerner én; det kan kun "
-"admins i konfigurationen."
+"/admin tilføj <hvem> tilføjer én, /admin fjern <n> fjerner én; kun admins i "
+"konfigurationen kan gøre det."
 
 #: nejomibot/admins.py
 #, python-brace-format
@@ -1621,6 +1621,22 @@ msgstr ""
 "/slet 2,5 – slet dem"
 
 #: nejomibot/help.py
+msgid "mention everyone in a group"
+msgstr "nævn alle i en gruppe"
+
+#: nejomibot/help.py
+msgid ""
+"In a group, the bot mentions everyone but you and itself, which notifies "
+"them even if they've muted the group.\n"
+"/mention all – everyone\n"
+"/mention all Dinner's ready! – the text first, then everyone"
+msgstr ""
+"I en gruppe nævner botten alle undtagen dig og sig selv, hvilket giver dem "
+"en notifikation, selv hvis de har slået lyden fra for gruppen.\n"
+"/nævn alle – alle\n"
+"/nævn alle Aftensmaden er klar! – teksten først, derefter alle"
+
+#: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "hvem der må bruge botten"
 
@@ -2296,6 +2312,21 @@ msgstr "🗑️ Strøget: {things}"
 #: nejomibot/lists.py
 msgid "🗑️ The list is empty now."
 msgstr "🗑️ Listen er tom nu."
+
+#: nejomibot/mentions.py
+msgid ""
+"/mention all: mention everyone in the group but you and the bot, which "
+"notifies them even if they've muted it. A text after it comes first, as in /"
+"mention all Dinner's ready!"
+msgstr ""
+"/nævn alle: nævn alle i gruppen undtagen dig og botten, hvilket giver dem en "
+"notifikation, selv hvis de har slået lyden fra for den. En tekst efter "
+"kommer først, som i /nævn alle Aftensmaden er klar!"
+
+#: nejomibot/mentions.py
+#, python-brace-format
+msgid "📣 {text}"
+msgstr "📣 {text}"
 
 #: nejomibot/messages.py
 #, python-brace-format

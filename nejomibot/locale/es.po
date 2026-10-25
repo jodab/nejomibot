@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 14:05+0200\n"
+"POT-Creation-Date: 2026-10-25 20:38+0200\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -1635,6 +1635,22 @@ msgstr ""
 "/borrar 2,5 – borrarlos"
 
 #: nejomibot/help.py
+msgid "mention everyone in a group"
+msgstr "mencionar a todos en un grupo"
+
+#: nejomibot/help.py
+msgid ""
+"In a group, the bot mentions everyone but you and itself, which notifies "
+"them even if they've muted the group.\n"
+"/mention all – everyone\n"
+"/mention all Dinner's ready! – the text first, then everyone"
+msgstr ""
+"En un grupo, el bot menciona a todos menos a ti y a sí mismo, lo que les "
+"avisa aunque hayan silenciado el grupo.\n"
+"/mencionar todos – a todos\n"
+"/mencionar todos ¡La cena está lista! – primero el texto, luego a todos"
+
+#: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "quién puede usar el bot"
 
@@ -2311,6 +2327,21 @@ msgstr "🗑️ Quitado: {things}"
 #: nejomibot/lists.py
 msgid "🗑️ The list is empty now."
 msgstr "🗑️ La lista ya está vacía."
+
+#: nejomibot/mentions.py
+msgid ""
+"/mention all: mention everyone in the group but you and the bot, which "
+"notifies them even if they've muted it. A text after it comes first, as in /"
+"mention all Dinner's ready!"
+msgstr ""
+"/mencionar todos: menciona a todos en el grupo menos a ti y al bot, lo que "
+"les avisa aunque lo hayan silenciado. Un texto después va primero, como en /"
+"mencionar todos ¡La cena está lista!"
+
+#: nejomibot/mentions.py
+#, python-brace-format
+msgid "📣 {text}"
+msgstr "📣 {text}"
 
 #: nejomibot/messages.py
 #, python-brace-format

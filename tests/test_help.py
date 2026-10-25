@@ -97,7 +97,7 @@ def test_the_admin_commands_by_name() -> None:
     assert text.startswith("**For everyone allowed**\n📷 `/photo` – a random photo\n")
     assert (
         "\n\n**Admins, in a direct chat**\n"
-        "🩺 `/status` `/delivery` `/incoming` `/delete`\n"
+        "🩺 `/status` `/delivery` `/incoming` `/delete` `/mention`\n"
         "📋 `/allowed` `/allow` `/disallow` `/admins` `/admin`\n"
     ) in text
     assert "🪪 `/profile` `/name` `/about` `/avatar` `/username`\n\nSend" in text

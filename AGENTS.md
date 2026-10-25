@@ -237,12 +237,13 @@ only the configuration's admins add and remove admins
 (`is_config_admin`), and get the notices, run the timers and are named in
 the greeting. `/delete` is registered everywhere and checks for an admin
 itself; in groups it takes nothing after it, as `/delete list` and
-`/delete 2,5` show and delete what the bot sent to every chat. The bot
-answers each person at most `command_limit` commands in
-`command_limit_minutes` (`commands.admitted()`), but not the admins, nor
-what runs under `collected`. `/contacts` and `/trust` share one numbering,
-the order each admin was shown last (`contacts.shown`), which `<who>` in
-`/allow` and `/admin add` takes too.
+`/delete 2,5` show and delete what the bot sent to every chat; `/mention`
+is registered for the admins in every chat too. The bot answers each person
+at most `command_limit` commands in `command_limit_minutes`
+(`commands.admitted()`), but not the admins, nor what runs under
+`collected`. `/contacts` and `/trust` share one numbering, the order each
+admin was shown last (`contacts.shown`), which `<who>` in `/allow` and
+`/admin add` takes too.
 
 **Commands and aliases** (`commands.py`): every handler is a
 `commands.Handler` listing its `Command`s: the English name, whether more
@@ -300,6 +301,12 @@ gets a file in `data_dir/outbox`, loaded at the next start. Under the
 rather than sent. A `PerChat` message has a text of its own for some chats,
 as `/today`'s birthdays. Long messages need nothing: signal-cli sends and
 receives texts over 2,000 bytes as Signal's apps do.
+
+Mentions are text inside the bot: `resolved_message()` writes a received
+message's mentions into its text as `<@ID>` (`styles.written()`), which
+handlers and files keep as they are, and `send()` makes each `<@ID>` a
+mention again (`styles.mentioned()`). Their places count UTF-16 code units,
+in a styled message after signal-cli-rest-api has read its marks.
 
 **Timers** (`timers.py`) run each command through the real handlers as a
 made-up direct message from the first admin (`Timekeeper.answers_to`; `/run`

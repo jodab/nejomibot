@@ -46,6 +46,7 @@ from .messages import (
     describe,
     escape,
     log_failure,
+    members,
     outbox,
     retry_delays,
     to_whom,
@@ -111,15 +112,10 @@ def confirm(log: SentLog, envelope: Envelope) -> datetime:
 
 def expected(bot: SignalBot, chat: str) -> int | None:
     """How many should confirm a message to the chat: a contact, or each of
-    a group's members but the bot, which signal-cli-rest-api lists by its
-    number, or without one, by its Signal ID, as account has it then; None
-    for a group the bot isn't in."""
+    a group's members but the bot; None for a group the bot isn't in."""
     if not access.is_group(chat):
         return 1
-    group = next((g for g in bot.groups if g.id == chat and g.member), None)
-    if group is None:
-        return None
-    return len(set(group.members) - {get_settings().account})
+    return None if (others := members(bot, chat)) is None else len(others)
 
 
 def status_text(sent: Sent, of: int | None, now: datetime) -> str:

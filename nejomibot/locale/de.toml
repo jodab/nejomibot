@@ -26,6 +26,7 @@ name = "Deutsch"
 "/avatar" = ["/profilbild"]
 "/username" = ["/benutzername"]
 "/delete" = ["/löschen", "/loeschen"]
+"/mention" = ["/erwähnen", "/erwaehnen"]
 "/delivery" = ["/zustellung"]
 "/today" = ["/heute", "/tag"]
 "/msg" = ["/senden"]

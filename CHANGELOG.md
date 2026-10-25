@@ -4,6 +4,36 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `/mention all`, for the admins, in every group the bot is in: the bot
+  posts 📣, then a mention of everyone in the group but itself and you,
+  which notifies them even if they have muted the group. A text after the
+  command comes first, as in `/mention all Dinner's ready!`. Timers,
+  specials and `/run` can run it, and each group they post to gets its own
+  members mentioned.
+- A reminder in a group mentions whoever set it, as in "⏰ @Alice Pick up
+  Bob", so that it reaches them even if they have muted the group.
+
+### Changed
+
+- Each line of `data_dir/reminders.txt` also says who set the reminder,
+  after the chat. Lines without it are read as before, and their reminders
+  mention nobody.
+
+### Fixed
+
+- A mention typed into a command, as in `/remind 18:00 @Bob Call Grandma`
+  or `/list add`, was lost: the reminder or the list showed an empty
+  placeholder where the name should be. The bot now keeps the mention, and
+  the reminder mentions Bob when it is posted. The files write it as
+  `<@ID>`, by Signal ID or phone number.
+- In Danish, French, Greek, Norwegian and Swedish, the last sentence of
+  `/admins` read as if cut short; it now ends "only the admins in the
+  configuration can do that".
+
 ## 0.99.29 - 2026-10-25
 
 ### Added

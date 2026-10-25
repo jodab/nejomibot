@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 14:05+0200\n"
+"POT-Creation-Date: 2026-10-25 20:38+0200\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -127,8 +127,8 @@ msgid ""
 "/admin add <who> adds one, /admin remove <n> removes one; only the admins in "
 "the config can."
 msgstr ""
-"/admin lägg till <vem> lägger till en, /admin ta bort <n> tar bort en; det "
-"kan bara admins i konfigurationen."
+"/admin lägg till <vem> lägger till en, /admin ta bort <n> tar bort en; bara "
+"admins i konfigurationen kan göra det."
 
 #: nejomibot/admins.py
 #, python-brace-format
@@ -1616,6 +1616,22 @@ msgstr ""
 "/radera 2,5 – radera dem"
 
 #: nejomibot/help.py
+msgid "mention everyone in a group"
+msgstr "nämn alla i en grupp"
+
+#: nejomibot/help.py
+msgid ""
+"In a group, the bot mentions everyone but you and itself, which notifies "
+"them even if they've muted the group.\n"
+"/mention all – everyone\n"
+"/mention all Dinner's ready! – the text first, then everyone"
+msgstr ""
+"I en grupp nämner boten alla utom dig och sig själv, vilket ger dem en "
+"avisering även om de har tystat gruppen.\n"
+"/nämn alla – alla\n"
+"/nämn alla Middagen är klar! – texten först, sedan alla"
+
+#: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "vilka som får använda boten"
 
@@ -2292,6 +2308,21 @@ msgstr "🗑️ Struket: {things}"
 #: nejomibot/lists.py
 msgid "🗑️ The list is empty now."
 msgstr "🗑️ Listan är tom nu."
+
+#: nejomibot/mentions.py
+msgid ""
+"/mention all: mention everyone in the group but you and the bot, which "
+"notifies them even if they've muted it. A text after it comes first, as in /"
+"mention all Dinner's ready!"
+msgstr ""
+"/nämn alla: nämn alla i gruppen utom dig och boten, vilket ger dem en "
+"avisering även om de har tystat den. En text efter kommer först, som i /nämn "
+"alla Middagen är klar!"
+
+#: nejomibot/mentions.py
+#, python-brace-format
+msgid "📣 {text}"
+msgstr "📣 {text}"
 
 #: nejomibot/messages.py
 #, python-brace-format

@@ -34,6 +34,7 @@ from .incoming import Incoming, inbox
 from .info import Info
 from .languages import Language
 from .lists import Lists
+from .mentions import Mention
 from .messages import describe, outbox
 from .notices import notices
 from .onthisday import OnThisDay
@@ -125,6 +126,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
     ]
     # For the admins only, in every chat
     registrations.append((Delete(), True, settings.delete_groups, access.from_admin))
+    registrations.append((Mention(), True, True, access.from_admin))
     return registrations
 
 

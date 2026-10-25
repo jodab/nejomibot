@@ -4,8 +4,8 @@ from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 import pytest
-from helpers import ALICE, BOB, EDIT_FROM_BEFORE, GROUP, NOW_MS, message_from
-from signalbot import DataMessageContext, SendMessage, SignalBot
+from helpers import ALICE, BOB, BOB_ID, EDIT_FROM_BEFORE, GROUP, NOW_MS, message_from
+from signalbot import DataMessageContext, Mention, SendMessage, SignalBot
 
 from nejomibot import commands, reminders
 from nejomibot.config import get_settings
@@ -116,8 +116,8 @@ async def test_add_list_and_remove(bot: SignalBot, answers: list[SendMessage]) -
         "✅ **Added**\n#2 · Tuesday 20 October 08:00 · Pick up Bob"
     )
     assert the_file() == [
-        f"1 | 2026-10-19 18:00:00+02:00 | {ALICE} | Take the cake out",
-        f"2 | 2026-10-20 08:00:00+02:00 | {ALICE} | Pick up Bob",
+        f"1 | 2026-10-19 18:00:00+02:00 | {ALICE} | {ALICE} | Take the cake out",
+        f"2 | 2026-10-20 08:00:00+02:00 | {ALICE} | {ALICE} | Pick up Bob",
     ]
     assert await ask(bot, answers, "/remind") == "\n".join(
         [
@@ -145,8 +145,8 @@ async def test_each_chat_its_own(bot: SignalBot, answers: list[SendMessage]) -> 
         "No reminder #2 here."
     )
     assert the_file() == [
-        f"1 | 2026-10-19 18:00:00+02:00 | {GROUP} | Dinner",
-        f"1 | 2026-10-19 18:00:00+02:00 | {ALICE} | Mine",
+        f"1 | 2026-10-19 18:00:00+02:00 | {GROUP} | {ALICE} | Dinner",
+        f"1 | 2026-10-19 18:00:00+02:00 | {ALICE} | {ALICE} | Mine",
     ]
     assert (await ask(bot, answers, "/remind", BOB)).startswith("No reminders here.")
 
@@ -181,6 +181,22 @@ async def test_so_many_a_chat(
     assert (await ask(bot, answers, "/remind 19:00 Two", BOB)).startswith("✅")
 
 
+async def test_a_mention_in_the_text_stays_one(
+    bot: SignalBot, answers: list[SendMessage]
+) -> None:
+    # Signal's apps put a placeholder where they show the name
+    message = message_from(ALICE, "/remind 18:00 \ufffc Call Grandma", in_group=True)
+    mention = Mention(start=14, length=1, uuid=BOB_ID, number=BOB)
+    message = message.model_copy(update={"mentions": [mention]})
+    await Remind().handle_data_message(DataMessageContext(bot, message))
+    assert answers[0].text == (
+        f"✅ **Added**\n#1 · Monday 19 October 18:00 · <@{BOB_ID}> Call Grandma"
+    )
+    assert the_file() == [
+        f"1 | 2026-10-19 18:00:00+02:00 | {GROUP} | {ALICE} | <@{BOB_ID}> Call Grandma"
+    ]
+
+
 async def test_an_edit_takes_the_place_of_what_it_edits(
     bot: SignalBot, answers: list[SendMessage]
 ) -> None:
@@ -189,7 +205,7 @@ async def test_an_edit_takes_the_place_of_what_it_edits(
         "✅ **Added**\n#1 · Monday 19 October 19:00 · Take the cake out"
     )
     assert the_file() == [
-        f"1 | 2026-10-19 19:00:00+02:00 | {ALICE} | Take the cake out"
+        f"1 | 2026-10-19 19:00:00+02:00 | {ALICE} | {ALICE} | Take the cake out"
     ]
     # Showing them runs again
     assert (await ask(bot, answers, "/remind", edit=True)).startswith("**🔔 1 reminder")
@@ -220,15 +236,16 @@ async def test_posted_when_due(
 
     monkeypatch.setattr(reminders, "send", send)
     get_settings().data_file("reminders.txt").write_text(
-        f"1 | 2026-10-19 16:00:00+02:00 | {ALICE} | Now\n"
-        f"1 | 2026-10-19 15:30:00+02:00 | {GROUP} | Late\n"
+        f"1 | 2026-10-19 16:00:00+02:00 | {ALICE} | {ALICE} | Now\n"
+        f"1 | 2026-10-19 15:30:00+02:00 | {GROUP} | {BOB_ID} | Late\n"
         f"2 | 2026-10-17 15:00:00+02:00 | {GROUP} | Too late\n"
         f"1 | 2026-10-19 15:00:00+02:00 | {FRIENDS} | Not in it\n"
         f"2 | 2026-10-19 16:01:00+02:00 | {ALICE} | Soon\n"
     )
     await post_due(bot)
+    # In a group, mentioning who asked for it
     assert sent == [
-        (GROUP, "⏰ Late\n\n⏳ Delayed: this message was due at 15:30"),
+        (GROUP, f"⏰ <@{BOB_ID}> Late\n\n⏳ Delayed: this message was due at 15:30"),
         (ALICE, "⏰ Now"),
     ]
     assert "Dropped a reminder to a group, due 2 d 1 h ago" in caplog.text
@@ -246,8 +263,18 @@ async def test_posted_when_due(
 
 
 def test_lines() -> None:
+    assert parse_line(f"3 | 2026-10-19 18:00 | {GROUP} | {BOB_ID} | A | B") == (
+        Reminder(3, at("2026-10-19 18:00"), GROUP, "A | B", BOB_ID)
+    )
+    assert parse_line(f"3 | 2026-10-19 18:00 | {GROUP} |  | A") == Reminder(
+        3, at("2026-10-19 18:00"), GROUP, "A"
+    )
+    # As lines were before they said who asked for it
     assert parse_line(f"3 | 2026-10-19 18:00 | {GROUP} | A | B") == Reminder(
         3, at("2026-10-19 18:00"), GROUP, "A | B"
+    )
+    assert parse_line(f"3 | 2026-10-19 18:00 | {GROUP} | {GROUP} | A") == Reminder(
+        3, at("2026-10-19 18:00"), GROUP, f"{GROUP} | A"
     )
     for line in [
         f"x | 2026-10-19 18:00 | {GROUP} | A",

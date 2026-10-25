@@ -397,6 +397,17 @@ ADMIN = (
                 "/delete 2,5 – delete those"
             ),
         ),
+        Entry(
+            "📣",
+            "/mention",
+            N_("mention everyone in a group"),
+            N_(
+                "In a group, the bot mentions everyone but you and itself, which "
+                "notifies them even if they've muted the group.\n"
+                "/mention all – everyone\n"
+                "/mention all Dinner's ready! – the text first, then everyone"
+            ),
+        ),
     ),
     (
         Entry("📋", "/allowed", N_("who may use the bot"), ALLOWED),

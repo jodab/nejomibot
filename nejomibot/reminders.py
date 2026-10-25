@@ -10,9 +10,12 @@ they're due, in the chat they were asked for in:
   /remind remove 2                   or 2,3
 
 When one is due, in the bot's timezone, the bot posts "⏰ Pick up Bob" in
-the chat. A chat has at most 20, at most a year ahead. One due while the bot
-was down comes once it's up, with a note that it's late; more than a day
-late, it's dropped. A group gets its reminders only while the bot is in it.
+the chat; in a group, "⏰ @Alice Pick up Bob", mentioning whoever asked for
+it, which notifies them even if they've muted the group, as does a mention
+in the text (/remind 18:00 @Bob Call Grandma). A chat has at most 20, at
+most a year ahead. One due while the bot was down comes once it's up, with
+a note that it's late; more than a day late, it's dropped. A group gets its
+reminders only while the bot is in it.
 
 They're kept in data_dir/reminders.txt, a line each, which can be changed by
 hand: the bot reads it again when it changes, and leaves comments and lines
@@ -31,6 +34,7 @@ from .config import get_settings
 from .files import KeptLines
 from .i18n import _, chat_language, day_and_time, format_duration, ngettext, speaking
 from .messages import chat_id, chats_of, delayed, escape, send, to_whom
+from .styles import mention
 from .timers import (
     CLOCK,
     DURATION,
@@ -55,11 +59,13 @@ IN = "in"
 
 HEADER = (
     "# nejomibot's reminders, one per line:",
-    "#   number | when it's due | chat | text",
+    "#   number | when it's due | chat | who asked for it | text",
     "# The number is the reminder's in its chat, the chat a group ID, phone",
-    "# number or Signal ID. Changed with /remind in Signal, or by hand: the bot",
-    "# reads it again when it changes, and leaves comments and lines it can't",
-    "# read as they are. A reminder goes once it's posted.",
+    "# number or Signal ID, and who asked for it a phone number or Signal ID,",
+    "# whom it mentions in a group, or nothing. <@ID> in the text is a mention.",
+    "# Changed with /remind in Signal, or by hand: the bot reads it again when",
+    "# it changes, and leaves comments and lines it can't read as they are. A",
+    "# reminder goes once it's posted.",
 )
 
 
@@ -69,14 +75,22 @@ class Reminder:
     due: datetime
     chat: str  # a group.… ID, phone number or Signal ID
     text: str
+    by: str = ""  # who asked for it: a phone number or Signal ID, if known
 
 
 def parse_line(line: str) -> Reminder:
-    """A line of the file. Raises ValueError."""
+    """A line of the file; one without who asked for it, as lines were
+    before they said, is read too. Raises ValueError."""
     fields = [field.strip() for field in line.split("|", 3)]
     if len(fields) != 4:
-        raise ValueError(f"{len(fields)} fields, not 4")
+        raise ValueError(f"{len(fields)} fields, not 4 or 5")
     number, due, chat, text = fields
+    first, bar, rest = text.partition("|")
+    by = chat_id_of(first) if first.strip() else ""
+    if bar and by is not None and not is_group(by):
+        text = rest.strip()
+    else:
+        by = ""
     if not number.isdecimal() or not text:
         raise ValueError("no number, or no text")
     if (where := chat_id_of(chat)) is None:
@@ -84,12 +98,14 @@ def parse_line(line: str) -> Reminder:
     when = datetime.fromisoformat(due)
     if when.tzinfo is None:
         when = when.replace(tzinfo=get_settings().tz)
-    return Reminder(int(number), when, where, text)
+    return Reminder(int(number), when, where, text, by)
 
 
 def line_of(reminder: Reminder) -> str:
     due = reminder.due.astimezone(get_settings().tz).isoformat(" ", "seconds")
-    return f"{reminder.number} | {due} | {reminder.chat} | {reminder.text}"
+    return " | ".join(
+        [str(reminder.number), due, reminder.chat, reminder.by, reminder.text]
+    )
 
 
 kept = KeptLines("reminders.txt", HEADER, parse_line, line_of)
@@ -178,8 +194,10 @@ def list_reminders(chats: set[str]) -> str:
     return "\n".join([f"**{escape(title)}**", *map(escape, map(reminder_line, found))])
 
 
-def add_reminder(chat: str, chats: set[str], words: list[str], now: datetime) -> str:
-    """Add the reminder the words describe, or say why not. Styled."""
+def add_reminder(
+    chat: str, chats: set[str], by: str, words: list[str], now: datetime
+) -> str:
+    """Add the reminder the words describe, for by, or say why not. Styled."""
     if (found := due_from(words, now)) is None:
         return escape(_("When?") + f"\n\n{usage()}")
     due, used = found
@@ -202,7 +220,7 @@ def add_reminder(chat: str, chats: set[str], words: list[str], now: datetime) ->
             )
         )
     number = max((each.number for each in others), default=0) + 1
-    reminder = Reminder(number, due, chat, text)
+    reminder = Reminder(number, due, chat, text, by)
     change = kept.add(reminder)
     undo_with(lambda: kept.revert(change))
     return f"✅ **{escape(_('Added'))}**\n{escape(reminder_line(reminder))}"
@@ -231,7 +249,9 @@ def remind_answer(context: DataMessageContext, words: list[str]) -> str:
         return list_reminders(chats)
     if action in ("remove", "delete"):
         return remove_reminders(chats, words[2:])
-    return add_reminder(chat_id(context), chats, words[1:], now())
+    message = context.message
+    by = message.source_uuid or message.source_number or ""
+    return add_reminder(chat_id(context), chats, by, words[1:], now())
 
 
 class Remind(Handler):
@@ -280,8 +300,11 @@ async def post_due(bot: SignalBot) -> None:
         if is_group(reminder.chat) and reminder.chat not in member_of:
             logger.warning("Dropped a reminder to a group the bot isn't in")
             continue
+        text = reminder.text
+        if is_group(reminder.chat) and reminder.by:
+            text = f"{mention(reminder.by)} {text}"
         with speaking(chat_language(reminder.chat)):
-            message = SendMessage(text=_("⏰ {text}").format(text=reminder.text))
+            message = SendMessage(text=_("⏰ {text}").format(text=text))
             if late > LATE:
                 message = delayed(message, reminder.due)
         logger.info("Reminding %s", to_whom(reminder.chat))

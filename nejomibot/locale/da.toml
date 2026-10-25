@@ -26,6 +26,7 @@ name = "Dansk"
 "/avatar" = ["/profilbillede"]
 "/username" = ["/brugernavn"]
 "/delete" = ["/slet"]
+"/mention" = ["/nævn", "/naevn"]
 "/delivery" = ["/levering"]
 "/today" = ["/idag", "/dagen"]
 "/msg" = ["/send"]

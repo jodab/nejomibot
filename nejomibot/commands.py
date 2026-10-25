@@ -75,7 +75,7 @@ from .messages import (
     reply,
 )
 from .receipts import Typing, mark_read
-from .styles import utf16_length
+from .styles import utf16_length, written
 
 logger = logging.getLogger(__name__)
 
@@ -166,19 +166,22 @@ resolutions: dict[int, tuple[DataMessage, DataMessage]] = {}
 
 
 def resolved_message(message: DataMessage) -> DataMessage:
-    """The message, its alias replaced by its command, and its text styles
-    moved with the text after it; worked out once for each message."""
+    """The message, its mentions written into its text (styles.written()),
+    its alias replaced by its command, and its text styles moved with the
+    text; worked out once for each message."""
     if (found := resolutions.get(id(message))) and found[0] is message:
         return found[1]
     text = message.text
+    styles = message.text_styles
     result = message
-    if text is not None and (command_text := canonical(text)) != text:
+    if text is not None and message.mentions:
+        text, styles = written(text, message.mentions, styles or [])
+    if text is not None and (command_text := canonical(text)) != message.text:
         shift = utf16_length(command_text) - utf16_length(text)
-        styles = message.text_styles
         if styles:
             styles = [s.model_copy(update={"start": s.start + shift}) for s in styles]
         result = message.model_copy(
-            update={"text": command_text, "text_styles": styles}
+            update={"text": command_text, "text_styles": styles, "mentions": None}
         )
     resolutions[id(message)] = (message, result)
     while len(resolutions) > RESOLVED_KEPT:

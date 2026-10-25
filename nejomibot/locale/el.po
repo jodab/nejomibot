@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 14:05+0200\n"
+"POT-Creation-Date: 2026-10-25 20:38+0200\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -131,7 +131,7 @@ msgid ""
 "the config can."
 msgstr ""
 "Το /admin πρόσθεσε <ποιος> προσθέτει έναν και το /admin αφαίρεσε <n> αφαιρεί "
-"έναν· μόνο οι διαχειριστές των ρυθμίσεων μπορούν."
+"έναν· μόνο οι διαχειριστές των ρυθμίσεων μπορούν να το κάνουν."
 
 #: nejomibot/admins.py
 #, python-brace-format
@@ -1661,6 +1661,22 @@ msgstr ""
 "/διαγραφή 2,5 – διαγραφή αυτών"
 
 #: nejomibot/help.py
+msgid "mention everyone in a group"
+msgstr "αναφορά σε όλους σε μια ομάδα"
+
+#: nejomibot/help.py
+msgid ""
+"In a group, the bot mentions everyone but you and itself, which notifies "
+"them even if they've muted the group.\n"
+"/mention all – everyone\n"
+"/mention all Dinner's ready! – the text first, then everyone"
+msgstr ""
+"Σε μια ομάδα, το bot αναφέρει όλα τα μέλη εκτός από εσάς και το ίδιο, ώστε "
+"να λάβουν ειδοποίηση ακόμη κι αν έχουν θέσει την ομάδα σε σίγαση.\n"
+"/αναφορά όλους – όλα τα μέλη\n"
+"/αναφορά όλους Το φαγητό είναι έτοιμο! – πρώτα το κείμενο, μετά όλα τα μέλη"
+
+#: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "ποιοι μπορούν να χρησιμοποιούν το bot"
 
@@ -2346,6 +2362,22 @@ msgstr "🗑️ Αφαιρέθηκαν: {things}"
 #: nejomibot/lists.py
 msgid "🗑️ The list is empty now."
 msgstr "🗑️ Η λίστα άδειασε."
+
+#: nejomibot/mentions.py
+msgid ""
+"/mention all: mention everyone in the group but you and the bot, which "
+"notifies them even if they've muted it. A text after it comes first, as in /"
+"mention all Dinner's ready!"
+msgstr ""
+"/αναφορά όλους: αναφορά σε όλα τα μέλη της ομάδας εκτός από εσάς και το bot, "
+"ώστε να λάβουν ειδοποίηση ακόμη κι αν την έχουν θέσει σε σίγαση. Ένα κείμενο "
+"μετά την εντολή εμφανίζεται πρώτο, όπως στο /αναφορά όλους Το φαγητό είναι "
+"έτοιμο!"
+
+#: nejomibot/mentions.py
+#, python-brace-format
+msgid "📣 {text}"
+msgstr "📣 {text}"
 
 #: nejomibot/messages.py
 #, python-brace-format

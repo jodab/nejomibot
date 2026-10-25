@@ -36,7 +36,6 @@ import functools
 import itertools
 import logging
 import random
-import re
 import time
 from bisect import bisect_left, insort
 from collections import Counter, defaultdict, deque
@@ -64,6 +63,7 @@ from .config import get_settings
 from .files import write_privately
 from .i18n import _, chat_language, ngettext, speaking
 from .rest import RestError
+from .styles import PLACEHOLDER, escape, mentioned
 
 logger = logging.getLogger(__name__)
 
@@ -139,11 +139,6 @@ def error_text(error: Exception | str) -> str:
     if isinstance(error, Exception):
         error = describe(error)
     return _("Something went wrong: {error}").format(error=error)
-
-
-def escape(text: str) -> str:
-    """Text that shows as is in a styled message."""
-    return re.sub(r"([*`|~])", r"\\\1", text)
 
 
 def short(text: str) -> str:
@@ -242,7 +237,8 @@ class Sent:
 
     @classmethod
     def of(cls, timestamp: int, chat: str, message: SendMessage) -> Self:
-        text = (message.text or "").strip()
+        # A mention shows as @, without the name
+        text = (message.text or "").replace(PLACEHOLDER, "@").strip()
         return cls(
             timestamp,
             chat,
@@ -682,6 +678,16 @@ def chat_of(bot: SignalBot, recipient: str) -> str:
     return bot.groups.resolve(recipient) or recipient
 
 
+def members(bot: SignalBot, group: str) -> list[str] | None:
+    """A group's members but the bot, each once, which signal-cli-rest-api
+    lists by phone number, or without one, by Signal ID, the bot as account
+    has it then; None for a group the bot isn't in."""
+    found = next((g for g in bot.groups if g.id == group and g.member), None)
+    if found is None:
+        return None
+    return [m for m in dict.fromkeys(found.members) if m != get_settings().account]
+
+
 def chats_of(context: DataMessageContext) -> set[str]:
     """The chat the command came from, as the outbox knows it. A direct chat
     may be known by phone number or by ID."""
@@ -710,12 +716,13 @@ def chat_id(context: DataMessageContext) -> str:
 
 
 async def send(bot: SignalBot, recipient: str, message: SendMessage) -> Outcome:
-    """Send to a contact or group, as the chat gets it, retrying while Signal
-    can't be reached: what became of it. Never raises. A message with nothing
-    in it, as a post with no text for the chat, as /today's on a day with
-    nothing special there, isn't sent."""
+    """Send to a contact or group, as the chat gets it, its mentions made
+    (styles.mentioned()), retrying while Signal can't be reached: what became
+    of it. Never raises. A message with nothing in it, as a post with no text
+    for the chat, as /today's on a day with nothing special there, isn't
+    sent."""
     chat = chat_of(bot, recipient)
-    message = for_chat(message, chat)
+    message = mentioned(for_chat(message, chat))
     if not (message.text or message.base64_attachments or message.attachments):
         logger.debug("Nothing to send %s", to_whom(chat))
         return Outcome.SENT

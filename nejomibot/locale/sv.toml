@@ -26,6 +26,7 @@ name = "Svenska"
 "/avatar" = ["/profilbild"]
 "/username" = ["/användarnamn", "/anvandarnamn"]
 "/delete" = ["/radera"]
+"/mention" = ["/nämn"]
 "/delivery" = ["/leverans"]
 "/today" = ["/idag", "/dagen"]
 "/msg" = ["/skicka"]

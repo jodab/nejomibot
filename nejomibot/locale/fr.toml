@@ -24,6 +24,7 @@ name = "Français"
 "/avatar" = ["/photoprofil"]
 "/username" = ["/pseudo"]
 "/delete" = ["/supprimer"]
+"/mention" = ["/mentionner"]
 "/delivery" = ["/distribution"]
 "/today" = ["/aujourdhui", "/jour"]
 "/msg" = ["/envoyer"]

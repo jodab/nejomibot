@@ -27,6 +27,7 @@ name = "Suomi"
 "/avatar" = ["/profiilikuva"]
 "/username" = ["/käyttäjänimi", "/kayttajanimi"]
 "/delete" = ["/poista"]
+"/mention" = ["/mainitse"]
 "/delivery" = ["/toimitus"]
 "/today" = ["/tänään", "/tanaan", "/päivä", "/paiva"]
 "/msg" = ["/lähetä", "/laheta"]

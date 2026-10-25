@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 14:05+0200\n"
+"POT-Creation-Date: 2026-10-25 20:38+0200\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -1633,6 +1633,22 @@ msgstr ""
 "/poista 2,5 – poista ne"
 
 #: nejomibot/help.py
+msgid "mention everyone in a group"
+msgstr "mainitse kaikki ryhmässä"
+
+#: nejomibot/help.py
+msgid ""
+"In a group, the bot mentions everyone but you and itself, which notifies "
+"them even if they've muted the group.\n"
+"/mention all – everyone\n"
+"/mention all Dinner's ready! – the text first, then everyone"
+msgstr ""
+"Ryhmässä botti mainitsee kaikki paitsi sinut ja itsensä, jolloin he saavat "
+"ilmoituksen, vaikka olisivat mykistäneet ryhmän.\n"
+"/mainitse kaikki – kaikki\n"
+"/mainitse kaikki Ruoka on valmista! – ensin teksti, sitten kaikki"
+
+#: nejomibot/help.py
 msgid "who may use the bot"
 msgstr "kuka saa käyttää bottia"
 
@@ -2314,6 +2330,21 @@ msgstr "🗑️ Poistettu: {things}"
 #: nejomibot/lists.py
 msgid "🗑️ The list is empty now."
 msgstr "🗑️ Lista on nyt tyhjä."
+
+#: nejomibot/mentions.py
+msgid ""
+"/mention all: mention everyone in the group but you and the bot, which "
+"notifies them even if they've muted it. A text after it comes first, as in /"
+"mention all Dinner's ready!"
+msgstr ""
+"/mainitse kaikki: mainitse kaikki ryhmässä paitsi sinut ja botti, jolloin he "
+"saavat ilmoituksen, vaikka olisivat mykistäneet ryhmän. Perään kirjoitettu "
+"teksti tulee ensin, esimerkiksi /mainitse kaikki Ruoka on valmista!"
+
+#: nejomibot/mentions.py
+#, python-brace-format
+msgid "📣 {text}"
+msgstr "📣 {text}"
 
 #: nejomibot/messages.py
 #, python-brace-format
