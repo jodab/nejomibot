@@ -9,20 +9,36 @@ lack. What has been done is in [CHANGELOG.md](CHANGELOG.md).
 - [ ] **When to move to 1.0.** Until then, every release is a patch release
   on 0.99.x, and `tools/release.sh` stops on minor and major releases:
   remove its guard (after the usage check) when the time comes.
+- [ ] **Signal's own terms.** The code and the documentation should name
+  things as Signal does. Signal Android's source (`lib/signal-login`) calls
+  the credentials of an account registered without a phone number its
+  Signal Login: an Account ID, which is the account's ACI, and a Recovery
+  key. Signal never says "Signal ID", which is the bot's own name for
+  anyone's ACI. The "Account Key" of Signal's 8.28 beta announcement is the
+  Recovery key, not the ACI, as the README's
+  [An account without a phone number](README.md#an-account-without-a-phone-number)
+  and the comment on `account` in config.py have it. Decide what the bot's
+  messages call an ACI: Account ID, as Signal does, or Signal ID. It appears
+  in `/contacts`, `/status`, `/profile`, `/allow`, `/admin add`, the
+  configuration's errors and `signal-account.sh`. Then make the code, the
+  translations and the documentation use it throughout, and Signal's terms
+  everywhere else.
 
 ## Accounts without a phone number
 
 The bot should run on an account without a phone number, such as one
-created with Signal Login, and work with people who have none.
+registered with a Signal Login, and work with people who have none.
 
 **Where things stand:**
 
-- *Signal:* Signal Login, in Signal Android's beta since 8.28, creates an
-  account without a phone number for a one-time fee of $3 through Google
-  Play. Signal Android shows its Account Key, the account's ACI, a UUID such
-  as `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, and a Recovery Key: nothing else
-  can restore the account. Existing accounts can't drop their number, and
-  without a username, nobody can find the account.
+- *Signal:* Signal Android's beta, since 8.28, registers an account without
+  a phone number for a one-time fee of $3 through Google Play. Its Signal
+  Login is an Account ID, the account's ACI in upper case, such as
+  `0F1E2D3C-4B5A-4968-8778-695A4B3C2D1E` (the bot takes either case), and a
+  Recovery key: nothing else can restore the account. Signal Android shows
+  them in the account settings of such an account only. Existing accounts
+  can't drop their number, and without a username, nobody can find the
+  account.
 - *signal-cli* (0.14.9): accepts an ACI wherever it accepts the account,
   can link to an account without a number (signal-cli#2123), and can restore
   one as its primary device: `register --recovery-key KEY -a ACI`, with
@@ -51,10 +67,9 @@ created with Signal Login, and work with people who have none.
 2. Mostly done (2026-10-25): commands, groups, receipts and `/delivery`,
    the safety numbers, `/contacts`, `/profile`, the avatar, the username,
    and `signal-account.sh status` and `identities` all work on it. Still to
-   find out, on a phone: whether Signal Android shows the Account Key as the
-   ACI, in case it's in another form; whether a nickname for the bot takes
-   away the "Name not verified" that Signal's apps mark its name with, as it
-   can't be saved by number, and if so, say so in the README.
+   find out, on a phone: whether a nickname for the bot takes away the "Name
+   not verified" that Signal's apps mark its name with, as it can't be saved
+   by number, and if so, say so in the README.
 3. Find out what `pin`, the registration lock, does without a number. The
    restore itself isn't documented beyond the README's pointer to
    signal-cli: it waits for signal-cli-rest-api to restore accounts (see
