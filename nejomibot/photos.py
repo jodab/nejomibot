@@ -109,9 +109,10 @@ def heif_opener() -> None:
     pillow_heif.register_heif_opener()  # pyright: ignore[reportUnknownMemberType]
 
 
-def open_image(source: Path | IO[bytes]) -> Image.Image:
-    """A picture: a photo from the library, or one sent to the bot."""
-    if get_settings().photos_heif:
+def open_image(source: Path | IO[bytes], *, heif: bool | None = None) -> Image.Image:
+    """A picture: a photo from the library, or one sent to the bot. HEIF too,
+    as photos_heif says, unless heif does."""
+    if get_settings().photos_heif if heif is None else heif:
         heif_opener()
     return Image.open(source)
 

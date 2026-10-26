@@ -79,6 +79,7 @@ def test_who_may_use_what(monkeypatch: pytest.MonkeyPatch) -> None:
         "Timers": admins,
         "Msg": admins,
         "Run": admins,
+        "SelfPromote": admins,
         "Incoming": admins,
         "Birthday": admins,
         "Delivery": admins,
@@ -247,7 +248,7 @@ async def test_waits_for_the_account(
     assert not waiting.done()
     # Said once, not at every look
     assert caplog.text.count("has no account +46700000000 yet") == 1
-    assert "signal-account.sh setup" in caplog.text
+    assert "nejomibot-account setup" in caplog.text
 
     signal_api.responses["/v1/accounts"] = [ME]
     await asyncio.wait_for(waiting, 1)

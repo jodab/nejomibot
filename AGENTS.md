@@ -72,7 +72,8 @@ ask.
   everything it can do, and check newer signalbot releases before going
   around it. Direct signal-cli-rest-api requests live only in
   `nejomibot/rest.py`, each function saying in a comment what signalbot
-  lacks.
+  lacks, and in `nejomibot-account` (`account_cli.py`), which manages the
+  account itself, as signalbot doesn't, and runs without the bot.
 - **The repository is public.** No real names, phone numbers, group IDs,
   dates, places or hostnames in tracked files, tests and documentation
   included. Use made-up values (`+4670000000x`, `group.ZmFtaWx5`, Alice and
@@ -86,7 +87,7 @@ ask.
   doesn't work from the session, leave the commit to the owner.
 - **The live Signal account.** When testing against it, send only to the
   group set aside for testing, prefer read-only requests and
-  `signal-account.sh --dry-run`, and ask before changing the bot's profile,
+  `nejomibot-account --dry-run`, and ask before changing the bot's profile,
   username, PIN or privacy settings, which everyone sees. Ask before making
   any change on a server.
 - **signal-cli-rest-api runs in `json-rpc` mode**, not `json-rpc-native`,
@@ -139,6 +140,7 @@ tools/build-image.sh                       # test stage first, then the amd64, a
 tools/release.sh patch                     # a release, once CI has passed; patch only until 1.0; see --help
 uv run nejomibot-timers                    # the timers from a terminal, as in the image
 uv run nejomibot-chat                      # the running bot from a terminal, as its first admin
+uv run nejomibot-account                   # the Signal account: status, setup, profile; --dry-run sends nothing
 ```
 
 `tools/build-image.sh` runs ruff check, ruff format --check, pyright and
@@ -163,11 +165,16 @@ machine: Podman 4 built every platform as amd64, so the image jobs run on
   for the standard library, and `PYTHONDONTWRITEBYTECODE` keeps it from
   being written at run time, so the final stage imports the bot's entry
   points once to write it for what they use.
-- Of `tools/`, the image has `signal-account.sh`, `nejomibot-help.sh`, the
-  guide every interactive shell starts with (not scripts or `sh -c`), and
-  `nejomibot-profile.sh`, as `/etc/profile.d/nejomibot.sh`, which shows it:
-  bash reads it from `/etc/bash.bashrc`, a login shell from `/etc/profile`
-  (whose PATH lacks the tools, which it adds), and `sh` through `ENV`.
+- The image's tools are the package's entry points, Python as the bot is,
+  and need no shell. `nejomibot-help` (`guide.py`, which imports nothing, so
+  it shows at once) is the guide every interactive shell starts with (not
+  scripts or `sh -c`), and `help` too, a link in `/usr/local/bin`, as no
+  shell's alias reaches `podman exec nejomibot help`. Of `tools/`, the image
+  has only `nejomibot-profile.sh`, as `/etc/profile.d/nejomibot.sh`, which
+  shows the guide and makes `help` an alias for it, where bash's own `help`
+  would hide it: bash reads it from `/etc/bash.bashrc`, a login shell from
+  `/etc/profile` (whose PATH lacks the tools, which it adds), and `sh`
+  through `ENV`.
 - `.dockerignore` is an allowlist: a new file for the image needs a line
   there.
 
@@ -271,9 +278,9 @@ handlers list. A new command goes into its module, `bot.handlers()`,
 check, and gets a name in each language's `.toml` unless the English one is
 the language's word too.
 
-Commands may start with `.` in place of `/`: `config.slashed()` makes the
-`.` a `/` wherever commands are read, so the code, the translations and the
-bot's files keep `/`. The bot shows them with `command_prefix`: `_()` and
+Commands may start with `.` or `!` in place of `/`: `config.slashed()`
+makes either a `/` wherever commands are read, so the code, the
+translations and the bot's files keep `/`. The bot shows them with `command_prefix`: `_()` and
 `ngettext()` pass messages through `i18n.prefixed()` before values go in,
 and a name put into a message gets `prefixed()` where it goes in
 (`help.shown_name()`). The tests run with `/`;
@@ -405,8 +412,20 @@ and close at a word's end, as WhatsApp does, unlike signal-cli-rest-api's
 every chat (`wanted()`, `files_of()`), the latest 100, with a queue for
 each follower.
 
+**nejomibot-account** (`account_cli.py`) asks signal-cli-rest-api itself,
+one request at a time, through urllib, for what signalbot doesn't do:
+registering, linking, the PIN, privacy, devices, safety numbers and rate
+limits. It runs without the bot, before the configuration is complete, so it
+reads only `signal_service`, `account` and `data_dir`, from their
+`NEJOMIBOT_` variables or loosely from the config file (`tomllib`), and
+imports `profile.py` only where it changes the profile: through
+`profile.keep()` and `keep_avatar()` into `bot.txt`, with avatars made as
+`/avatar` makes them (`make_avatar()`). As root, the files it replaces keep
+their owner (`files.replace_privately`). segno draws the QR code for
+linking, imported only there.
+
 **The bot's profile** (`profile.py`): kept in `data_dir/bot.txt`, which
-`/name`, `/about`, `/avatar`, `/username` and `signal-account.sh` write. At
+`/name`, `/about`, `/avatar`, `/username` and `nejomibot-account` write. At
 each start `keep_profile` changes only what differs from the account's
 profile, so a start that changes nothing sends nothing; name, About and
 avatar go in one update, as one without the avatar removes it.

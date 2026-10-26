@@ -145,7 +145,7 @@ async def test_rate_limit_says_how_to_lift_it(
 ) -> None:
     signal_api.route("POST", "/v2/send", status(429, {"error": "rate limiting"}))
     await post_message(bot, ALICE, text("hej"))
-    assert "signal-account.sh rate-limit" in caplog.text
+    assert "nejomibot-account rate-limit" in caplog.text
 
 
 async def test_not_sent_when_the_api_is_down() -> None:

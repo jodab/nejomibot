@@ -111,11 +111,18 @@ def test_canonical(text: str, command: str) -> None:
         (".PIC now", "/photo now"),
         (".väder Helsinki", "/weather Helsinki"),
         (".f startrek", "/fortune startrek"),
+        # A ! too
+        ("!photo", "/photo"),
+        ("!PIC now", "/photo now"),
         # Before a letter only, and at the start
         ("...", "..."),
         (". pic", ". pic"),
         (".5 kg", ".5 kg"),
         ("a .pic", "a .pic"),
+        ("!!", "!!"),
+        ("! pic", "! pic"),
+        ("!5 euros", "!5 euros"),
+        ("Wow!pic", "Wow!pic"),
     ],
 )
 def test_a_dot_for_the_slash(text: str, command: str) -> None:
@@ -239,11 +246,20 @@ async def test_a_command_by_a_name_the_bot_comes_with(
 @pytest.mark.usefixtures("pic")
 async def test_a_command_with_a_dot() -> None:
     handler = Seen()
-    for text in [".photo", ".Cache", ".pic", ".photo now", "..photo"]:
+    for text in [
+        ".photo",
+        ".Cache",
+        ".pic",
+        ".photo now",
+        "..photo",
+        "!photo",
+        "!!photo",
+    ]:
         await handler.handle_data_message(context_of(text))
     assert handler.seen == [
         ("/photo", "/photo"),
         ("/Cache", "/cache"),
+        ("/photo", "/photo"),
         ("/photo", "/photo"),
     ]
 

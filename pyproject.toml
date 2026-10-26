@@ -18,6 +18,7 @@ dependencies = [
     # same, without the 40 MB of place names, carriers and time zones that
     # signalbot, checking only that a number is valid, never reads
     "phonenumberslite>=8.13.54",
+    "segno>=1.6.6",
 ]
 
 [project.scripts]
@@ -25,6 +26,8 @@ nejomibot = "nejomibot.bot:main"
 nejomibot-healthcheck = "nejomibot.healthcheck:main"
 nejomibot-timers = "nejomibot.timers_cli:main"
 nejomibot-chat = "nejomibot.chat_cli:main"
+nejomibot-account = "nejomibot.account_cli:main"
+nejomibot-help = "nejomibot.guide:main"
 
 [dependency-groups]
 dev = [

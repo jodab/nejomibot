@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 14:38+0200\n"
+"POT-Creation-Date: 2026-10-26 17:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -959,7 +959,7 @@ msgstr[1] ""
 
 #: nejomibot/health.py
 msgid ""
-"rate-limited by Signal: run signal-account.sh rate-limit to lift the limit"
+"rate-limited by Signal: run nejomibot-account rate-limit to lift the limit"
 msgstr ""
 
 #: nejomibot/health.py
@@ -1500,6 +1500,18 @@ msgid "post commands' answers to chats"
 msgstr ""
 
 #: nejomibot/help.py
+msgid "the bot, in a few words, to share"
+msgstr ""
+
+#: nejomibot/help.py
+msgid ""
+"What the bot does, how it runs, and where its code and image are, under its "
+"picture.\n"
+"/selfpromote – here, to forward\n"
+"/run 1 /selfpromote – post it to chat 1"
+msgstr ""
+
+#: nejomibot/help.py
 msgid "commands of your own"
 msgstr ""
 
@@ -1571,7 +1583,7 @@ msgid "Admins, in a direct chat"
 msgstr ""
 
 #: nejomibot/help.py
-msgid "Commands start with . or /, whichever is easier to type."
+msgid "Commands start with ., ! or /, whichever is easier to type."
 msgstr ""
 
 #: nejomibot/help.py
@@ -2224,7 +2236,7 @@ msgstr ""
 msgid ""
 "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
 "again after {first}, then less and less often, every {longest} at most, and "
-"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"sends the rest once one goes out. To lift the limit, run nejomibot-account "
 "rate-limit --to <your number> on the server and solve the captcha, then send "
 "the bot any command: it tries again at once."
 msgstr ""
@@ -2388,7 +2400,7 @@ msgstr ""
 #: nejomibot/profile.py
 msgid ""
 "signal-cli didn't keep the picture, so it can't be the avatar. It keeps none "
-"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh can "
+"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; nejomibot-account can "
 "set the avatar from a file instead."
 msgstr ""
 
@@ -2631,8 +2643,39 @@ msgstr ""
 msgid "⏰ {text}"
 msgstr ""
 
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid ""
+"Every morning it can post the day's holidays, birthdays and name days, the "
+"weather, and a photo from your own photo library. During the day, it answers "
+"commands for photos, the weather, reminders, shared lists and timers, in "
+"{count} languages."
+msgstr ""
+
+#: nejomibot/selfpromote.py
+msgid ""
+"It runs on your own server, as a container under Podman or Docker, on x86 "
+"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
+"source, under the MIT license, and its code is written by AI, under its "
+"maintainer's guidance."
+msgstr ""
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Source code and documentation: {url}"
+msgstr ""
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Container image: {url}"
+msgstr ""
+
+#: nejomibot/selfpromote.py
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr ""
+
 #: nejomibot/specials.py
-msgid "Give it a name: a word that starts with . or /, like /morning."
+msgid "Give it a name: a word that starts with ., ! or /, like /morning."
 msgstr ""
 
 #: nejomibot/specials.py
@@ -3055,7 +3098,7 @@ msgstr ""
 
 #: nejomibot/timers.py
 #, python-brace-format
-msgid "Commands start with . or /, unlike {command}."
+msgid "Commands start with ., ! or /, unlike {command}."
 msgstr ""
 
 #: nejomibot/timers.py

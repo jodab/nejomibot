@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 14:38+0200\n"
+"POT-Creation-Date: 2026-10-26 17:35+0200\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -1030,9 +1030,9 @@ msgstr[1] "{count} mensajes en cola, el más antiguo desde hace {duration}"
 
 #: nejomibot/health.py
 msgid ""
-"rate-limited by Signal: run signal-account.sh rate-limit to lift the limit"
+"rate-limited by Signal: run nejomibot-account rate-limit to lift the limit"
 msgstr ""
-"limitado por Signal: ejecuta signal-account.sh rate-limit para levantar el "
+"limitado por Signal: ejecuta nejomibot-account rate-limit para levantar el "
 "límite"
 
 #: nejomibot/health.py
@@ -1744,6 +1744,22 @@ msgid "post commands' answers to chats"
 msgstr "publicar las respuestas de comandos en chats"
 
 #: nejomibot/help.py
+msgid "the bot, in a few words, to share"
+msgstr "el bot en pocas palabras, para compartir"
+
+#: nejomibot/help.py
+msgid ""
+"What the bot does, how it runs, and where its code and image are, under its "
+"picture.\n"
+"/selfpromote – here, to forward\n"
+"/run 1 /selfpromote – post it to chat 1"
+msgstr ""
+"Qué hace el bot, cómo funciona y dónde están su código y su imagen, bajo su "
+"ilustración.\n"
+"/autopromoción – aquí, para reenviar\n"
+"/ejecutar 1 /autopromoción – publicarlo en el chat 1"
+
+#: nejomibot/help.py
 msgid "commands of your own"
 msgstr "comandos propios"
 
@@ -1822,8 +1838,8 @@ msgid "Admins, in a direct chat"
 msgstr "Administradores, en un chat privado"
 
 #: nejomibot/help.py
-msgid "Commands start with . or /, whichever is easier to type."
-msgstr "Los comandos empiezan por . o /, lo que sea más fácil de escribir."
+msgid "Commands start with ., ! or /, whichever is easier to type."
+msgstr "Los comandos empiezan por ., ! o /, lo que sea más fácil de escribir."
 
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
@@ -2495,14 +2511,14 @@ msgstr "Modo de depuración: solo se comunica con {group}"
 msgid ""
 "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
 "again after {first}, then less and less often, every {longest} at most, and "
-"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"sends the rest once one goes out. To lift the limit, run nejomibot-account "
 "rate-limit --to <your number> on the server and solve the captcha, then send "
 "the bot any command: it tries again at once."
 msgstr ""
 "⚠️ Signal está limitando los envíos del bot. Los mensajes salientes esperan: "
 "el bot vuelve a intentar enviar uno tras {first}, luego cada vez con menos "
 "frecuencia, como mucho cada {longest}, y envía el resto en cuanto uno pasa. "
-"Para levantar el límite, ejecuta signal-account.sh rate-limit --to <tu "
+"Para levantar el límite, ejecuta nejomibot-account rate-limit --to <tu "
 "número> en el servidor, resuelve el captcha y luego envía al bot cualquier "
 "comando: vuelve a intentarlo enseguida."
 
@@ -2678,12 +2694,12 @@ msgstr "Ponle primero un nombre al bot: el perfil de Signal necesita uno."
 #: nejomibot/profile.py
 msgid ""
 "signal-cli didn't keep the picture, so it can't be the avatar. It keeps none "
-"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh can "
+"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; nejomibot-account can "
 "set the avatar from a file instead."
 msgstr ""
 "signal-cli no guardó la imagen, así que no puede ser la foto de perfil. No "
 "guarda ninguna mientras funciona con JSON_RPC_IGNORE_ATTACHMENTS=true; en su "
-"lugar, signal-account.sh puede poner la foto de perfil desde un archivo."
+"lugar, nejomibot-account puede poner la foto de perfil desde un archivo."
 
 #: nejomibot/profile.py
 msgid ""
@@ -2942,9 +2958,48 @@ msgstr "Quitado"
 msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid ""
+"Every morning it can post the day's holidays, birthdays and name days, the "
+"weather, and a photo from your own photo library. During the day, it answers "
+"commands for photos, the weather, reminders, shared lists and timers, in "
+"{count} languages."
+msgstr ""
+"Cada mañana puede publicar los festivos, cumpleaños y santos del día, el "
+"tiempo y una foto de tu propia fototeca. Durante el día responde a comandos "
+"de fotos, el tiempo, recordatorios, listas compartidas y temporizadores, en "
+"{count} idiomas."
+
+#: nejomibot/selfpromote.py
+msgid ""
+"It runs on your own server, as a container under Podman or Docker, on x86 "
+"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
+"source, under the MIT license, and its code is written by AI, under its "
+"maintainer's guidance."
+msgstr ""
+"Funciona en tu propio servidor, como contenedor en Podman o Docker, en x86 y "
+"ARM, también en una Raspberry Pi, con menos de 100 MB de memoria. Es de "
+"código abierto, con licencia MIT, y su código lo escribe una IA, bajo la "
+"dirección de su mantenedor."
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Source code and documentation: {url}"
+msgstr "Código fuente y documentación: {url}"
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Container image: {url}"
+msgstr "Imagen de contenedor: {url}"
+
+#: nejomibot/selfpromote.py
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, un bot de Signal para familia y amigos"
+
 #: nejomibot/specials.py
-msgid "Give it a name: a word that starts with . or /, like /morning."
-msgstr "Ponle un nombre: una palabra que empiece por . o /, como /mañana."
+msgid "Give it a name: a word that starts with ., ! or /, like /morning."
+msgstr "Ponle un nombre: una palabra que empiece por ., ! o /, como /mañana."
 
 #: nejomibot/specials.py
 #, python-brace-format
@@ -3395,8 +3450,8 @@ msgstr "{command} no es un comando que conozca el bot."
 
 #: nejomibot/timers.py
 #, python-brace-format
-msgid "Commands start with . or /, unlike {command}."
-msgstr "Los comandos empiezan por . o /, a diferencia de {command}."
+msgid "Commands start with ., ! or /, unlike {command}."
+msgstr "Los comandos empiezan por ., ! o /, a diferencia de {command}."
 
 #: nejomibot/timers.py
 #, python-brace-format

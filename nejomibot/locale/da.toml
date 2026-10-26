@@ -31,6 +31,7 @@ name = "Dansk"
 "/today" = ["/idag", "/dagen"]
 "/msg" = ["/send"]
 "/run" = ["/kør", "/kor"]
+"/selfpromote" = ["/selvpromovering"]
 "/incoming" = ["/indbakke"]
 "/onthisday" = ["/dennedag"]
 "/forecast" = ["/prognose"]

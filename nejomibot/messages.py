@@ -203,7 +203,7 @@ def outcome_of(error: SendError) -> Outcome:
         if cause.status == TOO_MANY_REQUESTS:
             logger.warning(
                 "Not sent: Signal rate-limits the bot. To lift the limit, run "
-                "signal-account.sh rate-limit"
+                "nejomibot-account rate-limit"
             )
             return Outcome.RATE_LIMITED
         logger.warning("Not sent, signal-cli-rest-api says %d", cause.status)

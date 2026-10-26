@@ -32,6 +32,7 @@ name = "Suomi"
 "/today" = ["/tänään", "/tanaan", "/päivä", "/paiva"]
 "/msg" = ["/lähetä", "/laheta"]
 "/run" = ["/suorita"]
+"/selfpromote" = ["/itsemainonta"]
 "/incoming" = ["/saapuneet"]
 "/onthisday" = ["/tänäpäivänä", "/tanapaivana"]
 "/forecast" = ["/ennuste"]

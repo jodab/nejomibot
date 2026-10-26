@@ -721,7 +721,9 @@ def split_commands(text: str) -> list[str] | str:
     commands = [command.strip() for command in re.split(r"[;\n]", text)]
     commands = [command for command in commands if command]
     if bad := [command for command in commands if slashed(command)[:1] != "/"]:
-        return _("Commands start with . or /, unlike {command}.").format(command=bad[0])
+        return _("Commands start with ., ! or /, unlike {command}.").format(
+            command=bad[0]
+        )
     if len(commands) > MAX_COMMANDS:
         return _("At most {count} commands at once.").format(count=MAX_COMMANDS)
     return commands

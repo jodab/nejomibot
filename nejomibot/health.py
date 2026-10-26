@@ -144,7 +144,7 @@ def bot_check(bot: SignalBot, now: datetime, before: Health | None = None) -> Ch
         ).format(count=waiting, duration=format_duration(now - oldest))
         if outbox.rate_limited:
             detail += ". " + _(
-                "rate-limited by Signal: run signal-account.sh rate-limit to lift "
+                "rate-limited by Signal: run nejomibot-account rate-limit to lift "
                 "the limit"
             )
         problems.append(detail)

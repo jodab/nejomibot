@@ -168,7 +168,7 @@ The bot now waits for its Signal account, which you set up in the next
 step, and its log says so:
 
 ```
-WARNING nejomibot.bot: signal-cli-rest-api at signal:8080 has no account +46700000000 yet: register or link it with signal-account.sh setup. Waiting.
+WARNING nejomibot.bot: signal-cli-rest-api at signal:8080 has no account +46700000000 yet: register or link it with nejomibot-account setup. Waiting.
 ```
 
 This is expected. An earlier line saying that the bot can't reach
@@ -183,11 +183,11 @@ The image includes a tool for managing the Signal account. Start it, and
 answer its questions:
 
 ```sh
-docker compose exec nejomibot signal-account.sh setup
+docker compose exec nejomibot nejomibot-account setup
 ```
 
 If the bot isn't running, run the tool in a container of its own instead:
-`docker compose run --rm nejomibot signal-account.sh setup`.
+`docker compose run --rm nejomibot nejomibot-account setup`.
 
 1. **Register or link?** Press Enter to choose `r`, register. To link the
    bot to a phone with Signal instead, type `l`, scan the QR code that the
@@ -285,7 +285,7 @@ That's it: the bot is up and running. 🎉
 ## More you can do
 
 - **A profile picture:**
-  `docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg`
+  `docker compose exec -T nejomibot nejomibot-account profile --avatar - < picture.jpg`
 - **Get alerted when the bot is down or its messages don't get through:**
   create a check at [healthchecks.io](https://healthchecks.io), and put its
   ping URL in `healthcheck_url` in the settings. The bot pings it every 5
@@ -317,8 +317,9 @@ That's it: the bot is up and running. 🎉
   [the README](https://github.com/jodab/nejomibot#the-bot-from-a-terminal).
 - **A shell in the container:** `docker compose exec nejomibot sh`, or
   `bash`, starts with a short guide to the bot's tools, such as
-  `nejomibot-chat`, `nejomibot-timers` and `signal-account.sh`, and where
-  the bot keeps its files.
+  `nejomibot-account`, `nejomibot-chat` and `nejomibot-timers`, and where
+  the bot keeps its files; `help` shows it again, also as
+  `docker compose exec nejomibot help`.
 - **Commands of your own, other names for commands, and all the settings:**
   see the [README](https://github.com/jodab/nejomibot#readme).
 
@@ -370,7 +371,7 @@ folder doesn't belong to the bot: repeat step 3.
    everyone who has written to the bot, and find yourself by name:
 
    ```sh
-   docker compose exec nejomibot signal-account.sh identities
+   docker compose exec nejomibot nejomibot-account identities
    ```
 
    Put the ID shown after your name, which looks like

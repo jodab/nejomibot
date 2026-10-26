@@ -9,7 +9,5 @@
 !config.example.toml
 !nejomibot/
 !tests/
-!tools/signal-account.sh
-!tools/nejomibot-help.sh
 !tools/nejomibot-profile.sh
 **/__pycache__

@@ -52,6 +52,7 @@ name = ""
 "/special" = []
 "/msg" = []
 "/run" = []
+"/selfpromote" = []
 "/incoming" = []
 "/birthday" = []
 "/nameday" = []

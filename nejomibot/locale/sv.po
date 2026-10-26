@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 14:38+0200\n"
+"POT-Creation-Date: 2026-10-26 17:35+0200\n"
 "PO-Revision-Date: 2026-10-19 12:31+0300\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -1016,9 +1016,9 @@ msgstr[1] "{count} meddelanden i kö, det äldsta i {duration}"
 
 #: nejomibot/health.py
 msgid ""
-"rate-limited by Signal: run signal-account.sh rate-limit to lift the limit"
+"rate-limited by Signal: run nejomibot-account rate-limit to lift the limit"
 msgstr ""
-"begränsad av Signal: kör signal-account.sh rate-limit för att häva "
+"begränsad av Signal: kör nejomibot-account rate-limit för att häva "
 "begränsningen"
 
 #: nejomibot/health.py
@@ -1725,6 +1725,22 @@ msgid "post commands' answers to chats"
 msgstr "posta kommandons svar i chattar"
 
 #: nejomibot/help.py
+msgid "the bot, in a few words, to share"
+msgstr "boten i några ord, att dela"
+
+#: nejomibot/help.py
+msgid ""
+"What the bot does, how it runs, and where its code and image are, under its "
+"picture.\n"
+"/selfpromote – here, to forward\n"
+"/run 1 /selfpromote – post it to chat 1"
+msgstr ""
+"Vad boten gör, hur den körs och var dess kod och avbildning finns, under "
+"dess bild.\n"
+"/självreklam – här, att vidarebefordra\n"
+"/kör 1 /självreklam – posta den i chatt 1"
+
+#: nejomibot/help.py
 msgid "commands of your own"
 msgstr "egna kommandon"
 
@@ -1802,8 +1818,8 @@ msgid "Admins, in a direct chat"
 msgstr "Admins, i en direktchatt"
 
 #: nejomibot/help.py
-msgid "Commands start with . or /, whichever is easier to type."
-msgstr "Kommandon börjar med . eller /, det som är lättast att skriva."
+msgid "Commands start with ., ! or /, whichever is easier to type."
+msgstr "Kommandon börjar med ., ! eller /, det som är lättast att skriva."
 
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
@@ -2477,14 +2493,14 @@ msgstr "Felsökningsläge: kommunicerar endast med {group}"
 msgid ""
 "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
 "again after {first}, then less and less often, every {longest} at most, and "
-"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"sends the rest once one goes out. To lift the limit, run nejomibot-account "
 "rate-limit --to <your number> on the server and solve the captcha, then send "
 "the bot any command: it tries again at once."
 msgstr ""
 "⚠️ Signal begränsar botens sändningar. Utgående meddelanden väntar: boten "
 "försöker skicka ett igen efter {first}, sedan allt mer sällan, som mest med "
 "{longest} mellanrum, och skickar resten när ett går fram. För att häva "
-"begränsningen, kör signal-account.sh rate-limit --to <ditt nummer> på "
+"begränsningen, kör nejomibot-account rate-limit --to <ditt nummer> på "
 "servern, lös captcha-uppgiften och skicka sedan valfritt kommando till "
 "boten: då försöker den igen direkt."
 
@@ -2661,7 +2677,7 @@ msgstr "Ge boten ett namn först: profilen i Signal måste ha ett."
 #: nejomibot/profile.py
 msgid ""
 "signal-cli didn't keep the picture, so it can't be the avatar. It keeps none "
-"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh can "
+"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; nejomibot-account can "
 "set the avatar from a file instead."
 msgstr ""
 "signal-cli sparade inte bilden, så den kan inte bli profilbild. Den sparar "
@@ -2921,9 +2937,48 @@ msgstr "Borttagen"
 msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid ""
+"Every morning it can post the day's holidays, birthdays and name days, the "
+"weather, and a photo from your own photo library. During the day, it answers "
+"commands for photos, the weather, reminders, shared lists and timers, in "
+"{count} languages."
+msgstr ""
+"Varje morgon kan den posta dagens helgdagar, födelsedagar och namnsdagar, "
+"vädret och ett foto ur ditt eget fotobibliotek. Under dagen svarar den på "
+"kommandon för foton, väder, påminnelser, delade listor och timrar, på "
+"{count} språk."
+
+#: nejomibot/selfpromote.py
+msgid ""
+"It runs on your own server, as a container under Podman or Docker, on x86 "
+"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
+"source, under the MIT license, and its code is written by AI, under its "
+"maintainer's guidance."
+msgstr ""
+"Den körs på din egen server, som en container i Podman eller Docker, på x86 "
+"och ARM, även på en Raspberry Pi, med mindre än 100 MB minne. Den har öppen "
+"källkod, under MIT-licensen, och dess kod skrivs av AI, under ledning av "
+"dess förvaltare."
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Source code and documentation: {url}"
+msgstr "Källkod och dokumentation: {url}"
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Container image: {url}"
+msgstr "Containeravbildning: {url}"
+
+#: nejomibot/selfpromote.py
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, en Signal-bot för familj och vänner"
+
 #: nejomibot/specials.py
-msgid "Give it a name: a word that starts with . or /, like /morning."
-msgstr "Ge det ett namn: ett ord som börjar med . eller /, som /morgon."
+msgid "Give it a name: a word that starts with ., ! or /, like /morning."
+msgstr "Ge det ett namn: ett ord som börjar med ., ! eller /, som /morgon."
 
 #: nejomibot/specials.py
 #, python-brace-format
@@ -3365,8 +3420,8 @@ msgstr "{command} är inte ett kommando som boten känner till."
 
 #: nejomibot/timers.py
 #, python-brace-format
-msgid "Commands start with . or /, unlike {command}."
-msgstr "Kommandon börjar med . eller /, till skillnad från {command}."
+msgid "Commands start with ., ! or /, unlike {command}."
+msgstr "Kommandon börjar med ., ! eller /, till skillnad från {command}."
 
 #: nejomibot/timers.py
 #, python-brace-format

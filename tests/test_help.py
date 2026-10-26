@@ -122,12 +122,12 @@ def test_a_page_as_the_bot_is_set_up() -> None:
 
 
 def test_by_any_of_its_names(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Its . or / or none, in any case, an alias, or a language's name for it
+    # Its ., ! or / or none, in any case, an alias, or a language's name for it
     monkeypatch.setenv("NEJOMIBOT_ALIASES", '{"/photo": ["/pic"]}')
     get_settings.cache_clear()
     page = help_for("photo", admin=False)
     assert page.startswith("📷 `/photo` – a random photo (/pic)\n")
-    for name in ("/photo", ".photo", "Photo", "pic", ".pic", "/bild", "bild"):
+    for name in ("/photo", ".photo", "!photo", "Photo", "pic", "!pic", "/bild", "bild"):
         assert help_for(name, admin=False) == page, name
 
 
@@ -154,7 +154,7 @@ def test_its_own_page() -> None:
     assert help_for("help", admin=False).splitlines() == [
         "❓ `/help` – the commands you can use",
         "`/help photo` – more about /photo, and so on for every command",
-        "Commands start with . or /, whichever is easier to type.",
+        "Commands start with ., ! or /, whichever is easier to type.",
     ]
 
 

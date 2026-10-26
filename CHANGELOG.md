@@ -4,6 +4,45 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Updating
+
+- `signal-account.sh` is now `nejomibot-account`, with the same commands,
+  options and questions: `podman exec -it nejomibot nejomibot-account
+  setup`, or with Compose, `docker compose exec nejomibot nejomibot-account
+  setup`. Whatever ran `signal-account.sh` needs the new name. Outside a
+  container, it runs from a checkout of the repository with `uv run
+  nejomibot-account`, where `signal-account.sh` needed bash, curl and jq.
+- `nejomibot-help.sh` is now `nejomibot-help`, and `help` too.
+
+### Added
+
+- `/selfpromote`, for admins: the bot itself, in a few serious words in
+  the chat's language, under its social preview picture: what it does, how
+  it runs, and links to its source code on GitHub and its image on Docker
+  Hub. It comes to you, to forward; `/run 1 /selfpromote` posts it to chat
+  1.
+- Commands can also start with `!`, as in `!photo`, just as they can with
+  `.` and `/`, and so can aliases, shortcuts and the names of specials.
+  `command_prefix = "!"` has the bot show them that way.
+- `help` shows the guide to the tools in the bot's container, in a shell
+  there or as `podman exec nejomibot help`.
+
+### Changed
+
+- The tools in the image are Python, as the bot is, and need no shell:
+  `nejomibot-account`, which draws the QR code for linking itself, and
+  `nejomibot-help`. The image no longer has curl, jq and qrencode, which
+  only `signal-account.sh` used, and is 13 MB smaller: 215 MB for amd64.
+- The guide that a shell in the container starts with lists
+  `nejomibot-account` and `help`, and where the settings, the data and the
+  photos are.
+- The bot's log and the admins' notices name `nejomibot-account` where they
+  named `signal-account.sh`.
+- The social preview picture, which GitHub shows for the repository and
+  `/selfpromote` posts, is new.
+
 ## 0.99.33 - 2026-10-26
 
 ### Added

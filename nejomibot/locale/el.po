@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 14:38+0200\n"
+"POT-Creation-Date: 2026-10-26 17:35+0200\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -1040,9 +1040,9 @@ msgstr[1] "{count} μηνύματα σε αναμονή, το παλαιότερ
 
 #: nejomibot/health.py
 msgid ""
-"rate-limited by Signal: run signal-account.sh rate-limit to lift the limit"
+"rate-limited by Signal: run nejomibot-account rate-limit to lift the limit"
 msgstr ""
-"περιορισμός από το Signal: εκτελέστε signal-account.sh rate-limit για να "
+"περιορισμός από το Signal: εκτελέστε nejomibot-account rate-limit για να "
 "αρθεί"
 
 #: nejomibot/health.py
@@ -1770,6 +1770,22 @@ msgid "post commands' answers to chats"
 msgstr "δημοσίευση απαντήσεων εντολών σε συνομιλίες"
 
 #: nejomibot/help.py
+msgid "the bot, in a few words, to share"
+msgstr "το bot με λίγα λόγια, για κοινοποίηση"
+
+#: nejomibot/help.py
+msgid ""
+"What the bot does, how it runs, and where its code and image are, under its "
+"picture.\n"
+"/selfpromote – here, to forward\n"
+"/run 1 /selfpromote – post it to chat 1"
+msgstr ""
+"Τι κάνει το bot, πώς λειτουργεί και πού βρίσκονται ο κώδικας και το image "
+"του, μαζί με την εικόνα του.\n"
+"/αυτοπροβολή – εδώ, για προώθηση\n"
+"/εκτέλεση 1 /αυτοπροβολή – δημοσίευση στη συνομιλία 1"
+
+#: nejomibot/help.py
 msgid "commands of your own"
 msgstr "δικές σας εντολές"
 
@@ -1850,8 +1866,8 @@ msgid "Admins, in a direct chat"
 msgstr "Διαχειριστές, σε προσωπική συνομιλία"
 
 #: nejomibot/help.py
-msgid "Commands start with . or /, whichever is easier to type."
-msgstr "Οι εντολές ξεκινούν με . ή /, όποιο πληκτρολογείται πιο εύκολα."
+msgid "Commands start with ., ! or /, whichever is easier to type."
+msgstr "Οι εντολές ξεκινούν με ., ! ή /, όποιο πληκτρολογείται πιο εύκολα."
 
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
@@ -2533,14 +2549,14 @@ msgstr "Λειτουργία αποσφαλμάτωσης: επικοινωνί�
 msgid ""
 "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
 "again after {first}, then less and less often, every {longest} at most, and "
-"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"sends the rest once one goes out. To lift the limit, run nejomibot-account "
 "rate-limit --to <your number> on the server and solve the captcha, then send "
 "the bot any command: it tries again at once."
 msgstr ""
 "⚠️ Το Signal περιορίζει τις αποστολές του bot. Τα εξερχόμενα μηνύματα "
 "περιμένουν: το bot επιχειρεί ξανά να στείλει ένα μετά από {first}, έπειτα "
 "όλο και πιο αραιά, το πολύ κάθε {longest}, και στέλνει τα υπόλοιπα μόλις "
-"περάσει ένα. Για να αρθεί ο περιορισμός, εκτελέστε signal-account.sh rate-"
+"περάσει ένα. Για να αρθεί ο περιορισμός, εκτελέστε nejomibot-account rate-"
 "limit --to <ο αριθμός σας> στον διακομιστή, λύστε το captcha και στείλτε "
 "έπειτα οποιαδήποτε εντολή στο bot: θα επιχειρήσει ξανά αμέσως."
 
@@ -2717,12 +2733,12 @@ msgstr "Δώστε πρώτα όνομα στο bot: το προφίλ του Si
 #: nejomibot/profile.py
 msgid ""
 "signal-cli didn't keep the picture, so it can't be the avatar. It keeps none "
-"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh can "
+"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; nejomibot-account can "
 "set the avatar from a file instead."
 msgstr ""
 "Το signal-cli δεν κράτησε την εικόνα, οπότε δεν μπορεί να γίνει εικόνα "
 "προφίλ. Δεν κρατά καμία όσο εκτελείται με JSON_RPC_IGNORE_ATTACHMENTS=true· "
-"το signal-account.sh μπορεί να ορίσει την εικόνα προφίλ από αρχείο."
+"το nejomibot-account μπορεί να ορίσει την εικόνα προφίλ από αρχείο."
 
 #: nejomibot/profile.py
 msgid ""
@@ -2982,9 +2998,49 @@ msgstr "Αφαιρέθηκε"
 msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid ""
+"Every morning it can post the day's holidays, birthdays and name days, the "
+"weather, and a photo from your own photo library. During the day, it answers "
+"commands for photos, the weather, reminders, shared lists and timers, in "
+"{count} languages."
+msgstr ""
+"Κάθε πρωί μπορεί να δημοσιεύει τις αργίες, τα γενέθλια και τις ονομαστικές "
+"γιορτές της ημέρας, τον καιρό και μια φωτογραφία από τη δική σας φωτογραφική "
+"συλλογή. Κατά τη διάρκεια της ημέρας απαντά σε εντολές για φωτογραφίες, τον "
+"καιρό, υπενθυμίσεις, κοινόχρηστες λίστες και χρονοδιακόπτες, σε {count} "
+"γλώσσες."
+
+#: nejomibot/selfpromote.py
+msgid ""
+"It runs on your own server, as a container under Podman or Docker, on x86 "
+"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
+"source, under the MIT license, and its code is written by AI, under its "
+"maintainer's guidance."
+msgstr ""
+"Λειτουργεί στον δικό σας διακομιστή, ως container στο Podman ή στο Docker, "
+"σε x86 και ARM, ακόμη και σε Raspberry Pi, με λιγότερα από 100 MB μνήμης. "
+"Είναι ανοιχτού κώδικα, με άδεια MIT, και ο κώδικάς του γράφεται από τεχνητή "
+"νοημοσύνη, υπό την καθοδήγηση του συντηρητή του."
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Source code and documentation: {url}"
+msgstr "Πηγαίος κώδικας και τεκμηρίωση: {url}"
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Container image: {url}"
+msgstr "Container image: {url}"
+
+#: nejomibot/selfpromote.py
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, ένα bot του Signal για οικογένεια και φίλους"
+
 #: nejomibot/specials.py
-msgid "Give it a name: a word that starts with . or /, like /morning."
-msgstr "Δώστε της όνομα: μια λέξη που ξεκινά με . ή /, όπως /πρωί."
+msgid "Give it a name: a word that starts with ., ! or /, like /morning."
+msgstr "Δώστε της όνομα: μια λέξη που ξεκινά με ., ! ή /, όπως /πρωί."
 
 #: nejomibot/specials.py
 #, python-brace-format
@@ -3440,8 +3496,8 @@ msgstr "Το {command} δεν είναι εντολή που γνωρίζει τ
 
 #: nejomibot/timers.py
 #, python-brace-format
-msgid "Commands start with . or /, unlike {command}."
-msgstr "Οι εντολές ξεκινούν με . ή /, σε αντίθεση με το {command}."
+msgid "Commands start with ., ! or /, unlike {command}."
+msgstr "Οι εντολές ξεκινούν με ., ! ή /, σε αντίθεση με το {command}."
 
 #: nejomibot/timers.py
 #, python-brace-format

@@ -34,6 +34,14 @@ def replace_privately[T](path: Path, write: Callable[[BinaryIO], T]) -> T:
     )
     part = Path(name)
     try:
+        if os.geteuid() == 0:
+            # As when nejomibot-account runs as root: the file stays whose it
+            # was, or a new one its folder's, so the bot can still read it
+            try:
+                owner = path.stat()
+            except FileNotFoundError:
+                owner = path.parent.stat()
+            os.fchown(fd, owner.st_uid, owner.st_gid)
         with os.fdopen(fd, "wb") as f:
             written = write(f)
             f.flush()
@@ -77,16 +85,23 @@ class KeptLines[T]:
 
     def __init__(
         self,
-        name: str,  # in data_dir
+        name: str,  # in data_dir, or in folder
         header: Sequence[str],  # the comments a new file starts with
         parse: Callable[[str], T],  # a line; raises ValueError
         line_of: Callable[[T], str],
+        folder: Callable[[], Path] | None = None,  # where it is, if not data_dir
     ) -> None:
         self.name = name
         self.header = list(header)
         self.parse = parse
         self.line_of = line_of
+        self.folder = folder
         self.reset()
+
+    def path(self) -> Path:
+        if self.folder is not None:
+            return self.folder() / self.name
+        return get_settings().data_file(self.name)
 
     def reset(self) -> None:
         """As at a start, with nothing read yet."""
@@ -102,7 +117,7 @@ class KeptLines[T]:
 
     def current(self) -> Self:
         """What the file has, read again if it has changed."""
-        path = get_settings().data_file(self.name)
+        path = self.path()
         try:
             stat = path.stat()
         except FileNotFoundError:
@@ -142,7 +157,7 @@ class KeptLines[T]:
     def save(self, lines: list[str]) -> None:
         """Write the lines to the file, and make them what it has. Raises
         OSError, and then changes neither."""
-        path = get_settings().data_file(self.name)
+        path = self.path()
         write_privately(path, "\n".join(lines) + "\n")
         stat = path.stat()
         self.take(lines)

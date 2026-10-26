@@ -32,6 +32,7 @@ name = "Español"
 "/today" = ["/hoy", "/día", "/dia"]
 "/msg" = ["/enviar"]
 "/run" = ["/ejecutar"]
+"/selfpromote" = ["/autopromoción", "/autopromocion"]
 "/incoming" = ["/entrantes"]
 "/onthisday" = ["/estedía", "/estedia"]
 "/forecast" = ["/pronóstico", "/pronostico"]

@@ -31,6 +31,7 @@ name = "Norsk"
 "/today" = ["/idag", "/dagen"]
 "/msg" = ["/send"]
 "/run" = ["/kjør", "/kjor"]
+"/selfpromote" = ["/selvpromotering"]
 "/incoming" = ["/innboks"]
 "/onthisday" = ["/dennedagen"]
 "/forecast" = ["/prognose"]

@@ -29,6 +29,7 @@ name = "Français"
 "/today" = ["/aujourdhui", "/jour"]
 "/msg" = ["/envoyer"]
 "/run" = ["/exécuter", "/executer"]
+"/selfpromote" = ["/autopromotion"]
 "/incoming" = ["/reçus", "/recus"]
 "/onthisday" = ["/cejour"]
 "/forecast" = ["/prévisions", "/previsions"]

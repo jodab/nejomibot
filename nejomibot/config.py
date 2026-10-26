@@ -61,19 +61,20 @@ def valid_person(value: str) -> str:
     return value
 
 
-# A command may start with a . for its /, as a phone's keyboard has the . at
-# hand: .photo is /photo. Before a letter, so ... and .5 are no commands.
-DOT = re.compile(r"\.(?=[^\W\d_])")
+# A command may start with a . or a ! for its /, as a phone's keyboard has
+# them at hand: .photo and !photo are /photo. Before a letter, so ..., .5 and
+# !! are no commands.
+PREFIX = re.compile(r"[.!](?=[^\W\d_])")
 
 
 def slashed(text: str) -> str:
-    """The text, a command at its start with a / for its ., as the bot keeps
-    commands: .photo as /photo."""
-    return f"/{text[1:]}" if DOT.match(text) else text
+    """The text, a command at its start with a / for its . or !, as the bot
+    keeps commands: .photo and !photo as /photo."""
+    return f"/{text[1:]}" if PREFIX.match(text) else text
 
 
 def as_command(word: str) -> str:
-    """An alias or a shortcut as the bot keeps it: with a / for its .
+    """An alias or a shortcut as the bot keeps it: with a / for its . or !
     (slashed), and a plain word with a / added, as a plain word would make
     every message that starts with it a command: alice as /alice."""
     word = slashed(word)
@@ -85,13 +86,14 @@ def alias_name(word: str) -> str:
     when a plain word is taken with a /."""
     if (name := as_command(word)) != slashed(word):
         logger.warning(
-            "aliases: %s is taken as %s: aliases start with . or /", word, name
+            "aliases: %s is taken as %s: aliases start with ., ! or /", word, name
         )
     return name
 
 
 def command_name(value: object) -> object:
-    """A command the config names, with a / for its ., as slashed() has it."""
+    """A command the config names, with a / for its . or !, as slashed() has
+    it."""
     return slashed(value) if isinstance(value, str) else value
 
 
@@ -177,8 +179,8 @@ class Settings(BaseSettings):
     # The language of the bot's messages: en, or one in nejomibot/locale
     language: str = "en"
     # How the bot shows commands: .photo, as a phone's keyboard has the . at
-    # hand, or /photo. It takes both.
-    command_prefix: Literal[".", "/"] = "."
+    # hand, !photo or /photo. It takes all three.
+    command_prefix: Literal[".", "!", "/"] = "."
     # Other names for commands, e.g. {"/photo": ["/pic", "pic"]}
     aliases: dict[Command, list[Alias]] = {}
 
@@ -262,7 +264,7 @@ class Settings(BaseSettings):
 
     # The bot's Signal profile: set as the bot starts, where data_dir/bot.txt
     # has none of it, and kept there from then on, with every change /name,
-    # /about, /avatar, /username or signal-account.sh makes (profile.py). A
+    # /about, /avatar, /username or nejomibot-account makes (profile.py). A
     # username taken already gets the number Signal gives it.
     bot_name: BotName | None = None
     bot_about: BotAbout | None = None

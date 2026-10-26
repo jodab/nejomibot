@@ -287,7 +287,7 @@ def test_parse_add(text: str, parsed: tuple[str, list[int], list[str]]) -> None:
     ("text", "why"),
     [
         ("/timer add 08:00 1", "Which commands?"),
-        ("/timer add 08:00 /weather; photo", "Commands start with . or /"),
+        ("/timer add 08:00 /weather; photo", "Commands start with ., ! or /"),
         ("/timer add 08:00 " + "; ".join(["/ping"] * 11), "At most 10"),
     ],
 )

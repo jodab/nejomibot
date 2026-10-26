@@ -134,7 +134,7 @@ async def test_bot_check(bot: SignalBot, monkeypatch: pytest.MonkeyPatch) -> Non
         "Bot",
         ok=False,
         detail="1 message queued, the oldest for 40 min. rate-limited by Signal: "
-        "run signal-account.sh rate-limit to lift the limit",
+        "run nejomibot-account rate-limit to lift the limit",
     )
 
 
@@ -475,7 +475,7 @@ async def test_the_container_hears_that_the_bot_waits(
     assert code == 0
     assert said == (
         f"OK: waiting: signal-cli-rest-api at {get_settings().signal_service} has "
-        f"no account {ME} yet: register or link it with signal-account.sh setup\n"
+        f"no account {ME} yet: register or link it with nejomibot-account setup\n"
     )
 
     # Then signalbot starts, and answers once it runs

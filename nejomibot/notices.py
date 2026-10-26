@@ -278,7 +278,7 @@ def rate_limited_text() -> str:
         "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot "
         "tries one again after {first}, then less and less often, every "
         "{longest} at most, and sends the rest once one goes out. To lift the "
-        "limit, run signal-account.sh rate-limit --to <your number> on the "
+        "limit, run nejomibot-account rate-limit --to <your number> on the "
         "server and solve the captcha, then send the bot any command: it tries "
         "again at once."
     ).format(

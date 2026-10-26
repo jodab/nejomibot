@@ -65,7 +65,7 @@ BOT_HEADER = [
     "# the account's profile with it and changes what differs, if anything. It",
     "# writes here what it sets: config.toml's bot_name, bot_about, bot_avatar",
     "# and bot_username where this has none, and every change /name, /about,",
-    "# /avatar, /username or signal-account.sh makes. Edit it, and the next",
+    "# /avatar, /username or nejomibot-account makes. Edit it, and the next",
     "# start sets it; an empty about, avatar or username removes it.",
 ]
 PARTS = ("name", "about", "avatar", "username")
@@ -106,7 +106,7 @@ def not_kept() -> str:
     return _(
         "signal-cli didn't keep the picture, so it can't be the avatar. It keeps "
         "none while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; "
-        "signal-account.sh can set the avatar from a file instead."
+        "nejomibot-account can set the avatar from a file instead."
     )
 
 
@@ -220,12 +220,12 @@ def has_see_through(image: Image.Image) -> bool:
     return isinstance(lowest, float | int) and lowest < 255
 
 
-def make_avatar(picture: bytes) -> AvatarImage:
+def make_avatar(picture: bytes, *, heif: bool | None = None) -> AvatarImage:
     """The picture as an avatar: upright, its middle square at most
     AVATAR_SIDE pixels wide, and without the original's metadata, such as
     where it was taken. A JPEG, or a PNG when it has see-through parts, as a
-    logo may. Blocking."""
-    with open_image(io.BytesIO(picture)) as opened:
+    logo may. A HEIF picture as photos_heif says, unless heif does. Blocking."""
+    with open_image(io.BytesIO(picture), heif=heif) as opened:
         upright = ImageOps.exif_transpose(opened)
     see_through = has_see_through(upright)
     image = upright.convert("RGBA" if see_through else "RGB")
@@ -257,44 +257,52 @@ def part_line(entry: tuple[str, str]) -> str:
 kept = KeptLines("bot.txt", BOT_HEADER, parse_part, part_line)
 
 
+def kept_in(folder: Path) -> KeptLines[tuple[str, str]]:
+    """bot.txt in that folder, as nejomibot-account keeps it beside the bot,
+    whose settings it may not have."""
+    return KeptLines("bot.txt", BOT_HEADER, parse_part, part_line, lambda: folder)
+
+
 def kept_parts() -> dict[str, str]:
     """What bot.txt has: the last line of each part."""
     return dict(kept.current().entries)
 
 
-def keep(part: str, value: str) -> None:
+def keep(part: str, value: str, lines: KeptLines[tuple[str, str]] = kept) -> None:
     """Write the part in bot.txt, in its own line if it has one. Never raises:
     the profile has changed all the same, which a file that can't be written
     shouldn't hide."""
     try:
-        current = kept.current()
+        current = lines.current()
         old = [entry for entry in current.entries if entry[0] == part]
         if not old:
             current.add((part, value))
         elif old[-1] != (part, value):
             current.replace(old[-1], (part, value))
     except OSError as e:
-        logger.error("Could not keep the profile's %s in %s: %r", part, kept.name, e)
+        logger.error("Could not keep the profile's %s in %s: %r", part, lines.name, e)
 
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def keep_avatar(avatar: AvatarImage | None) -> None:
+def keep_avatar(
+    avatar: AvatarImage | None, lines: KeptLines[tuple[str, str]] = kept
+) -> None:
     """Keep the avatar beside bot.txt, and name it there; or that it has none.
     Never raises."""
-    settings = get_settings()
     name = AVATAR_FILES[avatar.format] if avatar else ""
     try:
+        folder = lines.path().parent
         if avatar:
-            replace_privately(settings.data_file(name), lambda f: f.write(avatar.data))
+            replace_privately(folder / name, lambda f: f.write(avatar.data))
         for other in set(AVATAR_FILES.values()) - {name}:
-            settings.data_file(other).unlink(missing_ok=True)
+            (folder / other).unlink(missing_ok=True)
     except OSError as e:
-        logger.error("Could not keep the avatar beside %s: %r", kept.name, e)
+        logger.error("Could not keep the avatar beside %s: %r", lines.name, e)
         return
-    keep("avatar", f"{name} {digest(avatar.data)}" if avatar else "")
+    keep("avatar", f"{name} {digest(avatar.data)}" if avatar else "", lines)
 
 
 async def take_attachment(bot: SignalBot, picture: Attachment) -> bytes | None:

@@ -43,6 +43,7 @@ from .ping import Ping
 from .profile import About, Avatar, Name, Profile, Username
 from .relay import Msg, Run
 from .reminders import Remind
+from .selfpromote import SelfPromote
 from .specials import Specials, SpecialsForEveryone
 from .status import Status
 from .timers import Chats, Timers, timekeeper
@@ -110,6 +111,7 @@ def handlers(bot: SignalBot, settings: Settings) -> list[Registration]:
         Timers(),
         Msg(),
         Run(),
+        SelfPromote(),
         Incoming(),
         Birthday(),
         Delivery(),
@@ -248,7 +250,7 @@ async def wait_for_account() -> None:
                         return
                     why = (
                         f"{api} has no account {settings.account} yet: register "
-                        "or link it with signal-account.sh setup"
+                        "or link it with nejomibot-account setup"
                     )
                 except rest.RestError as e:
                     why = f"{api} answers with an error: {e}"

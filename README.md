@@ -150,7 +150,7 @@ The bot waits for its Signal account, which you set up in the next step, and
 its log says so:
 
 ```
-WARNING nejomibot.bot: signal-cli-rest-api at signal:8080 has no account +46700000000 yet: register or link it with signal-account.sh setup. Waiting.
+WARNING nejomibot.bot: signal-cli-rest-api at signal:8080 has no account +46700000000 yet: register or link it with nejomibot-account setup. Waiting.
 ```
 
 An earlier line saying that the bot can't reach signal-cli-rest-api is also
@@ -160,11 +160,11 @@ log; the bot keeps running.
 ### Step 5: Register the bot's number
 
 ```sh
-docker compose exec nejomibot signal-account.sh setup
+docker compose exec nejomibot nejomibot-account setup
 ```
 
 If the bot isn't running, run the tool in a container of its own instead:
-`docker compose run --rm nejomibot signal-account.sh setup`.
+`docker compose run --rm nejomibot nejomibot-account setup`.
 
 1. **Register or link?** Press Enter to choose `r`, register. To link the
    bot to a phone with Signal instead, type `l`, scan the QR code that the
@@ -248,7 +248,7 @@ to its tools (`docker compose exec nejomibot bash`); and set a profile
 picture:
 
 ```sh
-docker compose exec -T nejomibot signal-account.sh profile --avatar - < picture.jpg
+docker compose exec -T nejomibot nejomibot-account profile --avatar - < picture.jpg
 ```
 
 To update the bot later, see [Updating](#updating).
@@ -266,7 +266,7 @@ To update the bot later, see [Updating](#updating).
   ID if you have no number. If both are correct, your Signal may be hiding
   your number from the bot, as it does when **Who can see my number** is set
   to **Nobody** in its privacy settings. The bot then knows you only by your
-  Signal ID: `docker compose exec nejomibot signal-account.sh identities`
+  Signal ID: `docker compose exec nejomibot nejomibot-account identities`
   lists everyone who has written to the bot, by name. Put the ID shown after
   your name, such as `0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e`, in `admins` in
   place of your number, and restart the bot.
@@ -287,11 +287,11 @@ To update the bot later, see [Updating](#updating).
 
 ## Commands
 
-Every command starts with a period or a slash, whichever is easier to type:
-`.photo` and `/photo` are the same command, and phone keyboards have the
-period on their first page. The bot shows commands with a period, unless
-`command_prefix = "/"`. This guide writes them with a slash, as the bot's
-files store them.
+Every command starts with a period, an exclamation mark or a slash,
+whichever is easiest to type: `.photo`, `!photo` and `/photo` are the same
+command, and phone keyboards have the period on their first page. The bot
+shows commands with a period, unless `command_prefix` is `"!"` or `"/"`.
+This guide writes them with a slash, as the bot's files store them.
 
 Everyday commands, for everyone the bot may talk to:
 
@@ -327,7 +327,7 @@ For admins, in a direct chat with the bot:
 |---|---|
 | `/status`, `/test` | A health check in two messages: first the checks, failed ones first, then the details: the bot and its versions, Signal, the public IP addresses and ASN, the container, and the host |
 | `/album <album>`, `/album <album> <date>`, `/album <album> -` | An album: how many photos it has, the years they were taken, the birth date its captions count an age from, and its shortcuts. With a date, such as `2019-06-15`, it sets that birth date; `-` removes it, so that its captions show no age (see [Photos and the daily post](#photos-and-the-daily-post)) |
-| `/album <album> shortcuts <names>`, `/album <album> shortcuts -` | Other names for `/photo <album>`: `/album Alice shortcuts /alice` makes `/alice` mean `/photo Alice`, and `/alice 2017` mean `/photo Alice 2017`; `-` removes them. A shortcut starts with `/` or `.`: a plain word, which would make every message that starts with it a command, is taken with a `/` |
+| `/album <album> shortcuts <names>`, `/album <album> shortcuts -` | Other names for `/photo <album>`: `/album Alice shortcuts /alice` makes `/alice` mean `/photo Alice`, and `/alice 2017` mean `/photo Alice 2017`; `-` removes them. A shortcut starts with `/`, `.` or `!`: a plain word, which would make every message that starts with it a command, is taken with a `/` |
 | `/today preview [<date>]` | What `/today` will say on a given day, such as `10-25`, `2026-10-25` or `tomorrow`, or today if no day is given, in each group the bot is in and in a direct chat |
 | `/contacts`, `/safety`, `/contacts <who>` | Everyone the Signal account knows, numbered, each with their name, profile name, username, phone number, Signal ID, About, groups and whether they are verified; with `<who>`, one person, with their safety number too. `<who>` is the person's number in the list you were shown last by `/contacts` or `/trust`, their phone number, their Signal ID or its beginning, or their name (see [Contacts and safety numbers](#contacts-and-safety-numbers)) |
 | `/contacts add <who> <name>` | Saves someone as a contact under that name, or renames them. `<who>` is as for `/contacts`; when it is a name, the longest beginning of the message that names someone is used. Someone the bot doesn't know yet can be added by phone number, or by Signal username, as `u:alice.42` or `@alice.42` |
@@ -355,6 +355,7 @@ For admins, in a direct chat with the bot:
 | `/special remove <name>` | Removes a special, unless a timer runs it |
 | `/msg <chats> <text>` | Posts the text to other chats, for example `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Runs commands and posts their answers to other chats, for example `/run 1 /status` |
+| `/selfpromote` | The bot itself, in a few serious words, under its [social preview](nejomibot/social-preview.png) picture: what it does, how it runs, and links to its source code on GitHub and its image on Docker Hub. It comes to you, to forward; `/run 1 /selfpromote` posts it to chat 1 |
 | `/incoming`, `/incoming <n>,<n>` | The 50 latest messages that anyone other than the admins sent the bot in a direct chat, numbered: when, from whom, and how each one begins. `/incoming 4,9` forwards those two messages to you in full (see [Incoming messages](#incoming-messages)) |
 | `/birthday add <date> [<chats>] <who>` | Adds a birthday: a contact's, found the way `/contacts` finds people, shown in the groups they are in; or the birthday of someone not on Signal, by name, shown in the groups numbered in `/chats`, or otherwise in every group. Given again on the same day, someone not on Signal shows in the groups given this time (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/nameday add <date> [<chats>] <who>` | Adds a name day, the same way as `/birthday add` |
@@ -411,11 +412,11 @@ A shared list, such as for shopping.
 .list clear – take everything off
 ```
 
-The command can be given by any of its names, with or without its period
-or slash: `/help list`, `/help .lista` or an alias. An album's shortcut
-shows the page of `/photo`, after what the shortcut stands for, and a
-special's name shows what the special posts. `/help` explains only the
-commands the sender may use, as it lists them.
+The command can be given by any of its names, with or without its period,
+exclamation mark or slash: `/help list`, `/help .lista` or an alias. An
+album's shortcut shows the page of `/photo`, after what the shortcut stands
+for, and a special's name shows what the special posts. `/help` explains
+only the commands the sender may use, as it lists them.
 
 ### Who may use what
 
@@ -672,10 +673,10 @@ spaces: `/photo Alice and Bob`. Admins can give an album shortcuts, which
 are other names for `/photo` with that album: `/album Alice shortcuts /alice
 /al` makes `/alice` and `/al` mean `/photo Alice`, so `/alice 2017` means
 `/photo Alice 2017`, and `/album Alice shortcuts -` removes them. A shortcut
-is a single word that starts with `/` or `.`, and can't be a name the bot
-already responds to: a command, an alias or a special. A plain word, which
-would make every message that starts with it a command, is taken with a
-`/`: `alice` becomes `/alice`, also in `albums.txt` from before 0.99.20.
+is a single word that starts with `/`, `.` or `!`, and can't be a name the
+bot already responds to: a command, an alias or a special. A plain word,
+which would make every message that starts with it a command, is taken with
+a `/`: `alice` becomes `/alice`, also in `albums.txt` from before 0.99.20.
 
 `/uniquephoto` picks a random photo among those not yet sent in the current
 round, and records it as sent; once every photo has been sent, a new round
@@ -1357,15 +1358,16 @@ weather under it, and `/weather + Have a nice day!` posts the weather with a
 line under it. A `+` inside a word, as in `C++` or `+4670000000`, is text.
 As a result, a text, or what follows a command, such as an album name, can't
 contain a `+` standing on its own, just as neither can contain a `;`. A
-special's name is a single word that starts with `/` or `.` and isn't
+special's name is a single word that starts with `/`, `.` or `!` and isn't
 already a command or an alias; `/special add` with the name of one of your
 specials changes it. A special has at most five parts.
 
 Admins can give a special shortcuts, which are other names for it:
 `/special shortcuts /morning /gm` makes `/gm` post the same as `/morning`,
 and `/special shortcuts /morning -` removes them. A special has at most five
-shortcuts, each a single word that starts with `/` or `.` (a plain word is
-taken with a `/`), that the bot doesn't already respond to. They stay with
+shortcuts, each a single word that starts with `/`, `.` or `!` (a plain
+word is taken with a `/`), that the bot doesn't already respond to. They stay
+with
 the special when it changes, go when it is removed, and are listed after it
 in `/specials`.
 
@@ -1520,14 +1522,14 @@ Other names for commands go in the configuration, as a table at its end:
 A message that starts with an alias is treated as if it started with the
 command: `/pic` sends a photo, and with `"/fortune" = ["/f"]`, `/f startrek`
 sends a Star Trek fortune. An alias is a single word that starts with `/`
-(or a `.` in its place, as for any command). A plain word, such as `pic`,
-would make every message that starts with it a command, so it is taken with
-a `/`, as `/pic`, and the log says so at startup. The bot's own command
-names, in English and in its other languages, all start with `/`. An alias
-can't be a command's own name, and the bot won't start with an alias for a
-command it doesn't have. Aliases in the configuration take precedence over
-the language's names, and over the bot's own other names: `/test`, `/time`,
-`/safety` and `/day`.
+(or a `.` or `!` in its place, as for any command). A plain word, such as
+`pic`, would make every message that starts with it a command, so it is
+taken with a `/`, as `/pic`, and the log says so at startup. The bot's own
+command names, in English and in its other languages, all start with `/`.
+An alias can't be a command's own name, and the bot won't start with an
+alias for a command it doesn't have. Aliases in the configuration take
+precedence over the language's names, and over the bot's own other names:
+`/test`, `/time`, `/safety` and `/day`.
 
 ## The bot's profile
 
@@ -1570,7 +1572,7 @@ does) and `bot_username`, which the bot sets as it starts. Once set, the bot
 keeps the profile in `data_dir/bot.txt`, a line for each part: `name`,
 `about`, `username`, and `avatar`, a picture in the same folder followed by
 its SHA-256. Every change made with `/name`, `/about`, `/avatar`,
-`/username` or `signal-account.sh` goes there too, and from then on a
+`/username` or `nejomibot-account` goes there too, and from then on a
 setting is used only for a part that `bot.txt` doesn't have. At each start,
 the bot compares the account's profile, as signal-cli knows it, with
 `bot.txt`, and changes only what differs: a new account, such as one
@@ -1671,7 +1673,7 @@ with each of them, about things they would otherwise find out too late:
   knows the previous run's version and whether it stopped cleanly from
   `data_dir/run.json`, which it writes when it starts and when it stops.
 - **Signal rate-limits the bot.** When this begins, the notice says how to
-  lift the limit: `signal-account.sh rate-limit --to <your number>`,
+  lift the limit: `nejomibot-account rate-limit --to <your number>`,
   followed by a captcha, and then any command to the bot, which has it try
   again at once. It is sent at most once every six hours, and tried only
   once, because while Signal rate-limits the bot, the notice may not get
@@ -1734,7 +1736,7 @@ check.
 
 ## Setting up and managing the Signal account
 
-[tools/signal-account.sh](tools/signal-account.sh) does everything
+[`nejomibot-account`](nejomibot/account_cli.py) does everything
 signal-cli-rest-api can do with the account itself: registering the number
 or [linking signal-cli to a phone](#linking-to-a-phone), and managing the
 profile, username, PIN, privacy, linked devices, safety numbers and rate
@@ -1743,13 +1745,13 @@ where it finds signal-cli-rest-api and the account in the bot's
 configuration, so it needs no options:
 
 ```sh
-podman exec -it nejomibot signal-account.sh                 # status: account, profile, devices
-podman exec -it nejomibot signal-account.sh setup           # register or link, then the rest
-podman exec -it nejomibot signal-account.sh username mybot
-podman exec -it nejomibot signal-account.sh --dry-run unregister  # what it would send; sends nothing
+podman exec -it nejomibot nejomibot-account                 # status: account, profile, devices
+podman exec -it nejomibot nejomibot-account setup           # register or link, then the rest
+podman exec -it nejomibot nejomibot-account username mybot
+podman exec -it nejomibot nejomibot-account --dry-run unregister  # what it would send; sends nothing
 ```
 
-(With Compose, use `docker compose exec nejomibot signal-account.sh setup`.)
+(With Compose, use `docker compose exec nejomibot nejomibot-account setup`.)
 The tool also runs without the bot, for example before the bot's first
 start, in a container of its own on signal-cli-rest-api's network, where it
 finds signal-cli-rest-api at `127.0.0.1:8080` and the only account there, and
@@ -1758,19 +1760,20 @@ check, which asks the bot, from running in that container:
 
 ```sh
 podman run --rm -it --no-healthcheck --network container:signal \
-  docker.io/jodab/nejomibot signal-account.sh setup
+  docker.io/jodab/nejomibot nejomibot-account setup
 ```
 
-With Compose, `docker compose run --rm nejomibot signal-account.sh setup`
+With Compose, `docker compose run --rm nejomibot nejomibot-account setup`
 does the same, with the bot's settings. A picture for the avatar is passed
 on standard input, from wherever it is, since the container can't see your
 files:
 
 ```sh
-podman exec -i nejomibot signal-account.sh profile --avatar - < logo.png
+podman exec -i nejomibot nejomibot-account profile --avatar - < logo.png
 ```
 
-The tool also runs on any machine with bash, curl and jq that can reach
+Outside a container, the tool runs from a checkout of the repository, with
+`uv run nejomibot-account`, on any machine that can reach
 signal-cli-rest-api; `--url` tells it where. That isn't needed with the
 examples, where nothing but the bot can reach it.
 
@@ -1792,7 +1795,7 @@ message. It works around these limitations of signal-cli-rest-api:
 
 When Signal rate-limits the bot, the bot logs it, but it can't present the
 challenge that lifts the limit, because signalbot doesn't pass it on.
-`signal-account.sh rate-limit --to +46701234567` sends that number a short
+`nejomibot-account rate-limit --to +46701234567` sends that number a short
 test message: if Signal is rate-limiting the bot, the response includes a
 challenge, and the tool guides you through the captcha that lifts the limit.
 
@@ -1800,8 +1803,8 @@ challenge, and the tool guides you through the captcha that lifts the limit.
 
 Instead of a number registered for it alone, the bot can use the account of
 a phone with Signal, as a linked device of that phone, the way Signal
-Desktop is. Choose `l` in `signal-account.sh setup`, or run
-`signal-account.sh link`, and scan the QR code that the tool shows with the
+Desktop is. Choose `l` in `nejomibot-account setup`, or run
+`nejomibot-account link`, and scan the QR code that the tool shows with the
 phone: in Signal, **Settings > Linked devices > Link a new device**. The
 bot then needs no number of its own, nor a verification code or captcha;
 the account stays on the phone, and the phone shows the bot's chats. It is
@@ -1841,17 +1844,17 @@ signal-cli-rest-api is stopped; see
 [signal-cli's documentation](https://github.com/AsamK/signal-cli/blob/master/man/signal-cli.1.adoc).
 
 Nobody can find an account without a phone number unless it has a
-username, so give it one, with `/username` or `signal-account.sh username`;
+username, so give it one, with `/username` or `nejomibot-account username`;
 until then, `/status` and `/profile` warn. The registration lock PIN and
 the privacy settings for the phone number don't apply to it, and
-`signal-account.sh` skips them in `setup`.
+`nejomibot-account` skips them in `setup`.
 
 People without a phone number can use the bot too. They find it by its
 username, and you give the bot their Signal ID wherever it takes a person:
 in `admins`, as in `admins = ["0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e"]`, and
 in `/allow` and `/admin add`. Signal Android shows a person's Signal ID as
 their Account Key, and once they have written to the bot,
-`signal-account.sh identities` lists it after their name. Upper or lower
+`nejomibot-account identities` lists it after their name. Upper or lower
 case makes no difference.
 
 ## How the bot talks to Signal
@@ -2049,10 +2052,10 @@ the tools leave behind (`RunInit=true`). It uses two folders:
 
 Every interactive shell in the container, such as `podman exec -it nejomibot
 sh` or `bash` (with Compose, `docker compose exec nejomibot sh`), starts with
-a short guide to the bot's tools there: `nejomibot-chat`,
-`nejomibot-healthcheck`, `nejomibot-timers` and `signal-account.sh`, what
-each does and where it is, and where the bot keeps its files. `nejomibot-help.sh` shows the guide
-again.
+a short guide to the bot's tools there: `nejomibot-account`,
+`nejomibot-chat`, `nejomibot-timers` and `nejomibot-healthcheck`, what each
+does, and where the settings, the data and the photos are. `help` shows the
+guide again, in such a shell or as `podman exec nejomibot help`.
 
 ### A fresh install
 
@@ -2060,7 +2063,7 @@ again.
 the Quadlets or `podman run` below, the steps are the same, with `podman exec
 -it nejomibot` in place of `docker compose exec nejomibot`: put
 `config.toml` in the data folder, start the bot, which waits for its account
-(as its log shows), register or link the account with `signal-account.sh
+(as its log shows), register or link the account with `nejomibot-account
 setup` in the bot's container, then send `/help` from an admin's phone, and
 use `/allow` and the timers. The account can also be set up before the bot
 starts, with the tool in a container of its own
@@ -2194,7 +2197,7 @@ nejomibot/
   allowed.py    /allowed, /allow, /disallow
   admins.py     /admins, /admin: admins besides those in the configuration
   commands.py   commands: each handler's, by any of their names, and how they are answered
-  i18n.py       translations, and how commands are shown: .photo or /photo
+  i18n.py       translations, and how commands are shown: .photo, !photo or /photo
   locale/       the translations, a .po for each language's messages and a .toml for its names,
                 and the templates a new language starts from: messages.pot and template.toml
   photos.py     /photo, /uniquephoto, /cache: photos with their dates, ages and locations; albums
@@ -2231,19 +2234,20 @@ nejomibot/
   timers.py     /timers, /chats, /timer: commands on a schedule, such as a daily post
   timers_cli.py nejomibot-timers: the timers from a terminal
   relay.py      /msg, /run: posting to other chats
+  selfpromote.py  /selfpromote: the bot in a few words, under social-preview.png
   terminal.py   the bot's side of nejomibot-chat, and the messages it received
   chat_cli.py   nejomibot-chat: the bot from a terminal, as in a direct chat
+  account_cli.py  nejomibot-account: sets up and manages the Signal account
   help.py       /help
+  guide.py      nejomibot-help, help: the guide a shell in the container starts with
   system.py     process, container and host facts from /proc and /sys
   publicip.py   public IPv4 and IPv6 addresses, ASN and location
   files.py      the files in data_dir: written privately, read again when changed
 deploy/         examples: Podman Quadlets and a Compose file
 tests/
 tools/          build-image.sh: tests and builds the image, for x86 and ARM;
-                nejomibot-help.sh: the guide a shell in the container starts with;
-                nejomibot-profile.sh: shows it, whichever shell, and puts the tools on its PATH;
+                nejomibot-profile.sh: a shell in the container starts with it, whichever shell: the guide, help, and the tools on its PATH;
                 release.sh: makes a release, and with it the image;
-                signal-account.sh: sets up and manages the Signal account;
                 tidy-photos.sh: converts, renames and deduplicates the photo library;
                 translations.sh: brings the translations up to date, and starts new ones
 .github/        CI, publishing the image on a release, and Dependabot

@@ -9,7 +9,7 @@
 signal_service = "127.0.0.1:8080"
 # The bot's account in signal-cli-rest-api: its phone number, or for an
 # account without one, its Signal ID. Register or link it with
-# signal-account.sh once the bot runs; it waits till then.
+# nejomibot-account once the bot runs; it waits till then.
 account = "+46700000000"
 
 # The language the bot answers in, where a chat hasn't chosen one of its own
@@ -19,7 +19,8 @@ account = "+46700000000"
 # the commands.
 language = "en"
 # How the bot shows commands: "." as in .photo, which a phone's keyboard has
-# at hand, or "/" as in /photo. It takes both, whichever this is.
+# at hand, "!" as in !photo, or "/" as in /photo. It takes all three,
+# whichever this is.
 # command_prefix = "."
 
 # https://openweathermap.org/api
@@ -130,7 +131,7 @@ admins = [
 # avatar (a picture file, which the bot makes square) and username, which
 # Signal gives a number, as in mybot.42; one taken already gets another
 # number. Once set, the bot keeps the profile in data_dir/bot.txt, with every
-# change /name, /about, /avatar, /username or signal-account.sh makes, and
+# change /name, /about, /avatar, /username or nejomibot-account makes, and
 # from then on these are used only for a part bot.txt doesn't have. At each
 # start the bot compares the account's profile with bot.txt and changes only
 # what differs, which is nothing unless the account is new or bot.txt was

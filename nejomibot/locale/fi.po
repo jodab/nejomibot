@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 14:38+0200\n"
+"POT-Creation-Date: 2026-10-26 17:35+0200\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -1021,9 +1021,9 @@ msgstr[1] "{count} viestiä jonossa, vanhin {duration}"
 
 #: nejomibot/health.py
 msgid ""
-"rate-limited by Signal: run signal-account.sh rate-limit to lift the limit"
+"rate-limited by Signal: run nejomibot-account rate-limit to lift the limit"
 msgstr ""
-"Signal rajoittaa: suorita signal-account.sh rate-limit rajoituksen "
+"Signal rajoittaa: suorita nejomibot-account rate-limit rajoituksen "
 "poistamiseksi"
 
 #: nejomibot/health.py
@@ -1743,6 +1743,22 @@ msgid "post commands' answers to chats"
 msgstr "julkaise komentojen vastaukset keskusteluihin"
 
 #: nejomibot/help.py
+msgid "the bot, in a few words, to share"
+msgstr "botti lyhyesti, jaettavaksi"
+
+#: nejomibot/help.py
+msgid ""
+"What the bot does, how it runs, and where its code and image are, under its "
+"picture.\n"
+"/selfpromote – here, to forward\n"
+"/run 1 /selfpromote – post it to chat 1"
+msgstr ""
+"Mitä botti tekee, miten se toimii ja missä sen koodi ja konttikuva ovat, "
+"kuvan kera.\n"
+"/itsemainonta – tänne, edelleen lähetettäväksi\n"
+"/suorita 1 /itsemainonta – julkaise se keskusteluun 1"
+
+#: nejomibot/help.py
 msgid "commands of your own"
 msgstr "omat komennot"
 
@@ -1821,8 +1837,8 @@ msgid "Admins, in a direct chat"
 msgstr "Ylläpitäjät, yksityiskeskustelussa"
 
 #: nejomibot/help.py
-msgid "Commands start with . or /, whichever is easier to type."
-msgstr "Komennot alkavat merkillä . tai /, kumpi on helpompi kirjoittaa."
+msgid "Commands start with ., ! or /, whichever is easier to type."
+msgstr "Komennot alkavat merkillä ., ! tai /, mikä on helpoin kirjoittaa."
 
 #: nejomibot/help.py
 msgid "Every command takes its English name too."
@@ -2499,14 +2515,14 @@ msgstr "Virheenjäljitystila: viestii vain ryhmän {group} kanssa"
 msgid ""
 "⚠️ Signal is rate-limiting the bot. Outgoing messages wait: the bot tries one "
 "again after {first}, then less and less often, every {longest} at most, and "
-"sends the rest once one goes out. To lift the limit, run signal-account.sh "
+"sends the rest once one goes out. To lift the limit, run nejomibot-account "
 "rate-limit --to <your number> on the server and solve the captcha, then send "
 "the bot any command: it tries again at once."
 msgstr ""
 "⚠️ Signal rajoittaa botin lähetyksiä. Lähtevät viestit odottavat: botti "
 "yrittää lähettää yhtä uudelleen {first} kuluttua, sitten yhä harvemmin, "
 "enintään {longest} välein, ja lähettää loput, kun yksi menee perille. Poista "
-"rajoitus suorittamalla palvelimella signal-account.sh rate-limit --to "
+"rajoitus suorittamalla palvelimella nejomibot-account rate-limit --to "
 "<numerosi> ja ratkaisemalla captcha, ja lähetä sitten botille mikä tahansa "
 "komento: se yrittää uudelleen heti."
 
@@ -2682,12 +2698,12 @@ msgstr "Anna botille ensin nimi: Signal-profiili tarvitsee sen."
 #: nejomibot/profile.py
 msgid ""
 "signal-cli didn't keep the picture, so it can't be the avatar. It keeps none "
-"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh can "
+"while it runs with JSON_RPC_IGNORE_ATTACHMENTS=true; nejomibot-account can "
 "set the avatar from a file instead."
 msgstr ""
 "signal-cli ei säilyttänyt kuvaa, joten siitä ei voi tulla profiilikuvaa. Se "
 "ei säilytä kuvia, kun se toimii asetuksella "
-"JSON_RPC_IGNORE_ATTACHMENTS=true; signal-account.sh voi sen sijaan asettaa "
+"JSON_RPC_IGNORE_ATTACHMENTS=true; nejomibot-account voi sen sijaan asettaa "
 "profiilikuvan tiedostosta."
 
 #: nejomibot/profile.py
@@ -2948,9 +2964,48 @@ msgstr "Poistettu"
 msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid ""
+"Every morning it can post the day's holidays, birthdays and name days, the "
+"weather, and a photo from your own photo library. During the day, it answers "
+"commands for photos, the weather, reminders, shared lists and timers, in "
+"{count} languages."
+msgstr ""
+"Joka aamu se voi julkaista päivän juhlapäivät, syntymäpäivät ja nimipäivät, "
+"sään sekä kuvan omasta kuvakirjastostasi. Päivän mittaan se vastaa "
+"komentoihin kuvista, säästä, muistutuksista, jaetuista listoista ja "
+"ajastimista, {count} kielellä."
+
+#: nejomibot/selfpromote.py
+msgid ""
+"It runs on your own server, as a container under Podman or Docker, on x86 "
+"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
+"source, under the MIT license, and its code is written by AI, under its "
+"maintainer's guidance."
+msgstr ""
+"Se toimii omalla palvelimellasi konttina Podmanissa tai Dockerissa, x86- ja "
+"ARM-laitteilla, myös Raspberry Pi:llä, alle 100 Mt:n muistilla. Se on "
+"avointa lähdekoodia MIT-lisenssillä, ja sen koodin kirjoittaa tekoäly "
+"ylläpitäjänsä ohjauksessa."
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Source code and documentation: {url}"
+msgstr "Lähdekoodi ja dokumentaatio: {url}"
+
+#: nejomibot/selfpromote.py
+#, python-brace-format
+msgid "Container image: {url}"
+msgstr "Konttikuva: {url}"
+
+#: nejomibot/selfpromote.py
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, Signal-botti perheelle ja ystäville"
+
 #: nejomibot/specials.py
-msgid "Give it a name: a word that starts with . or /, like /morning."
-msgstr "Anna sille nimi: sana, joka alkaa merkillä . tai /, kuten /aamu."
+msgid "Give it a name: a word that starts with ., ! or /, like /morning."
+msgstr "Anna sille nimi: sana, joka alkaa merkillä ., ! tai /, kuten /aamu."
 
 #: nejomibot/specials.py
 #, python-brace-format
@@ -3402,8 +3457,8 @@ msgstr "{command} ei ole botin tuntema komento."
 
 #: nejomibot/timers.py
 #, python-brace-format
-msgid "Commands start with . or /, unlike {command}."
-msgstr "Komennot alkavat merkillä . tai /, toisin kuin {command}."
+msgid "Commands start with ., ! or /, unlike {command}."
+msgstr "Komennot alkavat merkillä ., ! tai /, toisin kuin {command}."
 
 #: nejomibot/timers.py
 #, python-brace-format

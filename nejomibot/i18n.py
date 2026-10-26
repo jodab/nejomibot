@@ -20,7 +20,7 @@ with str.format, after translating: _("Weather in {city}").format(city=...).
 tools/translations.sh brings the .po files up to date with the code.
 
 Commands start with a / in the code, the translations and the bot's files.
-The bot shows them with the setting command_prefix, a . unless it's a /:
+The bot shows them with the setting command_prefix, a . unless it's a ! or /:
 _() shows those in its own messages so, and prefixed() those put in them.
 """
 

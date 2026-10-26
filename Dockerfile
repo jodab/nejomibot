@@ -6,18 +6,18 @@ FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496ba
 
 FROM docker.io/library/python:3.15-slim@sha256:533b0b2f9b5d46fd097091cf826f27902f1d6c3bca714b6dc74551356aa97a51 AS base
 
-# tzdata lets TZ give local log timestamps; curl, jq and qrencode are for
-# signal-account.sh. On 32-bit ARM, where Pillow and pillow-heif have no
-# wheels, the libraries they're built against (the wheels bring their own).
-# The bot's user and group are 1000 both, unless the container is given
-# others (--user; User= and Group= in a Quadlet; user: in Compose), which
-# need no entry of their own here. Every interactive shell, as in
+# tzdata lets TZ give local log timestamps. On 32-bit ARM, where Pillow and
+# pillow-heif have no wheels, the libraries they're built against (the
+# wheels bring their own). The bot and its tools are Python, and need no
+# shell. The bot's user and group are 1000 both, unless the container is
+# given others (--user; User= and Group= in a Quadlet; user: in Compose),
+# which need no entry of their own here. Every interactive shell, as in
 # podman exec -it nejomibot sh, or bash, starts with a short guide
-# (tools/nejomibot-help.sh), through /etc/profile.d/nejomibot.sh, which the
-# image gets below: bash reads it from /etc/bash.bashrc, and sh as $ENV.
+# (nejomibot-help), through /etc/profile.d/nejomibot.sh, which the image gets
+# below: bash reads it from /etc/bash.bashrc, and sh as $ENV.
 ARG TARGETARCH
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends tzdata curl jq qrencode \
+    && apt-get install -y --no-install-recommends tzdata \
     && if [ "$TARGETARCH" = arm ]; then \
         apt-get install -y --no-install-recommends libjpeg62-turbo libwebp7 \
             libwebpmux3 libwebpdemux2 libavif16 libheif1 libheif-plugin-libde265; \
@@ -29,7 +29,7 @@ RUN apt-get update \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH=/app/tools:/app/.venv/bin:$PATH \
+    PATH=/app/.venv/bin:$PATH \
     NEJOMIBOT_CONFIG=/data/config.toml \
     ENV=/etc/profile.d/nejomibot.sh
 
@@ -111,16 +111,18 @@ LABEL org.opencontainers.image.title=nejomibot \
 # Owned by root: the bot can read its code, not change it
 COPY --from=build /app/.venv .venv
 COPY config.example.toml ./
-COPY tools/signal-account.sh tools/nejomibot-help.sh tools/
 COPY tools/nejomibot-profile.sh /etc/profile.d/nejomibot.sh
 # The bytecode of the standard library's modules that the bot and its tools
 # import: the base image has none, and PYTHONDONTWRITEBYTECODE keeps it from
 # being written as they run, so each run compiled them anew. On a Raspberry
 # Pi 4, nejomibot-timers imported in 4.7 s without it, 2.4 s with it. 5.7 MB,
-# of the whole library's 22 MB.
+# of the whole library's 22 MB. And help, as the guide is called too, where
+# every PATH has it: a command of its own, as no shell's alias reaches
+# podman exec nejomibot help.
 RUN env -u PYTHONDONTWRITEBYTECODE python -c 'import concurrent.futures.thread, \
-        readline, nejomibot.bot, nejomibot.chat_cli, nejomibot.healthcheck, \
-        nejomibot.timers_cli'
+        readline, segno, nejomibot.account_cli, nejomibot.bot, nejomibot.chat_cli, \
+        nejomibot.guide, nejomibot.healthcheck, nejomibot.timers_cli' \
+    && ln -s /app/.venv/bin/nejomibot-help /usr/local/bin/help
 
 # glibc gives each thread that allocates a memory arena of its own, up to 8
 # per CPU (2 on 32-bit ARM), and each keeps what it has held. Two do for the

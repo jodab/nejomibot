@@ -20,9 +20,45 @@ lack. What has been done is in [CHANGELOG.md](CHANGELOG.md).
   and the comment on `account` in config.py have it. Decide what the bot's
   messages call an ACI: Account ID, as Signal does, or Signal ID. It appears
   in `/contacts`, `/status`, `/profile`, `/allow`, `/admin add`, the
-  configuration's errors and `signal-account.sh`. Then make the code, the
+  configuration's errors and `nejomibot-account`. Then make the code, the
   translations and the documentation use it throughout, and Signal's terms
   everywhere else.
+- [ ] **Whether to publish on PyPI.** It would let `uv tool install
+  nejomibot` or `pipx install nejomibot` run the bot and its tools without
+  a container, beside a signal-cli-rest-api in one; the image stays the
+  supported way. The name is free on PyPI and TestPyPI (2026-10-26), and
+  `uv build` already makes a wheel and an sdist, 2.2 MB each, with the
+  license files. Before a first release:
+  1. **The translations.** The wheel has the `.po` files but no `.mo`, and
+     the bot reads a `.po` only with polib, which only development has, so
+     every language but English would fail. Compile the `.mo` files before
+     `uv build`, as the image's translations stage does, and leave the
+     `.po` files, `messages.pot` and `template.toml` out of the wheel (but
+     in the sdist).
+  2. **phonenumbers.** The metadata asks for phonenumberslite, and signalbot
+     for phonenumbers, which only uv's `exclude-dependencies` leaves out;
+     pip would install both into the one `phonenumbers` package. Published
+     metadata can't drop another package's dependency, so it would ask for
+     phonenumbers alone (40 MB more where pip installs it), with
+     phonenumberslite only in what the image installs.
+  3. **The description.** PyPI shows `readme`, README.md, whose relative
+     links (20) don't work there: a page of its own with absolute links, as
+     DOCKERHUB.md is for Docker Hub, or those links made absolute as the
+     package is built.
+  4. **The metadata.** `[project.urls]` (the repository, the README, the
+     changelog, the image) and classifiers (Python 3.15, Environment ::
+     Console, Topic :: Communications :: Chat).
+  5. **The guide.** `nejomibot-help` describes the container (`/data`,
+     `/photos`, `podman logs`); outside one, it should point to the README
+     instead.
+  6. **Publishing.** A job in release.yml after the image: `uv build`, then
+     trusted publishing (OIDC, no token kept) with
+     `pypa/gh-action-pypi-publish`, which also attests the files (PEP 740),
+     from a GitHub environment `pypi`, for which PyPI gets a pending
+     publisher: jodab/nejomibot, release.yml. TestPyPI first, the same way.
+     A published version can't be replaced, as a release can't be (a
+     broken one gets a fixed one), and the README's Getting started would
+     add the install as an alternative.
 
 ## Accounts without a phone number
 
@@ -53,7 +89,7 @@ registered with a Signal Login, and work with people who have none.
   sender, so an ACI works, as far as the code goes.
 - *The bot:* done, with tests against a fake signal-cli-rest-api: `account`
   takes a Signal ID; `/status` and `/profile` warn while an account without
-  a number has no username; `signal-account.sh` matches an account by its
+  a number has no username; `nejomibot-account` matches an account by its
   number or ID, shows its Signal ID, skips the PIN and the number's privacy
   in `setup`, refuses `privacy`, notes what a PIN guards, and warns before
   `unregister`; the README, DOCKERHUB.md and config.example.toml describe
@@ -66,7 +102,8 @@ registered with a Signal Login, and work with people who have none.
    it.
 2. Mostly done (2026-10-25): commands, groups, receipts and `/delivery`,
    the safety numbers, `/contacts`, `/profile`, the avatar, the username,
-   and `signal-account.sh status` and `identities` all work on it. Still to
+   and `signal-account.sh status` and `identities` (now `nejomibot-account`'s)
+   all work on it. Still to
    find out, on a phone: whether a nickname for the bot takes away the "Name
    not verified" that Signal's apps mark its name with, as it can't be saved
    by number, and if so, say so in the README.
@@ -99,14 +136,14 @@ of signalbot and signal-cli-rest-api for them.
   `/v1/accounts/{number}/rate-limit-challenge` (as of 2.2.0, its
   `RateLimitChallengeRequest` is only a model generated from
   signal-cli-rest-api's swagger.json). So the admins lift a limit on the
-  server, with `signal-account.sh rate-limit --to <your number>`. Once
+  server, with `nejomibot-account rate-limit --to <your number>`. Once
   signalbot passes the tokens on and can submit a solved captcha, decide
   whether an admin should be able to send the bot the `signalcaptcha://`
   link in a direct chat instead, which would be a new command.
 - [ ] **signal-cli-rest-api can't restore an account with its Recovery
   Key**: its `register` takes neither the key nor a TOTP, so only signal-cli
   itself can. Once it can (the owner's request, 2026-10-25):
-  - `signal-account.sh setup` restores the account, with the key asked for
+  - `nejomibot-account setup` restores the account, with the key asked for
     as PINs are, or read from a file such as a Podman or Docker secret
     (`/run/secrets/...`), never from the config or the environment, which
     `podman inspect`, logs and process lists show.
@@ -141,7 +178,7 @@ of signalbot and signal-cli-rest-api for them.
   them, move to it.
 - [ ] **What else signalbot lacks:** it puts a sync message's destination in
   a `DataMessage`'s source fields, so a command typed on a linked phone looks
-  as if the other person had sent it (signal-account.sh and the README
+  as if the other person had sent it (nejomibot-account and the README
   describe it as a drawback of linking; once signalbot tells sync messages
   apart, decide what the bot does with them); `SendError` keeps only the
   HTTP status, not signal-cli-rest-api's error text (`messages.describe()`);

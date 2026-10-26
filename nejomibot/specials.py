@@ -144,7 +144,7 @@ def parts_text(parts: Parts, *, styled: bool = False) -> str:
 def check_name(name: str) -> str | None:
     """Why a special can't have the name, if it can't."""
     if not NAME.match(name):
-        return _("Give it a name: a word that starts with . or /, like /morning.")
+        return _("Give it a name: a word that starts with ., ! or /, like /morning.")
     if built_in(name) or name.casefold() in aliases():
         return _("{name} is a command already.").format(name=prefixed(name))
     return None

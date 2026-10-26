@@ -71,7 +71,7 @@ async def test_a_dry_run_changes_nothing(bot: SignalBot, signal_api: FakeApi) ->
     ("when", "chats", "commands", "why"),
     [
         ("soon", "1", "/ping", "soon? <when> is a time"),
-        ("08:00", "1", "ping", "Commands start with . or /, unlike ping."),
+        ("08:00", "1", "ping", "Commands start with ., ! or /, unlike ping."),
         ("08:00", "1", "/msg 1 Hi", "Timers, specials and /run can't run /msg."),
         ("08:00", "9", "/ping", "There's no chat 9: chats numbers them."),
         ("08:00", "Bob", "/ping", "Bob is no chat"),

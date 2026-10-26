@@ -6,7 +6,7 @@ bubble.
 
 /help <command> shows a command's page: its line, then how to use it, with
 examples, and more for the admins on some, in a direct chat. It takes a
-command by any of its names, with or without its . or /: /help photo,
+command by any of its names, with or without its ., ! or /: /help photo,
 /help .bild, an alias, or a shortcut, as an album's or a special's; and only
 one the asker may use, as /help lists them.
 
@@ -462,6 +462,17 @@ ADMIN = (
         ),
         Entry("✉️", "/msg", N_("post a message to chats"), RELAY),
         Entry("▶️", "/run", N_("post commands' answers to chats"), RELAY),
+        Entry(
+            "📢",
+            "/selfpromote",
+            N_("the bot, in a few words, to share"),
+            N_(
+                "What the bot does, how it runs, and where its code and image "
+                "are, under its picture.\n"
+                "/selfpromote – here, to forward\n"
+                "/run 1 /selfpromote – post it to chat 1"
+            ),
+        ),
     ),
     (
         Entry("✨", "/specials", N_("commands of your own"), SPECIALS),
@@ -610,7 +621,7 @@ def page_lines(text: str) -> list[str]:
 
 def hints() -> list[str]:
     """What /help's page says of every command's names."""
-    found = [_("Commands start with . or /, whichever is easier to type.")]
+    found = [_("Commands start with ., ! or /, whichever is easier to type.")]
     if spoken() != SOURCE_LANGUAGE:
         found.append(_("Every command takes its English name too."))
     return found

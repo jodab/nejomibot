@@ -54,7 +54,7 @@ from signalbot import (
 )
 
 from .access import is_admin
-from .config import DOT, get_settings, slashed
+from .config import PREFIX, get_settings, slashed
 from .i18n import (
     _,
     every_language,
@@ -83,8 +83,8 @@ logger = logging.getLogger(__name__)
 FIRST_WORD = re.compile(r"^\S+")
 COMMAND_AND_SPACE = re.compile(r"^(\S+)\s+")
 # Where a command starts in a text, as after /timer add's time: a word that
-# starts with a /, or a . (slashed)
-COMMAND_START = re.compile(rf"(?:^|\s)(?:/|{DOT.pattern})")
+# starts with a /, or a . or ! (slashed)
+COMMAND_START = re.compile(rf"(?:^|\s)(?:/|{PREFIX.pattern})")
 # Names the bot has had all along, in every language
 ALIASES = {
     "/status": ["/test"],
