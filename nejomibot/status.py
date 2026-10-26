@@ -263,6 +263,16 @@ def threads_text(count: int) -> str:
     return ngettext("{count} thread", "{count} threads", count).format(count=count)
 
 
+def usage(message: str, used: float, total: float) -> str:
+    """The message with {used} and {total} filled in, the unit once where both
+    have the same: 383.5/905.0MB, but 41.9MB/1.3GB."""
+    shown, whole = format_file_size(used), format_file_size(total)
+    unit = whole.lstrip("0123456789.")
+    if shown.lstrip("0123456789.") == unit:
+        shown = shown.removesuffix(unit)
+    return message.format(used=shown, total=whole)
+
+
 def host_lines() -> list[str]:
     """Blocking: reads /proc and /sys."""
     uname = os.uname()
@@ -290,19 +300,16 @@ def host_lines() -> list[str]:
         lines.append(_("Waiting (last minute): {waits}").format(waits=waits))
     meminfo = system.proc_fields(system.PROC / "meminfo")
     if "MemTotal" in meminfo and "MemAvailable" in meminfo:
-        lines.append(
-            _("Memory {available} available of {total}").format(
-                available=format_file_size(meminfo["MemAvailable"]),
-                total=format_file_size(meminfo["MemTotal"]),
-            )
-        )
+        # Used as free, top and htop count it: all but what's available
+        memory = meminfo["MemTotal"]
+        used = memory - meminfo["MemAvailable"]
+        lines.append(usage(_("Memory {used}/{total} used"), used, memory))
         if swap := meminfo.get("SwapTotal"):
-            used = swap - meminfo.get("SwapFree", swap)
-            lines.append(
-                _("Swap {used} used of {total}").format(
-                    used=format_file_size(used), total=format_file_size(swap)
-                )
-            )
+            swapped = swap - meminfo.get("SwapFree", swap)
+            lines += [
+                usage(_("Swap {used}/{total} used"), swapped, swap),
+                usage(_("Total {used}/{total} used"), used + swapped, memory + swap),
+            ]
     if temps := system.temperatures():
         lines.append(
             "🌡️ "

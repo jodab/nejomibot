@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 19:31+0200\n"
+"POT-Creation-Date: 2026-10-27 00:35+0200\n"
 "Language-Team: Norwegian Bokmål\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
@@ -3285,13 +3285,18 @@ msgstr "Ventetid (siste minutt): {waits}"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "Memory {available} available of {total}"
-msgstr "Minne {available} tilgjengelig av {total}"
+msgid "Memory {used}/{total} used"
+msgstr "Minne {used}/{total} brukt"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "Swap {used} used of {total}"
-msgstr "Swap {used} brukt av {total}"
+msgid "Swap {used}/{total} used"
+msgstr "Swap {used}/{total} brukt"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Total {used}/{total} used"
+msgstr "Totalt {used}/{total} brukt"
 
 #: nejomibot/status.py
 #, python-brace-format

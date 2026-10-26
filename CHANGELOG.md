@@ -4,6 +4,18 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- `/status` shows memory and swap alike, as used of total, as `free` and
+  `htop` do, and both together on a line of their own: `Memory
+  383.5/905.0MB used`, `Swap 41.9/452.0MB used`, `Total 425.4MB/1.3GB
+  used`. It showed the memory available, and the swap used.
+- An image built as a version of its own (`--build-arg VERSION=...`), such
+  as a local build's `0.99.37+g3fa91a0`, reports that version in `/status`,
+  its notices and the health pings, not only in its label.
+
 ## 0.99.37 - 2026-10-27
 
 ### Added

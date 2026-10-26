@@ -46,9 +46,19 @@ def test_host_lines(fake_system: Path) -> None:
     ]
     assert lines[3].startswith("Up 1 min, since ")
     assert "Waiting (last minute): cpu 2.5%" in lines
-    assert "Memory 1.0GB available of 4.0GB" in lines
-    assert "Swap 512.0MB used of 2.0GB" in lines
+    # Used of total, as free and htop show them, the unit once where it's the
+    # same; and memory and swap together
+    assert "Memory 3.0/4.0GB used" in lines
+    assert "Swap 512.0MB/2.0GB used" in lines
+    assert "Total 3.5/6.0GB used" in lines
     assert lines[-1] == "🌡️ CPU 47°C"
+    # Without swap, memory alone
+    write(
+        fake_system, "proc/meminfo", "MemTotal: 4194304 kB\nMemAvailable: 1048576 kB\n"
+    )
+    lines = status.host_lines()
+    assert "Memory 3.0/4.0GB used" in lines
+    assert not [line for line in lines if line.startswith(("Swap", "Total"))]
 
 
 def test_disk_check(tmp_path: Path) -> None:

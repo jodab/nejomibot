@@ -80,7 +80,13 @@ COPY nejomibot/ nejomibot/
 # The compiled translations, which the wheel has in place of the .po files
 # (wheel-exclude in pyproject.toml)
 COPY --from=translations /app/locale/*.mo nejomibot/locale/
-RUN uv sync --locked --no-dev --no-editable
+# The version the image is built as, which the bot reports (/status, its
+# notices): pyproject.toml's from tools/build-image.sh, or a local build's,
+# such as 0.99.37+g3fa91a0 (PEP 440). The lock was checked above, against
+# pyproject.toml's version, so this install needn't check it again.
+ARG VERSION=unknown
+RUN if [ "$VERSION" != unknown ]; then uv version --frozen "$VERSION"; fi \
+    && uv sync --frozen --no-dev --no-editable
 
 
 # The tests, lint and type check. tools/build-image.sh runs them first, once,

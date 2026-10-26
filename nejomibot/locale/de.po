@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 19:31+0200\n"
+"POT-Creation-Date: 2026-10-27 00:35+0200\n"
 "Language-Team: German\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -3337,13 +3337,18 @@ msgstr "Wartezeit (letzte Minute): {waits}"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "Memory {available} available of {total}"
-msgstr "Speicher {available} verfügbar von {total}"
+msgid "Memory {used}/{total} used"
+msgstr "Speicher {used}/{total} belegt"
 
 #: nejomibot/status.py
 #, python-brace-format
-msgid "Swap {used} used of {total}"
-msgstr "Swap {used} belegt von {total}"
+msgid "Swap {used}/{total} used"
+msgstr "Swap {used}/{total} belegt"
+
+#: nejomibot/status.py
+#, python-brace-format
+msgid "Total {used}/{total} used"
+msgstr "Gesamt {used}/{total} belegt"
 
 #: nejomibot/status.py
 #, python-brace-format

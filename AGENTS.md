@@ -166,6 +166,10 @@ machine: Podman 4 built every platform as amd64, so the image jobs run on
 - The wheel, as the image and PyPI have it, holds the translations compiled
   (`tools/compile-translations.py`), not their `.po` files
   (`wheel-exclude`).
+- The bot reports the version the image is built as: the build stage sets
+  the package's version to the build argument `VERSION` (`uv version
+  --frozen`), pyproject.toml's from `tools/build-image.sh`, or a local
+  build's PEP 440 local version, such as `0.99.37+g3fa91a0`.
 - The final stage sets `MALLOC_ARENA_MAX=2`. The base image has no bytecode
   for the standard library, and `PYTHONDONTWRITEBYTECODE` keeps it from
   being written at run time, so the final stage imports the bot's entry
