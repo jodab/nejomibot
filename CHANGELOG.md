@@ -4,6 +4,15 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Fixed
+
+- Fix a test case that could open a browser window when running in
+  a CI environment. The test now simulates the
+  captcha challenge without actually opening a
+  browser.
+
 ## 0.99.39 - 2026-10-27
 
 ### Added
