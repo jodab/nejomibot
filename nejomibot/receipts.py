@@ -17,7 +17,7 @@ import logging
 
 from signalbot import DataMessageContext, ReceiptType
 
-from .messages import collected, describe, outbox
+from .messages import describe, from_signal, outbox
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ TYPING_FOR = 120.0  # seconds at most
 
 async def mark_read(context: DataMessageContext) -> None:
     """Send a read receipt for the message. Never raises. Not for a timer's
-    command: nobody sent it."""
-    if collected.get() is not None or outbox.rate_limited:
+    command, or nejomibot-chat's: it came in no Signal message."""
+    if not from_signal() or outbox.rate_limited:
         return
     # signalbot sends no receipts for group messages, but a receipt goes to
     # the sender either way, so it's sent as for their direct message
@@ -44,8 +44,8 @@ async def mark_read(context: DataMessageContext) -> None:
 
 async def show_typing(context: DataMessageContext) -> None:
     """Show the bot as typing in the chat. Never raises. Not for a timer's
-    command: there's nobody to see it."""
-    if collected.get() is not None or outbox.rate_limited:
+    command, or nejomibot-chat's: there's nobody in Signal to see it."""
+    if not from_signal() or outbox.rate_limited:
         return
     try:
         async with asyncio.timeout(TIMEOUT):
@@ -56,7 +56,7 @@ async def show_typing(context: DataMessageContext) -> None:
 
 async def stop_typing(context: DataMessageContext) -> None:
     """Stop showing the bot as typing in the chat. Never raises."""
-    if collected.get() is not None or outbox.rate_limited:
+    if not from_signal() or outbox.rate_limited:
         return
     try:
         async with asyncio.timeout(TIMEOUT):
@@ -68,16 +68,15 @@ async def stop_typing(context: DataMessageContext) -> None:
 class Typing:
     """The bot typing while a command runs: from the start for a slow one,
     else once it has run for TYPING_AFTER; then again every TYPING_EVERY,
-    until stop(), or TYPING_FOR has passed. Not for a timer's command."""
+    until stop(), or TYPING_FOR has passed. Not for a timer's command, or
+    nejomibot-chat's."""
 
     def __init__(self, context: DataMessageContext, *, at_once: bool) -> None:
         self.context = context
         self.shown = False
         self.sending: asyncio.Task[None] | None = None
         delay = 0 if at_once else TYPING_AFTER
-        self.task = (
-            asyncio.create_task(self.keep(delay)) if collected.get() is None else None
-        )
+        self.task = asyncio.create_task(self.keep(delay)) if from_signal() else None
 
     async def keep(self, delay: float) -> None:
         await asyncio.sleep(delay)

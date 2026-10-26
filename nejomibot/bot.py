@@ -16,7 +16,7 @@ from types import FrameType
 from pydantic import ValidationError
 from signalbot import LOGGER_NAME, Config, ConnectionMode, InMemoryConfig, SignalBot
 
-from . import access, health, photos, profile, reminders, rest
+from . import access, health, photos, profile, reminders, rest, terminal
 from .admins import Admin, Admins
 from .albums import Album, Albums
 from .allowed import Allow, Allowed, Disallow
@@ -290,6 +290,7 @@ def shutdown() -> None:
         outbox.keep_all()
         notices.stopped()
         loop.run_until_complete(health.stop())
+        loop.run_until_complete(terminal.stop())
         loop.run_until_complete(client.close())
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.run_until_complete(loop.shutdown_default_executor())
@@ -355,10 +356,12 @@ def main() -> None:
         bot.register(handler, contacts=contacts, groups=groups, f=check)
     # What anyone writes in a direct chat, and deletes, for /incoming
     bot.register(inbox, contacts=True, groups=False)
+    # What anyone writes anywhere, and deletes, for nejomibot-chat
+    bot.register(terminal.recent, contacts=True, groups=True)
     # A greeting for the allowed list's messages that aren't commands; it
     # checks who wrote them itself
     bot.register(greeter, contacts=True, groups=False)
-    logger.debug("%d handlers registered", len(registrations) + 2)
+    logger.debug("%d handlers registered", len(registrations) + 3)
     # Timers run their commands through the same handlers, but for those
     # their commands say timers mayn't
     timekeeper.start(bot, [handler for handler, *_who in registrations])
@@ -375,6 +378,8 @@ def main() -> None:
     # The profile data_dir/bot.txt has, or config.toml's bot_* settings
     profile.start(bot)
     health.start(bot)
+    # The admins' messages from nejomibot-chat, once signalbot is ready
+    terminal.start(bot)
 
     logger.debug("Starting signalbot: its event loop and scheduler")
     bot.start()

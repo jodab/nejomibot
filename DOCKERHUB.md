@@ -308,10 +308,17 @@ That's it: the bot is up and running. 🎉
   those of the European Union, the Nordic countries and most of the Western
   world are included; see
   [the README](https://github.com/jodab/nejomibot#birthdays-name-days-and-holidays).
+- **The bot from a terminal:** `docker compose exec nejomibot
+  nejomibot-chat` lets you use the bot as in your direct chat with it, with
+  the answers in the terminal. `docker compose exec -T nejomibot
+  nejomibot-chat -a - "/msg 1 Look!" < photo.jpg` posts a photo to chat 1
+  of `/chats`, and `--follow` shows the messages the bot receives, in every
+  chat; see
+  [the README](https://github.com/jodab/nejomibot#the-bot-from-a-terminal).
 - **A shell in the container:** `docker compose exec nejomibot sh`, or
   `bash`, starts with a short guide to the bot's tools, such as
-  `nejomibot-timers` and `signal-account.sh`, and where the bot keeps its
-  files.
+  `nejomibot-chat`, `nejomibot-timers` and `signal-account.sh`, and where
+  the bot keeps its files.
 - **Commands of your own, other names for commands, and all the settings:**
   see the [README](https://github.com/jodab/nejomibot#readme).
 

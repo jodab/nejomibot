@@ -119,7 +119,8 @@ COPY tools/nejomibot-profile.sh /etc/profile.d/nejomibot.sh
 # Pi 4, nejomibot-timers imported in 4.7 s without it, 2.4 s with it. 5.7 MB,
 # of the whole library's 22 MB.
 RUN env -u PYTHONDONTWRITEBYTECODE python -c 'import concurrent.futures.thread, \
-        nejomibot.bot, nejomibot.healthcheck, nejomibot.timers_cli'
+        readline, nejomibot.bot, nejomibot.chat_cli, nejomibot.healthcheck, \
+        nejomibot.timers_cli'
 
 # glibc gives each thread that allocates a memory arena of its own, up to 8
 # per CPU (2 on 32-bit ARM), and each keeps what it has held. Two do for the

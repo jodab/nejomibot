@@ -363,6 +363,22 @@ async def test_avatar_from_a_picture(bot: SignalBot, profiles: Profiles) -> None
     assert profiles.api.bodies("DELETE", "/v1/attachments/pic.jpg") == [None]
 
 
+async def test_avatar_from_nejomibot_chat(bot: SignalBot, profiles: Profiles) -> None:
+    # Attached as nejomibot-chat attaches it, with the picture in it
+    data = encoded(halves((800, 600)), "JPEG")
+    content = base64.b64encode(data).decode()
+    attached = picture("").model_copy(
+        update={"local_filename": None, "base64_content": content}
+    )
+
+    text = await avatar_command(bot, "/avatar", [attached])
+
+    assert text.startswith("✅ New avatar: 600x600 JPEG, ")
+    assert profiles.avatar is not None
+    # Nothing to fetch from signal-cli, or delete there
+    assert not [r for r in profiles.api.requests if "/attachments/" in r.path]
+
+
 async def test_avatar_needs_a_kept_picture(bot: SignalBot, profiles: Profiles) -> None:
     # Not on signal-cli's disk, as with JSON_RPC_IGNORE_ATTACHMENTS=true
     answer = await avatar_command(bot, "/avatar", [picture("gone.jpg")])

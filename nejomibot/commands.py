@@ -73,6 +73,7 @@ from .messages import (
     log_failure,
     outbox,
     reply,
+    to_terminal,
 )
 from .receipts import Typing, mark_read
 from .styles import utf16_length, written
@@ -405,6 +406,8 @@ def chat_kind(message: DataMessage) -> str:
     """Where a command came from, for the log, which says nothing of who."""
     if collected.get() is not None:
         return "for a timer, /run or a special"
+    if to_terminal.get() is not None:
+        return "from nejomibot-chat"
     return "in a group" if message.is_group() else "in a direct chat"
 
 

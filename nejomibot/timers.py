@@ -37,6 +37,7 @@ from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from signalbot import (
+    Attachment,
     DataMessage,
     DataMessageContext,
     DataMessageHandler,
@@ -628,47 +629,62 @@ class Timekeeper:
         its answers; none for a command timers mayn't run, which
         check_commands keeps out anyway, or one that's gone, as a special
         taken out of its file by hand."""
-        assert self.bot is not None
         if (found := known(canonical(command))) is None or not found.timers:
             logger.error(
                 "Not run, as timers mayn't, or it's gone: %s", command.split()[0]
             )
             return []
-        group = None
-        if sender is not None:
-            number, uuid = sender.source_number, sender.source_uuid
-            group = sender.group_info
-        else:
-            settings = get_settings()
-            first = (settings.admins or [settings.account])[0]
-            by_id = bool(re.match(SIGNAL_ID, first))
-            number, uuid = (None, first) if by_id else (first, None)
-        ms = int(datetime.now(UTC).timestamp() * 1000)
-        message = DataMessage(
-            server_delivered_timestamp=ms,
-            server_received_timestamp=ms,
-            timestamp=ms,
-            source_number=number,
-            source_uuid=uuid,
-            group_info=group,
-            text=command,
-        )
         answers: list[SendMessage] = []
         token = collected.set(answers)
         try:
-            for handler in self.handlers:
-                try:
-                    await handler.handle_data_message(
-                        DataMessageContext(self.bot, message)
-                    )
-                except Exception:
-                    logger.exception("Timer command %s failed", found.name)
+            await self.handle(made_up(command, sender))
         finally:
             collected.reset(token)
         return answers
 
+    async def handle(self, message: DataMessage) -> None:
+        """Run the message through the bot's handlers, as signalbot runs one
+        from Signal, but for its checks of who may use them: the bot made the
+        message up. Never raises."""
+        assert self.bot is not None
+        for handler in self.handlers:
+            try:
+                await handler.handle_data_message(DataMessageContext(self.bot, message))
+            except Exception:
+                logger.exception("%s failed", type(handler).__name__)
+
 
 timekeeper = Timekeeper()
+
+
+def made_up(
+    text: str,
+    sender: DataMessage | None = None,
+    attachments: list[Attachment] | None = None,
+) -> DataMessage:
+    """A message with the text, sent now, as whoever sent sender would send
+    it, where they sent it; or else as the first admin would, in a direct
+    chat with the bot."""
+    group = None
+    if sender is not None:
+        number, uuid = sender.source_number, sender.source_uuid
+        group = sender.group_info
+    else:
+        settings = get_settings()
+        first = (settings.admins or [settings.account])[0]
+        by_id = bool(re.match(SIGNAL_ID, first))
+        number, uuid = (None, first) if by_id else (first, None)
+    ms = int(datetime.now(UTC).timestamp() * 1000)
+    return DataMessage(
+        server_delivered_timestamp=ms,
+        server_received_timestamp=ms,
+        timestamp=ms,
+        source_number=number,
+        source_uuid=uuid,
+        group_info=group,
+        text=text,
+        attachments=attachments,
+    )
 
 
 # What a timer can run: any command but those that change timers, specials,

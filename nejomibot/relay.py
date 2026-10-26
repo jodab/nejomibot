@@ -1,14 +1,15 @@
 """/msg and /run: the admins post to other chats, from a direct chat with the
 bot. The chats are numbers from /chats, such as 1,2.
 
-/msg 1,2 Hello! posts the text to chats 1 and 2, as the bot. /run 1 /status
-runs the commands as a timer does, as the admin would in a direct chat with
-the bot, and posts their answers to the chats instead: /run 1,2 /weather;
-/photo. Its numbers are the admin's, as in /run 1 /incoming 4,9, which
-forwards messages 4 and 9 of their list to chat 1. Like a timer, /run can't
-run what changes timers, specials, birthdays, albums or who may use the bot,
-posts to chats of its own, or answers for its own chat, as /remind does. Each
-chat gets its answers in its language, and all of them the same photo.
+/msg 1,2 Hello! posts the text to chats 1 and 2, as the bot, with what
+nejomibot-chat attaches to it, which may then do without a text. /run 1 /status
+runs the commands as a timer does, as the admin would in a direct chat with the
+bot, and posts their answers to the chats instead: /run 1,2 /weather; /photo.
+Its numbers are the admin's, as in /run 1 /incoming 4,9, which forwards
+messages 4 and 9 of their list to chat 1. Like a timer, /run can't run what
+changes timers, specials, birthdays, albums or who may use the bot, posts to
+chats of its own, or answers for its own chat, as /remind does. Each chat gets
+its answers in its language, and all of them the same photo.
 
 Both answer where they posted, and where it only waits to be sent, as Signal
 can't be reached, or may not have arrived.
@@ -28,9 +29,9 @@ from .timers import Chat, chats_numbered, check_commands, split_commands, timeke
 
 logger = logging.getLogger(__name__)
 
-# The command, its chats as one word, like 1,2, then the rest: the text, or
-# the commands. "1, 2 Hi" isn't taken as "2 Hi" to chat 1.
-PARTS = re.compile(r"^\S+\s+(\d+(?:,\d+)*)\s+(\S.*)$", re.DOTALL)
+# The command, its chats as one word, like 1,2, then the rest, if any: the
+# text, or the commands. "1, 2 Hi" isn't taken as "2 Hi" to chat 1.
+PARTS = re.compile(r"^\S+\s+(\d+(?:,\d+)*)(?:\s+(\S.*))?$", re.DOTALL)
 
 
 def msg_usage() -> str:
@@ -48,10 +49,23 @@ def run_usage() -> str:
 
 
 def parse(text: str) -> tuple[list[int], str] | None:
-    """'/msg 1,2 Hello' -> ([1, 2], 'Hello'); None if there aren't both."""
+    """'/msg 1,2 Hello' -> ([1, 2], 'Hello'), '/msg 1,2' -> ([1, 2], ''); None
+    if there are no chats."""
     if not (match := PARTS.match(text.strip())):
         return None
-    return [int(n) for n in match[1].split(",")], match[2].strip()
+    return [int(n) for n in match[1].split(",")], (match[2] or "").strip()
+
+
+def attached(message: DataMessage) -> list[str]:
+    """What came with the message, for signal-cli-rest-api to send on: what
+    nejomibot-chat attached. Of what comes from Signal, the bot downloads
+    nothing (bot.main)."""
+    files: list[str] = []
+    for each in message.attachments or []:
+        if each.base64_content:
+            name = f";filename={each.remote_filename}" if each.remote_filename else ""
+            files.append(f"data:{each.content_type}{name};base64,{each.base64_content}")
+    return files
 
 
 # What became of the posts to each chat
@@ -86,16 +100,17 @@ def outcomes_text(posted: str, outcomes: Outcomes) -> str:
     return "\n".join(lines)
 
 
-async def post_text(bot: SignalBot, text: str) -> str:
-    """Post /msg's text to its chats. What to answer."""
-    if (parsed := parse(text)) is None:
+async def post_text(bot: SignalBot, message: DataMessage) -> str:
+    """Post /msg's text to its chats, and what nejomibot-chat attached to it.
+    What to answer."""
+    files = attached(message)
+    if (parsed := parse(message.text or "")) is None or not (parsed[1] or files):
         return msg_usage()
-    numbers, message = parsed
+    numbers, text = parsed
     if isinstance(chats := await chats_numbered(bot, numbers), str):
         return chats
-    outcomes: Outcomes = {
-        chat: [await send(bot, chat[0], SendMessage(text=message))] for chat in chats
-    }
+    post = SendMessage(text=text or None, base64_attachments=files or None)
+    outcomes: Outcomes = {chat: [await send(bot, chat[0], post)] for chat in chats}
     return outcomes_text(_("✉️ Sent to {chats}."), outcomes)
 
 
@@ -103,7 +118,7 @@ async def post_answers(bot: SignalBot, message: DataMessage) -> str | None:
     """Run /run's commands, as the admin who sent it, and post their answers
     to its chats, each command's before the next runs. What to answer, if
     anything."""
-    if (parsed := parse(message.text or "")) is None:
+    if (parsed := parse(message.text or "")) is None or not parsed[1]:
         return run_usage()
     numbers, rest = parsed
     if isinstance(commands := split_commands(rest), str):
@@ -131,9 +146,11 @@ class Msg(Handler):
     commands = (Command("/msg", more=True, timers=False),)
 
     async def handle(self, context: DataMessageContext, command: Command) -> None:
-        text = context.message.text or ""
+        message = context.message
         # What it posted has gone out: an edit isn't run, and says so
-        await answer(context, lambda: post_text(context.bot, text), edits=Edits.NOT_RUN)
+        await answer(
+            context, lambda: post_text(context.bot, message), edits=Edits.NOT_RUN
+        )
 
 
 class Run(Handler):

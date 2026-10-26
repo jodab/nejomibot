@@ -4,6 +4,34 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `nejomibot-chat`, in the image: the bot from a terminal, as the first
+  admin in the configuration uses it in a direct chat, such as
+  `podman exec -it nejomibot nejomibot-chat` for a chat, or
+  `podman exec nejomibot nejomibot-chat /status` for one command. The
+  answers come to the terminal, and the rest happens as in Signal: `/msg`
+  and `/run` post to their chats, and the numbers in lists are that
+  admin's. A message can come from standard input, and files can be
+  attached with `-a`, from standard input too: one, or several in a tar
+  archive, up to 25 MB together. `/msg` posts them, with or without a text,
+  `--to 1,2` is short for `/msg 1,2`, and `/avatar` takes a picture
+  attached this way. `--recent` lists the latest messages the bot has
+  received, in every chat, `--follow` shows them as they come, `--json`
+  prints everything as JSON, and `--save DIR` saves the files in it. Only
+  the bot's own user and root can use it. See the README's new section
+  "The bot from a terminal".
+- The bot keeps the 100 latest messages it receives, in every chat, in
+  memory only, for `nejomibot-chat --recent` and `--follow`. `/incoming`
+  lists only direct messages from people other than the admins, as before.
+- The setting `received_attachments`, off by default: when it's on,
+  `nejomibot-chat` also lists the files in the messages the bot received,
+  and saves them with `--save`. They stay with signal-cli, which keeps them
+  only with `JSON_RPC_IGNORE_ATTACHMENTS=false`, and the bot keeps no copy
+  of its own, so the setting costs no memory.
+
 ## 0.99.31 - 2026-10-25
 
 ### Changed

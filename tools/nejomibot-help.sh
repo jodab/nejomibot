@@ -12,6 +12,7 @@ cat <<'EOF'
 nejomibot
 
   signal-account.sh       Signal account: status, setup, profile (--help)
+  nejomibot-chat          The bot as in a direct chat; messages received (--help)
   nejomibot-timers        Timers (--help)
   nejomibot-healthcheck   Health check
   nejomibot-help.sh       This guide

@@ -11,7 +11,8 @@ emoji before About: whatever they are, they stay.
 A new avatar is the picture sent with /avatar, fetched from
 signal-cli-rest-api, made square without its metadata, and uploaded. That
 needs signal-cli to keep the pictures sent to the bot, which it doesn't with
-JSON_RPC_IGNORE_ATTACHMENTS=true.
+JSON_RPC_IGNORE_ATTACHMENTS=true; one that nejomibot-chat attaches to
+/avatar comes along with it.
 
 The bot keeps its profile in data_dir/bot.txt, a line for each part, the
 avatar as a picture beside it, named there with its SHA-256. Each change
@@ -25,6 +26,7 @@ nickname alone, with whatever number Signal gives it.
 """
 
 import asyncio
+import base64
 import hashlib
 import io
 import logging
@@ -296,8 +298,11 @@ def keep_avatar(avatar: AvatarImage | None) -> None:
 
 
 async def take_attachment(bot: SignalBot, picture: Attachment) -> bytes | None:
-    """The picture, which is then deleted from signal-cli's disk. None if
-    signal-cli didn't keep it."""
+    """The picture: as nejomibot-chat sends it along, or else fetched from
+    signal-cli, which then deletes it from its disk. None if signal-cli
+    didn't keep it."""
+    if picture.base64_content:
+        return base64.b64decode(picture.base64_content)
     if not picture.local_filename:
         return None
     if (data := await rest.attachment(picture.local_filename)) is None:

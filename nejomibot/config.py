@@ -244,6 +244,14 @@ class Settings(BaseSettings):
     # in the last day, and how many phones confirmed each (delivery.py)
     delivery_messages: Annotated[int, Field(ge=1)] = 30
 
+    # Whether nejomibot-chat shows the pictures, videos and other files in
+    # the messages the bot receives, and saves them with --save. They stay
+    # with signal-cli, which must keep them (JSON_RPC_IGNORE_ATTACHMENTS
+    # false), and only then: the bot keeps where they are, not the files, and
+    # fetches them only for --save. Without, it shows text only, and how many
+    # attachments a message has (terminal.py).
+    received_attachments: bool = False
+
     # The admins: they may use every command, and they alone the admin
     # commands, in a direct chat with the bot. They may make others admins,
     # with /admin add, but no command can take away what they may do.

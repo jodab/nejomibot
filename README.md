@@ -37,7 +37,8 @@ Signal.
 - 🛠️ **Admin tools in Signal:** contacts and safety numbers, the bot's
   profile, posting to other chats, mentioning everyone in a group, deleting
   the bot's messages, delivery and read receipts, and the latest messages
-  people have sent the bot.
+  people have sent the bot; and all of it from a terminal on the server
+  too, with files attached.
 - 🩺 **Reliable and light:** health checks with alerts, notices to the admins,
   messages retried until they get through, and a small container image for
   x86 and ARM that runs in about 80 MB of memory.
@@ -994,7 +995,9 @@ text is forwarded, since the bot doesn't download attachments; it says how
 many there were. As with `/delete list`, the numbers refer to the list you
 were shown last; a list that a timer, `/run` or a special posts doesn't
 change them. Timers and `/run` can run `/incoming` too: `/run 1 /incoming
-4,9` forwards messages 4 and 9 of your list to chat 1.
+4,9` forwards messages 4 and 9 of your list to chat 1. The latest messages
+in every chat, groups included, are listed in [a
+terminal](#the-bot-from-a-terminal) only.
 
 ### Contacts and safety numbers
 
@@ -1061,7 +1064,117 @@ post where: `/status` shows phone numbers and the server's addresses to
 everyone in the chat. Both commands reply with where they posted, and where
 a message is only waiting to be sent (see
 [Who may use what](#who-may-use-what)) or may not have arrived; when `/run`
-posts to the admin's own chat, its answers speak for themselves.
+posts to the admin's own chat, its answers speak for themselves. From [a
+terminal](#the-bot-from-a-terminal), `/msg` also posts pictures and other
+files.
+
+## The bot from a terminal
+
+`nejomibot-chat`, in the bot's image, lets you use the bot from a terminal
+on the server, as the first admin in the configuration uses it in a direct
+chat with the bot. You type a message, and the bot's answers appear in the
+terminal instead of in Signal. Everything else happens as it would in that
+direct chat: `/msg` and `/run` post to their chats, a reminder set with
+`/remind` reaches that admin in Signal, and the lists that `/incoming`,
+`/contacts` and `/delete list` number are numbered for that admin, so a
+list shown in the terminal sets the numbers on their phone too, and the
+other way round. No read receipt or typing indicator goes to Signal, since
+no message came from there.
+
+```sh
+podman exec -it nejomibot nejomibot-chat                  # a chat: a line is a message
+podman exec nejomibot nejomibot-chat /weather Helsinki    # one message, and its answers
+echo "/msg 1 Dinner at six" | podman exec -i nejomibot nejomibot-chat
+```
+
+In the chat, each line is a message. A line that ends in `\` continues on
+the next line, for a message of several lines, and Ctrl-D ends the chat.
+Without a message on the command line and without a terminal, the tool
+reads one message from standard input, all of it, which `podman exec -i`
+passes on. Quote a message that has a `;` or other characters the shell
+treats specially, as in `nejomibot-chat "/run 1 /weather; /photo"`. With
+Compose, run `docker compose exec nejomibot nejomibot-chat`, with `-T` in
+place of `-i` for standard input.
+
+### Attaching files
+
+`-a FILE` attaches a file to the message, and can be given more than once.
+`-a -` attaches standard input: a single file, or several in a tar archive.
+Standard input is the simplest way to get a file into the container:
+
+```sh
+podman exec -i nejomibot nejomibot-chat -a - "/msg 1,2 Look!" < photo.jpg
+tar -c *.jpg | podman exec -i nejomibot nejomibot-chat -a - --to 1 Our trip
+podman exec -i nejomibot nejomibot-chat -a - /avatar < logo.png
+```
+
+`/msg` posts the files with its text, or without one, as in `/msg 1,2`.
+`--to CHATS` is short for `/msg CHATS`, followed by the text given on the
+command line or on standard input, as in `echo "Dinner at six" | podman
+exec -i nejomibot nejomibot-chat --to 1,2`. `/avatar` makes an attached
+picture the bot's profile picture, which it can't do from Signal while
+signal-cli doesn't keep attachments (see [The bot's
+profile](#the-bots-profile)). The files can come to 25 MB together, as they
+pass through the bot's memory on their way to Signal. Files that are
+already in the container need no standard input, as in
+`-a /photos/2024/IMG_1234.jpg` for a photo in the library.
+
+### Messages the bot received
+
+The bot keeps the 100 latest messages it receives, in every chat, those
+from groups and from the admins included. It keeps them in memory only, as
+for `/incoming`: a restart forgets them, an edit replaces the message it
+edits, and a message that its sender deletes for everyone, or that
+disappears, is removed. `--recent` lists them, oldest first, and
+`--follow` shows each new one as it arrives, until you press Ctrl-C:
+
+```sh
+podman exec nejomibot nejomibot-chat --recent 20
+podman exec nejomibot nejomibot-chat --recent 10 --follow
+```
+
+Each message is shown with when it was sent, in the bot's time zone, the
+group or direct chat it was sent in, who sent it, and its text, with 📎 and
+the number of its attachments. `/incoming` is unchanged: it lists only the
+direct messages from people other than the admins.
+
+By default, only the number of attachments is kept. With
+`received_attachments = true` in the settings, each file is listed too, by
+name, type and size, and `--save` saves it. The files stay with signal-cli,
+which keeps them only when signal-cli-rest-api's container has
+`JSON_RPC_IGNORE_ATTACHMENTS=false`. The bot keeps no copy of its own, only
+where signal-cli keeps each file, so the setting costs no memory; it
+fetches a file only to save it, and only one of up to 25 MB.
+
+### Output for scripts
+
+`--json` prints what the bot says as JSON, one object per line, for scripts
+and `jq`. An answer has its `text`, its `styles` (Signal's text styles,
+each with where it starts in the text and how long it is, in characters),
+and its `files`, each with its `content_type`, `filename`, `size` and
+contents in `base64`. A received message has `at`, `chat` (the group's ID,
+or `null` in a direct chat), `chat_name`, `sender`, `sender_name`, `text`,
+`styles`, `attachments` (how many), `files` and `edited`. `--save DIR`
+saves the files in what the bot says to the folder `DIR`, readable only by
+the bot's user, and shows where each one is instead; in JSON, `saved` takes
+the place of `base64`:
+
+```sh
+podman exec nejomibot nejomibot-chat --json /photo | jq -r '.files[0].base64' | base64 -d > photo.jpg
+podman exec nejomibot sh -c 'mkdir -p /data/saved && nejomibot-chat --save /data/saved /photo'
+```
+
+In a terminal, the answers show Signal's bold, italic, strikethrough and
+spoilers as terminal styles, unless the `NO_COLOR` environment variable is
+set. `nejomibot-chat` exits with 0 once the bot has answered, even with no
+answer, as for a message that isn't a command; with 1 if it can't ask the
+bot, or the bot refuses; and with 2 for options it doesn't take.
+
+`nejomibot-chat` talks to the running bot over a local socket and needs no
+setup. Only the bot's own user and root can use it, since any process in
+the bot's network, which it shares with signal-cli-rest-api, can reach such
+a socket. Outside a container, `uv run nejomibot-chat` in the bot's folder
+reaches a bot started there with `uv run nejomibot`.
 
 ## The allowed list
 
@@ -1431,7 +1544,8 @@ signal-cli-rest-api doesn't say why; most likely, the username is taken. For
 it there once it has become the avatar. This requires signal-cli to keep the
 pictures sent to the bot, which it doesn't with
 `JSON_RPC_IGNORE_ATTACHMENTS=true` (the bot then says so); the account tool
-described below can set the avatar from a file instead.
+described below can set the avatar from a file instead, and so can `/avatar`
+with a picture attached in [a terminal](#the-bot-from-a-terminal).
 
 The profile can also be set in the configuration, with `bot_name`,
 `bot_about`, `bot_avatar` (a picture file, which the bot treats as `/avatar`
@@ -1918,9 +2032,9 @@ the tools leave behind (`RunInit=true`). It uses two folders:
 
 Every interactive shell in the container, such as `podman exec -it nejomibot
 sh` or `bash` (with Compose, `docker compose exec nejomibot sh`), starts with
-a short guide to the bot's tools there: `nejomibot-healthcheck`,
-`nejomibot-timers` and `signal-account.sh`, what each does and where it is,
-and where the bot keeps its files. `nejomibot-help.sh` shows the guide
+a short guide to the bot's tools there: `nejomibot-chat`,
+`nejomibot-healthcheck`, `nejomibot-timers` and `signal-account.sh`, what
+each does and where it is, and where the bot keeps its files. `nejomibot-help.sh` shows the guide
 again.
 
 ### A fresh install
@@ -2100,6 +2214,8 @@ nejomibot/
   timers.py     /timers, /chats, /timer: commands on a schedule, such as a daily post
   timers_cli.py nejomibot-timers: the timers from a terminal
   relay.py      /msg, /run: posting to other chats
+  terminal.py   the bot's side of nejomibot-chat, and the messages it received
+  chat_cli.py   nejomibot-chat: the bot from a terminal, as in a direct chat
   help.py       /help
   system.py     process, container and host facts from /proc and /sys
   publicip.py   public IPv4 and IPv6 addresses, ASN and location

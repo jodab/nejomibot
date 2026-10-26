@@ -115,7 +115,10 @@ ask.
 - **Attachments stay ignored.** signal-cli-rest-api runs with
   `JSON_RPC_IGNORE_ATTACHMENTS=true`, so `/avatar` can't receive a picture;
   anyone who wants it enables attachments themselves. `/avatar` stays as it
-  is.
+  is. `nejomibot-chat` attaches files itself, as signalbot's
+  `Attachment.base64_content`, which `/msg` posts and `/avatar` takes;
+  `received_attachments` (off by default) only lists where signal-cli keeps
+  received files, for `--save`, and the bot holds no copy.
 - **TODO.md holds only the open work:** the owner's open decisions, plans
   that wait, what upstream projects lack (no issues are filed upstream) and
   what waits on them. What is done leaves it, for the changelog.
@@ -135,6 +138,7 @@ tools/translations.sh                      # after changing any message (needs G
 tools/build-image.sh                       # test stage first, then the amd64, arm64, arm/v7 image
 tools/release.sh patch                     # a release, once CI has passed; patch only until 1.0; see --help
 uv run nejomibot-timers                    # the timers from a terminal, as in the image
+uv run nejomibot-chat                      # the running bot from a terminal, as its first admin
 ```
 
 `tools/build-image.sh` runs ruff check, ruff format --check, pyright and
@@ -298,7 +302,10 @@ longest is tried (`Outbox.probe`), less and less often, up to
 message that has waited 30 seconds, and every waiting message at shutdown,
 gets a file in `data_dir/outbox`, loaded at the next start. Under the
 `collected` ContextVar (timers, `/run`, specials) replies are gathered
-rather than sent. A `PerChat` message has a text of its own for some chats,
+rather than sent; under `to_terminal` (nejomibot-chat) they go back to the
+terminal, and the command otherwise runs as in a direct chat. Neither came
+in a Signal message, so neither gets a read receipt or typing
+(`messages.from_signal()`). A `PerChat` message has a text of its own for some chats,
 as `/today`'s birthdays. Long messages need nothing: signal-cli sends and
 receives texts over 2,000 bytes as Signal's apps do.
 
@@ -309,8 +316,9 @@ mention again (`styles.mentioned()`). Their places count UTF-16 code units,
 in a styled message after signal-cli-rest-api has read its marks.
 
 **Timers** (`timers.py`) run each command through the real handlers as a
-made-up direct message from the first admin (`Timekeeper.answers_to`; `/run`
-and specials as whoever sent them, where they sent them), then post the
+made-up direct message from the first admin (`made_up()`,
+`Timekeeper.handle`, which nejomibot-chat shares; `Timekeeper.answers_to`;
+`/run` and specials as whoever sent them, where they sent them), then post the
 collected answers to the timer's chats, in each chat's language, all from
 one `messages.Draw` so every chat gets the same photo. They can't run what
 changes timers, specials, birthdays, albums or who may use the bot, what
@@ -375,6 +383,24 @@ round's `Health` keeps the outbox's counts, which the next round and
 answer or its rounds are late, never because Signal or signal-cli-rest-api
 fails (a restart wouldn't help, and could lose messages not yet on disk),
 nor while the bot waits for the account.
+
+**nejomibot-chat** (`chat_cli.py`, the client, which imports nothing else
+of the bot's, like `healthcheck.py`; `terminal.py`, the bot's side) talks to
+the running bot over the abstract Unix socket `\0nejomibot-chat`, which
+opens once signalbot is ready, and which the bot answers only for its own
+uid and root (`SO_PEERCRED`), as signal-cli-rest-api's container shares the
+bot's network namespace in the Quadlet. A request is a JSON line, with the
+attached files' bytes after it, and the client half-closes once it has
+sent it, but for `--follow`, where the bot takes the end of its input as
+the client leaving; after a refusal the bot reads what is still coming
+(`drain()`), since closing a Unix socket with unread data resets it before
+the client reads why. Each answer, and each received message, is a JSON
+line, which `--json` prints as it is. A message runs through
+`Timekeeper.handle` as from the first admin, its files as signalbot's
+`Attachment.base64_content`, at most `MAX_ATTACHED` together, as they pass
+through the bot's memory. `terminal.recent` is an `incoming.Inbox` for
+every chat (`wanted()`, `files_of()`), the latest 100, with a queue for
+each follower.
 
 **The bot's profile** (`profile.py`): kept in `data_dir/bot.txt`, which
 `/name`, `/about`, `/avatar`, `/username` and `signal-account.sh` write. At

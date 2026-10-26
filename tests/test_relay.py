@@ -29,7 +29,7 @@ ADMIN = "+46700000009"
         ("/msg 1,2 Hello!", ([1, 2], "Hello!")),
         ("/msg 2 Two lines\nof text ", ([2], "Two lines\nof text")),
         ("/run 1 /weather; /photo", ([1], "/weather; /photo")),
-        ("/msg 1,2", None),
+        ("/msg 1,2", ([1, 2], "")),
         ("/msg Hello", None),
         # The chats are one word: this isn't "2 Hello" to chat 1
         ("/msg 1, 2 Hello", None),

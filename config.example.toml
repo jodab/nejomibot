@@ -97,6 +97,13 @@ send_retry_hours = 3
 # delivery receipt, and read it
 # delivery_messages = 30
 
+# nejomibot-chat lists the messages the bot received, in any chat: with this,
+# their pictures, videos and other files too, which --save saves. They stay
+# with signal-cli, which keeps them only with JSON_RPC_IGNORE_ATTACHMENTS
+# false; the bot keeps no copy, and fetches one only for --save. Without it,
+# text only, and how many files a message has.
+# received_attachments = false
+
 # The admins, by phone number, or by Signal ID for those who have none or
 # don't share it. They may use every command: the everyday ones anywhere
 # they're allowed, and the admin commands (/status, /today preview, /album,

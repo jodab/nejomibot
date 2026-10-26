@@ -738,6 +738,17 @@ def arrival_delay(context: DataMessageContext) -> float:
 # While a timer, /run or a special runs a command, its answers are collected
 # here, for it to post, rather than sent to whoever "sent" the command
 collected: ContextVar[list[SendMessage] | None] = ContextVar("collected", default=None)
+# While a command from nejomibot-chat runs, its answers are kept here, for
+# the terminal, rather than sent: otherwise it runs as in a direct chat
+to_terminal: ContextVar[list[SendMessage] | None] = ContextVar(
+    "to_terminal", default=None
+)
+
+
+def from_signal() -> bool:
+    """Whether the command running came in a message from Signal, unlike a
+    timer's, /run's, a special's or nejomibot-chat's."""
+    return collected.get() is None and to_terminal.get() is None
 
 
 @dataclass
@@ -770,8 +781,11 @@ def chance() -> random.Random:
 
 
 async def reply(context: DataMessageContext, message: SendMessage) -> None:
-    """Send to the chat the command came from. Never raises."""
-    if (answers := collected.get()) is not None:
+    """Send to the chat the command came from, or where it collects its
+    answers. Never raises."""
+    if (answers := collected.get()) is None:
+        answers = to_terminal.get()
+    if answers is not None:
         answers.append(message)
         return
     await send(context.bot, context.message.source_or_group_id(), message)

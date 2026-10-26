@@ -19,6 +19,7 @@ it too, as /run 1 /incoming 4,9, which forwards those two to chat 1.
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import NamedTuple
 
 from signalbot import (
     DataMessage,
@@ -36,15 +37,24 @@ from .access import is_admin
 from .commands import Command, Handler, answer, numbers_in
 from .config import get_settings
 from .i18n import _, ngettext, when_text
-from .messages import collected, escape, short
+from .messages import chat_of, collected, escape, short
 from .styles import bold, marked, styles_of, unmarked
 
 KEPT = 50  # messages the bot keeps, and /incoming lists
 
 
+class File(NamedTuple):
+    """An attachment, as signal-cli keeps it, by its ID there."""
+
+    id: str
+    content_type: str
+    filename: str
+    size: int | None
+
+
 @dataclass(frozen=True)
 class Received:
-    """A message someone sent the bot in a direct chat, as it is now."""
+    """A message someone sent the bot, as it is now."""
 
     sender: str  # their Signal ID, else their phone number
     timestamp: int  # by their clock, in ms: with sender, what Signal knows it by
@@ -53,6 +63,9 @@ class Received:
     attachments: int  # a sticker too
     gone_at: datetime | None = None  # when it disappears, if it does
     number: str | None = None  # theirs, if the message came with it
+    chat: str = ""  # the group's ID, for a message in a group
+    files: tuple[File, ...] = ()  # its attachments, where they're wanted
+    edited: bool = False
 
     @property
     def at(self) -> datetime:
@@ -80,27 +93,44 @@ class Inbox(DataMessageHandler, RemoteDeleteHandler):
     """The latest messages anyone but the admins sent the bot in a direct chat,
     oldest first. Only in memory."""
 
-    def __init__(self, now: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+    def __init__(
+        self, now: Callable[[], datetime] = lambda: datetime.now(UTC), kept: int = KEPT
+    ) -> None:
         self._now = now
         self._kept: list[Received] = []
+        self.kept = kept
         self.since = now()
 
     async def handle_data_message(self, context: DataMessageContext) -> None:
-        self.keep(context.message)
+        message = context.message
+        in_group = message.is_group()
+        chat = chat_of(context.bot, message.source_or_group_id()) if in_group else ""
+        self.keep(message, chat)
 
     async def handle_remote_delete(self, context: RemoteDeleteContext) -> None:
         """Its sender deleted it for everyone."""
         self.forget(sender_of(context.message), context.message.timestamp)
 
-    def keep(self, message: DataMessage) -> None:
-        """Keep the message, if it's one to keep: in a direct chat, not from an
-        admin, with text or attachments, unlike Signal's notes of a new profile
-        key or disappearing time. An edit replaces what it edits, in its place."""
-        if message.is_group() or is_admin(message):
-            return
+    def wanted(self, message: DataMessage) -> bool:
+        """Whether to keep a message from where it came: from anyone but the
+        admins, in a direct chat."""
+        return not (message.is_group() or is_admin(message))
+
+    def files_of(self, message: DataMessage) -> tuple[File, ...]:
+        """The message's attachments to keep track of: none, for /incoming,
+        which can't forward them."""
+        return ()
+
+    def keep(self, message: DataMessage, chat: str = "") -> Received | None:
+        """Keep the message, in chat, a group's ID for a group message, if
+        it's one to keep: one wanted(), with text or attachments, unlike
+        Signal's notes of a new profile key or disappearing time. An edit
+        replaces what it edits, in its place. What was kept, if anything."""
+        if not self.wanted(message):
+            return None
         attachments = attachments_of(message)
         if not (message.text or attachments):
-            return
+            return None
         sender = sender_of(message)
         timestamp = message.timestamp
         if isinstance(message, EditMessage):
@@ -114,13 +144,17 @@ class Inbox(DataMessageHandler, RemoteDeleteHandler):
             attachments,
             self._now() + timedelta(seconds=seconds) if seconds else None,
             message.source_number,
+            chat,
+            self.files_of(message),
+            isinstance(message, EditMessage),
         )
         for i, kept in enumerate(self._kept):
             if (kept.sender, kept.timestamp) == (sender, timestamp):
                 self._kept[i] = received
-                return
+                return received
         self._kept.append(received)
-        del self._kept[:-KEPT]
+        del self._kept[: -self.kept]
+        return received
 
     def forget(self, sender: str, timestamp: int) -> None:
         self._kept = [

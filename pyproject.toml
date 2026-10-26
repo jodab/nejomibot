@@ -24,6 +24,7 @@ dependencies = [
 nejomibot = "nejomibot.bot:main"
 nejomibot-healthcheck = "nejomibot.healthcheck:main"
 nejomibot-timers = "nejomibot.timers_cli:main"
+nejomibot-chat = "nejomibot.chat_cli:main"
 
 [dependency-groups]
 dev = [

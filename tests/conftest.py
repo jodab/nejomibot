@@ -20,6 +20,7 @@ from signalbot import (
 from nejomibot import (
     access,
     birthdays,
+    chat_cli,
     commands,
     contacts,
     healthcheck,
@@ -118,9 +119,11 @@ async def http_client() -> AsyncIterator[None]:
 @pytest.fixture(autouse=True)
 def socket_name(monkeypatch: pytest.MonkeyPatch) -> str:
     """A health check socket of the test's own, apart from any running bot's,
-    as the bot answers on it while it waits for the account, too."""
+    as the bot answers on it while it waits for the account, too; and one
+    for nejomibot-chat."""
     name = f"\0nejomibot-test-{uuid.uuid4()}"
     monkeypatch.setattr(healthcheck, "SOCKET", name)
+    monkeypatch.setattr(chat_cli, "SOCKET", f"{name}-chat")
     return name
 
 
