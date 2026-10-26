@@ -311,14 +311,14 @@ async def follow(
         gone.cancel()
 
 
-def from_own_user(writer: asyncio.StreamWriter) -> bool:
-    """Whether the bot's own user, or root, is at the other end."""
+def peer_uid(writer: asyncio.StreamWriter) -> int:
+    """The user of the process at the other end."""
     connection = writer.get_extra_info("socket")
     credentials = connection.getsockopt(
         socket.SOL_SOCKET, socket.SO_PEERCRED, CREDENTIALS.size
     )
     _pid, uid, _gid = CREDENTIALS.unpack(credentials)
-    return uid in (0, os.geteuid())
+    return uid
 
 
 async def answer(
@@ -330,7 +330,7 @@ async def answer(
     except ValueError as e:  # too long, or not as nejomibot-chat writes it
         logger.warning("nejomibot-chat sent what it doesn't: %s", type(e).__name__)
         raise Refused("That's no request of nejomibot-chat's.") from e
-    if not from_own_user(writer):
+    if peer_uid(writer) not in (0, os.geteuid()):  # root, or the bot's own user
         logger.warning("Refused nejomibot-chat for another user")
         raise Refused("The bot answers only its own user, and root.")
     if request.recent or request.follow:

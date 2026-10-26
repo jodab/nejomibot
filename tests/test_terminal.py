@@ -1,7 +1,8 @@
 import asyncio
 import base64
+import os
 import socket
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Callable, Sequence
 from typing import Any
 
 import pytest
@@ -143,9 +144,23 @@ async def test_not_a_request(line: bytes) -> None:
     assert b"no request of nejomibot-chat" in await asyncio.to_thread(send)
 
 
+def peer(uid: int) -> Callable[[asyncio.StreamWriter], int]:
+    """A stand-in for terminal.peer_uid: that user is at the other end."""
+    return lambda writer: uid
+
+
+@pytest.mark.usefixtures("chat")
+async def test_for_root(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(terminal, "peer_uid", peer(0))
+    [answer] = await ask({"text": "/ping"})
+    assert answer["text"].startswith("pong!")
+
+
 @pytest.mark.usefixtures("chat")
 async def test_only_for_the_bots_user(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(terminal.os, "geteuid", lambda: 4242)
+    # Another user than the tests', which may be root, as in the image
+    other = 4242 if os.geteuid() != 4242 else 4343
+    monkeypatch.setattr(terminal, "peer_uid", peer(other))
     with pytest.raises(Refused, match="only its own user, and root"):
         await ask({"text": "/ping"})
     # And why, with files after the request, which the bot then reads, as
