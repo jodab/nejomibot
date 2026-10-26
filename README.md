@@ -355,7 +355,7 @@ For admins, in a direct chat with the bot:
 | `/special remove <name>` | Removes a special, unless a timer runs it |
 | `/msg <chats> <text>` | Posts the text to other chats, for example `/msg 1,2 Hello!` |
 | `/run <chats> <commands>` | Runs commands and posts their answers to other chats, for example `/run 1 /status` |
-| `/selfpromote` | The bot itself, in a few serious words, under its [social preview](nejomibot/social-preview.png) picture: what it does, how it runs, and links to its source code on GitHub and its image on Docker Hub. It comes to you, to forward; `/run 1 /selfpromote` posts it to chat 1 |
+| `/selfpromote` | The bot's name and links to its source code on GitHub and its image on Docker Hub, under its [social preview](nejomibot/social-preview.png) picture. It comes to you, to forward; `/run 1 /selfpromote` posts it to chat 1 |
 | `/incoming`, `/incoming <n>,<n>` | The 50 latest messages that anyone other than the admins sent the bot in a direct chat, numbered: when, from whom, and how each one begins. `/incoming 4,9` forwards those two messages to you in full (see [Incoming messages](#incoming-messages)) |
 | `/birthday add <date> [<chats>] <who>` | Adds a birthday: a contact's, found the way `/contacts` finds people, shown in the groups they are in; or the birthday of someone not on Signal, by name, shown in the groups numbered in `/chats`, or otherwise in every group. Given again on the same day, someone not on Signal shows in the groups given this time (see [Birthdays, name days and holidays](#birthdays-name-days-and-holidays)) |
 | `/nameday add <date> [<chats>] <who>` | Adds a name day, the same way as `/birthday add` |
@@ -1098,6 +1098,35 @@ treats specially, as in `nejomibot-chat "/run 1 /weather; /photo"`. With
 Compose, run `docker compose exec nejomibot nejomibot-chat`, with `-T` in
 place of `-i` for standard input.
 
+### A chat with a group or a person
+
+With `--to` and chat numbers from `/chats`, and no message, `nejomibot-chat`
+is a chat with those chats, as the bot. Each line you type is posted there,
+as `/msg` would post it, formatting included, and a line that starts with a
+command, such as `.weather`, runs the command there, as `/run` would, so its
+answers go to the chat; any other line is posted as typed, `/shrug` too, as
+no command has that name. What people send there appears as it arrives,
+above the line you are typing, and the chat starts with the latest ten
+messages the bot has received there. Ctrl-D ends the chat:
+
+```sh
+podman exec -it nejomibot nejomibot-chat --to 1
+```
+
+```
+A chat with 👥 Family, as the bot. Ctrl-D ends it.
+2026-10-26 18:31 👥 Family · Alice (+46700000001)
+  Is anyone coming tonight?
+> Yes, at six!
+✉️ Sent to Family.
+> .weather
+▶️ Posted the answers to Family.
+```
+
+The bot's answers come to the terminal, as `✉️ Sent to Family.` does; what
+`/run` posts appears in the chat only. The chat also ends when the bot
+stops, as it does for an update.
+
 ### Formatting
 
 Marks around words give them Signal's text styles, as Signal's formatting
@@ -1129,7 +1158,8 @@ podman exec -i nejomibot nejomibot-chat -a - /avatar < logo.png
 `/msg` posts the files with its text, or without one, as in `/msg 1,2`.
 `--to CHATS` is short for `/msg CHATS`, followed by the text given on the
 command line or on standard input, as in `echo "Dinner at six" | podman
-exec -i nejomibot nejomibot-chat --to 1,2`. `/avatar` makes an attached
+exec -i nejomibot nejomibot-chat --to 1,2`; with files and neither, in a
+terminal, it asks for the text, which Ctrl-D ends. `/avatar` makes an attached
 picture the bot's profile picture, which it can't do from Signal while
 signal-cli doesn't keep attachments (see [The bot's
 profile](#the-bots-profile)). The files can come to 25 MB together, as they
@@ -1144,7 +1174,8 @@ from groups and from the admins included. It keeps them in memory only, as
 for `/incoming`: a restart forgets them, an edit replaces the message it
 edits, and a message that its sender deletes for everyone, or that
 disappears, is removed. `--recent` lists them, oldest first, and
-`--follow` shows each new one as it arrives, until you press Ctrl-C:
+`--follow` shows each new one as it arrives, until you press Ctrl-C. With
+`--to 1,2`, both show only the messages of those chats of `/chats`:
 
 ```sh
 podman exec nejomibot nejomibot-chat --recent 20

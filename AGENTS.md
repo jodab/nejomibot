@@ -410,7 +410,15 @@ through the bot's memory, and its marks as Signal's text styles
 and close at a word's end, as WhatsApp does, unlike signal-cli-rest-api's
 `unmarked()`, which drops a mark left open). `terminal.recent` is an `incoming.Inbox` for
 every chat (`wanted()`, `files_of()`), the latest 100, with a queue for
-each follower.
+each follower. A request with `chats`, numbers from /chats, is for those
+chats: its text runs there as /run does, if it starts with a command
+(`for_chats()`), or else posts there as /msg does, and recent and follow
+give only their messages (`in_chats()`), after a header with the chats'
+names and how many of the latest come. `--to` without a message, in a
+terminal, is a chat with them (`connected()`): `Screen` shows what comes
+above the line being typed, and draws that line again, told the prompt is
+up by GNU readline's pre-input hook, as the image's Python has it (uv's
+editline calls none); the bot ending the chat ends the line with SIGINT.
 
 **nejomibot-account** (`account_cli.py`) asks signal-cli-rest-api itself,
 one request at a time, through urllib, for what signalbot doesn't do:

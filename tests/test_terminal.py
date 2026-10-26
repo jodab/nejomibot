@@ -1,7 +1,9 @@
 import asyncio
 import base64
 import os
+import queue
 import socket
+import threading
 from collections.abc import AsyncIterator, Callable, Sequence
 from typing import Any
 
@@ -340,3 +342,150 @@ async def test_attachments_fetched_for_save(
     assert two["missing"] and three["too_big"]
     # Not fetched: too big to go through the bot's memory
     assert signal_api.bodies("GET", "/v1/attachments/p3") == []
+
+
+# Chats of /chats, in the terminal
+
+
+@pytest.mark.usefixtures("chat")
+async def test_a_message_for_chats(signal_api: FakeApi) -> None:
+    [answer] = await ask({"text": "Dinner at six", "chats": [1]})
+    assert answer["text"] == "✉️ Sent to Familjen."
+    # A command runs there; a word that only looks like one is posted
+    [ran] = await ask({"text": "!ping", "chats": [1]})
+    assert ran["text"] == "▶️ Posted the answers to Familjen."
+    await ask({"text": "/shrug", "chats": [2]})
+    text, pong, shrug = posted(signal_api)
+    assert (text["recipients"], text["message"]) == ([GROUP], "Dinner at six")
+    assert pong["recipients"] == [GROUP]
+    assert pong["message"].startswith("pong!")
+    assert (shrug["recipients"], shrug["message"]) == ([ALICE], "/shrug")
+
+
+async def test_recent_in_some_chats(chat: Recent) -> None:
+    chat.keep(message_from(ALICE, "In the group", in_group=True), GROUP)
+    chat.keep(message_from(ALICE, "To the bot", timestamp=2))
+    chat.keep(message_from(ADMIN, "From the admin", timestamp=3))
+    header, said = await ask({"recent": 10, "chats": [1]})
+    assert header == {"chats": [{"name": "Familjen", "group": True}], "recent": 1}
+    assert said["text"] == "In the group"
+    # A person's, in a direct chat alone
+    header, said = await ask({"recent": 10, "chats": [2]})
+    assert header["chats"] == [{"name": f"Alice ({ALICE})", "group": False}]
+    assert said["text"] == "To the bot"
+    with pytest.raises(Refused, match="There's no chat 4"):
+        await ask({"recent": 1, "chats": [4]})
+
+
+async def test_follow_in_some_chats(chat: Recent) -> None:
+    chat.followers = followers = Followers()
+    following = chat_cli.exchange({"follow": True, "chats": [2]}, timeout=10)
+    header = await asyncio.to_thread(next, following)
+    assert header["recent"] == 0
+    first = asyncio.create_task(asyncio.to_thread(next, following))
+    await followers.wait()
+    chat.keep(message_from(ALICE, "In the group", in_group=True), GROUP)
+    chat.keep(message_from(ALICE, "To the bot", timestamp=2))
+    said = await first
+    assert said["text"] == "To the bot"
+    following.close()
+    await followers.wait()
+    assert not followers
+
+
+class Typing:
+    """A chat with chats in the terminal, its lines typed as the test gives
+    them: None ends it, as Ctrl-D does. The bot ending it interrupts the line
+    being read, as SIGINT does. What it shows as it comes, kept."""
+
+    def __init__(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        self.lines: queue.Queue[str | BaseException | None] = queue.Queue()
+        self.shown: list[str] = []
+        self.changed = threading.Condition()
+        monkeypatch.setattr(chat_cli, "input", self.input, raising=False)
+        monkeypatch.setattr(chat_cli.signal, "pthread_kill", self.interrupt)
+        show = chat_cli.Screen.show
+
+        def shown(screen: chat_cli.Screen, text: str, error: bool = False) -> None:
+            show(screen, text, error)
+            with self.changed:
+                self.shown.append(text)
+                self.changed.notify_all()
+
+        monkeypatch.setattr(chat_cli.Screen, "show", shown)
+
+    def input(self, prompt: str) -> str:
+        line = self.lines.get(timeout=10)
+        if line is None:
+            raise EOFError
+        if isinstance(line, BaseException):
+            raise line
+        return line
+
+    def interrupt(self, thread: int, signum: int) -> None:
+        self.lines.put(KeyboardInterrupt())
+
+    def wait_for(self, text: str) -> None:
+        """Until the chat has shown the text."""
+        with self.changed:
+            assert self.changed.wait_for(
+                lambda: any(text in each for each in self.shown), timeout=10
+            )
+
+
+async def test_a_chat_with_a_group(
+    chat: Recent,
+    signal_api: FakeApi,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    chat.followers = followers = Followers()
+    chat.keep(message_from(ALICE, "Earlier", in_group=True), GROUP)
+    chat.keep(message_from(ALICE, "Elsewhere", timestamp=2))
+    typing = Typing(monkeypatch)
+    output = chat_cli.Output()
+    talking = asyncio.create_task(asyncio.to_thread(chat_cli.connected, output, [1]))
+    await followers.wait()
+    chat.keep(message_from(ALICE, "Hej!", in_group=True, timestamp=3), GROUP)
+    await asyncio.to_thread(typing.wait_for, "Hej!")
+    for line in ("Dinner at **six**", ".ping", None):
+        typing.lines.put(line)
+    await talking
+    shown = capsys.readouterr()
+    assert "A chat with 👥 Familjen, as the bot. Ctrl-D ends it." in shown.err
+    # The group's latest first, and nothing from elsewhere
+    assert "Earlier" in shown.out
+    assert "Elsewhere" not in shown.out
+    assert typing.shown[1:] == [
+        "✉️ Sent to Familjen.",
+        "▶️ Posted the answers to Familjen.",
+    ]
+    text, pong = posted(signal_api)
+    assert (text["recipients"], text["message"], text["text_mode"]) == (
+        [GROUP],
+        "Dinner at **six**",
+        "styled",
+    )
+    assert pong["recipients"] == [GROUP]
+    assert pong["message"].startswith("pong!")
+    await followers.wait()
+    assert not followers
+
+
+async def test_a_chat_ends_as_the_bot_stops(
+    chat: Recent, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    chat.followers = followers = Followers()
+    Typing(monkeypatch)
+    output = chat_cli.Output()
+    talking = asyncio.create_task(asyncio.to_thread(chat_cli.connected, output, [1]))
+    await followers.wait()
+    await terminal.listener.stop()
+    with pytest.raises(Refused, match="The bot has stopped"):
+        await talking
+
+
+@pytest.mark.usefixtures("chat")
+async def test_a_chat_with_no_such_chat() -> None:
+    with pytest.raises(Refused, match="There's no chat 4"):
+        await asyncio.to_thread(chat_cli.connected, chat_cli.Output(), [4])

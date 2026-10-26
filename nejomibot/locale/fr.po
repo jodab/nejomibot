@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:35+0200\n"
+"POT-Creation-Date: 2026-10-26 19:31+0200\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -3012,29 +3012,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/selfpromote.py
-#, python-brace-format
-msgid ""
-"Every morning it can post the day's holidays, birthdays and name days, the "
-"weather, and a photo from your own photo library. During the day, it answers "
-"commands for photos, the weather, reminders, shared lists and timers, in "
-"{count} languages."
-msgstr ""
-"Chaque matin, il peut publier les jours fériés, anniversaires et fêtes du "
-"jour, la météo et une photo de votre propre photothèque. Dans la journée, il "
-"répond aux commandes pour les photos, la météo, les rappels, les listes "
-"partagées et les minuteurs, en {count} langues."
-
-#: nejomibot/selfpromote.py
-msgid ""
-"It runs on your own server, as a container under Podman or Docker, on x86 "
-"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
-"source, under the MIT license, and its code is written by AI, under its "
-"maintainer's guidance."
-msgstr ""
-"Il fonctionne sur votre propre serveur, en conteneur sous Podman ou Docker, "
-"sur x86 et ARM, Raspberry Pi compris, avec moins de 100 Mo de mémoire. Il "
-"est open source, sous licence MIT, et son code est écrit par une IA, sous la "
-"direction de son mainteneur."
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, un bot Signal pour la famille et les amis"
 
 #: nejomibot/selfpromote.py
 #, python-brace-format
@@ -3045,10 +3024,6 @@ msgstr "Code source et documentation : {url}"
 #, python-brace-format
 msgid "Container image: {url}"
 msgstr "Image de conteneur : {url}"
-
-#: nejomibot/selfpromote.py
-msgid "nejomibot, a Signal bot for family and friends"
-msgstr "nejomibot, un bot Signal pour la famille et les amis"
 
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with ., ! or /, like /morning."

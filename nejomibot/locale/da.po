@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:35+0200\n"
+"POT-Creation-Date: 2026-10-26 19:31+0200\n"
 "Language-Team: Danish\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -2942,29 +2942,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/selfpromote.py
-#, python-brace-format
-msgid ""
-"Every morning it can post the day's holidays, birthdays and name days, the "
-"weather, and a photo from your own photo library. During the day, it answers "
-"commands for photos, the weather, reminders, shared lists and timers, in "
-"{count} languages."
-msgstr ""
-"Hver morgen kan den poste dagens helligdage, fødselsdage og navnedage, "
-"vejret og et foto fra dit eget fotobibliotek. I løbet af dagen svarer den på "
-"kommandoer for fotos, vejret, påmindelser, delte lister og timere, på "
-"{count} sprog."
-
-#: nejomibot/selfpromote.py
-msgid ""
-"It runs on your own server, as a container under Podman or Docker, on x86 "
-"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
-"source, under the MIT license, and its code is written by AI, under its "
-"maintainer's guidance."
-msgstr ""
-"Den kører på din egen server, som en container under Podman eller Docker, på "
-"x86 og ARM, også på en Raspberry Pi, med under 100 MB hukommelse. Den er "
-"open source, under MIT-licensen, og dens kode skrives af AI under vejledning "
-"af dens vedligeholder."
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, en Signal-bot til familie og venner"
 
 #: nejomibot/selfpromote.py
 #, python-brace-format
@@ -2975,10 +2954,6 @@ msgstr "Kildekode og dokumentation: {url}"
 #, python-brace-format
 msgid "Container image: {url}"
 msgstr "Container-image: {url}"
-
-#: nejomibot/selfpromote.py
-msgid "nejomibot, a Signal bot for family and friends"
-msgstr "nejomibot, en Signal-bot til familie og venner"
 
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with ., ! or /, like /morning."

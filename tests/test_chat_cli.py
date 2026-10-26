@@ -2,7 +2,7 @@ import base64
 import io
 import sys
 import tarfile
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -207,6 +207,71 @@ def test_files_alone(monkeypatch: pytest.MonkeyPatch) -> None:
     assert talks.sent == [("/msg 3", [File("", JPEG)])]
 
 
+class Terminal(io.StringIO):
+    """A terminal, as standard input or output."""
+
+    def isatty(self) -> bool:
+        return True
+
+
+def test_a_chat_with_chats_in_a_terminal(monkeypatch: pytest.MonkeyPatch) -> None:
+    chats: list[list[int]] = []
+
+    def connected(output: Output, wanted: list[int]) -> None:
+        chats.append(wanted)
+
+    monkeypatch.setattr(chat_cli, "connected", connected)
+    monkeypatch.setattr(sys, "stdin", Terminal())
+    run(monkeypatch, "--to", "1,3")
+    assert chats == [[1, 3]]
+
+
+def test_files_to_chats_from_a_terminal(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # With files, the terminal gives the one message to post with them
+    talks = Talks(monkeypatch)
+    photo = tmp_path / "a.jpg"
+    photo.write_bytes(JPEG)
+    monkeypatch.setattr(sys, "stdin", Terminal("Look!\n"))
+    run(monkeypatch, "-a", str(photo), "--to", "1")
+    assert talks.sent == [("/msg 1 Look!", [File("a.jpg", JPEG)])]
+
+
+def test_recent_in_some_chats(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    asked: list[dict[str, Any]] = []
+
+    def exchange(
+        request: dict[str, Any], files: Sequence[File] = (), timeout: float | None = 0
+    ) -> Iterator[dict[str, Any]]:
+        asked.append(request)
+        yield {"chats": [{"name": "Familjen", "group": True}], "recent": 1}
+        yield received()
+
+    monkeypatch.setattr(chat_cli, "exchange", exchange)
+    run(monkeypatch, "--recent", "5", "--to", "1")
+    assert asked == [{"recent": 5, "follow": False, "files": False, "chats": [1]}]
+    # Without the chats' names, which only a chat with them shows
+    assert capsys.readouterr().out == Output().text_of(received()) + "\n"
+
+
+def test_shown_above_the_line_being_typed(monkeypatch: pytest.MonkeyPatch) -> None:
+    screen = chat_cli.Screen()
+    screen.line = lambda: "Dinner at"
+    screen.prompt, screen.typing = "> ", True
+    shown = Terminal()
+    monkeypatch.setattr(sys, "stdout", shown)
+    screen.show("Alice: Hej!")
+    # Over the prompt's line, then the prompt and what's typed again
+    assert shown.getvalue() == "\r\x1b[KAlice: Hej!\n> Dinner at"
+    screen.typing = False
+    screen.show("Bob: Hi")
+    assert shown.getvalue().endswith("> Dinner atBob: Hi\n")
+    screen.close()
+
+
 def test_no_message(monkeypatch: pytest.MonkeyPatch) -> None:
     Talks(monkeypatch)
     stdin(monkeypatch, b"\n")
@@ -219,6 +284,7 @@ def test_no_message(monkeypatch: pytest.MonkeyPatch) -> None:
     [
         ["--recent", "5", "/ping"],
         ["--follow", "-a", "x.jpg"],
+        ["--follow", "--to", "1,x"],
         ["--to", "1, 2", "Hi"],
         ["--to", "Alice", "Hi"],
         ["-a", "-", "-a", "-", "/msg 1"],

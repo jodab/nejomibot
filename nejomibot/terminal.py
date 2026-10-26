@@ -11,12 +11,16 @@ go back to the terminal, rather than to Signal; everything else is as in the
 direct chat: what posts elsewhere, as /msg, /run and /remind, posts there,
 and the lists that number things, as /incoming, number them for the admin.
 No read receipt or typing goes to Signal, as no message came from there.
+A message for some of /chats' chats, from a chat with them in the terminal,
+runs its command there, as /run does, if it starts with one, and posts
+there, as /msg does, if it doesn't.
 
 The bot keeps the 100 latest messages it receives, in every chat, the
 admins' and the groups' too, in memory only, as /incoming keeps its own: an
 edit replaces the message it edits, and one deleted for everyone, or that
 disappears, goes. nejomibot-chat lists them (--recent), and hears of each
-new one while it follows them (--follow). With received_attachments, each
+new one while it follows them (--follow), of every chat or of some of
+/chats' alone, which a chat with them shows. With received_attachments, each
 also keeps where signal-cli keeps its attachments, not the files, which
 --save fetches, up to 25 MB each.
 
@@ -37,17 +41,19 @@ import os
 import re
 import socket
 import struct
+from collections.abc import Callable
 from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 from signalbot import Attachment, DataMessage, SendMessage, SignalBot, TextMode
 
 from . import access, chat_cli, rest
+from .commands import canonical, known
 from .config import get_settings
 from .incoming import File, Inbox, Received
 from .messages import EXPECTED, describe, for_chat, to_terminal
 from .styles import MENTION, STYLES, escape, styles_of, typed, unmarked
-from .timers import made_up, timekeeper
+from .timers import Chat, chats_numbered, made_up, timekeeper
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +90,8 @@ class Attached(BaseModel):
 class Request(BaseModel):
     """What nejomibot-chat asks, on the first line it sends: the bot's answers
     to a message, with the files attached to it; or the messages the bot
-    received, the latest of them, those to come, or both."""
+    received, the latest of them, those to come, or both. With chats, numbers
+    from /chats, the message is for those chats, and only theirs come."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -93,6 +100,7 @@ class Request(BaseModel):
     recent: Annotated[int, Field(ge=1)] | None = None
     follow: bool = False
     files: bool = False  # the received messages' files too, where kept
+    chats: list[Annotated[int, Field(ge=1)]] = []
 
 
 class Recent(Inbox):
@@ -242,6 +250,15 @@ def attachment(attached: Attached, data: bytes) -> Attachment:
     )
 
 
+def for_chats(text: str, chats: list[int]) -> str:
+    """A message for chats of /chats, as the direct chat takes it: its command
+    run there, as /run does, if it starts with one, else posted there, as
+    /msg does."""
+    numbers = ",".join(map(str, chats))
+    command = "/run" if known(canonical(text.strip())) else "/msg"
+    return f"{command} {numbers} {text}"
+
+
 async def answers_to(
     bot: SignalBot, request: Request, reader: asyncio.StreamReader
 ) -> list[dict[str, Any]]:
@@ -253,7 +270,8 @@ async def answers_to(
         attachment(each, await reader.readexactly(each.size))
         for each in request.attachments
     ]
-    text, styles = typed(request.text)
+    sent = for_chats(request.text, request.chats) if request.chats else request.text
+    text, styles = typed(sent)
     message = made_up(text, attachments=attachments or None, styles=styles or None)
     answers: list[SendMessage] = []
     token = to_terminal.set(answers)
@@ -268,6 +286,23 @@ async def answers_to(
     return [answer_of(each, names) for each in sent]
 
 
+def in_chats(chats: list[Chat] | None) -> Callable[[Received], bool]:
+    """Whether a message the bot received is one to show: any, without chats;
+    else one in the chats, a group, or a direct chat with a person, by their
+    Signal ID or number, as access.sent_by has them."""
+
+    def wanted(received: Received) -> bool:
+        if chats is None:
+            return True
+        if received.chat:
+            return any(received.chat == chat_id for chat_id, _name in chats)
+        return any(
+            chat_id in (received.sender, received.number) for chat_id, _name in chats
+        )
+
+    return wanted
+
+
 async def received(
     bot: SignalBot,
     request: Request,
@@ -276,18 +311,32 @@ async def received(
 ) -> None:
     """The latest messages the bot received, as many as asked for, oldest
     first; then, to follow them, each as it comes, until nejomibot-chat
-    goes."""
+    goes. For some of /chats' chats, only theirs, after the chats' names and
+    how many of the latest come. Raises Refused."""
+    chats: list[Chat] | None = None
+    if request.chats:
+        if isinstance(found := await chats_numbered(bot, request.chats), str):
+            raise Refused(found)
+        chats = found
+    wanted = in_chats(chats)
     names = await access.names(bot)
     queue: asyncio.Queue[Received] = asyncio.Queue(BEHIND)
     # Both at once, so that none comes in between
-    latest = recent.latest()[: request.recent or 0][::-1]
+    latest = [each for each in recent.latest() if wanted(each)]
+    latest = latest[: request.recent or 0][::-1]
     if request.follow:
         recent.followers.add(queue)
     try:
+        if chats is not None:
+            those = [
+                {"name": name, "group": access.is_group(chat_id)}
+                for chat_id, name in chats
+            ]
+            await say(writer, {"chats": those, "recent": len(latest)})
         for each in latest:
             await say(writer, await entry_of(each, names, request.files))
         if request.follow:
-            await follow(queue, names, request.files, reader, writer)
+            await follow(queue, names, request.files, reader, writer, wanted)
     finally:
         recent.followers.discard(queue)
 
@@ -298,9 +347,10 @@ async def follow(
     fetch: bool,
     reader: asyncio.StreamReader,
     writer: asyncio.StreamWriter,
+    wanted: Callable[[Received], bool],
 ) -> None:
-    """Send each message the queue gets, until nejomibot-chat goes, as it
-    sends nothing more until then."""
+    """Send each wanted message the queue gets, until nejomibot-chat goes, as
+    it sends nothing more until then."""
     gone = asyncio.create_task(reader.read(1))
     try:
         while True:
@@ -309,7 +359,8 @@ async def follow(
             if not got.done():
                 got.cancel()
                 return
-            await say(writer, await entry_of(got.result(), names, fetch))
+            if wanted(got.result()):
+                await say(writer, await entry_of(got.result(), names, fetch))
     finally:
         gone.cancel()
 

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:35+0200\n"
+"POT-Creation-Date: 2026-10-26 19:31+0200\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -2999,30 +2999,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/selfpromote.py
-#, python-brace-format
-msgid ""
-"Every morning it can post the day's holidays, birthdays and name days, the "
-"weather, and a photo from your own photo library. During the day, it answers "
-"commands for photos, the weather, reminders, shared lists and timers, in "
-"{count} languages."
-msgstr ""
-"Κάθε πρωί μπορεί να δημοσιεύει τις αργίες, τα γενέθλια και τις ονομαστικές "
-"γιορτές της ημέρας, τον καιρό και μια φωτογραφία από τη δική σας φωτογραφική "
-"συλλογή. Κατά τη διάρκεια της ημέρας απαντά σε εντολές για φωτογραφίες, τον "
-"καιρό, υπενθυμίσεις, κοινόχρηστες λίστες και χρονοδιακόπτες, σε {count} "
-"γλώσσες."
-
-#: nejomibot/selfpromote.py
-msgid ""
-"It runs on your own server, as a container under Podman or Docker, on x86 "
-"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
-"source, under the MIT license, and its code is written by AI, under its "
-"maintainer's guidance."
-msgstr ""
-"Λειτουργεί στον δικό σας διακομιστή, ως container στο Podman ή στο Docker, "
-"σε x86 και ARM, ακόμη και σε Raspberry Pi, με λιγότερα από 100 MB μνήμης. "
-"Είναι ανοιχτού κώδικα, με άδεια MIT, και ο κώδικάς του γράφεται από τεχνητή "
-"νοημοσύνη, υπό την καθοδήγηση του συντηρητή του."
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, ένα bot του Signal για οικογένεια και φίλους"
 
 #: nejomibot/selfpromote.py
 #, python-brace-format
@@ -3033,10 +3011,6 @@ msgstr "Πηγαίος κώδικας και τεκμηρίωση: {url}"
 #, python-brace-format
 msgid "Container image: {url}"
 msgstr "Container image: {url}"
-
-#: nejomibot/selfpromote.py
-msgid "nejomibot, a Signal bot for family and friends"
-msgstr "nejomibot, ένα bot του Signal για οικογένεια και φίλους"
 
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with ., ! or /, like /morning."

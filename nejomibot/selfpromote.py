@@ -1,7 +1,7 @@
-"""/selfpromote, for the admins: the bot itself, in a few serious words, under
-its social preview picture: what it does, how it runs, and where its code
-and container image are. In a direct chat it comes to the admin, to forward;
-/run 1 /selfpromote posts it to chat 1 of /chats, as a timer can.
+"""/selfpromote, for the admins: the bot by name, and where its code and its
+container image are, on GitHub and Docker Hub, under its social preview
+picture. In a direct chat it comes to the admin, to forward; /run 1
+/selfpromote posts it to chat 1 of /chats, as a timer can.
 """
 
 import base64
@@ -10,7 +10,7 @@ from importlib.resources import files
 from signalbot import DataMessageContext, SendMessage, TextMode
 
 from .commands import Command, Handler, answer
-from .i18n import _, languages
+from .i18n import _
 from .messages import escape
 
 REPOSITORY = "https://github.com/jodab/nejomibot"
@@ -21,31 +21,17 @@ PICTURE = "social-preview.png"
 
 
 def promotion() -> SendMessage:
-    """The bot, in a few words, under its picture. Styled."""
+    """The bot by name, and its links, under its picture. Styled."""
     picture = files(__package__).joinpath(PICTURE).read_bytes()
     encoded = base64.b64encode(picture).decode()
-    paragraphs = [
-        _(
-            "Every morning it can post the day's holidays, birthdays and name "
-            "days, the weather, and a photo from your own photo library. During "
-            "the day, it answers commands for photos, the weather, reminders, "
-            "shared lists and timers, in {count} languages."
-        ).format(count=len(languages())),
-        _(
-            "It runs on your own server, as a container under Podman or Docker, "
-            "on x86 and ARM, a Raspberry Pi included, in less than 100 MB of "
-            "memory. It is open source, under the MIT license, and its code is "
-            "written by AI, under its maintainer's guidance."
-        ),
-        "\n".join(
-            [
-                _("Source code and documentation: {url}").format(url=REPOSITORY),
-                _("Container image: {url}").format(url=IMAGE),
-            ]
-        ),
-    ]
     title = _("nejomibot, a Signal bot for family and friends")
-    text = "\n\n".join([f"**{escape(title)}**", *map(escape, paragraphs)])
+    links = "\n".join(
+        [
+            _("Source code and documentation: {url}").format(url=REPOSITORY),
+            _("Container image: {url}").format(url=IMAGE),
+        ]
+    )
+    text = f"**{escape(title)}**\n\n{escape(links)}"
     return SendMessage(
         text=text,
         text_mode=TextMode.STYLED,

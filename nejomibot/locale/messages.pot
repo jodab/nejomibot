@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:35+0200\n"
+"POT-Creation-Date: 2026-10-26 19:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2644,20 +2644,7 @@ msgid "⏰ {text}"
 msgstr ""
 
 #: nejomibot/selfpromote.py
-#, python-brace-format
-msgid ""
-"Every morning it can post the day's holidays, birthdays and name days, the "
-"weather, and a photo from your own photo library. During the day, it answers "
-"commands for photos, the weather, reminders, shared lists and timers, in "
-"{count} languages."
-msgstr ""
-
-#: nejomibot/selfpromote.py
-msgid ""
-"It runs on your own server, as a container under Podman or Docker, on x86 "
-"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
-"source, under the MIT license, and its code is written by AI, under its "
-"maintainer's guidance."
+msgid "nejomibot, a Signal bot for family and friends"
 msgstr ""
 
 #: nejomibot/selfpromote.py
@@ -2668,10 +2655,6 @@ msgstr ""
 #: nejomibot/selfpromote.py
 #, python-brace-format
 msgid "Container image: {url}"
-msgstr ""
-
-#: nejomibot/selfpromote.py
-msgid "nejomibot, a Signal bot for family and friends"
 msgstr ""
 
 #: nejomibot/specials.py

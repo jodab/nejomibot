@@ -4,6 +4,26 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- A chat with a group or a person, in the terminal, as the bot:
+  `podman exec -it nejomibot nejomibot-chat --to 1` posts each line you
+  type to chat 1 of `/chats`, as `/msg` does, or runs its command there, as
+  `/run` does, if it starts with one, and shows what is sent there as it
+  arrives, above the line you're typing, after the latest ten messages.
+  Ctrl-D ends it. `--recent` and `--follow` take `--to` too, for those
+  chats' messages alone. See "A chat with a group or a person" in the
+  README.
+
+### Changed
+
+- `nejomibot-chat --to` in a terminal, with no message and no files, is
+  that chat; it asked for one message before, as it still does with files.
+- `/selfpromote` is short: the bot's name, and links to its source code on
+  GitHub and its image on Docker Hub, under its picture.
+
 ## 0.99.34 - 2026-10-26
 
 ### Updating

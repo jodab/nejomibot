@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:35+0200\n"
+"POT-Creation-Date: 2026-10-26 19:31+0200\n"
 "Language-Team: German\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -2996,29 +2996,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/selfpromote.py
-#, python-brace-format
-msgid ""
-"Every morning it can post the day's holidays, birthdays and name days, the "
-"weather, and a photo from your own photo library. During the day, it answers "
-"commands for photos, the weather, reminders, shared lists and timers, in "
-"{count} languages."
-msgstr ""
-"Jeden Morgen kann er die Feiertage, Geburtstage und Namenstage des Tages, "
-"das Wetter und ein Foto aus deiner eigenen Fotobibliothek posten. Im Lauf "
-"des Tages beantwortet er Befehle für Fotos, das Wetter, Erinnerungen, "
-"gemeinsame Listen und Timer, in {count} Sprachen."
-
-#: nejomibot/selfpromote.py
-msgid ""
-"It runs on your own server, as a container under Podman or Docker, on x86 "
-"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
-"source, under the MIT license, and its code is written by AI, under its "
-"maintainer's guidance."
-msgstr ""
-"Er läuft auf deinem eigenen Server, als Container unter Podman oder Docker, "
-"auf x86 und ARM, auch auf einem Raspberry Pi, mit weniger als 100 MB "
-"Arbeitsspeicher. Er ist Open Source, unter der MIT-Lizenz, und sein Code "
-"wird von einer KI geschrieben, unter Anleitung seines Maintainers."
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, ein Signal-Bot für Familie und Freunde"
 
 #: nejomibot/selfpromote.py
 #, python-brace-format
@@ -3029,10 +3008,6 @@ msgstr "Quellcode und Dokumentation: {url}"
 #, python-brace-format
 msgid "Container image: {url}"
 msgstr "Container-Image: {url}"
-
-#: nejomibot/selfpromote.py
-msgid "nejomibot, a Signal bot for family and friends"
-msgstr "nejomibot, ein Signal-Bot für Familie und Freunde"
 
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with ., ! or /, like /morning."

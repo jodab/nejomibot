@@ -6,7 +6,6 @@ import pytest
 from helpers import ALICE, message_from
 from signalbot import DataMessageContext, SendMessage, SignalBot, TextMode
 
-from nejomibot.i18n import languages
 from nejomibot.selfpromote import IMAGE, REPOSITORY, SelfPromote
 from nejomibot.styles import unmarked
 from nejomibot.timers import check_commands
@@ -22,18 +21,16 @@ async def promoted(text: str, answers: list[SendMessage]) -> SendMessage:
     return answer
 
 
-async def test_the_bot_in_a_few_words(answers: list[SendMessage]) -> None:
+async def test_the_bot_by_name_and_its_links(answers: list[SendMessage]) -> None:
     answer = await promoted("/selfpromote", answers)
     assert answer.text_mode == TextMode.STYLED
     text, styles = unmarked(answer.text or "")
     title = "nejomibot, a Signal bot for family and friends"
-    assert text.startswith(f"{title}\n\nEvery morning it can post the day's holidays")
-    assert [(s.start, s.length, s.style) for s in styles] == [(0, len(title), "BOLD")]
-    assert f"in {len(languages())} languages." in text
-    assert "under Podman or Docker" in text
-    assert text.endswith(
+    assert text == (
+        f"{title}\n\n"
         f"Source code and documentation: {REPOSITORY}\nContainer image: {IMAGE}"
     )
+    assert [(s.start, s.length, s.style) for s in styles] == [(0, len(title), "BOLD")]
     # Under the picture GitHub shows for the repository
     [picture] = answer.base64_attachments or []
     header, _comma, data = picture.partition(",")

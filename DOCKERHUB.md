@@ -312,8 +312,9 @@ That's it: the bot is up and running. 🎉
   nejomibot-chat` lets you use the bot as in your direct chat with it, with
   the answers in the terminal. `docker compose exec -T nejomibot
   nejomibot-chat -a - "/msg 1 Look!" < photo.jpg` posts a photo to chat 1
-  of `/chats`, and `--follow` shows the messages the bot receives, in every
-  chat; see
+  of `/chats`, `docker compose exec nejomibot nejomibot-chat --to 1` is a
+  chat with chat 1, as the bot, and `--follow` shows the messages the bot
+  receives, in every chat; see
   [the README](https://github.com/jodab/nejomibot#the-bot-from-a-terminal).
 - **A shell in the container:** `docker compose exec nejomibot sh`, or
   `bash`, starts with a short guide to the bot's tools, such as

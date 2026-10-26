@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:35+0200\n"
+"POT-Creation-Date: 2026-10-26 19:31+0200\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -2965,29 +2965,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/selfpromote.py
-#, python-brace-format
-msgid ""
-"Every morning it can post the day's holidays, birthdays and name days, the "
-"weather, and a photo from your own photo library. During the day, it answers "
-"commands for photos, the weather, reminders, shared lists and timers, in "
-"{count} languages."
-msgstr ""
-"Joka aamu se voi julkaista päivän juhlapäivät, syntymäpäivät ja nimipäivät, "
-"sään sekä kuvan omasta kuvakirjastostasi. Päivän mittaan se vastaa "
-"komentoihin kuvista, säästä, muistutuksista, jaetuista listoista ja "
-"ajastimista, {count} kielellä."
-
-#: nejomibot/selfpromote.py
-msgid ""
-"It runs on your own server, as a container under Podman or Docker, on x86 "
-"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
-"source, under the MIT license, and its code is written by AI, under its "
-"maintainer's guidance."
-msgstr ""
-"Se toimii omalla palvelimellasi konttina Podmanissa tai Dockerissa, x86- ja "
-"ARM-laitteilla, myös Raspberry Pi:llä, alle 100 Mt:n muistilla. Se on "
-"avointa lähdekoodia MIT-lisenssillä, ja sen koodin kirjoittaa tekoäly "
-"ylläpitäjänsä ohjauksessa."
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, Signal-botti perheelle ja ystäville"
 
 #: nejomibot/selfpromote.py
 #, python-brace-format
@@ -2998,10 +2977,6 @@ msgstr "Lähdekoodi ja dokumentaatio: {url}"
 #, python-brace-format
 msgid "Container image: {url}"
 msgstr "Konttikuva: {url}"
-
-#: nejomibot/selfpromote.py
-msgid "nejomibot, a Signal bot for family and friends"
-msgstr "nejomibot, Signal-botti perheelle ja ystäville"
 
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with ., ! or /, like /morning."

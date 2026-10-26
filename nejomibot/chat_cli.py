@@ -2,6 +2,7 @@
 direct chat with the bot. In the bot's container:
 
   podman exec -it nejomibot nejomibot-chat                 a chat
+  podman exec -it nejomibot nejomibot-chat --to 1          a chat with chat 1
   podman exec nejomibot nejomibot-chat /weather Helsinki   one message
   echo "/msg 1 Dinner at six" | podman exec -i nejomibot nejomibot-chat
   podman exec -i nejomibot nejomibot-chat -a - /avatar < logo.png
@@ -19,11 +20,15 @@ on in the next. Marks around words format them, as **bold**, *italic*,
 start and close at its end; a \\ keeps one as typed (styles.typed()). -a
 attaches a file, or with -, standard input: a file, or the files in a tar
 archive, 25 MB together at most. --to CHATS posts the message to chats from
-/chats, as /msg does, and needs no text for files.
+/chats, as /msg does, and needs no text for files. Without a message, in a
+terminal, it's a chat with them, as the bot: a line posts there, or runs
+its command there, as /run does, and what they send shows as it comes,
+above the line being typed, after the latest ten.
 
 --recent and --follow show the messages the bot has received, in every
-chat. --json prints what the bot says as JSON, an object a line, for
-scripts, and --save DIR saves the files in it to DIR.
+chat, or with --to, in those chats. --json prints what the bot says as
+JSON, an object a line, for scripts, and --save DIR saves the files in it to
+DIR.
 
 It talks to the bot over a Unix socket in Linux's abstract namespace, as
 nejomibot-healthcheck does, which the bot answers only for its own user and
@@ -34,14 +39,17 @@ import argparse
 import base64
 import contextlib
 import io
+import itertools
 import json
 import mimetypes
 import os
 import re
+import signal
 import socket
 import sys
 import tempfile
-from collections.abc import Generator, Sequence
+import threading
+from collections.abc import Callable, Generator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -55,6 +63,8 @@ SOCKET = "\0nejomibot-chat"
 MAX_ATTACHED = 25_000_000  # bytes
 # The messages the bot keeps for --recent: the latest it received
 RECENT = 100
+# How many of their latest a chat with chats starts with
+HISTORY = 10
 CONNECT_TIMEOUT = 5  # seconds
 # Seconds to wait for the answers: /msg with a video to several chats takes
 # a while, and a bot that takes longer is stuck
@@ -83,6 +93,7 @@ ANSI = {"BOLD": "1", "ITALIC": "3", "STRIKETHROUGH": "9", "SPOILER": "7"}
 EXAMPLES = """\
 examples, from the host:
   podman exec -it nejomibot nejomibot-chat               a chat
+  podman exec -it nejomibot nejomibot-chat --to 1        a chat with chat 1 of /chats
   podman exec nejomibot nejomibot-chat /weather Helsinki
   echo "/msg 1 Dinner at six" | podman exec -i nejomibot nejomibot-chat
   podman exec -i nejomibot nejomibot-chat -a - /avatar < logo.png
@@ -173,15 +184,19 @@ def exchange(
     request: dict[str, Any],
     files: Sequence[File] = (),
     timeout: float | None = ANSWER_TIMEOUT,
+    opened: Callable[[socket.socket], object] | None = None,
 ) -> Generator[dict[str, Any]]:
     """Ask the bot, sending the files after the request, and yield what it
     says, an object each. Raises Refused. Once it has sent them, it says it
     has, by closing its side of the connection; but to follow messages, it
-    keeps it open, so the bot sees when it goes."""
+    keeps it open, so the bot sees when it goes. opened gets the connection,
+    as it opens, to end it from elsewhere."""
     try:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
             connection.settimeout(CONNECT_TIMEOUT)
             connection.connect(SOCKET)
+            if opened is not None:
+                opened(connection)
             connection.settimeout(timeout)
             connection.sendall(json.dumps(request).encode() + b"\n")
             for file in files:
@@ -222,12 +237,15 @@ class Output:
     styled: bool = False
 
     def show(self, said: dict[str, Any]) -> None:
+        print(self.shown(said), flush=True)
+
+    def shown(self, said: dict[str, Any]) -> str:
+        """What the bot said, as shown: its files saved first, if wanted."""
         for file in said.get("files", []):
             self.keep(file)
         if self.json:
-            print(json.dumps(said, ensure_ascii=False), flush=True)
-        else:
-            print(self.text_of(said), flush=True)
+            return json.dumps(said, ensure_ascii=False)
+        return self.text_of(said)
 
     def keep(self, file: dict[str, Any]) -> None:
         """Save the file, if it came with its contents and a folder is given,
@@ -311,13 +329,13 @@ def talk(output: Output, text: str, files: Sequence[File] = ()) -> None:
         print("No answer.", file=sys.stderr)
 
 
-def read_message() -> str:
+def read_message(read: Callable[[str], str] = input) -> str:
     """A message typed in the terminal: a line, and the next, too, while one
     ends in a \\. Raises EOFError at the end."""
-    lines = [input("> ")]
+    lines = [read("> ")]
     while lines[-1].endswith("\\"):
         lines[-1] = lines[-1][:-1]
-        lines.append(input("... "))
+        lines.append(read("... "))
     return "\n".join(lines)
 
 
@@ -340,13 +358,146 @@ def chat(output: Output) -> None:
                 print(f"nejomibot-chat: {e}", file=sys.stderr)
 
 
-def received(output: Output, recent: int | None, follow: bool) -> None:
+class Screen:
+    """A terminal where messages come as one types: each shows above the line
+    being typed, which then shows again as it was."""
+
+    def __init__(self) -> None:
+        self.lock = threading.Lock()
+        self.prompt = ""
+        self.typing = False  # whether the prompt is shown, and a line read
+        self.hook: Callable[..., object] | None = None
+        try:
+            import readline  # line editing and history, as in a shell
+        except ImportError:
+            self.line: Callable[[], str] = lambda: ""
+        else:
+            self.line = readline.get_line_buffer
+            # Told the prompt is shown, where readline calls the hook for it:
+            # GNU readline does, as the image's Python has it; editline, as
+            # uv's has, doesn't
+            if readline.backend == "readline":
+                self.hook = readline.set_pre_input_hook
+                self.hook(self.started)
+
+    def close(self) -> None:
+        """No longer told of prompts."""
+        if self.hook is not None:
+            self.hook()
+
+    def read(self, prompt: str) -> str:
+        """A line typed after the prompt. Raises EOFError at the end."""
+        with self.lock:
+            self.prompt = prompt
+            self.typing = self.hook is None  # as good as shown, without it
+        try:
+            return input(prompt)
+        finally:
+            with self.lock:
+                self.typing = False
+
+    def started(self) -> None:
+        with self.lock:
+            self.typing = True
+
+    def show(self, text: str, error: bool = False) -> None:
+        """Show the text, above the line being typed, if one is."""
+        with self.lock:
+            redrawn = self.typing and sys.stdout.isatty()
+            if redrawn:
+                sys.stdout.write("\r\x1b[K")  # from the start of the prompt's line
+                sys.stdout.flush()
+            print(text, file=sys.stderr if error else sys.stdout, flush=True)
+            if redrawn:
+                sys.stdout.write(self.prompt + self.line())
+                sys.stdout.flush()
+
+
+def connected(output: Output, chats: list[int]) -> None:
+    """A chat in the terminal with chats of /chats, as the bot, until Ctrl-D:
+    a line goes to them, posted, or its command run there (terminal.py), and
+    what they send shows as it comes, after the latest of it. Raises
+    Refused, also once the bot stops."""
+    opened: list[socket.socket] = []
+    request = {
+        "recent": HISTORY,
+        "follow": True,
+        "files": output.save is not None,
+        "chats": chats,
+    }
+    following = exchange(request, timeout=None, opened=opened.append)
+    if (header := next(following, None)) is None:
+        raise Refused("The bot has stopped.")
+    names = ", ".join(
+        f"{'👥' if each['group'] else '👤'} {each['name']}" for each in header["chats"]
+    )
+    print(f"A chat with {names}, as the bot. Ctrl-D ends it.", file=sys.stderr)
+    for said in itertools.islice(following, header["recent"]):
+        output.show(said)
+    screen = Screen()
+    main = threading.get_ident()
+    gone: list[str] = []  # why the chat ended, where the bot ended it
+    leaving = threading.Event()
+
+    def hear() -> None:
+        """Show what the chats send, until the chat ends, or the bot ends it,
+        which then ends the line being read too."""
+        try:
+            for said in following:
+                screen.show(output.shown(said))
+            gone.append("The bot has stopped.")
+        except Refused as e:
+            gone.append(str(e))
+        if not leaving.is_set():
+            signal.pthread_kill(main, signal.SIGINT)
+
+    hearing = threading.Thread(target=hear, daemon=True)
+    hearing.start()
+    try:
+        while True:
+            try:
+                text = read_message(screen.read)
+            except EOFError:
+                print(file=sys.stderr)
+                return
+            if not text.strip():
+                continue
+            try:
+                for said in exchange({"text": text, "chats": chats}):
+                    screen.show(output.shown(said))
+            except Refused as e:
+                screen.show(f"nejomibot-chat: {e}", error=True)
+    except KeyboardInterrupt:
+        if gone:
+            print(file=sys.stderr)  # after the line it ended
+            raise Refused(gone[0]) from None
+        raise
+    finally:
+        leaving.set()
+        for connection in opened:
+            with contextlib.suppress(OSError):
+                connection.shutdown(socket.SHUT_RDWR)
+        hearing.join(5)
+        screen.close()
+
+
+def received(
+    output: Output, recent: int | None, follow: bool, chats: Sequence[int] = ()
+) -> None:
     """The latest messages the bot received, oldest first, then, to follow
-    them, each as it comes. Raises Refused, also once the bot stops, while
-    following."""
-    request = {"recent": recent, "follow": follow, "files": output.save is not None}
+    them, each as it comes; in some of /chats' chats alone, if given. Raises
+    Refused, also once the bot stops, while following."""
+    request: dict[str, Any] = {
+        "recent": recent,
+        "follow": follow,
+        "files": output.save is not None,
+    }
+    if chats:
+        request["chats"] = list(chats)
     shown = False
     for said in exchange(request, timeout=None if follow else ANSWER_TIMEOUT):
+        if "chats" in said:  # their names, which a chat with them shows
+            continue
         output.show(said)
         shown = True
     if follow:
@@ -397,7 +548,8 @@ def arguments() -> argparse.Namespace:
         "--to",
         metavar="CHATS",
         help="post the message to these chats, numbers from /chats such as "
-        "1,2, as /msg does",
+        "1,2, as /msg does; without one, in a terminal, a chat with them; with "
+        "--recent and --follow, only their messages",
     )
     parser.add_argument(
         "-r",
@@ -427,7 +579,7 @@ def arguments() -> argparse.Namespace:
         help="save the files in what the bot says to DIR",
     )
     args = parser.parse_args()
-    if (args.recent or args.follow) and (args.message or args.attach or args.to):
+    if (args.recent or args.follow) and (args.message or args.attach):
         parser.error("--recent and --follow take no message")
     if args.to is not None and not CHATS.match(args.to):
         parser.error("--to takes numbers from /chats, such as 1,2")
@@ -438,14 +590,18 @@ def arguments() -> argparse.Namespace:
 
 def run(args: argparse.Namespace, output: Output) -> None:
     """Raises Refused."""
+    chats = [int(n) for n in args.to.split(",")] if args.to else []
     if args.recent or args.follow:
-        received(output, args.recent, args.follow)
+        received(output, args.recent, args.follow, chats)
         return
     files = read_files(args.attach)
     text = " ".join(args.message)
     if not text and "-" not in args.attach:
         if not sys.stdin.isatty():
             text = sys.stdin.read()
+        elif chats and not files:
+            connected(output, chats)
+            return
         elif args.to:
             print("Type the message, then Ctrl-D.", file=sys.stderr)
             text = sys.stdin.read()

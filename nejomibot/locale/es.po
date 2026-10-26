@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:35+0200\n"
+"POT-Creation-Date: 2026-10-26 19:31+0200\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -2959,29 +2959,8 @@ msgid "⏰ {text}"
 msgstr "⏰ {text}"
 
 #: nejomibot/selfpromote.py
-#, python-brace-format
-msgid ""
-"Every morning it can post the day's holidays, birthdays and name days, the "
-"weather, and a photo from your own photo library. During the day, it answers "
-"commands for photos, the weather, reminders, shared lists and timers, in "
-"{count} languages."
-msgstr ""
-"Cada mañana puede publicar los festivos, cumpleaños y santos del día, el "
-"tiempo y una foto de tu propia fototeca. Durante el día responde a comandos "
-"de fotos, el tiempo, recordatorios, listas compartidas y temporizadores, en "
-"{count} idiomas."
-
-#: nejomibot/selfpromote.py
-msgid ""
-"It runs on your own server, as a container under Podman or Docker, on x86 "
-"and ARM, a Raspberry Pi included, in less than 100 MB of memory. It is open "
-"source, under the MIT license, and its code is written by AI, under its "
-"maintainer's guidance."
-msgstr ""
-"Funciona en tu propio servidor, como contenedor en Podman o Docker, en x86 y "
-"ARM, también en una Raspberry Pi, con menos de 100 MB de memoria. Es de "
-"código abierto, con licencia MIT, y su código lo escribe una IA, bajo la "
-"dirección de su mantenedor."
+msgid "nejomibot, a Signal bot for family and friends"
+msgstr "nejomibot, un bot de Signal para familia y amigos"
 
 #: nejomibot/selfpromote.py
 #, python-brace-format
@@ -2992,10 +2971,6 @@ msgstr "Código fuente y documentación: {url}"
 #, python-brace-format
 msgid "Container image: {url}"
 msgstr "Imagen de contenedor: {url}"
-
-#: nejomibot/selfpromote.py
-msgid "nejomibot, a Signal bot for family and friends"
-msgstr "nejomibot, un bot de Signal para familia y amigos"
 
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with ., ! or /, like /morning."
