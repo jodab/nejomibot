@@ -33,7 +33,7 @@ in json-rpc mode. **Image:** `docker.io/jodab/nejomibot` or
 `ghcr.io/jodab/nejomibot`, tagged `latest` and with each version.
 **Package:** `uv tool install nejomibot`, from
 [PyPI](https://pypi.org/project/nejomibot/), for the bot and its tools
-without a container. **Source:**
+[without a container](https://github.com/jodab/nejomibot#without-a-container). **Source:**
 [github.com/jodab/nejomibot](https://github.com/jodab/nejomibot).
 
 ## Getting started
@@ -363,9 +363,9 @@ controls the account: the examples publish no port.
 
 ## Configuration
 
-[config.example.toml](https://github.com/jodab/nejomibot/blob/main/config.example.toml)
-(`/app/config.example.toml` in the image) describes every setting, aliases
-included. The bot reads `NEJOMIBOT_CONFIG` (`/data/config.toml` in the
+[config.example.toml](https://github.com/jodab/nejomibot/blob/main/nejomibot/config.example.toml)
+describes every setting, aliases included: `nejomibot --example-config`
+prints it, and the image has it as `/app/config.example.toml`. The bot reads `NEJOMIBOT_CONFIG` (`/data/config.toml` in the
 image), and `NEJOMIBOT_<SETTING>` variables override it (lists and tables as JSON).
 An unknown or invalid setting stops the bot with its name.
 
@@ -408,6 +408,20 @@ where nothing else can, and stops and starts with it. `signal.container`
 checks signal-cli itself, where the image's own check only reaches the REST
 layer.
 
+### Without a container
+
+`uv tool install nejomibot` installs the bot and its tools, with Python
+3.15. They read `./config.toml`, or the file `NEJOMIBOT_CONFIG` names, and
+need a signal-cli-rest-api at `signal_service`, such as the example's
+container with its port published on the loopback (`127.0.0.1:8080:8080`):
+
+```sh
+nejomibot --example-config > config.toml   # and set data_dir and photos_dir
+mkdir -m 700 data
+nejomibot-account setup
+nejomibot
+```
+
 ### Updating
 
 `docker compose pull && docker compose up -d`, or `podman pull
@@ -445,23 +459,22 @@ describes the design and the project's rules.
 
 ### Running from a checkout
 
-The bot and its tools run on Python alone, without a container, and the
-tests need nothing more. The bot needs a signal-cli-rest-api at
-`signal_service`, such as the server's, published on its loopback
-(`PublishPort=127.0.0.1:8080:8080` in `signal.container`) and reached with
-`ssh -L 8080:127.0.0.1:8080 server`. Stop the server's bot first: two bots
-on one account compete for its messages.
+As [without a container](https://github.com/jodab/nejomibot#without-a-container),
+with `uv run` before each command. The tests need no signal-cli-rest-api;
+to use the server's, publish it on its loopback
+(`PublishPort=127.0.0.1:8080:8080` in `signal.container`), reach it with
+`ssh -L 8080:127.0.0.1:8080 server`, and stop the server's bot first: two
+bots on one account compete for its messages. Debug mode talks only to
+`debug_group` and the admins, and keeps its files in a new temporary
+folder:
 
 ```sh
-cp config.example.toml config.toml   # account, admins, debug_group, ...
 NEJOMIBOT_DEBUG=1 NEJOMIBOT_PHOTOS_DIR=~/Pictures uv run nejomibot
 uv run nejomibot-chat /help          # in another terminal, as the first admin
 ```
 
-Debug mode talks only to `debug_group` and the admins, and keeps its files
-in a new temporary folder; for lasting ones, `mkdir -m 700 data` and set
-`NEJOMIBOT_DATA_DIR=data`. Without uv, a Python 3.15 virtual environment
-with `pip install -e . --group dev` (pip 25.1 or later) works too.
+Without uv, a Python 3.15 virtual environment with `pip install -e .
+--group dev` (pip 25.1 or later) works too.
 
 ## License
 

@@ -1,6 +1,7 @@
 """Entry point: wires up the command handlers, who may use them, the timers and
 the health reports."""
 
+import argparse
 import asyncio
 import logging
 import os
@@ -10,6 +11,7 @@ import sys
 import tempfile
 from collections.abc import Callable
 from importlib.metadata import version
+from importlib.resources import files
 from pathlib import Path
 from types import FrameType
 
@@ -209,9 +211,9 @@ def load_settings() -> Settings:
     except ValidationError as e:
         sys.exit(
             f"Invalid configuration ({where}):\n{settings_errors(e)}\n\n"
-            "Every setting is described in config.example.toml (in the image: "
-            "/app/config.example.toml). Settings can also be given as "
-            "environment variables NEJOMIBOT_<SETTING>."
+            "nejomibot --example-config prints every setting (in the image, "
+            "/app/config.example.toml has them too). Settings can also be given "
+            "as environment variables NEJOMIBOT_<SETTING>."
         )
     except (ValueError, OSError) as e:  # a file that won't parse, or aliases
         sys.exit(f"Invalid configuration ({where}):\n{e}")
@@ -302,6 +304,21 @@ def shutdown() -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="The Signal bot. It reads its settings from ./config.toml, or "
+        "the file NEJOMIBOT_CONFIG names, and NEJOMIBOT_<SETTING> variables."
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {version('nejomibot')}"
+    )
+    parser.add_argument(
+        "--example-config",
+        action="store_true",
+        help="print every setting, described, to start a config.toml from, and exit",
+    )
+    if parser.parse_args().example_config:
+        print(files(__package__).joinpath("config.example.toml").read_text(), end="")
+        return
     signal.signal(signal.SIGTERM, stop)
     set_up_logging()
     logger.info(

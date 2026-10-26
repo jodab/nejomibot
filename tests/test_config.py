@@ -192,7 +192,7 @@ def test_the_example_has_every_setting_as_it_reads(
 ) -> None:
     # Copied to config.toml with every setting it shows given, commented out
     # or not, it reads; only debug is told of as NEJOMIBOT_DEBUG
-    example = (ROOT / "config.example.toml").read_text()
+    example = (ROOT / "nejomibot" / "config.example.toml").read_text()
     given = re.sub(r"(?m)^# ([a-z_]+ = )", r"\1", example)
     for name in os.environ:
         if name.startswith("NEJOMIBOT_"):

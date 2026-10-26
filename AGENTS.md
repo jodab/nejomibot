@@ -206,7 +206,9 @@ GitHub enforces it: releases are immutable, and rulesets keep main from
 force-pushes and deletion, and version tags from moving or deletion.
 
 Running the bot requires a reachable signal-cli-rest-api and a `config.toml`
-(made from `config.example.toml`):
+(made from `nejomibot/config.example.toml`, which the package carries, so
+that `nejomibot --example-config` prints the installed version's, and the
+image copies to `/app/config.example.toml`):
 
 ```sh
 NEJOMIBOT_PHOTOS_DIR=photos NEJOMIBOT_DEBUG=1 uv run nejomibot

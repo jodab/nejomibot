@@ -96,9 +96,8 @@ RUN uv sync --locked --no-install-project
 COPY nejomibot/ nejomibot/
 COPY tests/ tests/
 COPY tools/compile-translations.py tools/
-# What the tests check besides the code: the sample config, and README.md,
-# from uv-base, which is also the page on Docker Hub and PyPI
-COPY config.example.toml ./
+# The tests check README.md too, which uv-base has, as the page on Docker
+# Hub and PyPI
 RUN uv sync --locked \
     && ruff check \
     && ruff format --check \
@@ -114,7 +113,9 @@ LABEL org.opencontainers.image.title=nejomibot \
       org.opencontainers.image.version=$VERSION
 # Owned by root: the bot can read its code, not change it
 COPY --from=build /app/.venv .venv
-COPY config.example.toml ./
+# Where the guide and the bot's errors say it is, as nejomibot
+# --example-config prints it
+COPY nejomibot/config.example.toml ./
 COPY tools/nejomibot-profile.sh /etc/profile.d/nejomibot.sh
 # The bytecode of the standard library's modules that the bot and its tools
 # import: the base image has none, and PYTHONDONTWRITEBYTECODE keeps it from

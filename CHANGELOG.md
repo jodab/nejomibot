@@ -4,6 +4,16 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `nejomibot --example-config` prints every setting, described, as the
+  installed version has them, to start a `config.toml` from: the package
+  from PyPI now has the example too, which only the image had. `nejomibot
+  --version` and `--help` work as well. The README's "Without a container"
+  says how to run the bot from the package.
+
 ## 0.99.38 - 2026-10-27
 
 ### Changed

@@ -121,6 +121,21 @@ def test_an_outdated_config_says_what_to_change(
         "  phone_number: no such setting: renamed or removed?",
     ]
     assert "/app/config.example.toml" in str(stopped.value)
+    assert "nejomibot --example-config" in str(stopped.value)
+
+
+def test_it_prints_its_example_config_and_version(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # The installed version's, to start a config.toml from, with no settings
+    monkeypatch.setattr("sys.argv", ["nejomibot", "--example-config"])
+    bot.main()
+    example = Path(bot.__file__).with_name("config.example.toml")
+    assert capsys.readouterr().out == example.read_text()
+    monkeypatch.setattr("sys.argv", ["nejomibot", "--version"])
+    with pytest.raises(SystemExit):
+        bot.main()
+    assert re.fullmatch(r"nejomibot \S+\n", capsys.readouterr().out)
 
 
 def test_without_a_config_file_it_says_so(monkeypatch: pytest.MonkeyPatch) -> None:

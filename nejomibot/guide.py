@@ -40,7 +40,7 @@ nejomibot
 
   ./config.toml           Settings, unless NEJOMIBOT_CONFIG names another file
 
-All the settings: https://github.com/jodab/nejomibot/blob/main/config.example.toml
+All the settings: nejomibot --example-config
 {DOCUMENTATION}"""
 
 

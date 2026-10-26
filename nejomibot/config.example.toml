@@ -1,7 +1,8 @@
-# nejomibot's settings: copy to config.toml in the data folder
-# (/data/config.toml in the image). NEJOMIBOT_<SETTING> variables override
-# any of them, lists and tables as JSON; with every required one set there,
-# the file may be left out.
+# nejomibot's settings, which nejomibot --example-config prints: start
+# config.toml from them. The bot reads ./config.toml, or the file
+# NEJOMIBOT_CONFIG names, /data/config.toml in the image. NEJOMIBOT_<SETTING>
+# variables override any of them, lists and tables as JSON; with every
+# required one set there, the file may be left out.
 
 # signal-cli-rest-api, in json-rpc mode, as host:port: signal:8080 with
 # Compose, 127.0.0.1:8080 when the bot shares its network
@@ -32,6 +33,8 @@ weather_units = "metric"  # or "imperial"
 # The bot's time zone: the timers, and every time it shows
 timezone = "Europe/Stockholm"
 
+# The image's folders; elsewhere, such as "photos" and "data" beside
+# config.toml
 photos_dir = "/photos"  # read only
 # What the bot keeps: it must exist, and belong to the bot's user alone
 data_dir = "/data"
