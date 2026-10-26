@@ -4,6 +4,28 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- SECURITY.md: how to report a vulnerability privately, and how to verify
+  a release's images and tag.
+- The release workflow can publish the package on PyPI too, by trusted
+  publishing, with signed attestations, once the repository's variable
+  `PYPI_PUBLISH` is `true`.
+
+### Changed
+
+- The README is under a fifth of its length, written for administrators,
+  with a banner, and is also the image's page on Docker Hub: `DOCKERHUB.md`
+  is gone. It shows how to run the bot from a checkout, without a
+  container. The comments in `config.example.toml` are shorter too.
+- The social preview picture, which `/selfpromote` posts, has the USS
+  Enterprise-D in place of the planet, and a Pac-Man more like Yoda.
+- The wheel holds the translations compiled, in place of their `.po`
+  files, as the image always had. The package's metadata asks for
+  signalbot's phonenumbers, which uv still swaps for phonenumberslite.
+
 ## 0.99.35 - 2026-10-26
 
 ### Added

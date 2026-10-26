@@ -23,42 +23,21 @@ lack. What has been done is in [CHANGELOG.md](CHANGELOG.md).
   configuration's errors and `nejomibot-account`. Then make the code, the
   translations and the documentation use it throughout, and Signal's terms
   everywhere else.
-- [ ] **Whether to publish on PyPI.** It would let `uv tool install
-  nejomibot` or `pipx install nejomibot` run the bot and its tools without
-  a container, beside a signal-cli-rest-api in one; the image stays the
-  supported way. The name is free on PyPI and TestPyPI (2026-10-26), and
-  `uv build` already makes a wheel and an sdist, 2.2 MB each, with the
-  license files. Before a first release:
-  1. **The translations.** The wheel has the `.po` files but no `.mo`, and
-     the bot reads a `.po` only with polib, which only development has, so
-     every language but English would fail. Compile the `.mo` files before
-     `uv build`, as the image's translations stage does, and leave the
-     `.po` files, `messages.pot` and `template.toml` out of the wheel (but
-     in the sdist).
-  2. **phonenumbers.** The metadata asks for phonenumberslite, and signalbot
-     for phonenumbers, which only uv's `exclude-dependencies` leaves out;
-     pip would install both into the one `phonenumbers` package. Published
-     metadata can't drop another package's dependency, so it would ask for
-     phonenumbers alone (40 MB more where pip installs it), with
-     phonenumberslite only in what the image installs.
-  3. **The description.** PyPI shows `readme`, README.md, whose relative
-     links (20) don't work there: a page of its own with absolute links, as
-     DOCKERHUB.md is for Docker Hub, or those links made absolute as the
-     package is built.
-  4. **The metadata.** `[project.urls]` (the repository, the README, the
-     changelog, the image) and classifiers (Python 3.15, Environment ::
-     Console, Topic :: Communications :: Chat).
-  5. **The guide.** `nejomibot-help` describes the container (`/data`,
-     `/photos`, `podman logs`); outside one, it should point to the README
-     instead.
-  6. **Publishing.** A job in release.yml after the image: `uv build`, then
-     trusted publishing (OIDC, no token kept) with
-     `pypa/gh-action-pypi-publish`, which also attests the files (PEP 740),
-     from a GitHub environment `pypi`, for which PyPI gets a pending
-     publisher: jodab/nejomibot, release.yml. TestPyPI first, the same way.
-     A published version can't be replaced, as a release can't be (a
-     broken one gets a fixed one), and the README's Getting started would
-     add the install as an alternative.
+- [ ] **Whether to publish on PyPI.** All is in place but the switch: the
+  wheel has the translations compiled, the published metadata asks for
+  phonenumbers (uv swaps in phonenumberslite for the image and checkouts),
+  README.md is the description, and release.yml builds the files and
+  publishes them by trusted publishing, with attestations (PEP 740), once
+  the images are out. To start, before a release:
+  1. On PyPI, a pending publisher: project nejomibot, owner jodab,
+     repository nejomibot, workflow release.yml, environment pypi.
+  2. On GitHub, the environment `pypi` (deployments from `v*` tags only),
+     and the variable `PYPI_PUBLISH` set to `true`.
+  3. After the first upload, the install line in the README (`uv tool
+     install nejomibot`, Python 3.15), and what `nejomibot-help` says
+     outside a container, where `/data` and `/photos` mean nothing.
+
+  A version on PyPI can't be replaced, as a release can't be.
 
 ## Accounts without a phone number
 
@@ -92,8 +71,8 @@ registered with a Signal Login, and work with people who have none.
   a number has no username; `nejomibot-account` matches an account by its
   number or ID, shows its Signal ID, skips the PIN and the number's privacy
   in `setup`, refuses `privacy`, notes what a PIN guards, and warns before
-  `unregister`; the README, DOCKERHUB.md and config.example.toml describe
-  it. The profile moves to a new account by itself: `bot.txt` keeps it.
+  `unregister`; the README and config.example.toml describe it. The
+  profile moves to a new account by itself: `bot.txt` keeps it.
 
 **Steps:**
 
@@ -170,6 +149,12 @@ of signalbot and signal-cli-rest-api for them.
     Find out whether a restore from the Recovery Key keeps the safety number,
     or every contact sees it change: a "safety number changed" notice in a
     chat with the bot after the owner's restore of 2026-10-25 would tell.
+- [ ] **Image signatures Podman can check.** Podman's `policy.json` matches
+  a keyless Sigstore signature only by e-mail (`subjectEmail`), not by the
+  workflow identity GitHub Actions signs with (container-libs#625, open).
+  The images' signed build provenance covers the rest meanwhile (`gh
+  attestation verify`). Once Podman can, sign the images with cosign in
+  release.yml, and show `policy.json` in SECURITY.md.
 - [ ] **Wheels for Python 3.15.** PyYAML, which signalbot needs, has none
   as of 6.0.3, so uv builds it from its source as the image is built: pure
   Python, without libyaml, in a few seconds, with the latest setuptools and

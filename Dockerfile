@@ -51,10 +51,9 @@ COPY LICENSES/ LICENSES/
 # for each .po, by polib, from the lock; nothing else needs it
 FROM uv-base AS translations
 RUN uv sync --locked --only-group translations
+COPY tools/compile-translations.py ./
 COPY nejomibot/locale/*.po locale/
-RUN .venv/bin/python -c 'import pathlib, polib; \
-    [polib.pofile(str(po)).save_as_mofile(str(po.with_suffix(".mo"))) \
-     for po in pathlib.Path("locale").glob("*.po")]'
+RUN .venv/bin/python compile-translations.py locale
 
 FROM uv-base AS build
 # strip, from binutils (below); on 32-bit ARM also what building Pillow,
@@ -78,12 +77,10 @@ RUN uv sync --locked --no-dev --no-install-project \
         [ctypes.CDLL(str(lib)) for lib in pathlib.Path(".venv").rglob("*.so*") \
          if lib.is_file()]'
 COPY nejomibot/ nejomibot/
-# The compiled translations, without what they're compiled from, nor the
-# templates that new languages start from
+# The compiled translations, which the wheel has in place of the .po files
+# (wheel-exclude in pyproject.toml)
 COPY --from=translations /app/locale/*.mo nejomibot/locale/
-RUN rm nejomibot/locale/*.po nejomibot/locale/messages.pot \
-        nejomibot/locale/template.toml \
-    && uv sync --locked --no-dev --no-editable
+RUN uv sync --locked --no-dev --no-editable
 
 
 # The tests, lint and type check. tools/build-image.sh runs them first, once,
@@ -92,9 +89,10 @@ FROM uv-base AS test
 RUN uv sync --locked --no-install-project
 COPY nejomibot/ nejomibot/
 COPY tests/ tests/
-# What the tests check besides the code: the sample config and the image's
-# page on Docker Hub
-COPY config.example.toml DOCKERHUB.md ./
+COPY tools/compile-translations.py tools/
+# What the tests check besides the code: the sample config, and README.md,
+# from uv-base, which is also the page on Docker Hub and PyPI
+COPY config.example.toml ./
 RUN uv sync --locked \
     && ruff check \
     && ruff format --check \

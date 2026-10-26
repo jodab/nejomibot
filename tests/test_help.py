@@ -288,10 +288,10 @@ def test_examples_show_as_such_in_every_language() -> None:
                 assert examples(help_for(name, admin=True)) == wanted, (code, name)
 
 
-def test_the_docker_hub_page_fits_and_links_in_full() -> None:
-    # Docker Hub takes 25,000 bytes at most, and can't follow the repository's
-    # relative links
-    page = (Path(__file__).parent.parent / "DOCKERHUB.md").read_text()
+def test_the_readme_fits_docker_hub_and_links_in_full() -> None:
+    # The README is also the page on Docker Hub, which takes 25,000 bytes at
+    # most, and on PyPI; neither can follow the repository's relative links
+    page = (Path(__file__).parent.parent / "README.md").read_text()
     assert len(page.encode()) < 25_000
     links = re.findall(r"\]\(([^)\s]+)\)", page)
     assert links

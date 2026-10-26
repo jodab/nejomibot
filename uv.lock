@@ -219,9 +219,9 @@ wheels = [
 name = "nejomibot"
 version = "0.99.35"
 source = { editable = "." }
+default-groups = ["dev", "lite"]
 dependencies = [
     { name = "aiohttp" },
-    { name = "phonenumberslite" },
     { name = "pillow" },
     { name = "pillow-heif" },
     { name = "pydantic-settings" },
@@ -241,6 +241,9 @@ dev = [
     { name = "types-polib" },
     { name = "types-python-dateutil" },
 ]
+lite = [
+    { name = "phonenumberslite" },
+]
 translations = [
     { name = "polib" },
 ]
@@ -248,7 +251,6 @@ translations = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.11" },
-    { name = "phonenumberslite", specifier = ">=8.13.54" },
     { name = "pillow", specifier = ">=13.0" },
     { name = "pillow-heif", specifier = ">=1.8" },
     { name = "pydantic-settings", specifier = ">=2.11" },
@@ -268,6 +270,7 @@ dev = [
     { name = "types-polib", specifier = ">=1.2.0.20260518" },
     { name = "types-python-dateutil" },
 ]
+lite = [{ name = "phonenumberslite", specifier = ">=8.13.54" }]
 translations = [{ name = "polib", specifier = ">=1.2" }]
 
 [[package]]

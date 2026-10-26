@@ -1,170 +1,112 @@
-# nejomibot configuration. Copy to config.toml in the bot's data folder
-# (/data/config.toml in the container) and fill in.
-# Every setting can also be set as an environment variable NEJOMIBOT_<NAME>,
-# which overrides this file (lists and tables as JSON); with all the required
-# ones in the environment, the file can be left out.
+# nejomibot's settings: copy to config.toml in the data folder
+# (/data/config.toml in the image). NEJOMIBOT_<SETTING> variables override
+# any of them, lists and tables as JSON; with every required one set there,
+# the file may be left out.
 
-# signal-cli-rest-api, in json-rpc mode: where it answers, as host:port. Next
-# to the bot that's 127.0.0.1:8080, or e.g. signal:8080 in Docker Compose.
+# signal-cli-rest-api, in json-rpc mode, as host:port: signal:8080 with
+# Compose, 127.0.0.1:8080 when the bot shares its network
 signal_service = "127.0.0.1:8080"
-# The bot's account in signal-cli-rest-api: its phone number, or for an
-# account without one, its Signal ID. Register or link it with
-# nejomibot-account once the bot runs; it waits till then.
+# The bot's account: its phone number, or for an account without one, its
+# Signal ID. The bot waits until nejomibot-account has registered or linked it.
 account = "+46700000000"
 
-# The language the bot answers in, where a chat hasn't chosen one of its own
-# with /language: en (English), da (Danish), de (German), el (Greek), es
-# (Spanish), fi (Finnish), fr (French), nb (Norwegian) or sv (Swedish). The
-# translations are in nejomibot/locale, with each language's own names for
-# the commands.
+# The default language: en, da, de, el, es, fi, fr, nb or sv. /language sets
+# a chat's own.
 language = "en"
-# How the bot shows commands: "." as in .photo, which a phone's keyboard has
-# at hand, "!" as in !photo, or "/" as in /photo. It takes all three,
-# whichever this is.
+# How the bot shows commands: ".", "!" or "/". It takes all three.
 # command_prefix = "."
 
 # https://openweathermap.org/api
 openweather_api_key = "your-api-key"
 weather_city = "Stockholm"
-# weather_city_name = "Sthlm"  # how the weather post names it, if not so
+# weather_city_name = "Sthlm"  # the name the weather post shows
 weather_units = "metric"  # or "imperial"
-# /weather Helsinki is the weather in Helsinki: the bot asks OpenWeatherMap
-# about such places at most this many times an hour, finding them included.
-# weather_city, as /weather alone has it, isn't counted. Each place's
-# weather is kept for 10 minutes.
+# Lookups and calls an hour for places other than weather_city, which
+# /weather <place> makes; each place's weather is kept for 10 minutes.
 # weather_calls_per_hour = 10
 
-# /today names the day's holidays, flag days and traditions of these
-# countries, by their codes, such as "SE" Sweden, "GR" Greece, "GB" the
-# United Kingdom or "US" the United States: the 27 of the European Union,
-# Norway, Iceland, Switzerland, the United Kingdom, the United States,
-# Canada, Australia and New Zealand (see the README). None if not set.
+# Countries whose holidays and observances /today names, by code: the EU's,
+# NO, IS, CH, GB, US, CA, AU and NZ. None by default.
 # holidays = ["SE", "GR"]
 
-# The time zone of the bot: timers, and the times it shows
+# The bot's time zone: the timers, and every time it shows
 timezone = "Europe/Stockholm"
 
-photos_dir = "/photos"  # only read
-# Where the bot keeps what it's told: the timers, the specials, the allowed
-# list, the admins added, the reminders, the lists, the birthdays, and the
-# photos sent this round. It must be there; only the bot's user may read it.
+photos_dir = "/photos"  # read only
+# What the bot keeps: it must exist, and belong to the bot's user alone
 data_dir = "/data"
-# Where photos that don't say their time zone were taken, if not in timezone
+# The time zone of photos that don't record theirs, if not timezone
 # photos_timezone = "Europe/Helsinki"
-# Ages in captions: for an album of one child or pet growing up, each
-# photo's caption can show how old they were when it was taken, counted from
-# their birth date to the day of the photo, as "🎂 1 year, 2 months and 3
-# days". An album (a folder directly in photos_dir) gets its birth date with
-# /album; this one is for the photos in no album. Without a birth date,
-# captions show no age. photos_age_emoji goes before the age.
+# The birth date captions count an age from, for the photos in no album;
+# /album sets an album's. photos_age_emoji goes before the age.
 # photos_birth_date = 2020-01-31
 # photos_age_emoji = "🎂"
-# A photo's caption links to where it was taken: "google" (Google Maps) or
-# "openstreetmap"
+# Where a photo's map link goes: "google" or "openstreetmap"
 # photos_map = "google"
-# HEIC/HEIF photos are sent as JPEG; false leaves them out, which saves the
-# 3 MB or so of memory it takes to open them (tools/tidy-photos.sh converts
-# them for good)
+# HEIC/HEIF photos are sent as JPEG; false leaves them out, saving about 3 MB
+# of memory (tools/tidy-photos.sh converts them for good)
 # photos_heif = true
 
-# /info shows the time in these places, by name, and an exchange rate
+# /info: the time in these places, and an exchange rate
 clocks = { "🇸🇪 Stockholm" = "Europe/Stockholm", "🇫🇮 Helsinki" = "Europe/Helsinki" }
 exchange_rate = ["EUR", "SEK"]
 
-# The fortune library /fortune picks from when none is named: one that
-# /fortune list names, such as "wisdom", or "all" for every one of them.
+# The library /fortune picks from: one /fortune list names, or "all"
 # fortune_library = "fortunes_svenska"
 
-# Messages that couldn't be sent (signal-cli-rest-api down, no internet) are
-# tried again for this many hours, then dropped. Kept in data_dir meanwhile,
-# they outlast a restart.
+# Hours a message that couldn't be sent is tried again, then dropped; it's
+# kept in data_dir meanwhile
 send_retry_hours = 3
-# While Signal rate-limits the bot, it sends nothing at once, as each try
-# would only meet the limit: messages wait, and the one that has waited
-# longest is tried alone, after 2 minutes, then twice as long after each
-# try, at most this many minutes apart. A command from an admin has it try
-# again at once. See "Signal's rate limits" in the README.
+# While Signal rate-limits the bot, the most minutes between its tries
 # rate_limit_retry_minutes = 30
 
-# How many commands the bot answers each person, at most, in
-# command_limit_minutes. Past that, it says once when it answers them again,
-# and leaves the rest unanswered, so that nobody can run the bot into
-# Signal's rate limits. The admins aren't limited, nor timers and /run.
+# Commands the bot answers each person in command_limit_minutes; the admins,
+# timers, /run and specials aren't limited
 # command_limit = 20
 # command_limit_minutes = 10
 
-# /delivery, for the admins, shows this many of the bot's latest messages, of
-# those it sent in the last day, and how many phones confirmed each with a
-# delivery receipt, and read it
+# How many of its latest messages /delivery shows
 # delivery_messages = 30
 
-# nejomibot-chat lists the messages the bot received, in any chat: with this,
-# their pictures, videos and other files too, which --save saves. They stay
-# with signal-cli, which keeps them only with JSON_RPC_IGNORE_ATTACHMENTS
-# false; the bot keeps no copy, and fetches one only for --save. Without it,
-# text only, and how many files a message has.
+# Whether nejomibot-chat lists the files of received messages, for --save.
+# signal-cli keeps them only with JSON_RPC_IGNORE_ATTACHMENTS=false.
 # received_attachments = false
 
-# The admins, by phone number, or by Signal ID for those who have none or
-# don't share it. They may use every command: the everyday ones anywhere
-# they're allowed, and the admin commands (/status, /today preview, /album,
-# the specials, /contacts, /trust, /allowed, /allow, /disallow, /admins,
-# /admin, the profile commands, the timers, /msg, /run, /incoming,
-# /birthday, /nameday and /delivery) only in a direct chat with the bot;
-# /delete in any chat. They hear from the bot
-# as it starts, with how it is, of a rate limit and of a changed safety
-# number. They may make others admins with /admin add, who may then use
-# every command but /admin add and remove, but no command can take away
-# what those here may do. Everyone else is let in with /allow. The bot's
-# greeting, for those on the allowed list who write to it but send no
-# command, names the first to contact.
+# The admins, by phone number, or by Signal ID for those without one. They
+# use every command, the admin commands in a direct chat only, get the
+# notices, and add admins with /admin add. Timers run as the first, whom
+# the greeting names.
 admins = [
     "+46700000001",  # you
     # "0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e",  # someone without a number
 ]
-# Each start, once the bot is ready, the admins above get a notice: the
-# version, anything that needs their attention, and how the bot is. false
-# turns it off; /status shows the same.
+# The admins' message at each start
 # startup_notice = true
 
-# The bot's Signal profile, which the bot sets as it starts: its name, About,
-# avatar (a picture file, which the bot makes square) and username, which
-# Signal gives a number, as in mybot.42; one taken already gets another
-# number. Once set, the bot keeps the profile in data_dir/bot.txt, with every
-# change /name, /about, /avatar, /username or nejomibot-account makes, and
-# from then on these are used only for a part bot.txt doesn't have. At each
-# start the bot compares the account's profile with bot.txt and changes only
-# what differs, which is nothing unless the account is new or bot.txt was
-# edited.
+# The profile, for the parts data_dir/bot.txt doesn't have yet: bot.txt keeps
+# every change from /name, /about, /avatar, /username and nejomibot-account,
+# and each start sends only what differs from the account's profile
 # bot_name = "Mybot"
 # bot_about = "Weather and photos"
 # bot_avatar = "/data/avatar.png"
 # bot_username = "mybot"
 
-# How much the bot logs: "INFO", the commands by name and the kind of chat;
-# "DEBUG" adds who sent them, what follows the name, and whom messages go
-# to; "WARNING" only what goes wrong
+# "INFO": commands by name and the kind of chat; "DEBUG" adds who, what and
+# to whom; "WARNING": only what goes wrong
 # log_level = "INFO"
 
-# Every healthcheck_minutes the bot checks signal-cli-rest-api, itself,
-# Signal's servers with its account, and the delivery of its messages, and
-# logs what fails. With a health check URL to report to, such as
-# https://hc-ping.com/<uuid> from healthchecks.io, it then pings the URL, or
-# the URL with /fail and what failed. Each ping also says the versions of the
-# bot and signal-cli-rest-api, the bot's uptime and its memory.
+# The health checks, every healthcheck_minutes, and the URL each round pings,
+# such as healthchecks.io's https://hc-ping.com/<uuid>, or with /fail
 # healthcheck_url = "https://hc-ping.com/your-uuid"
 # healthcheck_minutes = 5
-# The delivery check fails when no phone has confirmed three of the bot's
-# messages in a row within this many hours of each being sent, nor any
-# message sent since, so that a phone that's off for a while doesn't fail
-# it. At most 24, as the bot keeps receipts for a day.
+# The delivery check fails when phones confirm none of three messages in a
+# row within this many hours (at most 24)
 # unconfirmed_hours = 12
 
-# NEJOMIBOT_DEBUG=1 talks only to this group (and the admins); see README
+# NEJOMIBOT_DEBUG=1 talks only to this group and the admins
 # debug_group = "group.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx="
 
-# Other names for commands, one word each, starting with / or . (a plain
-# word is taken with a /, as it would make every message that starts with
-# it a command). Tables go last in the file.
+# Other names for commands, a word each starting with /, . or ! (a plain word
+# gets a /). Tables go last in the file.
 [aliases]
 "/photo" = ["/pic"]

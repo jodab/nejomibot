@@ -2,17 +2,19 @@
 # ghcr.io/OWNER/nejomibot:VERSION and :latest, for linux/amd64, linux/arm64
 # and linux/arm/v7, when a release is published on GitHub. It goes to Docker
 # Hub too, as docker.io/USER/nejomibot, when the repository has the variable
-# DOCKERHUB_USERNAME and the secret DOCKERHUB_TOKEN, and then DOCKERHUB.md, as
+# DOCKERHUB_USERNAME and the secret DOCKERHUB_TOKEN, and then README.md, as
 # of the release, becomes the image's page there, with the repository's
 # description. The token is a Docker Hub personal access token that may read,
-# write and delete: Docker Hub wants all three to change a page. Nothing else
-# publishes either. The release's tag is the version in pyproject.toml, such
-# as v0.93.0.
+# write and delete: Docker Hub wants all three to change a page. With the
+# variable PYPI_PUBLISH set to true, the wheel and sdist go to PyPI as well.
+# Nothing else publishes any of them. The release's tag is the version in
+# pyproject.toml, such as v0.93.0.
 #
 # Each image pushed gets signed build provenance: which workflow built it,
 # from which commit. It's keyless, signed through Sigstore for this
 # workflow's identity, and GitHub keeps it, so there's no key to look after:
 # gh attestation verify oci://IMAGE:VERSION --repo OWNER/nejomibot checks it.
+# The files on PyPI get the same, as PyPI keeps it (PEP 740).
 name: Release
 
 on:
@@ -102,4 +104,42 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ vars.DOCKERHUB_USERNAME }}/nejomibot
           short-description: ${{ github.event.repository.description }}
-          readme-filepath: DOCKERHUB.md
+          readme-filepath: README.md
+
+  # The wheel and sdist for PyPI, with the translations compiled, as in the
+  # image. Built apart from the job that publishes them, which alone may
+  # sign as this workflow, as PyPA's guide has it.
+  dist:
+    if: vars.PYPI_PUBLISH == 'true'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - run: uv run --locked --only-group translations tools/compile-translations.py
+      - run: uv build
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+
+  # Trusted publishing: PyPI trusts this workflow, in the environment pypi,
+  # so no token is kept, and the files get attestations signed as it. Once
+  # the images are out, so PyPI never has a release the registries don't.
+  pypi:
+    needs: [image, dist]
+    runs-on: ubuntu-26.04
+    environment:
+      name: pypi
+      url: https://pypi.org/project/nejomibot/
+    permissions:
+      id-token: write  # to publish, and sign the attestations, as this workflow
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3

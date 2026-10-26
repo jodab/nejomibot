@@ -12,7 +12,8 @@
 # that version's, dated today, commits and tags that, both signed, and pushes
 # them. Then it publishes the release on GitHub, with the section as its
 # notes, which starts .github/workflows/release.yml: that builds the image,
-# pushes it to the registries, and makes DOCKERHUB.md its page on Docker Hub.
+# pushes it to the registries, makes README.md its page on Docker Hub, and
+# with PYPI_PUBLISH set, publishes the package on PyPI.
 # The script waits for it; Ctrl-C stops only the waiting.
 #
 # If anything fails, fix it and run the script again. Before the push, a

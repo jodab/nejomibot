@@ -96,18 +96,22 @@ ask.
 - **Deployment isn't `git push`.** `tools/build-image.sh` builds the image,
   and the owner's own untracked helper deploys it; `deploy/` holds examples
   for others, which run the published `docker.io/jodab/nejomibot:latest`.
-- **Two setup guides.** The README's Getting started and `DOCKERHUB.md`, the
-  image's page on Docker Hub, which each release publishes there, walk
-  through the same steps: change them together. DOCKERHUB.md describes the
-  code as it will be released, and uses absolute links only, since Docker
-  Hub can't follow the repository's relative ones; it must stay under
-  25,000 bytes.
+- **One page.** README.md is also the image's page on Docker Hub, which
+  each release publishes there, and the package's on PyPI. It describes the
+  code as it will be released, links only absolutely (Docker Hub and PyPI
+  can't follow the repository's relative links, nor its own anchors), and
+  stays under Docker Hub's 25,000 bytes; the tests check both.
+- **The readers.** Whoever deploys the bot is a Linux or Unix administrator
+  of average experience, at home with Python, Docker or Podman, and
+  containers, who scripts a lot and programs a little. The documentation,
+  the tools' help and the comments in the examples say what such a reader
+  needs and no more: what, where and how, never what is obvious to them.
 - **Documentation style.** The Markdown files are written in clear,
   professional English that is easy to follow: complete sentences, American
   spelling, consistent terms (direct chat, group, admin, allowed list,
   timer, special), the reader addressed as "you", and every fact exact.
-  Keep the headings that other pages link to (the README's anchors are used
-  by DOCKERHUB.md and by the README itself).
+  Keep the headings that other pages link to, such as `#linking-to-a-phone`
+  and `#podman-quadlets`, which the README itself uses.
 - **Photo times.** Captions show every time in the bot's `timezone`, wherever
   the photo was taken. `photos.exif_datetime` works out the moment in this
   order, which must stay: a DateTimeDigitized that is a time-zone shift away
@@ -159,8 +163,12 @@ machine: Podman 4 built every platform as amd64, so the image jobs run on
   (`--strip-unneeded`), then loads each one, since aiohttp, multidict, yarl
   and propcache fall back to pure Python without a word when theirs doesn't
   load.
-- signalbot's phonenumbers is replaced by phonenumberslite
-  (`exclude-dependencies` in pyproject.toml).
+- signalbot's phonenumbers is replaced by phonenumberslite, from the
+  dependency group `lite`, which every uv sync has (`exclude-dependencies`
+  in pyproject.toml); published metadata keeps phonenumbers.
+- The wheel, as the image and PyPI have it, holds the translations compiled
+  (`tools/compile-translations.py`), not their `.po` files
+  (`wheel-exclude`).
 - The final stage sets `MALLOC_ARENA_MAX=2`. The base image has no bytecode
   for the standard library, and `PYTHONDONTWRITEBYTECODE` keeps it from
   being written at run time, so the final stage imports the bot's entry
@@ -182,14 +190,19 @@ machine: Podman 4 built every platform as amd64, so the image jobs run on
 and a release workflow, which runs only when a release is published: it
 pushes to ghcr.io, and to Docker Hub when the repository has
 `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`, attests each image's build
-provenance (keyless, through `--digests`), and makes DOCKERHUB.md the Docker
-Hub page (the token needs read, write and delete scope). Dependabot updates
+provenance (keyless, through `--digests`), and makes README.md the Docker
+Hub page (the token needs read, write and delete scope). With the variable
+`PYPI_PUBLISH` set to `true`, it also builds the wheel and sdist and
+publishes them on PyPI once the images are out, by trusted publishing from
+the environment `pypi`, with attestations. Dependabot updates
 uv.lock, the Dockerfile's digests and the actions. Changes go in
 `CHANGELOG.md`, under `## Unreleased`, which `tools/release.sh` turns into
 the release's section and notes. The script releases only what CI has
 passed, puts everything back if it fails before the push, and after a
 failure past that point, running it again publishes the version that was
 pushed. Published releases stay: a broken release gets a fixed release.
+GitHub enforces it: releases are immutable, and rulesets keep main from
+force-pushes and deletion, and version tags from moving or deletion.
 
 Running the bot requires a reachable signal-cli-rest-api and a `config.toml`
 (made from `config.example.toml`):
@@ -449,10 +462,10 @@ edits, comments and unreadable lines as they are; a new one uses
 `_("Weather in {city}").format(city=...)`. After changing messages, run
 `tools/translations.sh` and translate every `.po` (Greek: serious, not
 silly or chatty); `tests/test_i18n.py` fails on an untranslated, fuzzy or
-obsolete message, or differing `{fields}`. The image compiles the `.po`
-files to `.mo` files, which stay out of git. A new language is its `.po`
-and `.toml` alone (`tools/translations.sh <code>`), and no test names the
-languages. Each chat may have its own (`/language`): `language()` reads the
+obsolete message, or differing `{fields}`. The image and the wheel have
+the `.po` files compiled to `.mo` files, which stay out of git. A new
+language is its `.po` and `.toml` alone (`tools/translations.sh <code>`),
+and no test names the languages. Each chat may have its own (`/language`): `language()` reads the
 `speaking_now` ContextVar, which `Handler.handle_data_message` sets, so
 handlers need nothing; what the bot sends on its own sets it for each chat.
 A language's catalog loads only once the bot speaks it.

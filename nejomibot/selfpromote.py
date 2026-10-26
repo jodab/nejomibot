@@ -15,8 +15,9 @@ from .messages import escape
 
 REPOSITORY = "https://github.com/jodab/nejomibot"
 IMAGE = "https://hub.docker.com/r/jodab/nejomibot"
-# Beside this file: the picture GitHub shows for the repository, from
-# .github/social-preview.svg
+# Beside this file: the picture GitHub shows for the repository, and the
+# README's banner, rendered from .github/social-preview.svg by rsvg-convert
+# -w 1280 -h 640
 PICTURE = "social-preview.png"
 
 

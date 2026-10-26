@@ -3,11 +3,11 @@
 !uv.lock
 !.python-version
 !README.md
-!DOCKERHUB.md
 !LICENSE
 !LICENSES/
 !config.example.toml
 !nejomibot/
 !tests/
+!tools/compile-translations.py
 !tools/nejomibot-profile.sh
 **/__pycache__
