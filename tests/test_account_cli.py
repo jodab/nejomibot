@@ -599,7 +599,15 @@ async def test_search(tool: Tool, signal_api: FakeApi) -> None:
 
 
 @pytest.mark.usefixtures("at_terminal")
-async def test_rate_limit(tool: Tool, signal_api: FakeApi) -> None:
+async def test_rate_limit(
+    tool: Tool, signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    opened_pages: list[str] = []
+
+    def _open_page(url: str) -> None:
+        opened_pages.append(url)
+
+    monkeypatch.setattr(account_cli, "open_page", _open_page)
     answering(signal_api, "POST", "/v2/send", (429, {"challenge_tokens": ["t0k3n"]}))
     tool.answers = ["not it", "signalcaptcha://solved"]
     assert await tool("rate-limit", "--to", ALICE) == 0
@@ -607,6 +615,7 @@ async def test_rate_limit(tool: Tool, signal_api: FakeApi) -> None:
     assert tool.sent("POST", path) == [
         {"challenge_token": "t0k3n", "captcha": "signalcaptcha://solved"}
     ]
+    assert opened_pages == [account_cli.CHALLENGE_CAPTCHA]
     assert "That isn't it: the link starts with signalcaptcha://" in tool.out
     assert "Rate limit lifted" in tool.out
 
