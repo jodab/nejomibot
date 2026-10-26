@@ -520,9 +520,10 @@ heavy, against these figures (amd64 on a desktop, as of 0.99.27):
   (about 400 bytes a photo), and 88 to 90 MB after a round of commands. On
   a Raspberry Pi 4: 90 MB, beside signal-cli-rest-api's 360 MB in json-rpc
   mode.
-- Images: amd64 228 MB, arm64 246 MB, arm/v7 208 MB, as the sums of `podman
-  history` (`podman image inspect` also counts the ID-mapped copy of the
-  top layer that an image run with `--userns keep-id` gets).
+- Images, as of 0.99.37: amd64 258 MB, arm64 275 MB, arm/v7 242 MB, 43 MB
+  of each signalbot's phonenumbers, as the sums of `podman history`
+  (`podman image inspect` also counts the ID-mapped copy of the top layer
+  that an image run with `--userns keep-id` gets).
 - Speed: most commands answer in 2 to 5 ms, photos in 17 to 32 ms, and
   `/photo <date>`, `/albums` and `/onthisday` in 55 to 60 ms once the index
   is built; `nejomibot-timers` starts in about 0.5 s (2.4 s on the Pi 4).
