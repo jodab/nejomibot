@@ -1,7 +1,7 @@
 """/selfpromote, for the admins: the bot by name, and where its code and its
-container image are, on GitHub and Docker Hub, under its social preview
-picture. In a direct chat it comes to the admin, to forward; /run 1
-/selfpromote posts it to chat 1 of /chats, as a timer can.
+container image are, on GitHub and Docker Hub, under its logo. In a
+direct chat it comes to the admin, to forward; /run 1 /selfpromote posts it
+to chat 1 of /chats, as a timer can.
 """
 
 import base64
@@ -15,10 +15,10 @@ from .messages import escape
 
 REPOSITORY = "https://github.com/jodab/nejomibot"
 IMAGE = "https://hub.docker.com/r/jodab/nejomibot"
-# Beside this file: the picture GitHub shows for the repository, and the
-# README's banner, rendered from .github/social-preview.svg by rsvg-convert
-# -w 1280 -h 640
-PICTURE = "social-preview.png"
+# Beside this file: the bot's logo, also the README's banner and the
+# picture GitHub shows for the repository, rendered from .github/logo.svg by
+# rsvg-convert -w 1280 -h 640
+PICTURE = "logo.png"
 
 
 def promotion() -> SendMessage:

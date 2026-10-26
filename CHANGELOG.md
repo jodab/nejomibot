@@ -4,6 +4,27 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- nejomibot is on PyPI: `uv tool install nejomibot` installs the bot and
+  its tools without a container, and `uvx --from nejomibot
+  nejomibot-account --url HOST:PORT` runs the account tool on any machine
+  that reaches signal-cli-rest-api. It needs Python 3.15, which uv fetches.
+  Each file has an attestation that the release workflow signed. The image
+  remains the main way to run the bot.
+- `nejomibot-help` outside the image lists the bot and its tools, and where
+  the settings are.
+
+### Changed
+
+- The bot uses signalbot's own phonenumbers package, in place of
+  phonenumberslite: the image is 43 MB larger, 258 MB for amd64, and needs
+  no more memory.
+- The picture `/selfpromote` posts is `logo.png`, made from
+  `.github/logo.svg`; both were `social-preview` before.
+
 ## 0.99.36 - 2026-10-26
 
 ### Added

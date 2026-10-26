@@ -2,9 +2,6 @@ version = 1
 revision = 5
 requires-python = ">=3.15"
 
-[manifest]
-excludes = ["phonenumbers"]
-
 [[package]]
 name = "aiohappyeyeballs"
 version = "2.7.1"
@@ -219,7 +216,6 @@ wheels = [
 name = "nejomibot"
 version = "0.99.36"
 source = { editable = "." }
-default-groups = ["dev", "lite"]
 dependencies = [
     { name = "aiohttp" },
     { name = "pillow" },
@@ -240,9 +236,6 @@ dev = [
     { name = "ruff" },
     { name = "types-polib" },
     { name = "types-python-dateutil" },
-]
-lite = [
-    { name = "phonenumberslite" },
 ]
 translations = [
     { name = "polib" },
@@ -270,7 +263,6 @@ dev = [
     { name = "types-polib", specifier = ">=1.2.0.20260518" },
     { name = "types-python-dateutil" },
 ]
-lite = [{ name = "phonenumberslite", specifier = ">=8.13.54" }]
 translations = [{ name = "polib", specifier = ">=1.2" }]
 
 [[package]]
@@ -308,12 +300,12 @@ wheels = [
 ]
 
 [[package]]
-name = "phonenumberslite"
+name = "phonenumbers"
 version = "9.0.41"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bd/17/24f8ee3e5041760dcb642a07a9b08eb21e0f2d4ab1bf780b5f8d80aeab52/phonenumberslite-9.0.41.tar.gz", hash = "sha256:9e4249c9bf1fbdd294f152cf79450d45112b36f1e7c77cd4ee6763699d231393", size = 292929, upload-time = "2026-10-08T10:50:53.748Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/df/cc0d70f1c79e436ea00d935b6352053d526252b81ce6c130d39eee846fb2/phonenumbers-9.0.41.tar.gz", hash = "sha256:dfa6f74eeac67c044b75313fe0af10774d7d1e1242241437279d4c2fb8027c01", size = 2311017, upload-time = "2026-10-08T10:51:09.778Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/eb/be/409bbf25e7d922d7480e71389b9e1707409afd69383825a6e5d03823426b/phonenumberslite-9.0.41-py2.py3-none-any.whl", hash = "sha256:33347389a9105f4f5bd002d60ad9e721e5233950aa6219fb35c20ea2acf8e68f", size = 473205, upload-time = "2026-10-08T10:50:52.137Z" },
+    { url = "https://files.pythonhosted.org/packages/60/1a/4059026e9c8a4c3faeab4a45f5aa67fb77d1f0d9c767085ded69c5c533e2/phonenumbers-9.0.41-py2.py3-none-any.whl", hash = "sha256:ccf2ea44f8aa35c487f26146a31520ecedf8e1af1f57c803678ecb5ef5c01668", size = 2594658, upload-time = "2026-10-08T10:51:07.317Z" },
 ]
 
 [[package]]
@@ -630,6 +622,7 @@ dependencies = [
     { name = "anyio" },
     { name = "apscheduler" },
     { name = "packaging" },
+    { name = "phonenumbers" },
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "websockets" },

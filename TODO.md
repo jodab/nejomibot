@@ -23,21 +23,6 @@ lack. What has been done is in [CHANGELOG.md](CHANGELOG.md).
   configuration's errors and `nejomibot-account`. Then make the code, the
   translations and the documentation use it throughout, and Signal's terms
   everywhere else.
-- [ ] **Whether to publish on PyPI.** All is in place but the switch: the
-  wheel has the translations compiled, the published metadata asks for
-  phonenumbers (uv swaps in phonenumberslite for the image and checkouts),
-  README.md is the description, and release.yml builds the files and
-  publishes them by trusted publishing, with attestations (PEP 740), once
-  the images are out. To start, before a release:
-  1. On PyPI, a pending publisher: project nejomibot, owner jodab,
-     repository nejomibot, workflow release.yml, environment pypi.
-  2. On GitHub, the environment `pypi` (deployments from `v*` tags only),
-     and the variable `PYPI_PUBLISH` set to `true`.
-  3. After the first upload, the install line in the README (`uv tool
-     install nejomibot`, Python 3.15), and what `nejomibot-help` says
-     outside a container, where `/data` and `/photos` mean nothing.
-
-  A version on PyPI can't be replaced, as a release can't be.
 
 ## Accounts without a phone number
 
@@ -168,9 +153,8 @@ of signalbot and signal-cli-rest-api for them.
   apart, decide what the bot does with them); `SendError` keeps only the
   HTTP status, not signal-cli-rest-api's error text (`messages.describe()`);
   `SQLiteStorage` has no `close()` (the tests filter the ResourceWarning);
-  `MessageActions._log_send_errors` names the recipient at WARNING level;
-  and it depends on phonenumbers, 41 MB, where phonenumberslite would do
-  (uv's `exclude-dependencies` swaps them).
+  and `MessageActions._log_send_errors` names the recipient at WARNING
+  level.
   A received message its models can't validate (pydantic's
   `ValidationError`, which its receiving doesn't catch, unlike
   `UnknownMessageFormatError`), or a failed group refresh, ends its

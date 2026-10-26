@@ -163,9 +163,6 @@ machine: Podman 4 built every platform as amd64, so the image jobs run on
   (`--strip-unneeded`), then loads each one, since aiohttp, multidict, yarl
   and propcache fall back to pure Python without a word when theirs doesn't
   load.
-- signalbot's phonenumbers is replaced by phonenumberslite, from the
-  dependency group `lite`, which every uv sync has (`exclude-dependencies`
-  in pyproject.toml); published metadata keeps phonenumbers.
 - The wheel, as the image and PyPI have it, holds the translations compiled
   (`tools/compile-translations.py`), not their `.po` files
   (`wheel-exclude`).
@@ -174,8 +171,8 @@ machine: Podman 4 built every platform as amd64, so the image jobs run on
   being written at run time, so the final stage imports the bot's entry
   points once to write it for what they use.
 - The image's tools are the package's entry points, Python as the bot is,
-  and need no shell. `nejomibot-help` (`guide.py`, which imports nothing, so
-  it shows at once) is the guide every interactive shell starts with (not
+  and need no shell. `nejomibot-help` (`guide.py`, which imports only pathlib,
+  so it shows at once) is the guide every interactive shell starts with (not
   scripts or `sh -c`), and `help` too, a link in `/usr/local/bin`, as no
   shell's alias reaches `podman exec nejomibot help`. Of `tools/`, the image
   has only `nejomibot-profile.sh`, as `/etc/profile.d/nejomibot.sh`, which

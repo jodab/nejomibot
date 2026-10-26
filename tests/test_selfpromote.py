@@ -10,7 +10,7 @@ from nejomibot.selfpromote import IMAGE, REPOSITORY, SelfPromote
 from nejomibot.styles import unmarked
 from nejomibot.timers import check_commands
 
-PICTURE = files("nejomibot").joinpath("social-preview.png").read_bytes()
+PICTURE = files("nejomibot").joinpath("logo.png").read_bytes()
 
 
 async def promoted(text: str, answers: list[SendMessage]) -> SendMessage:

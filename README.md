@@ -1,4 +1,4 @@
-![Project banner](https://raw.githubusercontent.com/jodab/nejomibot/main/nejomibot/social-preview.png)
+![Project banner](https://raw.githubusercontent.com/jodab/nejomibot/main/nejomibot/logo.png)
 
 # nejomibot
 
@@ -31,7 +31,10 @@ It talks to Signal through [signalbot](https://pypi.org/project/signalbot/)
 and [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api)
 in json-rpc mode. **Image:** `docker.io/jodab/nejomibot` or
 `ghcr.io/jodab/nejomibot`, tagged `latest` and with each version.
-**Source:** [github.com/jodab/nejomibot](https://github.com/jodab/nejomibot).
+**Package:** `uv tool install nejomibot`, from
+[PyPI](https://pypi.org/project/nejomibot/), for the bot and its tools
+without a container. **Source:**
+[github.com/jodab/nejomibot](https://github.com/jodab/nejomibot).
 
 ## Getting started
 
@@ -292,7 +295,9 @@ podman run --rm -it --no-healthcheck --network container:signal \
 ```
 
 When Signal rate-limits the bot, `nejomibot-account rate-limit --to <your
-number>` leads you through the captcha that lifts the limit.
+number>` leads you through the captcha that lifts the limit. Without the
+image, `uvx --from nejomibot nejomibot-account --url HOST:PORT` runs it on
+any machine that reaches signal-cli-rest-api.
 
 ### Linking to a phone
 

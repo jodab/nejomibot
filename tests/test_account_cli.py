@@ -714,9 +714,18 @@ def test_root_keeps_files_the_bots(
     assert path.read_text() == "newer\n"
 
 
-def test_guide(capsys: pytest.CaptureFixture[str]) -> None:
+def test_guide(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # The image's, where its example config is, and another elsewhere
+    example = tmp_path / "config.example.toml"
+    monkeypatch.setattr(guide, "EXAMPLE", example)
     guide.main()
-    shown = capsys.readouterr().out
-    assert shown == guide.GUIDE
-    # Commands only, none of them a script
-    assert ".sh" not in shown
+    assert capsys.readouterr().out == guide.ELSEWHERE
+    example.touch()
+    guide.main()
+    assert capsys.readouterr().out == guide.IN_IMAGE
+    for shown in (guide.IN_IMAGE, guide.ELSEWHERE):
+        # Commands only, none of them a script
+        assert ".sh" not in shown
+        assert "nejomibot-account" in shown

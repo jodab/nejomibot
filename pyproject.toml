@@ -52,21 +52,10 @@ dev = [
     "types-polib>=1.2.0.20260518",
     "types-python-dateutil",
 ]
-# In place of phonenumbers, which signalbot asks for: the same, without the
-# 40 MB of place names, carriers and time zones that signalbot, checking
-# only that a number is valid, never reads. uv swaps them for the image and
-# checkouts (below); a group, as published metadata can't drop another
-# package's dependency, so an install from PyPI keeps phonenumbers.
-lite = ["phonenumberslite>=8.13.54"]
 # Compiles the translations for the image and the wheel
 # (tools/compile-translations.py), and reads them from a checkout, where
 # there's none compiled
 translations = ["polib>=1.2"]
-
-[tool.uv]
-# lite in every sync, --no-dev ones too
-default-groups = ["dev", "lite"]
-exclude-dependencies = ["phonenumbers"]
 
 [build-system]
 requires = ["uv_build>=0.13,<0.14"]
