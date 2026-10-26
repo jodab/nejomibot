@@ -43,6 +43,7 @@ from signalbot import (
     DataMessageHandler,
     SendMessage,
     SignalBot,
+    TextStyle,
 )
 
 from . import access
@@ -661,10 +662,11 @@ def made_up(
     text: str,
     sender: DataMessage | None = None,
     attachments: list[Attachment] | None = None,
+    styles: list[TextStyle] | None = None,
 ) -> DataMessage:
-    """A message with the text, sent now, as whoever sent sender would send
-    it, where they sent it; or else as the first admin would, in a direct
-    chat with the bot."""
+    """A message with the text, and its styles, sent now, as whoever sent
+    sender would send it, where they sent it; or else as the first admin
+    would, in a direct chat with the bot."""
     group = None
     if sender is not None:
         number, uuid = sender.source_number, sender.source_uuid
@@ -684,6 +686,7 @@ def made_up(
         group_info=group,
         text=text,
         attachments=attachments,
+        text_styles=styles,
     )
 
 

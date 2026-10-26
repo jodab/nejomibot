@@ -1,8 +1,9 @@
 """/msg and /run: the admins post to other chats, from a direct chat with the
 bot. The chats are numbers from /chats, such as 1,2.
 
-/msg 1,2 Hello! posts the text to chats 1 and 2, as the bot, with what
-nejomibot-chat attaches to it, which may then do without a text. /run 1 /status
+/msg 1,2 Hello! posts the text to chats 1 and 2, as the bot, with its
+formatting, and with what nejomibot-chat attaches to it, which may then do
+without a text. /run 1 /status
 runs the commands as a timer does, as the admin would in a direct chat with the
 bot, and posts their answers to the chats instead: /run 1,2 /weather; /photo.
 Its numbers are the admin's, as in /run 1 /incoming 4,9, which forwards
@@ -19,12 +20,13 @@ import logging
 import re
 from collections.abc import Callable
 
-from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot
+from signalbot import DataMessage, DataMessageContext, SendMessage, SignalBot, TextMode
 
 from .commands import Command, Edits, Handler, answer
 from .config import get_settings
 from .i18n import _
-from .messages import Outcome, send
+from .messages import Outcome, send, unkept_formatting_text
+from .styles import marked, styles_of
 from .timers import Chat, chats_numbered, check_commands, split_commands, timekeeper
 
 logger = logging.getLogger(__name__)
@@ -100,16 +102,33 @@ def outcomes_text(posted: str, outcomes: Outcomes) -> str:
     return "\n".join(lines)
 
 
+def post_of(message: DataMessage, text: str, files: list[str]) -> SendMessage | str:
+    """What /msg posts: its text, the end of the message's, with the
+    formatting it has there, and the files; or why the formatting can't be
+    kept."""
+    whole = message.text or ""
+    start = len(whole.rstrip()) - len(text)
+    styles = styles_of(whole, message.text_styles)[start : start + len(text)]
+    if not any(styles):
+        return SendMessage(text=text or None, base64_attachments=files or None)
+    if (marks := marked(text, styles)) is None:
+        return unkept_formatting_text()
+    return SendMessage(
+        text=marks, base64_attachments=files or None, text_mode=TextMode.STYLED
+    )
+
+
 async def post_text(bot: SignalBot, message: DataMessage) -> str:
-    """Post /msg's text to its chats, and what nejomibot-chat attached to it.
-    What to answer."""
+    """Post /msg's text to its chats, with its formatting, and what
+    nejomibot-chat attached to it. What to answer."""
     files = attached(message)
     if (parsed := parse(message.text or "")) is None or not (parsed[1] or files):
         return msg_usage()
     numbers, text = parsed
+    if isinstance(post := post_of(message, text, files), str):
+        return post
     if isinstance(chats := await chats_numbered(bot, numbers), str):
         return chats
-    post = SendMessage(text=text or None, base64_attachments=files or None)
     outcomes: Outcomes = {chat: [await send(bot, chat[0], post)] for chat in chats}
     return outcomes_text(_("✉️ Sent to {chats}."), outcomes)
 

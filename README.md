@@ -1053,7 +1053,8 @@ such as `1,2`:
 /run 1,3 /weather; /photo              the weather, then a photo
 ```
 
-`/msg` posts the text as the bot. `/run` runs each command the way a timer
+`/msg` posts the text as the bot, with the formatting you give it in
+Signal, such as bold. `/run` runs each command the way a timer
 does, as you would in a direct chat with the bot, with numbers referring to
 the lists you were shown, and posts its answers to the chats, one command
 after the other; every chat gets the same photo. Like a timer, `/run` can't
@@ -1095,6 +1096,22 @@ passes on. Quote a message that has a `;` or other characters the shell
 treats specially, as in `nejomibot-chat "/run 1 /weather; /photo"`. With
 Compose, run `docker compose exec nejomibot nejomibot-chat`, with `-T` in
 place of `-i` for standard input.
+
+### Formatting
+
+Marks around words give them Signal's text styles, as Signal's formatting
+menu does on a phone: `**bold**`, `*italic*`, `***bold italic***`,
+`~strikethrough~`, `` `monospace` `` and `||spoiler||`. A mark styles what
+it encloses only where it opens at the start of a word and closes at the
+end of one, so `Buy 2*3 screws` and `Back in ~5 to ~10 min` stay as typed;
+a `\` before a mark keeps it as typed too, as in `\*WAKE UP\*`. Marks may
+nest, as in `**bold *and italic***`. The message reaches the bot as if
+formatted in Signal, so `/special add` keeps the formatting, as does `/msg`:
+
+```
+> /msg 1 Dinner at **six**, bring *cake*
+> /special add /gm Good **morning**! /today
+```
 
 ### Attaching files
 

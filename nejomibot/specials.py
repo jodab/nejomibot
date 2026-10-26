@@ -65,7 +65,14 @@ from .commands import (
 from .config import as_command, get_settings, slashed
 from .files import write_privately
 from .i18n import _, ngettext, prefixed
-from .messages import PerChat, escape, for_chat, short, unreadable_text
+from .messages import (
+    PerChat,
+    escape,
+    for_chat,
+    short,
+    unkept_formatting_text,
+    unreadable_text,
+)
 from .photos import REMOVE
 from .styles import Styles, marked, styles_of, unmarked
 from .timers import check_commands, timekeeper
@@ -172,10 +179,7 @@ def parse_parts(
             styles is not None
             and (words := marked(words, styles[at : at + len(words)])) is None
         ):
-            return _(
-                "That formatting can't be kept: bold and italic can't meet "
-                "inside a word, nor a style start or end right by a \\ or *."
-            )
+            return unkept_formatting_text()
         command = ""
         if start is not None:
             command = canonical(stripped[start.start() :].strip())

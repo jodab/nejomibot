@@ -3,13 +3,14 @@ from typing import Any
 
 import pytest
 from aiohttp import web
-from helpers import ALICE, GROUP, ME, FakeApi
+from helpers import ALICE, GROUP, ME, FakeApi, text_styles
 from signalbot import (
     DataMessage,
     DataMessageContext,
     EditMessage,
     SendMessage,
     SignalBot,
+    TextStyle,
 )
 
 from nejomibot import commands, messages, relay
@@ -47,13 +48,16 @@ class Chat:
         self.bot = bot
         self.replies: list[str] = []
 
-    async def send(self, text: str, *, edit: bool = False) -> None:
+    async def send(
+        self, text: str, *, edit: bool = False, styles: list[TextStyle] | None = None
+    ) -> None:
         fields: dict[str, Any] = {
             "server_delivered_timestamp": 0,
             "server_received_timestamp": 0,
             "timestamp": 2,
             "source_number": ADMIN,
             "text": text,
+            "text_styles": styles,
         }
         message = (
             EditMessage(**fields, target_sent_timestamp=1)
@@ -107,6 +111,28 @@ async def test_msg(chat: Chat, signal_api: FakeApi) -> None:
         ([ALICE], "Hello!\nFrom the bot"),
     ]
     assert chat.replies == [f"✉️ Sent to Familjen, Alice ({ALICE})."]
+
+
+async def test_msg_keeps_the_formatting(chat: Chat, signal_api: FakeApi) -> None:
+    # Bold as Signal's apps send it, beside the text, and a mark as text
+    text = "/msg 1 Dinner at six, 2*3"
+    await chat.send(text, styles=text_styles(text, ("six", "BOLD")))
+    [sent] = signal_api.bodies("POST", "/v2/send")
+    assert (sent["message"], sent["text_mode"]) == (
+        "Dinner at **six**, 2\\*3",
+        "styled",
+    )
+    assert chat.replies == ["✉️ Sent to Familjen."]
+
+
+async def test_msg_formatting_that_cant_be_kept(
+    chat: Chat, signal_api: FakeApi
+) -> None:
+    text = "/msg 1 Unbelievable"
+    styles = text_styles(text, ("Unbe", "BOLD"), ("lievable", "ITALIC"))
+    await chat.send(text, styles=styles)
+    assert posted(signal_api) == []
+    assert chat.replies[0].startswith("That formatting can't be kept")
 
 
 @pytest.mark.parametrize(

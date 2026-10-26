@@ -141,6 +141,14 @@ def error_text(error: Exception | str) -> str:
     return _("Something went wrong: {error}").format(error=error)
 
 
+def unkept_formatting_text() -> str:
+    """Why a message's formatting can't be kept: marks can't say it."""
+    return _(
+        "That formatting can't be kept: bold and italic can't meet "
+        "inside a word, nor a style start or end right by a \\ or *."
+    )
+
+
 def short(text: str) -> str:
     """The text's first line, cut short, for a list of messages."""
     line = text.strip().partition("\n")[0]

@@ -14,9 +14,12 @@ with it, through the same handlers as a message from Signal, and answers
 here instead (terminal.py): what posts to other chats, as /msg and /run do,
 posts there. Without a message, standard input is the message, or in a
 terminal, the chat goes on a line a message, and a line that ends in \\ goes
-on in the next. -a attaches a file, or with -, standard input: a file, or
-the files in a tar archive, 25 MB together at most. --to CHATS posts the
-message to chats from /chats, as /msg does, and needs no text for files.
+on in the next. Marks around words format them, as **bold**, *italic*,
+~strikethrough~, `monospace` and ||spoiler||, where they open at a word's
+start and close at its end; a \\ keeps one as typed (styles.typed()). -a
+attaches a file, or with -, standard input: a file, or the files in a tar
+archive, 25 MB together at most. --to CHATS posts the message to chats from
+/chats, as /msg does, and needs no text for files.
 
 --recent and --follow show the messages the bot has received, in every
 chat. --json prints what the bot says as JSON, an object a line, for
@@ -378,7 +381,8 @@ def arguments() -> argparse.Namespace:
         nargs="*",
         help="the message, such as /weather; without it, standard input, or "
         "in a terminal, a chat: a line a message, one that ends in \\ going on "
-        "in the next",
+        "in the next. **bold**, *italic*, ~strikethrough~, `monospace` and "
+        "||spoiler|| format the words they enclose; \\* keeps a * as typed",
     )
     parser.add_argument(
         "-a",

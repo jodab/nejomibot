@@ -18,6 +18,7 @@ from nejomibot.incoming import Incoming, Received
 from nejomibot.messages import Outbox
 from nejomibot.ping import Ping
 from nejomibot.relay import Msg, Run
+from nejomibot.specials import Specials
 from nejomibot.terminal import Recent
 from nejomibot.timers import Timekeeper
 
@@ -39,7 +40,7 @@ async def chat(
     outbox.start(bot)
     monkeypatch.setattr(messages, "outbox", outbox)
     keeper = Timekeeper()
-    keeper.start(bot, [Ping(), Msg(), Run(), Incoming()])
+    keeper.start(bot, [Ping(), Msg(), Run(), Incoming(), Specials()])
     monkeypatch.setattr(terminal, "timekeeper", keeper)
     monkeypatch.setattr(relay, "timekeeper", keeper)
     recent = Recent()
@@ -114,6 +115,27 @@ async def test_msg_posts_files_without_a_text(signal_api: FakeApi) -> None:
         "data:image/jpeg;base64",
         "data:image/png;filename=b.png;base64",
     ]
+
+
+@pytest.mark.usefixtures("chat")
+async def test_msg_with_formatting(signal_api: FakeApi) -> None:
+    await ask({"text": "/msg 1 Dinner at **six**, 2*3"})
+    await ask({"text": "/msg 1 \\*WAKE UP\\*"})
+    first, second = posted(signal_api)
+    assert (first["message"], first["text_mode"]) == (
+        "Dinner at **six**, 2\\*3",
+        "styled",
+    )
+    # As typed, with no formatting
+    assert (second["message"], second.get("text_mode")) == ("*WAKE UP*", None)
+
+
+@pytest.mark.usefixtures("chat")
+async def test_special_with_formatting() -> None:
+    [answer] = await ask({"text": "/special add /gm Good **morning**!"})
+    assert answer["text"].startswith("✅")
+    lines = get_settings().specials_file.read_text().splitlines()
+    assert lines[-1] == "/gm | Good **morning**!"
 
 
 @pytest.mark.usefixtures("chat")

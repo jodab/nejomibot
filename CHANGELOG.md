@@ -4,6 +4,26 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- Formatting in `nejomibot-chat`: marks around words, such as `**bold**`,
+  `*italic*`, `~strikethrough~`, `` `monospace` `` and `||spoiler||`, give
+  them Signal's text styles, as Signal's formatting menu does, so
+  `/special add` and `/msg` keep them. A mark styles only where it opens at
+  the start of a word and closes at the end of one, so `2*3` and `~5 min`
+  stay as typed, and a `\` before a mark keeps it too, as in
+  `\*WAKE UP\*`. See "Formatting" in the README's "The bot from a
+  terminal".
+
+### Changed
+
+- `/msg` keeps the formatting of its text, such as bold set with Signal's
+  formatting menu; it posted plain text before. Formatting that the bot
+  can't pass on, as where bold and italic meet inside a word, gets the
+  same answer as in `/special add`, and nothing is posted.
+
 ## 0.99.32 - 2026-10-26
 
 ### Added

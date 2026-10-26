@@ -4,7 +4,9 @@ terminal, and the messages the bot has received, in every chat.
 A message from nejomibot-chat is taken as from the first admin in a direct
 chat with the bot, and goes through the bot's handlers as one from Signal
 does, with the files attached to it as if signalbot had downloaded them
-(Attachment.base64_content), which /msg posts and /avatar takes. Its answers
+(Attachment.base64_content), which /msg posts and /avatar takes, and the
+formatting its marks give it as if Signal's formatting menu had
+(styles.typed()), which /msg and specials keep. Its answers
 go back to the terminal, rather than to Signal; everything else is as in the
 direct chat: what posts elsewhere, as /msg, /run and /remind, posts there,
 and the lists that number things, as /incoming, number them for the admin.
@@ -44,7 +46,7 @@ from . import access, chat_cli, rest
 from .config import get_settings
 from .incoming import File, Inbox, Received
 from .messages import EXPECTED, describe, for_chat, to_terminal
-from .styles import MENTION, STYLES, escape, styles_of, unmarked
+from .styles import MENTION, STYLES, escape, styles_of, typed, unmarked
 from .timers import made_up, timekeeper
 
 logger = logging.getLogger(__name__)
@@ -251,7 +253,8 @@ async def answers_to(
         attachment(each, await reader.readexactly(each.size))
         for each in request.attachments
     ]
-    message = made_up(request.text, attachments=attachments or None)
+    text, styles = typed(request.text)
+    message = made_up(text, attachments=attachments or None, styles=styles or None)
     answers: list[SendMessage] = []
     token = to_terminal.set(answers)
     try:

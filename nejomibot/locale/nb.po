@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 20:38+0200\n"
+"POT-Creation-Date: 2026-10-26 14:38+0200\n"
 "Language-Team: Norwegian Bokmål\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
@@ -2350,6 +2350,14 @@ msgid "Something went wrong: {error}"
 msgstr "Noe gikk galt: {error}"
 
 #: nejomibot/messages.py
+msgid ""
+"That formatting can't be kept: bold and italic can't meet inside a word, nor "
+"a style start or end right by a \\ or *."
+msgstr ""
+"Den formateringen kan ikke beholdes: fet og kursiv kan ikke møtes inne i et "
+"ord, og ingen stil kan begynne eller slutte rett ved et \\ eller *."
+
+#: nejomibot/messages.py
 #, python-brace-format
 msgid ""
 "⚠️ The file has {count} unreadable line, which is ignored and left unchanged: "
@@ -2925,14 +2933,6 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with . or /, like /morning."
 msgstr "Gi den et navn: et ord som begynner med . eller /, som /morgen."
-
-#: nejomibot/specials.py
-msgid ""
-"That formatting can't be kept: bold and italic can't meet inside a word, nor "
-"a style start or end right by a \\ or *."
-msgstr ""
-"Den formateringen kan ikke beholdes: fet og kursiv kan ikke møtes inne i et "
-"ord, og ingen stil kan begynne eller slutte rett ved et \\ eller *."
 
 #: nejomibot/specials.py
 #, python-brace-format

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nejomibot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 20:38+0200\n"
+"POT-Creation-Date: 2026-10-26 14:38+0200\n"
 "PO-Revision-Date: 2026-10-23 19:12+0300\n"
 "Language-Team: Greek\n"
 "Language: el\n"
@@ -2394,6 +2394,15 @@ msgid "Something went wrong: {error}"
 msgstr "Κάτι πήγε στραβά: {error}"
 
 #: nejomibot/messages.py
+msgid ""
+"That formatting can't be kept: bold and italic can't meet inside a word, nor "
+"a style start or end right by a \\ or *."
+msgstr ""
+"Αυτή η μορφοποίηση δεν μπορεί να διατηρηθεί: έντονα και πλάγια δεν μπορούν "
+"να συναντηθούν μέσα σε μια λέξη, ούτε ένα στυλ να ξεκινά ή να τελειώνει "
+"ακριβώς δίπλα σε \\ ή *."
+
+#: nejomibot/messages.py
 #, python-brace-format
 msgid ""
 "⚠️ The file has {count} unreadable line, which is ignored and left unchanged: "
@@ -2976,15 +2985,6 @@ msgstr "⏰ {text}"
 #: nejomibot/specials.py
 msgid "Give it a name: a word that starts with . or /, like /morning."
 msgstr "Δώστε της όνομα: μια λέξη που ξεκινά με . ή /, όπως /πρωί."
-
-#: nejomibot/specials.py
-msgid ""
-"That formatting can't be kept: bold and italic can't meet inside a word, nor "
-"a style start or end right by a \\ or *."
-msgstr ""
-"Αυτή η μορφοποίηση δεν μπορεί να διατηρηθεί: έντονα και πλάγια δεν μπορούν "
-"να συναντηθούν μέσα σε μια λέξη, ούτε ένα στυλ να ξεκινά ή να τελειώνει "
-"ακριβώς δίπλα σε \\ ή *."
 
 #: nejomibot/specials.py
 #, python-brace-format

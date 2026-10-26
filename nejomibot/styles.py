@@ -175,6 +175,81 @@ def unmarked(text: str) -> tuple[str, list[TextStyle]]:
     return "".join(plain) + text[end:], found
 
 
+def typed(text: str) -> tuple[str, list[TextStyle]]:
+    """The text and its styles, from marks as typed in a terminal, as
+    WhatsApp reads its own: a mark styles what it encloses only where it
+    opens at a word's start and closes at a word's end, as in **six**; any
+    other mark stays as it is, as in 2*3 or ~5 min, as does one with a \\
+    before it, the \\ taken out. A pair closes what opened inside it. Stars
+    close the innermost stars first, as in Markdown, so **bold *and
+    italic*** works, and stars left over stay as they are."""
+
+    def opens(at: int, end: int) -> bool:
+        before = text[at - 1] if at else " "
+        return not before.isalnum() and end < len(text) and not text[end].isspace()
+
+    def closes(at: int, end: int) -> bool:
+        after = text[end] if end < len(text) else " "
+        return at > 0 and not text[at - 1].isspace() and not after.isalnum()
+
+    found = list(MARK.finditer(text))
+    # Each mark's kind, * for a run of stars, and how much of it is still
+    # unpaired: a run of stars pairs star by star, and an escaped mark never
+    kinds = ["*" if mark[0][0] == "*" else mark[2] for mark in found]
+    left = [
+        0 if mark[1] else len(mark[2]) if kind == "*" else 1
+        for mark, kind in zip(found, kinds, strict=True)
+    ]
+    pairs: list[tuple[int, int, str]] = []  # opening, closing, and the mark
+    opened: list[int] = []
+    for n, mark in enumerate(found):
+        if not left[n]:
+            continue
+        unpaired = left[n]
+        if closes(*mark.span()):
+            # Of those open, the same kind, with something between them
+            same: list[int] = [
+                m
+                for m in opened
+                if kinds[m] == kinds[n] and found[m].end() < mark.start()
+            ]
+            while left[n] and same:
+                k = same[-1]
+                taken = min(left[n], left[k])
+                pairs.append((k, n, "*" * taken if kinds[n] == "*" else kinds[n]))
+                left[n] -= taken
+                left[k] -= taken
+                # What opened inside it stays as it is
+                del opened[opened.index(k) + bool(left[k]) :]
+                same = [m for m in same if m in opened]
+        if left[n] == unpaired and opens(*mark.span()):
+            opened.append(n)
+    opening = {k for k, _n, _mark in pairs}
+    plain: list[str] = []
+    places: dict[int, int] = {}  # where each mark's pairs start or end
+    at = end = 0
+    for n, mark in enumerate(found):
+        piece = text[end : mark.start()]
+        end = mark.end()
+        if mark[1]:
+            piece += mark[1]
+        elif n in opening:  # its unpaired stars come before what it opens
+            piece += kinds[n] * left[n]
+        plain.append(piece)
+        at += utf16_length(piece)
+        if not mark[1]:
+            places[n] = at
+        if not mark[1] and n not in opening and left[n]:
+            plain.append(mark[2] if kinds[n] != "*" else "*" * left[n])
+            at += left[n] * len(kinds[n])
+    ranges = [
+        TextStyle(start=places[k], length=places[n] - places[k], style=style)
+        for k, n, mark in pairs
+        for style in STYLES_OF[mark]
+    ]
+    return "".join(plain) + text[end:], ranges
+
+
 def marked(text: str, styles: Styles) -> str | None:
     """The text in marks for its characters' styles, the rest escaped; or
     None if marks can't say them, as where bold and italic meet inside a

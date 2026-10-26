@@ -2,7 +2,7 @@ import pytest
 from helpers import text_styles
 from signalbot import TextStyle
 
-from nejomibot.styles import marked, styles_of, unmarked, utf16_length
+from nejomibot.styles import marked, styles_of, typed, unmarked, utf16_length
 
 
 def as_strings(found: list[TextStyle]) -> list[str]:
@@ -138,3 +138,43 @@ def test_marked(text: str, styled: list[tuple[str, str]], marks: str) -> None:
 )
 def test_marks_can_t_say(text: str, styled: list[tuple[str, str]]) -> None:
     assert marked(text, styles_of(text, text_styles(text, *styled))) is None
+
+
+@pytest.mark.parametrize(
+    ("text", "plain", "found"),
+    [
+        (
+            "Dinner at **six**, bring *cake*",
+            "Dinner at six, bring cake",
+            ["10:3:BOLD", "21:4:ITALIC"],
+        ),
+        ("(**note**)!", "(note)!", ["1:4:BOLD"]),
+        (
+            "~old~ `/photo` ||yes||",
+            "old /photo yes",
+            ["0:3:STRIKETHROUGH", "4:6:MONOSPACE", "11:3:SPOILER"],
+        ),
+        ("***both***", "both", ["0:4:BOLD", "0:4:ITALIC"]),
+        # Stars close the innermost first, and split a run to do it
+        ("**bold *and italic***", "bold and italic", ["5:10:ITALIC", "0:15:BOLD"]),
+        ("***bold** italic*", "bold italic", ["0:4:BOLD", "0:11:ITALIC"]),
+        ("***x*", "**x", ["2:1:ITALIC"]),
+        # Where a pair closes, what opened inside it stays as it is
+        ("**a ~b** c~", "a ~b c~", ["0:4:BOLD"]),
+        # In UTF-16 code units, as Signal counts them
+        ("😀 **x**", "😀 x", ["3:1:BOLD"]),
+        # Marks that don't open at a word's start and close at a word's end
+        # stay as they are, as do those with a \ before them
+        ("Buy 2*3 screws", "Buy 2*3 screws", []),
+        ("2*3*4", "2*3*4", []),
+        ("Back in ~5 to ~10 min", "Back in ~5 to ~10 min", []),
+        ("a || b", "a || b", []),
+        ("un**believ**able", "un**believ**able", []),
+        ("****", "****", []),
+        ("\\*WAKE UP\\*", "*WAKE UP*", []),
+        ("C:\\Users\\x", "C:\\Users\\x", []),
+    ],
+)
+def test_typed(text: str, plain: str, found: list[str]) -> None:
+    result, styles = typed(text)
+    assert (result, as_strings(styles)) == (plain, found)

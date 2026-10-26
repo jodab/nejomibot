@@ -398,7 +398,10 @@ the client reads why. Each answer, and each received message, is a JSON
 line, which `--json` prints as it is. A message runs through
 `Timekeeper.handle` as from the first admin, its files as signalbot's
 `Attachment.base64_content`, at most `MAX_ATTACHED` together, as they pass
-through the bot's memory. `terminal.recent` is an `incoming.Inbox` for
+through the bot's memory, and its marks as Signal's text styles
+(`styles.typed()`, which styles only marks that open at a word's start
+and close at a word's end, as WhatsApp does, unlike signal-cli-rest-api's
+`unmarked()`, which drops a mark left open). `terminal.recent` is an `incoming.Inbox` for
 every chat (`wanted()`, `files_of()`), the latest 100, with a queue for
 each follower.
 
