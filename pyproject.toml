@@ -1,6 +1,6 @@
 [project]
 name = "nejomibot"
-version = "0.99.36"
+version = "0.99.37"
 description = "A Signal bot for a family or a group of friends"
 readme = "README.md"
 license = "MIT"
