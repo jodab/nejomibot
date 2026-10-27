@@ -32,7 +32,8 @@ from importlib.metadata import version
 from typing import cast
 
 import aiohttp
-from signalbot import About, SignalBot
+from packaging.version import InvalidVersion, Version
+from signalbot import MIN_SIGNAL_CLI_REST_API_VERSION, About, SignalBot
 
 from . import healthcheck, system
 from .account import Device, fetch_devices
@@ -103,6 +104,28 @@ def is_too_old(version: str) -> bool:
         return tuple(int(part) for part in version.split(".")) <= LAST_TOO_OLD
     except ValueError:
         return False  # "unset", for a build after a release
+
+
+def refused_by_signalbot(about: About) -> str:
+    """Why signalbot won't start with this signal-cli-rest-api, as it checks
+    when it starts, or "" if it will. On any of these it retries its start
+    forever, with a traceback each time and no word of what to do."""
+    if about.version != "unset":  # a build between releases, which it takes
+        try:
+            if Version(about.version) < MIN_SIGNAL_CLI_REST_API_VERSION:
+                return (
+                    f"its version {about.version} is older than "
+                    f"{MIN_SIGNAL_CLI_REST_API_VERSION}, which signalbot needs"
+                )
+        except InvalidVersion:
+            return (
+                f"signalbot can't read its version {about.version!r}: give it a "
+                "PEP 440 one, such as 0.102.dev0+mine, or unset (BUILD_VERSION on "
+                "its container)"
+            )
+    if about.mode != "json-rpc":
+        return f"it runs in {about.mode} mode, and the bot needs json-rpc"
+    return ""
 
 
 @dataclass(frozen=True)

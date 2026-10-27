@@ -89,6 +89,13 @@ of signalbot and signal-cli-rest-api for them.
   It will also give each websocket a buffer (68ca0107), so a burst of
   receipts is no longer cut short: then remove the note on that in
   delivery.py's docstring and in the README.
+- [ ] **signalbot retries its start forever** on a signal-cli-rest-api it
+  won't take: a version it can't read (as PEP 440) or older than
+  `MIN_SIGNAL_CLI_REST_API_VERSION`, or a mode other than json-rpc. It logs
+  a traceback each time, without saying what to do, and has no setting to
+  skip the check. So `wait_for_account()` checks the same first
+  (`health.refused_by_signalbot()`) and waits, saying why. Once signalbot
+  says so itself, or takes any version, remove that check.
 - [ ] **signalbot drops receipts**: its parser knows no receipt message
   (`UnknownMessageFormatError`, skipped), so
   [delivery.py](nejomibot/delivery.py) receives them on a websocket of its

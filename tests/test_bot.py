@@ -269,6 +269,24 @@ async def test_waits_for_the_account(
     await asyncio.wait_for(waiting, 1)
 
 
+async def test_waits_for_a_signal_cli_rest_api_signalbot_takes(
+    signal_api: FakeApi,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # signalbot would retry its start forever, with a traceback each time
+    monkeypatch.setattr(bot, "WAIT_RETRY", 0.01)
+    signal_api.responses["/v1/about"]["version"] = "mine/numberless@9e3ec82"
+    waiting = asyncio.create_task(wait_for_account())
+    await signal_api.wait_for("GET", "/v1/about", 3)
+    assert not waiting.done()
+    assert caplog.text.count("signalbot can't read its version") == 1
+    assert "BUILD_VERSION" in caplog.text
+
+    signal_api.responses["/v1/about"]["version"] = "unset"
+    await asyncio.wait_for(waiting, 1)
+
+
 NUMBERLESS = "11111111-1111-4111-8111-111111111111"
 
 

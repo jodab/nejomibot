@@ -15,6 +15,7 @@ from urllib.parse import quote
 
 import aiohttp
 from pydantic import BaseModel, TypeAdapter, ValidationError
+from signalbot import About
 
 from .client import client
 from .config import get_settings
@@ -104,6 +105,13 @@ class ListedAccount(BaseModel):
 
 
 LISTED_ACCOUNTS = TypeAdapter(list[str | ListedAccount])
+
+
+async def about() -> About:
+    """What signal-cli-rest-api is: its version and mode. signalbot asks the
+    same (bot.general.about()), but only once it runs, which is too late to
+    say what keeps it from starting."""
+    return About.model_validate(await get_json("/v1/about"))
 
 
 async def accounts() -> set[str]:

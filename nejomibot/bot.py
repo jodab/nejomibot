@@ -228,8 +228,9 @@ def load_settings() -> Settings:
 
 
 async def wait_for_account() -> None:
-    """Wait until signal-cli-rest-api answers and has the account, saying what
-    to do meanwhile. signalbot would wait too, but without saying why.
+    """Wait until signal-cli-rest-api answers, is one signalbot starts with,
+    and has the account, saying what to do meanwhile. signalbot would wait
+    too, but without saying why.
 
     Meanwhile the container's health check hears that the bot works: no
     restart would help, and on a new install one would cut the account's
@@ -247,13 +248,16 @@ async def wait_for_account() -> None:
         ):
             while True:
                 try:
-                    if settings.account in await rest.accounts():
+                    if refused := health.refused_by_signalbot(await rest.about()):
+                        why = f"{api} won't do: {refused}"
+                    elif settings.account in await rest.accounts():
                         logger.info("%s has the account", api)
                         return
-                    why = (
-                        f"{api} has no account {settings.account} yet: register "
-                        "or link it with nejomibot-account setup"
-                    )
+                    else:
+                        why = (
+                            f"{api} has no account {settings.account} yet: register "
+                            "or link it with nejomibot-account setup"
+                        )
                 except rest.RestError as e:
                     why = f"{api} answers with an error: {e}"
                 except Exception as e:

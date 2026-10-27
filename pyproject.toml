@@ -25,6 +25,7 @@ dependencies = [
     "python-dateutil>=2.9",
     "tzdata",
     "segno>=1.6.6",
+    "packaging>=26.3",
 ]
 
 [project.urls]

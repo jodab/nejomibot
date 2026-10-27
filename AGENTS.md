@@ -240,9 +240,11 @@ obvious from the code.
 **Startup** (`bot.main`): the settings (`config.py`, pydantic-settings: TOML
 from `NEJOMIBOT_CONFIG` or `./config.toml`, overridden by `NEJOMIBOT_*`
 variables; `extra="forbid"`, so a renamed or removed setting stops the bot
-with a message). `wait_for_account()` polls signal-cli-rest-api until it has
-the account, answering the container health check meanwhile
-(`rest.accounts()` reads both of upstream's `/v1/accounts` formats). Then
+with a message). `wait_for_account()` polls signal-cli-rest-api until
+signalbot will start with it (`health.refused_by_signalbot()`, as signalbot
+checks its version and mode) and it has the account, answering the
+container health check meanwhile (`rest.accounts()` reads both of
+upstream's `/v1/accounts` formats). Then
 `SignalBot`, the outbox (with the messages kept from the last run), the
 allowed list, the handlers, the timers and the health checks; `bot.start()`
 runs signalbot's event loop and APScheduler, and signalbot takes over

@@ -25,6 +25,7 @@ from nejomibot.health import (
     check_health,
     delivery_check,
     is_too_old,
+    refused_by_signalbot,
     run_check,
 )
 
@@ -268,6 +269,24 @@ async def test_signal_cli_rest_api_in_the_wrong_mode(
 )
 def test_is_too_old(version: str, too_old: bool) -> None:
     assert is_too_old(version) is too_old
+
+
+@pytest.mark.parametrize(
+    ("version", "mode", "refused"),
+    [
+        ("0.101", "json-rpc", ""),
+        ("unset", "json-rpc", ""),  # a build between releases
+        ("0.102.dev0+mine.9e3ec82", "json-rpc", ""),
+        ("0.100", "json-rpc", "its version 0.100 is older than 0.101.0, which"),
+        # As a build with a version of its own may have it
+        ("mine/numberless@9e3ec82", "json-rpc", "signalbot can't read its version"),
+        ("0.101", "normal", "it runs in normal mode, and the bot needs json-rpc"),
+    ],
+)
+def test_refused_by_signalbot(version: str, mode: str, refused: str) -> None:
+    about = About(build=2, capabilities={}, mode=mode, version=version, versions=[])
+    found = refused_by_signalbot(about)
+    assert found.startswith(refused) and bool(found) is bool(refused)
 
 
 async def test_signal_cli_rest_api_too_old(bot: SignalBot, signal_api: FakeApi) -> None:

@@ -4,6 +4,17 @@ All notable changes to nejomibot are documented in this file, newest first,
 together with anything you need to do when updating. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Fixed
+
+- At its start, the bot waits, saying why, while signal-cli-rest-api is one
+  that signalbot won't start with: one whose version signalbot can't read,
+  such as a build's own `mine/branch@commit` (give it a PEP 440 version, or
+  `unset`, with `BUILD_VERSION`), one older than 0.101.0, or one in a mode
+  other than json-rpc. signalbot retried its start forever, logging a
+  traceback each time, and the bot heard nothing.
+
 ## 0.99.40 - 2026-10-27
 
 ### Fixed

@@ -218,6 +218,7 @@ version = "0.99.40"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
+    { name = "packaging" },
     { name = "pillow" },
     { name = "pillow-heif" },
     { name = "pydantic-settings" },
@@ -244,6 +245,7 @@ translations = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.11" },
+    { name = "packaging", specifier = ">=26.3" },
     { name = "pillow", specifier = ">=13.0" },
     { name = "pillow-heif", specifier = ">=1.8" },
     { name = "pydantic-settings", specifier = ">=2.11" },
