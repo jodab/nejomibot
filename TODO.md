@@ -48,15 +48,22 @@ registered with a Signal Login, and work with people who have none.
   owner's Raspberry Pi runs, has its numberless support (#896, 787d204e):
   its paths and its send requests take an ACI where they take the number,
   and `/v1/accounts` lists `{"number", "aci"}`. Its `register` can't take a
-  Recovery Key (or a `totp`), so it can only link such an account.
+  Recovery key (or a `totp`), so it can only link such an account. Its
+  websocket hears nothing for the ACI of an account with a number, as
+  signal-cli names that account by its number. The owner's fork
+  (jodab/signal-cli-rest-api, `numberless-account-ids`) mends both:
+  `register` takes `recovery_key`, `totp` and `reregister`, and an ACI
+  stands for its number.
 - *signalbot:* passes `Config.phone_number` on only in paths and as the
   sender, so an ACI works, as far as the code goes.
 - *The bot:* done, with tests against a fake signal-cli-rest-api: `account`
   takes a Signal ID; `/status` and `/profile` warn while an account without
   a number has no username; `nejomibot-account` matches an account by its
   number or ID, shows its Signal ID, skips the PIN and the number's privacy
-  in `setup`, refuses `privacy`, notes what a PIN guards, and warns before
-  `unregister`; the README and config.example.toml describe it. The
+  in `setup`, refuses `privacy`, notes what a PIN guards, warns before
+  `unregister`, and restores the account with its Recovery key (`restore`,
+  and `setup` for a Signal ID), where signal-cli-rest-api can; the README
+  and config.example.toml describe it. The
   profile moves to a new account by itself: `bot.txt` keeps it.
 
 **Steps:**
@@ -112,12 +119,13 @@ of signalbot and signal-cli-rest-api for them.
   whether an admin should be able to send the bot the `signalcaptcha://`
   link in a direct chat instead, which would be a new command.
 - [ ] **signal-cli-rest-api can't restore an account with its Recovery
-  Key**: its `register` takes neither the key nor a TOTP, so only signal-cli
-  itself can. Once it can (the owner's request, 2026-10-25):
-  - `nejomibot-account setup` restores the account, with the key asked for
-    as PINs are, or read from a file such as a Podman or Docker secret
-    (`/run/secrets/...`), never from the config or the environment, which
-    `podman inspect`, logs and process lists show.
+  key**: its `register` takes neither the key nor a TOTP, so only signal-cli
+  itself can, and the owner's fork. `nejomibot-account restore` and `setup`
+  send them already. Once a release takes them (the owner's request,
+  2026-10-25):
+  - Drop "which no release has yet" from the README, `nejomibot-account
+    --help` and the changelog's note, and the README's pointer to
+    signal-cli's own `register --recovery-key`.
   - The bot may restore its account as it starts, with its Signal ID from
     `account` and the key from such a file, but only when
     signal-cli-rest-api has no account at all, as on a new install: never to

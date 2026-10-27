@@ -283,7 +283,7 @@ the bot over an abstract Unix socket, which only its user and root may use.
 
 ## The Signal account
 
-`nejomibot-account` registers or links the account, and manages its
+`nejomibot-account` registers, restores or links the account, and manages its
 profile, username, PIN, privacy, linked devices, safety numbers and rate
 limits; `--dry-run` sends nothing.
 
@@ -313,9 +313,11 @@ an admin's rights in a chat with an admin. The phone must come online every
 Signal Android's beta registers accounts without a number, with a Signal
 Login: an Account ID, which the bot calls the Signal ID, and a Recovery key.
 Set `account` to the Signal ID, and give the bot a username, by which alone
-people can find it. signal-cli-rest-api can link to such an account but not
-restore it; signal-cli's `register --recovery-key` can, on
-signal-cli-rest-api's data while it's stopped. People without a number go
+people can find it. `nejomibot-account restore` restores the account with
+its Recovery key, on a signal-cli-rest-api whose register takes a
+`recovery_key`, which no release has yet; until then, signal-cli's
+`register --recovery-key` can, on signal-cli-rest-api's data while it's
+stopped. People without a number go
 by their Signal ID in `admins`, `/allow` and `/admin add`.
 
 ## Health checks

@@ -6,6 +6,17 @@ together with anything you need to do when updating. The format follows
 
 ## Unreleased
 
+### Added
+
+- `nejomibot-account restore` restores an account by its Signal ID with its
+  Recovery key, typed in unseen or read from a file (`--key-file`), with a
+  TOTP code if Signal wants one (asked for, or `--totp`). `setup` offers it
+  when `account` is a Signal ID that signal-cli doesn't have, where it
+  stopped before, as there was no number to register. It takes a
+  signal-cli-rest-api whose register takes a `recovery_key`, which no
+  release has yet. The key may be given as Signal Android shows it: in upper
+  case, with `#` for O and `=` for 0, in groups.
+
 ### Fixed
 
 - At its start, the bot waits, saying why, while signal-cli-rest-api is one

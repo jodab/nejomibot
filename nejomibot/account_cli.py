@@ -1,5 +1,6 @@
 """nejomibot-account: the bot's Signal account in signal-cli-rest-api, from a
-terminal: registering a number or linking to a phone, the profile, the
+terminal: registering a number, restoring an account with its Recovery key
+or linking to a phone, the profile, the
 username, the PIN and privacy, the linked devices, the safety numbers and
 rate limits. HELP below says how.
 
@@ -68,6 +69,7 @@ AVATAR_MAX_BYTES = 10 * 1024 * 1024
 REGISTRATION_CAPTCHA = "https://signalcaptchas.org/registration/generate.html"
 CHALLENGE_CAPTCHA = "https://signalcaptchas.org/challenge/generate.html"
 CAPTCHA_START = "signalcaptcha://"
+RECOVERY_KEY_LENGTH = 64  # letters and digits, as Signal keeps it
 # A link to a device to link, from its QR code: sgnl://linkdevice?..., or
 # tsdevice:... from older apps
 DEVICE_LINK = ("sgnl://linkdevice?", "tsdevice:")
@@ -86,7 +88,7 @@ HELP = f"""\
 {PROG}: set up and look after the bot's Signal account in signal-cli-rest-api.
 
 Everything signal-cli-rest-api can do with the account itself: register a
-number or link, the profile (name, About, avatar), username, PIN,
+number, restore or link, the profile (name, About, avatar), username, PIN,
 privacy, linked devices, safety numbers and rate limits. It only talks to the
 REST API, one request at a time, explains what Signal answers, and asks
 before anything that can't be undone.
@@ -94,8 +96,9 @@ before anything that can't be undone.
 Usage: {PROG} [options] [COMMAND [ARGS...]]
 
 Setting up
-  setup                      guided: register or link, then the profile,
-                             username, PIN and privacy, each one skippable
+  setup                      guided: register, restore or link, then the
+                             profile, username, PIN and privacy, each one
+                             skippable
   register [--voice] [--captcha LINK]
                              have Signal send a verification code by SMS, or
                              call with it (--voice); walks through a captcha
@@ -103,7 +106,12 @@ Setting up
                              and has it sent again if none comes
   verify CODE [--pin]        finish registering with the code; --pin asks for
                              the PIN of a number with a registration lock
-  link [NAME]                make signal-cli a linked device of a phone,
+  restore [--key-file FILE] [--totp CODE]
+                             restore an account by its Signal ID, as one
+                             without a number is, with its Recovery key,
+                             typed in unseen or read from FILE (see RESTORE
+                             below)
+  link [NAME]              make signal-cli a linked device of a phone,
                              called NAME there (default {DEFAULT_DEVICE}), to use
                              its account: shows a QR code to scan, and
                              waits for it (see LINKED below)
@@ -179,7 +187,8 @@ Options, before or after the command
   -n, --dry-run              show the request that would change something,
                              and stop there
   -j, --json                 print what the API answers, as JSON
-  -v, --verbose              show every request (PINs and captchas hidden)
+  -v, --verbose              show every request (PINs, keys and captchas
+                             hidden)
   -h, --help                 show this help
 
 Examples
@@ -214,9 +223,15 @@ The bot keeps its profile in bot.txt in its data folder, and at each start
 changes what differs from it: where that folder is, as in the bot's
 container, what the tool changes in the profile goes there too.
 
+RESTORE: signal-cli becomes the account's primary device, so wherever it was
+that before, a phone or another signal-cli, it stops working. It takes a
+signal-cli-rest-api whose register takes a recovery_key, which no release
+has yet. If Signal wants a TOTP code too, restore asks for it, or takes
+--totp.
+
 LINKED: linked to a phone, the bot uses the phone's account, which stays
-there. It needs no number of its own, and it's how signal-cli-rest-api can
-take an account without a number, as Signal Login creates (see the README).
+there. It needs no number of its own, and it's the other way to use an
+account without a number, as Signal Login creates (see the README).
 The phone has to come online at least once every 30 days, or Signal
 unlinks the bot, and only the phone can link it again, set the PIN or link
 other devices. What is typed on the phone in a direct chat reaches the bot
@@ -294,6 +309,28 @@ def normal_account(text: str) -> str:
         )
         account = "-".join(parts)
     return account
+
+
+def six_digits(code: str, what: str) -> str:
+    """The code's digits, as Signal shows them, like 123-456. Raises Stop."""
+    digits = "".join(each for each in code if each in "0123456789")
+    if len(digits) != 6:
+        raise Stop(f"{what} has 6 digits, like 123-456.")
+    return digits
+
+
+def stored_key(text: str) -> str:
+    """A Recovery key as Signal keeps it, in lower case, read as Signal
+    Android reads one back from the form it shows: in upper case, with # for
+    O and = for 0, in groups. Raises Stop."""
+    key = text.replace("#", "o").replace("=", "0").lower()
+    key = re.sub(r"[^0-9a-z]", "", key)
+    if len(key) != RECOVERY_KEY_LENGTH:
+        raise Stop(
+            f"A Recovery key has {RECOVERY_KEY_LENGTH} letters and digits, and that "
+            f"has {len(key)}."
+        )
+    return key
 
 
 def utf8(text: str, what: str) -> str:
@@ -448,7 +485,7 @@ def shown(body: dict[str, Any]) -> str:
     avatar summed up."""
     hidden = {
         key: "(hidden)"
-        if key in ("pin", "captcha")
+        if key in ("pin", "captcha", "recovery_key", "totp")
         else f"({len(value)} characters)"
         if key == "base64_avatar"
         else value
@@ -807,19 +844,24 @@ class Tool:
         self.account = self.account or self.settings.value("account")
 
     def use_account(
-        self, *, registered: bool = True, number_only: bool = False
+        self,
+        *,
+        registered: bool = True,
+        number_only: bool = False,
+        id_only: bool = False,
     ) -> None:
         """Settle the account: --account, NEJOMIBOT_ACCOUNT, the bot's
         config, or else the only one signal-cli has. It must be registered in
-        signal-cli unless not registered, and a phone number if number_only, as
-        for registering; otherwise a Signal ID will do, for an account without
-        a number."""
+        signal-cli unless not registered, a phone number if number_only, as
+        for registering, and a Signal ID if id_only, as for restoring;
+        otherwise either will do."""
         self.configured_account()
         if not self.account:
             self.list_accounts()
             if not self.accounts:
                 raise Stop(
-                    "signal-cli has no account yet: run setup, or register or link."
+                    "signal-cli has no account yet: run setup, or register, restore "
+                    "or link."
                 )
             if len(self.accounts) > 1:
                 raise Stop(
@@ -835,6 +877,12 @@ class Tool:
                     f"Not a phone number in international format: {self.account} "
                     "(like +46701234567)"
                 )
+        elif id_only:
+            if not is_signal_id(self.account):
+                raise Stop(
+                    f"Not a Signal ID: {self.account}. A Recovery key restores an "
+                    "account by its Signal ID, the Account ID that Signal shows."
+                )
         elif not (is_number(self.account) or is_signal_id(self.account)):
             raise Stop(
                 "Neither a phone number in international format (like +46701234567) "
@@ -845,7 +893,7 @@ class Tool:
             has = f", which has {' '.join(self.accounts)}" if self.accounts else ""
             raise Stop(
                 f"{self.account} isn't registered in signal-cli at {self.url}{has}: "
-                "run setup, or register or link."
+                "run setup, or register, restore or link."
             )
 
     def read_me(self) -> None:
@@ -1132,9 +1180,7 @@ class Tool:
         """Finish registering with the code Signal sent, and the registration
         lock PIN if the number has one: asked for first if ask_pin, or once
         Signal wants it."""
-        digits = "".join(each for each in code if each in "0123456789")
-        if len(digits) != 6:
-            raise Stop("A Signal code has 6 digits, like 123-456.")
+        digits = six_digits(code, "A Signal code")
         pin = self.ask_secret("The registration lock PIN:") if ask_pin else ""
         while True:
             body = {"pin": utf8(pin, "The PIN")} if pin else {}
@@ -1169,6 +1215,68 @@ class Tool:
             except Stop as e:
                 error(str(e))
         return code
+
+    def id_to_restore(self) -> bool:
+        """Settle the account to restore, by its Signal ID: --account, the
+        bot's settings, or asked for; once restoring it here is confirmed.
+        Whether signal-cli has it already, so that it's registered anew."""
+        self.configured_account()
+        if not self.account:
+            self.account = self.ask("The account's Signal ID (its Account ID):")
+        self.use_account(registered=False, id_only=True)
+        again = self.is_registered(self.account)
+        if again:
+            warn(
+                f"{self.account} is registered in signal-cli already: restoring it "
+                "again registers it anew."
+            )
+        say(
+            f"Restored, signal-cli is the primary device of {self.account}: "
+            "wherever that was before, a phone or another signal-cli, it stops "
+            "working. Two copies of an account must never run at once."
+        )
+        if not self.confirm("Restore it here?"):
+            raise Stop("Nothing has been changed.")
+        return again
+
+    def recovery_key(self, key_file: str) -> str:
+        """The Recovery key, from the file, else typed in unseen: never from
+        the command line, the config or the environment, which process
+        lists, podman inspect and logs show."""
+        if not key_file:
+            return stored_key(self.ask_secret("The Recovery key (not shown):"))
+        try:
+            with Path(key_file).expanduser().open(errors="replace") as f:
+                given = f.read(1024)
+        except OSError as e:
+            raise Stop(
+                f"Can't read the Recovery key from {key_file}: {e.strerror or e}"
+            ) from e
+        return stored_key(given)
+
+    def restore(self, key: str, totp: str, again: bool) -> None:
+        """Restore the account with its Recovery key, which needs no code
+        from Signal, only a TOTP code if Signal wants one; again if signal-cli
+        has the account already."""
+        while True:
+            body: dict[str, Any] = {"recovery_key": key}
+            if totp:
+                body["totp"] = totp
+            if again:
+                body["reregister"] = True
+            answer = self.change(
+                "POST", f"/v1/register/{self.account_path}", body, slow=True
+            )
+            if answer.ok:
+                break
+            if "TOTP token is required" not in answer.error():
+                self.fail("Signal didn't restore the account", answer)
+            if not interactive():
+                raise Stop(
+                    "Signal wants a TOTP code too: run restore again, with --totp CODE."
+                )
+            totp = six_digits(self.ask("The TOTP code Signal wants:"), "A TOTP code")
+        info(f"{self.account} is restored.")
 
     def link_device(self, name: str) -> None:
         """Make signal-cli a linked device of a phone, called name there: show
@@ -1298,16 +1406,33 @@ class Tool:
             self.account = account
             info(f"{account} is registered in signal-cli already.")
         else:
-            say(
-                "The bot needs a Signal account: a number registered here for the bot "
-                "alone, or the account of a phone with Signal, which it is linked to."
-            )
-            how = self.ask(
-                "Register a number as a new Signal account (r), or link to a phone "
-                "with Signal (l)?",
-                "r",
-            ).lower()
-            if how.startswith("r"):
+            by_id = is_signal_id(account)
+            if by_id:
+                say(
+                    f"The bot's account is {account}, a Signal ID, which takes no "
+                    "code: restore the account here with its Recovery key, or link "
+                    "to a phone with Signal that has it."
+                )
+                how = self.ask(
+                    "Restore it with its Recovery key (k), or link to a phone with "
+                    "Signal (l)?",
+                    "k",
+                ).lower()
+            else:
+                say(
+                    "The bot needs a Signal account: a number registered here for the "
+                    "bot alone, or the account of a phone with Signal, which it is "
+                    "linked to."
+                )
+                how = self.ask(
+                    "Register a number as a new Signal account (r), or link to a "
+                    "phone with Signal (l)?",
+                    "r",
+                ).lower()
+            if how.startswith("k") and by_id:
+                again = self.id_to_restore()
+                self.restore(self.recovery_key(""), "", again)
+            elif how.startswith("r") and not by_id:
                 self.number_to_register()
                 self.register(False, "")
                 self.verify(self.get_code(), False)
@@ -1315,7 +1440,7 @@ class Tool:
                 self.link_device(DEFAULT_DEVICE)
                 linked = True
             else:
-                raise Stop("Neither r nor l: stopped.")
+                raise Stop(f"Neither {'k' if by_id else 'r'} nor l: stopped.")
         self.use_account()
         self.read_me()
 
@@ -1373,7 +1498,7 @@ class Tool:
         elif self.numberless:
             say(
                 "A registration lock PIN guards a phone number, which this account "
-                "doesn't have: its Recovery Key restores it. Skipped."
+                "doesn't have: its Recovery key restores it. Skipped."
             )
         else:
             say(
@@ -1437,6 +1562,11 @@ class Tool:
         self.use_account(registered=False, number_only=True)
         self.verify(args.code, args.pin)
         info(f"Next, its name: {PROG} profile --name NAME")
+
+    def cmd_restore(self, args: argparse.Namespace) -> None:
+        totp = six_digits(args.totp, "A TOTP code") if args.totp else ""
+        again = self.id_to_restore()
+        self.restore(self.recovery_key(args.key_file or ""), totp, again)
 
     def cmd_link(self, args: argparse.Namespace) -> None:
         self.link_device(args.name or DEFAULT_DEVICE)
@@ -1503,7 +1633,7 @@ class Tool:
             if self.numberless:
                 warn(
                     f"A registration lock PIN guards a phone number, which "
-                    f"{self.account} doesn't have: its Recovery Key restores it."
+                    f"{self.account} doesn't have: its Recovery key restores it."
                 )
                 if not self.confirm("Set a PIN all the same?"):
                     raise Stop("Nothing has been changed.")
@@ -1611,7 +1741,7 @@ class Tool:
             )
         elif self.numberless:
             warn(
-                f"Without a phone number, only its Recovery Key restores "
+                f"Without a phone number, only its Recovery key restores "
                 f"{self.account}, and signal-cli-rest-api can't use one yet (see the "
                 "README)."
             )
@@ -1952,6 +2082,8 @@ VALUED = {
             "--about",
             "--avatar",
             "--captcha",
+            "--key-file",
+            "--totp",
             "--number-seen-by",
             "--findable-by-number",
             "--to",
@@ -2024,6 +2156,9 @@ def arguments(argv: Sequence[str]) -> argparse.Namespace:
     verify = command("verify")
     verify.add_argument("code")
     verify.add_argument("--pin", action="store_true")
+    restore = command("restore")
+    restore.add_argument("--key-file")
+    restore.add_argument("--totp")
     command("link").add_argument("name", nargs="?")
     profile = command("profile")
     profile.add_argument("--name")
@@ -2074,6 +2209,7 @@ COMMANDS: dict[str, Callable[[Tool, argparse.Namespace], None]] = {
     "setup": Tool.cmd_setup,
     "register": Tool.cmd_register,
     "verify": Tool.cmd_verify,
+    "restore": Tool.cmd_restore,
     "link": Tool.cmd_link,
     "profile": Tool.cmd_profile,
     "username": Tool.cmd_username,

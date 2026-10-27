@@ -178,7 +178,7 @@ async def test_an_account_signal_cli_doesnt_have(tool: Tool) -> None:
     assert await tool("-a", ALICE, "status") == 1
     assert tool.err == (
         f"ERROR: {ALICE} isn't registered in signal-cli at {tool_url(tool)}, which "
-        f"has {ME}: run setup, or register or link.\n"
+        f"has {ME}: run setup, or register, restore or link.\n"
     )
 
 
@@ -486,6 +486,130 @@ async def test_verify_with_the_pin(tool: Tool, signal_api: FakeApi) -> None:
     assert await tool("-a", ALICE, "verify", "654321") == 0
     assert tool.sent("POST", path) == [{}, {"pin": "2468"}]
     assert f"{ALICE} is registered." in tool.out
+
+
+# A Recovery key as Signal keeps it, and as Signal Android shows it: in upper
+# case, # for o and = for 0, in groups
+KEY = "0o" + "ab12" * 15 + "cd"
+SHOWN_KEY = " ".join(
+    KEY.upper().replace("O", "#").replace("0", "=")[i : i + 4] for i in range(0, 64, 4)
+)
+
+
+@pytest.fixture
+def key_file(tmp_path: Path) -> str:
+    """A file with the Recovery key, as Signal Android shows it."""
+    path = tmp_path / "recovery-key"
+    path.write_text(SHOWN_KEY + "\n")
+    return str(path)
+
+
+async def test_restore(tool: Tool, key_file: str) -> None:
+    # It warns that the account stops working elsewhere, and asks first
+    assert await tool("-a", NEW_ID, "restore", "--key-file", key_file) == 1
+    assert "it stops working" in tool.out
+    assert "give --yes to go ahead" in tool.err
+    assert tool.changes() == []
+    assert (
+        await tool("-v", "--yes", "-a", NEW_ID, "restore", "--key-file", key_file) == 0
+    )
+    assert tool.sent("POST", f"/v1/register/{NEW_ID}") == [{"recovery_key": KEY}]
+    assert f"{NEW_ID} is restored." in tool.out
+    # Never shown
+    assert KEY not in tool.out + tool.err and SHOWN_KEY not in tool.out + tool.err
+    assert '{"recovery_key":"(hidden)"}' in tool.err
+
+
+async def test_restore_registers_anew(tool: Tool, key_file: str) -> None:
+    assert await tool("--yes", "-a", ME_ID, "restore", "--key-file", key_file) == 0
+    assert "registered in signal-cli already" in tool.err
+    assert tool.sent("POST", f"/v1/register/{ME_ID}") == [
+        {"recovery_key": KEY, "reregister": True}
+    ]
+
+
+@pytest.mark.parametrize(
+    ("argv", "error"),
+    [
+        (["-a", ALICE, "restore"], f"Not a Signal ID: {ALICE}."),
+        (["-a", NEW_ID, "restore", "--totp", "12345"], "A TOTP code has 6 digits"),
+        (["-a", NEW_ID, "restore", "--key-file", "/nonexistent"], "Can't read the"),
+    ],
+)
+async def test_restore_refused(tool: Tool, argv: list[str], error: str) -> None:
+    assert await tool("--yes", *argv) == 1
+    assert error in tool.err
+    assert tool.changes() == []
+
+
+@pytest.mark.usefixtures("at_terminal")
+async def test_restore_asks_for_the_key_and_a_totp(
+    tool: Tool, signal_api: FakeApi
+) -> None:
+    path = f"/v1/register/{NEW_ID}"
+    tool.answers = ["y"]
+    tool.secrets = [KEY[:-1]]
+    assert await tool("-a", NEW_ID, "restore") == 1
+    assert "A Recovery key has 64 letters and digits, and that has 63." in tool.err
+    answering(
+        signal_api,
+        "POST",
+        path,
+        (400, {"error": "A TOTP token is required; rerun register with --totp TOKEN"}),
+        (201, None),
+    )
+    tool.answers = ["y", "123 456"]
+    tool.secrets = [SHOWN_KEY]
+    assert await tool("-a", NEW_ID, "restore") == 0
+    assert tool.sent("POST", path) == [
+        {"recovery_key": KEY},
+        {"recovery_key": KEY, "totp": "123456"},
+    ]
+
+
+async def test_restore_without_a_terminal_takes_the_totp(
+    tool: Tool, signal_api: FakeApi, key_file: str
+) -> None:
+    path = f"/v1/register/{NEW_ID}"
+    answering(
+        signal_api,
+        "POST",
+        path,
+        (400, {"error": "A TOTP token is required; rerun register with --totp TOKEN"}),
+    )
+    restore = ["--yes", "-a", NEW_ID, "restore", "--key-file", key_file]
+    assert await tool(*restore) == 1
+    assert "run restore again, with --totp CODE" in tool.err
+    answering(signal_api, "POST", path, (201, None))
+    assert await tool(*restore, "--totp", "123-456") == 0
+    assert tool.sent("POST", path)[-1] == {"recovery_key": KEY, "totp": "123456"}
+
+
+@pytest.mark.usefixtures("at_terminal")
+async def test_setup_restores_an_account_by_its_id(
+    tool: Tool, signal_api: FakeApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("NEJOMIBOT_ACCOUNT", NEW_ID)
+    answering(
+        signal_api,
+        "GET",
+        "/v1/accounts",
+        (200, [{"number": ME, "aci": ME_ID}]),  # setup's look
+        (200, [{"number": ME, "aci": ME_ID}]),  # restore's
+        (200, [{"number": ME, "aci": ME_ID}, {"number": "", "aci": NEW_ID}]),
+    )
+    me = {**MYSELF, "number": "", "uuid": NEW_ID}
+    signal_api.responses[f"/v1/contacts/{NEW_ID}/{NEW_ID}?all"] = me
+    signal_api.responses[f"/v1/devices/{NEW_ID}"] = []
+    signal_api.responses[f"/v1/identities/{NEW_ID}"] = []
+    # Restore (the default), yes; then Enter for the profile and the username
+    tool.answers = ["", "y", "", "", "", ""]
+    tool.secrets = [SHOWN_KEY]
+    assert await tool("setup") == 0
+    assert "Restore it with its Recovery key (k), or link" in tool.err
+    assert tool.sent("POST", f"/v1/register/{NEW_ID}") == [{"recovery_key": KEY}]
+    assert f"{NEW_ID} is restored." in tool.out
+    assert f"Account      {NEW_ID}, without a phone number" in tool.out
 
 
 async def test_link(
