@@ -249,7 +249,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11" },
     { name = "python-dateutil", specifier = ">=2.9" },
     { name = "segno", specifier = ">=1.6.6" },
-    { name = "signalbot", specifier = "==2.2.0" },
+    { name = "signalbot", specifier = "==2.2.1" },
     { name = "tzdata" },
 ]
 
@@ -615,7 +615,7 @@ wheels = [
 
 [[package]]
 name = "signalbot"
-version = "2.2.0"
+version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -627,9 +627,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/81/98/27225444eb0113e1b5739b92e7cc71c08e8569a903be4b732467bc08ec63/signalbot-2.2.0.tar.gz", hash = "sha256:e3e29f33f9f6c0a6dc564b65451072f781f6d6cd8651d00e6ecfd14712e53a62", size = 65905, upload-time = "2026-10-24T14:31:39.659Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8f/8b/274533a1f1b000c9848e7c0d64c2dfc244be151286c5c118d44f65ed59fa/signalbot-2.2.1.tar.gz", hash = "sha256:68a8ba6d1174de2e8de1ea8266df8d5c2f9699e8a67b49364f3bf2e6ea89370c", size = 66177, upload-time = "2026-10-25T15:37:45.529Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/4f/af580ab249392e57f9294cb87974bb9e41a22c1d37f8f26bc2debc8f6c5d/signalbot-2.2.0-py3-none-any.whl", hash = "sha256:024767c3617e838d88cf76a36c6d07b66db7370785138b62d9d1ad557569e9e5", size = 138727, upload-time = "2026-10-24T14:31:38.398Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/0d/45a947945d7057b1f4cda58daccdab2c916b46e683050e460d6982432136/signalbot-2.2.1-py3-none-any.whl", hash = "sha256:829900795588ecbe973699848ec07c525df52badb9b59a09f049e63eb0c13c99", size = 139001, upload-time = "2026-10-25T15:37:43.91Z" },
 ]
 
 [[package]]

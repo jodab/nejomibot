@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Communications :: Chat",
 ]
 dependencies = [
-    "signalbot==2.2.0",
+    "signalbot==2.2.1",
     "aiohttp>=3.11",
     "pillow>=13.0",
     "pillow-heif>=1.8",
